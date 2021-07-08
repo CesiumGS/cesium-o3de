@@ -1,6 +1,6 @@
 {
-    "PackageName": "cesium-native",
+    "PackageName": "CesiumNative",
     "URL": "https://cesium.com",
     "License": "Apache 2.0",
-    "LicenseFile": "cesium-native/LICENSE"
+    "LicenseFile": "CesiumNative/LICENSE"
 }
