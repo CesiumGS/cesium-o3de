@@ -14,3 +14,8 @@ set(CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_PREFIX}/lib/${CMAKE_SYSTEM_NAME})
 
 add_subdirectory(CesiumNative)
 set_target_properties(cesium-native-tests PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
+
+# trigger post install script. E.g:
+# - copy License file to Package/CesiumNative
+# - generate SHA256 for every files in the Package/CesiumNative 
+install (SCRIPT "${CMAKE_CURRENT_LIST_DIR}/PostInstall.cmake")
