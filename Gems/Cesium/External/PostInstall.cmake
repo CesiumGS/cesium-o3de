@@ -24,8 +24,8 @@ file(WRITE ${PACKAGE_BUILD_DIR}/SHA256SUMS ${SHA256SUMS_CONTENT})
 
 # create tarball file for Packages/Install directory
 file(MAKE_DIRECTORY ${PACKAGE_INSTALL_DIR})
-execute_process(COMMAND ${CMAKE_COMMAND} -E tar "cJf" "${PACKAGE_INSTALL_DIR}/CesiumNative.tar.xz" "${PACKAGE_BUILD_DIR}"
-                WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
+execute_process(COMMAND ${CMAKE_COMMAND} -E tar "cJf" "${PACKAGE_INSTALL_DIR}/CesiumNative.tar.xz" "."
+                WORKING_DIRECTORY ${PACKAGE_BUILD_DIR})
 
 # save tarball SHA256 in a file for o3de
 file(SHA256 ${PACKAGE_INSTALL_DIR}/CesiumNative.tar.xz TARBALL_CHECKSUM)

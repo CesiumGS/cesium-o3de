@@ -13,7 +13,7 @@ ly_get_list_relative_pal_filename(pal_dir ${CMAKE_CURRENT_LIST_DIR}/Platform/${P
 include(${pal_dir}/PAL_${PAL_PLATFORM_NAME_LOWERCASE}.cmake)
 
 # Add CesiumNative as a third party
-ly_associate_package(PACKAGE_NAME CesiumNative TARGETS CesiumNative PACKAGE_HASH 3efb789279dbf0cb21f55f087d01c081bda910092d1e40caeb248dd9b43453da)
+ly_associate_package(PACKAGE_NAME CesiumNative TARGETS CesiumNative PACKAGE_HASH 5e592ff260402b88e73fa2d96be789c1174cbd0cd73a26e5301251a045e7405f)
 
 # Add the Cesium.Static target
 # Note: We include the common files and the platform specific files which are set in cesium_common_files.cmake
