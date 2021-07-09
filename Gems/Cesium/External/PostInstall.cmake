@@ -1,5 +1,5 @@
 set(PACKAGE_BUILD_DIR ${CMAKE_CURRENT_LIST_DIR}/Packages)
-set(PACKAGE_INSTALL_DIR ${PACKAGE_DIR}/Install)
+set(PACKAGE_INSTALL_DIR ${PACKAGE_BUILD_DIR}/Install)
 
 # copy license file to Packages/CesiumNative/CesiumNative
 file(COPY 
