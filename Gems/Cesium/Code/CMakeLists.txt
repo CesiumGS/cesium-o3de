@@ -13,6 +13,7 @@ ly_get_list_relative_pal_filename(pal_dir ${CMAKE_CURRENT_LIST_DIR}/Platform/${P
 include(${pal_dir}/PAL_${PAL_PLATFORM_NAME_LOWERCASE}.cmake)
 
 # Add CesiumNative as a third party
+message(WARNING "YOU ARE USING DEVELOPMENT BUILD OF CESIUM GEM. BEFORE RELEASING THE GEM, REPLACE THE CesiumNative_SHA256_PACKAGE WITH A REAL SHA256 OF CesiumNative PACKAGE")
 file(READ ${CMAKE_CURRENT_LIST_DIR}/../External/Packages/Install/SHA256SUMS CesiumNative_SHA256_PACKAGE)
 ly_associate_package(PACKAGE_NAME CesiumNative TARGETS CesiumNative PACKAGE_HASH ${CesiumNative_SHA256_PACKAGE})
 
