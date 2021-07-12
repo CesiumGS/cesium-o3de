@@ -38,6 +38,8 @@ ly_add_target(
         PUBLIC
             AZ::AzCore
             AZ::AzFramework
+            Gem::HttpRequestor
+            3rdParty::AWSNativeSDK::Core
             3rdParty::CesiumNative
 )
 
