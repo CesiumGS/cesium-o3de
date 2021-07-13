@@ -38,9 +38,11 @@ ly_add_target(
         PUBLIC
             AZ::AzCore
             AZ::AzFramework
-            Gem::HttpRequestor
             3rdParty::AWSNativeSDK::Core
             3rdParty::CesiumNative
+
+        PRIVATE
+            AZ::AWSNativeSDKInit
 )
 
 # Here add Cesium target, it depends on the Cesium.Static
