@@ -38,9 +38,9 @@ ly_add_target(
         PUBLIC
             AZ::AzCore
             AZ::AzFramework
+            AZ::AWSNativeSDKInit
             3rdParty::AWSNativeSDK::Core
             3rdParty::CesiumNative
-            AZ::AWSNativeSDKInit
 )
 
 # Here add Cesium target, it depends on the Cesium.Static

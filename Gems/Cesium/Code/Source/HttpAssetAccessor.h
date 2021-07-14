@@ -4,8 +4,8 @@
 #include <CesiumAsync/IAssetAccessor.h>
 #include <CesiumAsync/IAssetResponse.h>
 #include <CesiumAsync/Future.h>
-#include <AzCore/std/smart_ptr/unique_ptr.h>
 #include <AzCore/std/smart_ptr/shared_ptr.h>
+#include <aws/core/http/HttpTypes.h>
 #include <cstdint>
 #include <memory>
 #include <string>
@@ -23,10 +23,10 @@ namespace Aws
 namespace Cesium {
     class HttpManager;
 
-    class O3DEAssetResponse final : public CesiumAsync::IAssetResponse
+    class HttpAssetResponse final : public CesiumAsync::IAssetResponse
     {
     public:
-        O3DEAssetResponse(
+        HttpAssetResponse(
             std::uint16_t statusCode, std::string&& contentType, CesiumAsync::HttpHeaders&& headers, std::string&& responseData)
             : m_statusCode{ statusCode }
             , m_contentType{ std::move(contentType) }
@@ -62,11 +62,11 @@ namespace Cesium {
         std::string m_responseData;
     };
 
-    class O3DEAssetRequest final : public CesiumAsync::IAssetRequest
+    class HttpAssetRequest final : public CesiumAsync::IAssetRequest
     {
     public:
-        O3DEAssetRequest(
-            std::string&& method, std::string&& url, CesiumAsync::HttpHeaders&& headers, std::unique_ptr<O3DEAssetResponse> response)
+        HttpAssetRequest(
+            std::string&& method, std::string&& url, CesiumAsync::HttpHeaders&& headers, std::unique_ptr<HttpAssetResponse> response)
             : m_method{ std::move(method) }
             , m_url{ std::move(url) }
             , m_headers{ std::move(headers) }
@@ -98,12 +98,14 @@ namespace Cesium {
         std::string m_method;
         std::string m_url;
         CesiumAsync::HttpHeaders m_headers;
-        std::unique_ptr<O3DEAssetResponse> m_response;
+        std::unique_ptr<HttpAssetResponse> m_response;
     };
 
-    class O3DEAssetAccessor final : public CesiumAsync::IAssetAccessor {
+    class HttpAssetAccessor final : public CesiumAsync::IAssetAccessor {
+        struct HttpAssetCallback;
+
     public:
-        O3DEAssetAccessor(const AZStd::shared_ptr<HttpManager>& httpManager);
+        HttpAssetAccessor(const AZStd::shared_ptr<HttpManager>& httpManager);
 
         CesiumAsync::Future<std::shared_ptr<CesiumAsync::IAssetRequest>> requestAsset(
               const CesiumAsync::AsyncSystem& asyncSystem,
@@ -119,9 +121,18 @@ namespace Cesium {
         void tick() noexcept override;
 
     private:
-        static std::unique_ptr<O3DEAssetRequest> createO3DEAssetRequest(const Aws::Http::HttpRequest& request, const Aws::Http::HttpResponse& response);
+        static std::string ConvertMethodToString(Aws::Http::HttpMethod method);
 
-        static std::unique_ptr<O3DEAssetResponse> createO3DEAssetResponse(const Aws::Http::HttpResponse& response);
+        static CesiumAsync::HttpHeaders ConvertToCesiumHeaders(const std::vector<THeader> &headers);
+
+        static CesiumAsync::HttpHeaders ConvertToCesiumHeaders(const Aws::Http::HeaderValueCollection &headers);
+
+        static std::unique_ptr<HttpAssetRequest> CreateO3DEAssetRequest(const Aws::Http::HttpRequest& request, const Aws::Http::HttpResponse& response);
+
+        static std::unique_ptr<HttpAssetResponse> CreateO3DEAssetResponse(const Aws::Http::HttpResponse& response);
+
+        static const char* USER_AGENT_HEADER_KEY;
+        static const char* USER_AGENT_HEADER_VALUE;
 
         AZStd::shared_ptr<HttpManager> m_httpManager;
     };
