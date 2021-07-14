@@ -40,8 +40,6 @@ ly_add_target(
             AZ::AzFramework
             3rdParty::AWSNativeSDK::Core
             3rdParty::CesiumNative
-
-        PRIVATE
             AZ::AWSNativeSDKInit
 )
 

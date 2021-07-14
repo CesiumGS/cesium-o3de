@@ -7,17 +7,17 @@
 #include <AzCore/std/parallel/mutex.h>
 #include <AzCore/std/parallel/atomic.h>
 #include <AzCore/std/parallel/thread.h>
-#include <AzCore/std/parallel/conditional_variable.h>
-#include <string>
-#include <functional>
+#include <AzCore/std/parallel/condition_variable.h>
+#include <AzCore/std/functional.h>
+#include <AzCore/std/string/string.h>
 
 namespace Cesium
 {
     struct HttpRequestParameter final
     {
-        using HttpResponseCallback = std::function<void(const std::shared_ptr<Aws::Http::HttpResponse>&, Aws::Http::HttpResponseCode)>;
+        using HttpResponseCallback = AZStd::function<void(const std::shared_ptr<Aws::Http::HttpRequest>&, const std::shared_ptr<Aws::Http::HttpResponse>&)>;
 
-        HttpRequestParameter(std::string&& url, Aws::Http::HttpMethod method, HttpResponseCallback&& callback)
+        HttpRequestParameter(AZStd::string&& url, Aws::Http::HttpMethod method, HttpResponseCallback&& callback)
             : m_url{ std::move(url) }
             , m_method{ method }
             , m_callback{ std::move(callback) }
@@ -25,7 +25,7 @@ namespace Cesium
         }
 
         HttpRequestParameter(
-            std::string&& url,
+            AZStd::string&& url,
             Aws::Http::HttpMethod method,
             CesiumAsync::HttpHeaders&& headers,
             HttpResponseCallback&& callback)
@@ -37,10 +37,10 @@ namespace Cesium
         }
 
         HttpRequestParameter(
-            std::string&& url,
+            AZStd::string&& url,
             Aws::Http::HttpMethod method,
             CesiumAsync::HttpHeaders&& headers,
-            std::string&& body,
+            AZStd::string&& body,
             HttpResponseCallback&& callback)
             : m_url{ std::move(url) }
             , m_method{ method }
@@ -50,13 +50,13 @@ namespace Cesium
         {
         }
 
-        std::string m_url;
+        AZStd::string m_url;
 
         Aws::Http::HttpMethod m_method;
 
         CesiumAsync::HttpHeaders m_headers;
 
-        std::string m_body;
+        AZStd::string m_body;
 
         HttpResponseCallback m_callback;
     };

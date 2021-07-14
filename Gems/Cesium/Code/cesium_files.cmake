@@ -6,6 +6,6 @@ set(FILES
     Source/CesiumSystemComponent.h
     Source/HttpManager.cpp
     Source/HttpManager.h
-    Source/O3DEAssetAccessor.cpp
-    Source/O3DEAssetAccessor.h
+    Source/HttpAssetAccessor.cpp
+    Source/HttpAssetAccessor.h
 )

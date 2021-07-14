@@ -1,6 +1,5 @@
 #include "HttpManager.h"
 #include <AzCore/PlatformDef.h>
-#include <AzCore/std/functional.h>
 #include <AWSNativeSDKInit/AWSNativeSDKInit.h>
 #include <AzFramework/AzFramework_Traits_Platform.h>
 
@@ -19,6 +18,8 @@ AZ_POP_DISABLE_WARNING
 
 namespace Cesium
 {
+    const char* HttpManager::s_loggingName = "Http-Manager";
+
     HttpManager::HttpManager()
     {
         AZStd::thread_desc desc;
@@ -40,6 +41,7 @@ namespace Cesium
         {
             m_thread.join();
         }
+        AWSNativeSDKInit::InitializationManager::Shutdown();
     }
 
     void HttpManager::AddRequest(HttpRequestParameter&& httpRequestParameter)
@@ -109,13 +111,6 @@ namespace Cesium
         }
 
         auto httpResponse = httpClient->MakeRequest(httpRequest);
-
-        if (!httpResponse)
-        {
-            httpRequestParameter.m_callback(nullptr, Aws::Http::HttpResponseCode::INTERNAL_SERVER_ERROR);
-            return;
-        }
-
-        httpRequestParameter.m_callback(httpResponse, httpResponse->GetResponseCode());
+        httpRequestParameter.m_callback(httpRequest, httpResponse);
     }
 } // namespace Cesium

@@ -4,13 +4,25 @@
 #include <CesiumAsync/IAssetAccessor.h>
 #include <CesiumAsync/IAssetResponse.h>
 #include <CesiumAsync/Future.h>
-#include <aws/core/http/HttpResponse.h>
+#include <AzCore/std/smart_ptr/unique_ptr.h>
+#include <AzCore/std/smart_ptr/shared_ptr.h>
 #include <cstdint>
 #include <memory>
 #include <string>
 #include <map>
 
+namespace Aws
+{
+    namespace Http
+    {
+        class HttpRequest;
+        class HttpResponse;
+    }
+}
+
 namespace Cesium {
+    class HttpManager;
+
     class O3DEAssetResponse final : public CesiumAsync::IAssetResponse
     {
     public:
@@ -54,7 +66,7 @@ namespace Cesium {
     {
     public:
         O3DEAssetRequest(
-            std::string&& method, std::string&& url, CesiumAsync::HttpHeaders&& headers, O3DEAssetResponse&& response)
+            std::string&& method, std::string&& url, CesiumAsync::HttpHeaders&& headers, std::unique_ptr<O3DEAssetResponse> response)
             : m_method{ std::move(method) }
             , m_url{ std::move(url) }
             , m_headers{ std::move(headers) }
@@ -79,18 +91,20 @@ namespace Cesium {
 
         const CesiumAsync::IAssetResponse* response() const override
         {
-            return &m_response;
+            return m_response.get();
         }
 
     private:
         std::string m_method;
         std::string m_url;
         CesiumAsync::HttpHeaders m_headers;
-        O3DEAssetResponse m_response;
+        std::unique_ptr<O3DEAssetResponse> m_response;
     };
 
     class O3DEAssetAccessor final : public CesiumAsync::IAssetAccessor {
     public:
+        O3DEAssetAccessor(const AZStd::shared_ptr<HttpManager>& httpManager);
+
         CesiumAsync::Future<std::shared_ptr<CesiumAsync::IAssetRequest>> requestAsset(
               const CesiumAsync::AsyncSystem& asyncSystem,
               const std::string& url,
@@ -103,5 +117,12 @@ namespace Cesium {
               const gsl::span<const std::byte>& contentPayload = {}) override;
 
         void tick() noexcept override;
+
+    private:
+        static std::unique_ptr<O3DEAssetRequest> createO3DEAssetRequest(const Aws::Http::HttpRequest& request, const Aws::Http::HttpResponse& response);
+
+        static std::unique_ptr<O3DEAssetResponse> createO3DEAssetResponse(const Aws::Http::HttpResponse& response);
+
+        AZStd::shared_ptr<HttpManager> m_httpManager;
     };
 }
