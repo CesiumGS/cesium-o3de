@@ -1,4 +1,4 @@
-#include "HttpManager.h"
+#include <HttpManager.h>
 #include <AzCore/std/parallel/mutex.h>
 #include <AzCore/std/parallel/conditional_variable.h>
 #include <AzCore/std/smart_ptr/shared_ptr.h>
