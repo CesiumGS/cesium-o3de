@@ -32,14 +32,18 @@ ly_add_target(
     INCLUDE_DIRECTORIES
         PUBLIC
             Include
+        PRIVATE
             Source
     BUILD_DEPENDENCIES
         PUBLIC
             AZ::AzCore
             AZ::AzFramework
-            AZ::AWSNativeSDKInit
             3rdParty::AWSNativeSDK::Core
             3rdParty::CesiumNative
+            AZ::AWSNativeSDKInit
+    COMPILE_DEFINITIONS
+        PUBLIC
+            LIBASYNC_STATIC
 )
 
 # Here add Cesium target, it depends on the Cesium.Static
@@ -74,9 +78,10 @@ if(PAL_TRAIT_BUILD_HOST_TOOLS)
         FILES_CMAKE
             cesium_editor_files.cmake
         INCLUDE_DIRECTORIES
+            PRIVATE
+                Source
             PUBLIC
                 Include
-                Source
         BUILD_DEPENDENCIES
             PUBLIC
                 AZ::AzToolsFramework
@@ -91,12 +96,12 @@ if(PAL_TRAIT_BUILD_HOST_TOOLS)
         FILES_CMAKE
             cesium_editor_shared_files.cmake
         INCLUDE_DIRECTORIES
-            PUBLIC
-                Include
             PRIVATE
                 Source
+            PUBLIC
+                Include
         BUILD_DEPENDENCIES
-            PRIVATE
+            PUBLIC
                 Gem::Cesium.Editor.Static
     )
 
@@ -121,10 +126,12 @@ if(PAL_TRAIT_BUILD_TESTS_SUPPORTED)
             NAME Cesium.Tests ${PAL_TRAIT_TEST_TARGET_TYPE}
             NAMESPACE Gem
             FILES_CMAKE
+                cesium_files.cmake
                 cesium_tests_files.cmake
             INCLUDE_DIRECTORIES
                 PRIVATE
                     Tests
+                    Source
             BUILD_DEPENDENCIES
                 PRIVATE
                     AZ::AzTest
@@ -151,6 +158,7 @@ if(PAL_TRAIT_BUILD_TESTS_SUPPORTED)
                 INCLUDE_DIRECTORIES
                     PRIVATE
                         Tests
+                        Source
                 BUILD_DEPENDENCIES
                     PRIVATE
                         AZ::AzTest
