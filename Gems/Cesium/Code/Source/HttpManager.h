@@ -1,6 +1,8 @@
 
 #pragma once
 
+#include <CesiumAsync/AsyncSystem.h>
+#include <CesiumAsync/Future.h>
 #include <CesiumAsync/HttpHeaders.h>
 #include <aws/core/http/HttpResponse.h>
 #include <AzCore/std/containers/queue.h>
@@ -15,38 +17,24 @@ namespace Cesium
 {
     struct HttpRequestParameter final
     {
-        using HttpResponseCallback = AZStd::function<void(const std::shared_ptr<Aws::Http::HttpRequest>&, const std::shared_ptr<Aws::Http::HttpResponse>&)>;
-
-        HttpRequestParameter(AZStd::string&& url, Aws::Http::HttpMethod method, HttpResponseCallback&& callback)
+        HttpRequestParameter(AZStd::string&& url, Aws::Http::HttpMethod method)
             : m_url{ std::move(url) }
             , m_method{ method }
-            , m_callback{ std::move(callback) }
         {
         }
 
-        HttpRequestParameter(
-            AZStd::string&& url,
-            Aws::Http::HttpMethod method,
-            CesiumAsync::HttpHeaders&& headers,
-            HttpResponseCallback&& callback)
+        HttpRequestParameter(AZStd::string&& url, Aws::Http::HttpMethod method, CesiumAsync::HttpHeaders&& headers)
             : m_url{ std::move(url) }
             , m_method{ method }
-            , m_headers{std::move(headers)}
-            , m_callback{std::move(callback)}
+            , m_headers{ std::move(headers) }
         {
         }
 
-        HttpRequestParameter(
-            AZStd::string&& url,
-            Aws::Http::HttpMethod method,
-            CesiumAsync::HttpHeaders&& headers,
-            AZStd::string&& body,
-            HttpResponseCallback&& callback)
+        HttpRequestParameter(AZStd::string&& url, Aws::Http::HttpMethod method, CesiumAsync::HttpHeaders&& headers, AZStd::string&& body)
             : m_url{ std::move(url) }
             , m_method{ method }
-            , m_headers{std::move(headers)}
-            , m_body{std::move(body)}
-            , m_callback{std::move(callback)}
+            , m_headers{ std::move(headers) }
+            , m_body{ std::move(body) }
         {
         }
 
@@ -57,27 +45,44 @@ namespace Cesium
         CesiumAsync::HttpHeaders m_headers;
 
         AZStd::string m_body;
+    };
 
-        HttpResponseCallback m_callback;
+    struct HttpResult final
+    {
+        std::shared_ptr<Aws::Http::HttpRequest> request;
+        std::shared_ptr<Aws::Http::HttpResponse> response;
     };
 
     class HttpManager final
     {
+        struct HttpRequest
+        {
+            HttpRequest(HttpRequestParameter&& parameter, const CesiumAsync::AsyncSystem::Promise<HttpResult>& promise)
+                : m_parameter{ std::move(parameter) }
+                , m_promise{ std::move(promise) }
+            {
+            }
+
+            HttpRequestParameter m_parameter;
+            CesiumAsync::AsyncSystem::Promise<HttpResult> m_promise;
+        };
+
     public:
         HttpManager();
 
         ~HttpManager() noexcept;
 
-        void AddRequest(HttpRequestParameter&& httpRequestParameter);
+        CesiumAsync::Future<HttpResult> AddRequest(
+            const CesiumAsync::AsyncSystem& asyncSystem, HttpRequestParameter&& httpRequestParameter);
 
     private:
         void ThreadFunction();
 
         void HandleRequestBatch();
 
-        void HandleRequest(const HttpRequestParameter& httpRequestParameter);
+        void HandleRequest(HttpRequest& httpRequest);
 
-        AZStd::queue<HttpRequestParameter> m_requestsToHandle;
+        AZStd::queue<HttpRequest> m_requestsToHandle;
         AZStd::mutex m_requestMutex;
         AZStd::condition_variable m_requestConditionVar;
         AZStd::atomic<bool> m_runThread;

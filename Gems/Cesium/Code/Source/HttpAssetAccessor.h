@@ -102,8 +102,6 @@ namespace Cesium {
     };
 
     class HttpAssetAccessor final : public CesiumAsync::IAssetAccessor {
-        struct HttpAssetCallback;
-
     public:
         HttpAssetAccessor(const AZStd::shared_ptr<HttpManager>& httpManager);
 
@@ -127,7 +125,7 @@ namespace Cesium {
 
         static CesiumAsync::HttpHeaders ConvertToCesiumHeaders(const Aws::Http::HeaderValueCollection &headers);
 
-        static std::unique_ptr<HttpAssetRequest> CreateO3DEAssetRequest(const Aws::Http::HttpRequest& request, const Aws::Http::HttpResponse& response);
+        static std::shared_ptr<HttpAssetRequest> CreateO3DEAssetRequest(const Aws::Http::HttpRequest& request, const Aws::Http::HttpResponse& response);
 
         static std::unique_ptr<HttpAssetResponse> CreateO3DEAssetResponse(const Aws::Http::HttpResponse& response);
 

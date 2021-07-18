@@ -11,34 +11,14 @@ class HttpManagerTest : public UnitTest::AllocatorsTestFixture
 
 TEST_F(HttpManagerTest, AddValidRequest)
 {
-    auto manager = AZStd::make_shared<Cesium::HttpManager>();
-    bool requestMade = false;
-    AZStd::mutex mutex;
-    AZStd::condition_variable requestMadeSignal;
-
-    // perform request
-    Cesium::HttpRequestParameter parameter(
-        "https://httpbin.org/ip", Aws::Http::HttpMethod::HTTP_GET,
-        [&requestMadeSignal,
-         &requestMade](const std::shared_ptr<Aws::Http::HttpRequest>& request, const std::shared_ptr<Aws::Http::HttpResponse>& response)
-        {
-            ASSERT_NE(request, nullptr);
-            ASSERT_NE(response, nullptr);
-
-            requestMade = true;
-            requestMadeSignal.notify_all();
-        });
-    manager->AddRequest(std::move(parameter));
-
-    // wait for the request to be finished
-    AZStd::unique_lock<AZStd::mutex> lock(mutex);
-    requestMadeSignal.wait(
-        lock,
-        [&requestMade]()
-        {
-            return requestMade;
-        });
-
-    ASSERT_EQ(requestMade, true);
+    // we don't care about worker thread in this test
+    CesiumAsync::AsyncSystem asyncSystem{ nullptr };
+    AZStd::shared_ptr<Cesium::HttpManager> httpManager = AZStd::make_shared<Cesium::HttpManager>();
+    Cesium::HttpRequestParameter parameter("https://httpbin.org/ip", Aws::Http::HttpMethod::HTTP_GET);
+    auto result = httpManager->AddRequest(asyncSystem, std::move(parameter)).wait();
+    auto completedRequest = std::get_if<Cesium::HttpResult>(&result);
+    ASSERT_NE(completedRequest, nullptr);
+    ASSERT_EQ(completedRequest->response->GetResponseCode(), Aws::Http::HttpResponseCode::OK);
+    ASSERT_EQ(completedRequest->request->GetMethod(), Aws::Http::HttpMethod::HTTP_GET);
 }
 
