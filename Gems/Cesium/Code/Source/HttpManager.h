@@ -61,7 +61,7 @@ namespace Cesium
         {
             HttpRequest(HttpRequestParameter&& parameter, const CesiumAsync::AsyncSystem::Promise<HttpResult>& promise)
                 : m_parameter{ std::move(parameter) }
-                , m_promise{ std::move(promise) }
+                , m_promise{ promise }
             {
             }
 
