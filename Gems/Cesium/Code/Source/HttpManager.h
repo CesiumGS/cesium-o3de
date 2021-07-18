@@ -1,4 +1,6 @@
-
+// Majority of this code below is based on the implementation of the Http Manager class in the O3DE HttpRequestor Gem.
+// Some minor modifications are made to expose Aws::Http::HttpResponse object instead of just the response body like the Gem.
+// Also instead of returning the callback, the new manager returns CesiumAsync::Future for ease of use.
 #pragma once
 
 #include <CesiumAsync/AsyncSystem.h>
