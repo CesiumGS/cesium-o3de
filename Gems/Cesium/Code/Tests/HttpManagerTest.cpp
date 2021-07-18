@@ -1,4 +1,4 @@
-#include <HttpManager.h>
+#include "HttpManager.h"
 #include <AzCore/std/parallel/mutex.h>
 #include <AzCore/std/parallel/conditional_variable.h>
 #include <AzCore/std/smart_ptr/shared_ptr.h>
@@ -7,16 +7,6 @@
 
 class HttpManagerTest : public UnitTest::AllocatorsTestFixture
 {
-protected:
-    void SetUp() override
-    {
-        AllocatorsTestFixture::SetUp();
-    }
-
-    void TearDown() override
-    {
-        AllocatorsTestFixture::TearDown();
-    }
 };
 
 TEST_F(HttpManagerTest, AddValidRequest)
