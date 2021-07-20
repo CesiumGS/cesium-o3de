@@ -4,10 +4,10 @@ set(FILES
     Source/CesiumModuleInterface.h
     Source/CesiumSystemComponent.cpp
     Source/CesiumSystemComponent.h
-    Source/HttpManager.cpp
-    Source/HttpManager.h
+    Source/GltfModelComponent.cpp
+    Source/GltfModelComponent.h
     Source/HttpAssetAccessor.cpp
     Source/HttpAssetAccessor.h
-    Source/GltfMeshBuilder.cpp
-    Source/GltfMeshBuilder.h
+    Source/HttpManager.cpp
+    Source/HttpManager.h
 )

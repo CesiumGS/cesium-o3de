@@ -36,11 +36,13 @@ ly_add_target(
             Source
     BUILD_DEPENDENCIES
         PUBLIC
-            AZ::AzCore
-            AZ::AzFramework
             3rdParty::AWSNativeSDK::Core
             3rdParty::CesiumNative
+            AZ::AzCore
+            AZ::AzFramework
             AZ::AWSNativeSDKInit
+            Gem::Atom_RPI.Public
+            Gem::Atom_Feature_Common.Static
     COMPILE_DEFINITIONS
         PUBLIC
             LIBASYNC_STATIC
