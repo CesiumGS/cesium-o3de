@@ -4,6 +4,8 @@ set(FILES
     Source/CesiumModuleInterface.h
     Source/CesiumSystemComponent.cpp
     Source/CesiumSystemComponent.h
+    Source/BitangentAndTangentGenerator.cpp
+    Source/BitangentAndTangentGenerator.h
     Source/GltfModelComponent.cpp
     Source/GltfModelComponent.h
     Source/HttpAssetAccessor.cpp
