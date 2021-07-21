@@ -14,6 +14,185 @@ namespace Cesium
     {
     };
 
+    struct GltfModelComponent::GltfUVConverter
+    {
+        template<typename T>
+        bool operator()([[maybe_unused]] const CesiumGltf::AccessorView<T>& colorAccessorView)
+        {
+            return false;
+        }
+
+        template<typename T>
+        bool operator()(const CesiumGltf::AccessorView<CesiumGltf::AccessorTypes::VEC2<T>>& uvAccessorView)
+        {
+            if (uvAccessorView.status() != CesiumGltf::AccessorViewStatus::Valid)
+            {
+                return false;
+            }
+
+            if (m_generateUnIndexedMesh && m_indicesAccessorView.size() > 0)
+            {
+                m_uvs.resize(static_cast<std::size_t>(m_indicesAccessorView.size()));
+                for (std::int64_t i = 0; i < m_indicesAccessorView.size(); ++i)
+                {
+                    std::int64_t index = m_indicesAccessorView[i];
+                    const auto& uv = uvAccessorView[index];
+                    float u = decodeUV(uv.value[0]);
+                    float v = decodeUV(uv.value[1]);
+                    m_uvs[static_cast<std::size_t>(i)] = glm::vec2(u, v);
+                }
+            }
+            else
+            {
+                m_uvs.resize(uvAccessorView.size());
+                for (std::int64_t i = 0; i < uvAccessorView.size(); ++i)
+                {
+                    const auto& uv = uvAccessorView[i];
+                    float u = decodeUV(uv.value[0]);
+                    float v = decodeUV(uv.value[1]);
+                    m_uvs[static_cast<std::size_t>(i)] = glm::vec2(u, v);
+                }
+            }
+
+            return true;
+        }
+
+        template<typename T>
+        float decodeUV([[maybe_unused]] T c)
+        {
+            return 0.0f;
+        }
+
+        float decodeUV(float c)
+        {
+            return c;
+        }
+
+        float decodeUV(std::uint8_t c)
+        {
+            return c / 256.0f;
+        }
+
+        float decodeUV(std::uint16_t c)
+        {
+            return c / 65536.0f;
+        }
+
+        CesiumGltf::AccessorView<std::uint32_t> m_indicesAccessorView;
+        AZStd::vector<glm::vec2> m_uvs;
+        bool m_generateUnIndexedMesh;
+    };
+
+    struct GltfModelComponent::GltfColorConverter
+    {
+        template<typename T>
+        bool operator()([[maybe_unused]] const CesiumGltf::AccessorView<T>& colorAccessorView)
+        {
+            return false;
+        }
+
+        template<typename T>
+        bool operator()(const CesiumGltf::AccessorView<CesiumGltf::AccessorTypes::VEC3<T>>& colorAccessorView)
+        {
+            if (colorAccessorView.status() != CesiumGltf::AccessorViewStatus::Valid)
+            {
+                return false;
+            }
+
+            if (m_generateUnIndexedMesh && m_indicesAccessorView.size() > 0)
+            {
+                m_colors.resize(static_cast<std::size_t>(m_indicesAccessorView.size()));
+                for (std::int64_t i = 0; i < m_indicesAccessorView.size(); ++i)
+                {
+                    std::int64_t index = m_indicesAccessorView[i];
+                    const auto& color = colorAccessorView[index];
+                    float red = decodeColor(color.value[0]);
+                    float blue = decodeColor(color.value[1]);
+                    float green = decodeColor(color.value[2]);
+                    m_colors[static_cast<std::size_t>(i)] = glm::vec4(red, blue, green, 1.0f);
+                }
+            }
+            else
+            {
+                m_colors.resize(colorAccessorView.size());
+                for (std::int64_t i = 0; i < colorAccessorView.size(); ++i)
+                {
+                    const auto& color = colorAccessorView[i];
+                    float red = decodeColor(color.value[0]);
+                    float blue = decodeColor(color.value[1]);
+                    float green = decodeColor(color.value[2]);
+                    m_colors[static_cast<std::size_t>(i)] = glm::vec4(red, blue, green, 1.0f);
+                }
+            }
+
+            return true;
+        }
+
+        template<typename T>
+        bool operator()(const CesiumGltf::AccessorView<CesiumGltf::AccessorTypes::VEC4<T>>& colorAccessorView)
+        {
+            if (colorAccessorView.status() != CesiumGltf::AccessorViewStatus::Valid)
+            {
+                return false;
+            }
+
+            if (m_generateUnIndexedMesh && m_indicesAccessorView.size() > 0)
+            {
+                m_colors.resize(static_cast<std::size_t>(m_indicesAccessorView.size()));
+                for (std::int64_t i = 0; i < m_indicesAccessorView.size(); ++i)
+                {
+                    std::int64_t index = m_indicesAccessorView[i];
+                    const auto& color = colorAccessorView[index];
+                    float red = decodeColor(color.value[0]);
+                    float blue = decodeColor(color.value[1]);
+                    float green = decodeColor(color.value[2]);
+                    float alpha = decodeColor(color.value[3]);
+                    m_colors[static_cast<std::size_t>(i)] = glm::vec4(red, blue, green, alpha);
+                }
+            }
+            else
+            {
+                m_colors.resize(colorAccessorView.size());
+                for (std::int64_t i = 0; i < colorAccessorView.size(); ++i)
+                {
+                    const auto& color = colorAccessorView[i];
+                    float red = decodeColor(color.value[0]);
+                    float blue = decodeColor(color.value[1]);
+                    float green = decodeColor(color.value[2]);
+                    float alpha = decodeColor(color.value[3]);
+                    m_colors[static_cast<std::size_t>(i)] = glm::vec4(red, blue, green, alpha);
+                }
+            }
+
+            return true;
+        }
+
+        template<typename T>
+        float decodeColor([[maybe_unused]] T c)
+        {
+            return 0.0f;
+        }
+
+        float decodeColor(float c)
+        {
+            return c;
+        }
+
+        float decodeColor(std::uint8_t c)
+        {
+            return c / 256.0f;
+        }
+
+        float decodeColor(std::uint16_t c)
+        {
+            return c / 65536.0f;
+        }
+
+        CesiumGltf::AccessorView<std::uint32_t> m_indicesAccessorView;
+        AZStd::vector<glm::vec4> m_colors;
+        bool m_generateUnIndexedMesh;
+    };
+
     void GltfModelComponent::LoadModel(const CesiumGltf::Model& model)
     {
         GltfLoadContext loadContext{};
@@ -163,19 +342,19 @@ namespace Cesium
         auto positionAttribute = primitive.attributes.find("POSITION");
         if (positionAttribute == primitive.attributes.end())
         {
-            return AZ::Data::Asset<AZ::RPI::BufferAsset>();
+            return AZ::Data::Asset<AZ::RPI::ModelAsset>();
         }
 
         auto positionAccessor = model.getSafe<CesiumGltf::Accessor>(&model.accessors, positionAttribute->second);
         if (!positionAccessor)
         {
-            return AZ::Data::Asset<AZ::RPI::BufferAsset>();
+            return AZ::Data::Asset<AZ::RPI::ModelAsset>();
         }
 
         auto positionAccessorView = CesiumGltf::AccessorView<glm::vec3>(model, *positionAccessor);
         if (positionAccessorView.status() != CesiumGltf::AccessorViewStatus::Valid)
         {
-            return AZ::Data::Asset<AZ::RPI::BufferAsset>();
+            return AZ::Data::Asset<AZ::RPI::ModelAsset>();
         }
 
         // construct bounding volume
@@ -192,18 +371,21 @@ namespace Cesium
         }
 
         // get index view
-        CesiumGltf::AccessorView<std::uint32_t> indicesAccessorView;
+        CesiumGltf::AccessorView<std::uint32_t> indicesAccessorView{ CesiumGltf::AccessorViewStatus::Valid };
         auto indicesAccessor = model.getSafe<CesiumGltf::Accessor>(&model.accessors, primitive.indices);
-        if (!indicesAccessor)
+        if (indicesAccessor)
         {
             indicesAccessorView = CesiumGltf::AccessorView<std::uint32_t>(model, *indicesAccessor);
+            if (indicesAccessorView.status() != CesiumGltf::AccessorViewStatus::Valid)
+            {
+                // Gltf primitive says it has indices, but turn out it's not valid. We terminate the parsing right here
+                return AZ::Data::Asset<AZ::RPI::ModelAsset>();
+            }
         }
 
-        // check if we should generate tangent or normal
+        // check if we should generate normal
         bool generateFlatNormal = false;
-        bool generateTangent = false;
         CesiumGltf::AccessorView<glm::vec3> normalsAccessorView;
-        CesiumGltf::AccessorView<glm::vec4> tangentsAccessorView;
         auto normalAttribute = primitive.attributes.find("NORMAL");
         if (normalAttribute == primitive.attributes.end())
         {
@@ -212,12 +394,14 @@ namespace Cesium
         else
         {
             normalsAccessorView = CesiumGltf::AccessorView<glm::vec3>(model, normalAttribute->second);
-            if (normalsAccessorView.status() != CesiumGltf::AccessorViewStatus::Valid)
-            {
-                generateFlatNormal = true;
-            }
+            bool isNormalAccessorValid = normalsAccessorView.status() == CesiumGltf::AccessorViewStatus::Valid;
+            bool hasEnoughNormalVertices = normalsAccessorView.size() == positionAccessorView.size();
+            generateFlatNormal = !isNormalAccessorValid || !hasEnoughNormalVertices;
         }
 
+        // check if we should generate tangent
+        bool generateTangent = false;
+        CesiumGltf::AccessorView<glm::vec4> tangentsAccessorView;
         auto tangentAttribute = primitive.attributes.find("TANGENT");
         if (tangentAttribute == primitive.attributes.end())
         {
@@ -226,14 +410,14 @@ namespace Cesium
         else
         {
             tangentsAccessorView = CesiumGltf::AccessorView<glm::vec4>(model, tangentAttribute->second);
-            if (tangentsAccessorView.status() != CesiumGltf::AccessorViewStatus::Valid)
-            {
-                generateTangent = true;
-            }
+            bool isTangentAccessorValid = tangentsAccessorView.status() == CesiumGltf::AccessorViewStatus::Valid;
+            bool hasEnoughTangentVertices = tangentsAccessorView.size() == positionAccessorView.size();
+            generateTangent = !isTangentAccessorValid || !hasEnoughTangentVertices;
         }
 
         // check if we should generate unindexed mesh
-        bool generateUnIndexedMesh = generateFlatNormal || generateTangent;
+        bool hasNoIndices = indicesAccessorView.size() == 0;
+        bool generateUnIndexedMesh = generateFlatNormal || generateTangent || hasNoIndices;
 
         // copy position accessor to vector
         AZStd::vector<glm::vec3> positions;
@@ -249,6 +433,10 @@ namespace Cesium
                 positions[static_cast<std::size_t>(i)] = positionAccessorView[i];
             }
         }
+
+        // copy uv accessor to vector
+        AZStd::vector<glm::vec2> uv_0 = CreateUVAttribute(model, primitive, indicesAccessorView, generateUnIndexedMesh, 0);
+        AZStd::vector<glm::vec2> uv_1 = CreateUVAttribute(model, primitive, indicesAccessorView, generateUnIndexedMesh, 1);
 
         // copy normal accessor to vector
         AZStd::vector<glm::vec3> normals;
@@ -276,22 +464,51 @@ namespace Cesium
         AZStd::vector<glm::vec3> bitangents;
         if (generateTangent)
         {
-            // positions and normals should be unindexed at this point
+            // positions, normals, and uvs should be unindexed at this point
             assert(generateUnIndexedMesh);
-            CreateTangentAndBitangent(positions, normals, tangents, bitangents);
+
+            // Try first uvs. Generator can deal with empty UVs
+            bool tangentSuccess = BitangentAndTangentGenerator::Generate(positions, normals, uv_0, tangents, bitangents);
+
+            // try again with the second uvs
+            if (!tangentSuccess && !uv_1.empty())
+            {
+                tangentSuccess = BitangentAndTangentGenerator::Generate(positions, normals, uv_1, tangents, bitangents);
+            }
+
+            // if we still cannot generate MikkTSpace, then we generate dummy
+            if (!tangentSuccess)
+            {
+                tangents.resize(positions.size(), glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+                bitangents.resize(positions.size(), glm::vec3(0.0f, 0.0f, 0.0f));
+            }
         }
         else if (generateUnIndexedMesh)
         {
+            // copy tangents to vector
             CreateUnIndexedAttribute(indicesAccessorView, tangentsAccessorView, tangents);
+
+            // create bitangents
+            bitangents.resize(tangents.size(), glm::vec3(0.0f));
+            for (std::size_t i = 0; i < tangents.size(); ++i)
+            {
+                bitangents[i] = glm::cross(normals[i], glm::vec3(tangents[i])) * tangents[i].w;
+            }
         }
         else
         {
+            // populate tangent and bitangent vector
             tangents.resize(static_cast<std::size_t>(tangentsAccessorView.size()), glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+            bitangents.resize(tangents.size(), glm::vec3(0.0f));
             for (std::int64_t i = 0; i < tangentsAccessorView.size(); ++i)
             {
                 tangents[static_cast<std::size_t>(i)] = tangentsAccessorView[i];
+                bitangents[i] = glm::cross(normals[i], glm::vec3(tangents[i])) * tangents[i].w;
             }
         }
+
+        // copy color to vectors
+        AZStd::vector<glm::vec4> colors = CreateColorAttribute(model, primitive, indicesAccessorView, generateUnIndexedMesh);
 
         // create buffer assets
         auto indicesBuffer = CreateIndicesBufferAsset(model, *indicesAccessor, indicesAccessorView);
@@ -299,9 +516,13 @@ namespace Cesium
         auto normalBuffer = CreateBufferAsset(normals.data(), normals.size(), AZ::RHI::Format::R32G32B32_FLOAT);
         auto tangentBuffer = CreateBufferAsset(tangents.data(), tangents.size(), AZ::RHI::Format::R32G32B32A32_FLOAT);
         auto bitangentBuffer = CreateBufferAsset(bitangents.data(), bitangents.size(), AZ::RHI::Format::R32G32B32_FLOAT);
-        auto colorBuffer = CreateColorBufferAsset(model, primitive, indicesAccessorView, generateUnIndexedMesh);
-        auto uvBuffer_0 = CreateUVBufferAsset(model, primitive, indicesAccessorView, 0, generateUnIndexedMesh);
-        auto uvBuffer_1 = CreateUVBufferAsset(model, primitive, indicesAccessorView, 1, generateUnIndexedMesh);
+        auto uvBuffer_0 = CreateBufferAsset(uv_0.data(), uv_0.size(), AZ::RHI::Format::R32G32_FLOAT);
+        auto uvBuffer_1 = CreateBufferAsset(uv_1.data(), uv_1.size(), AZ::RHI::Format::R32G32_FLOAT);
+        AZ::Data::Asset<AZ::RPI::BufferAsset> colorBuffer;
+        if (!colors.empty())
+        {
+            colorBuffer = CreateBufferAsset(colors.data(), colors.size(), AZ::RHI::Format::R32G32B32A32_FLOAT);
+        }
 
         // create LOD asset
         AZ::RPI::ModelLodAssetCreator lodCreator;
@@ -375,7 +596,8 @@ namespace Cesium
         const CesiumGltf::Accessor& indicesAccessor,
         const CesiumGltf::AccessorView<std::uint32_t>& indicesAccessorView)
     {
-        if (indicesAccessorView.status() != CesiumGltf::AccessorViewStatus::Valid)
+        assert(indicesAccessorView.status() == CesiumGltf::AccessorViewStatus::Valid);
+        if (indicesAccessorView.size() == 0)
         {
             return AZ::Data::Asset<AZ::RPI::BufferAsset>();
         }
@@ -389,113 +611,6 @@ namespace Cesium
 
         const void* data = buffer->cesium.data.data() + bufferView->byteOffset + indicesAccessor.byteOffset;
         return CreateBufferAsset(data, static_cast<std::size_t>(indicesAccessor.count), AZ::RHI::Format::R32_UINT);
-    }
-
-    AZ::Data::Asset<AZ::RPI::BufferAsset> GltfModelComponent::CreateColorBufferAsset(
-        const CesiumGltf::Model& model,
-        const CesiumGltf::MeshPrimitive& primitive,
-        const CesiumGltf::AccessorView<std::uint32_t>& indicesView,
-        bool generateUnIndexedMesh)
-    {
-        auto attribute = primitive.attributes.find("COLOR_0");
-        if (attribute == primitive.attributes.end())
-        {
-            return AZ::Data::Asset<AZ::RPI::BufferAsset>();
-        }
-
-        auto accessor = model.getSafe<CesiumGltf::Accessor>(&model.accessors, attribute->second);
-        if (!accessor)
-        {
-            return AZ::Data::Asset<AZ::RPI::BufferAsset>();
-        }
-
-        if (accessor->type == CesiumGltf::AccessorSpec::Type::VEC3)
-        {
-            if (accessor->componentType == CesiumGltf::AccessorSpec::ComponentType::FLOAT)
-            {
-                auto accessorView = CesiumGltf::AccessorView<glm::vec3>(model, *accessor);
-                if (accessorView.status() != CesiumGltf::AccessorViewStatus::Valid)
-                {
-                    return AZ::Data::Asset<AZ::RPI::BufferAsset>();
-                }
-
-                if (generateUnIndexedMesh)
-                {
-                    if (indicesView.status() != CesiumGltf::AccessorViewStatus::Valid)
-                    {
-                        return AZ::Data::Asset<AZ::RPI::BufferAsset>();
-                    }
-
-                    AZStd::vector<glm::vec3> colors(static_cast<std::size_t>(indicesView.size()), glm::vec3(0.0f));
-                    for (std::int64_t i = 0; i < indicesView.size(); ++i)
-                    {
-                        std::size_t index = static_cast<std::size_t>(i);
-                        colors[index] = accessorView[indicesView[i]];
-                    }
-
-                    return CreateBufferAsset(colors.data(), colors.size(), AZ::RHI::Format::R32G32B32_FLOAT);
-                }
-
-                return CreateBufferAssetFromGlmVector(model, *accessor, accessorView, AZ::RHI::Format::R32G32B32_FLOAT);
-            }
-        }
-
-        return AZ::Data::Asset<AZ::RPI::BufferAsset>();
-    }
-
-    AZ::Data::Asset<AZ::RPI::BufferAsset> GltfModelComponent::CreateUVBufferAsset(
-        const CesiumGltf::Model& model,
-        const CesiumGltf::MeshPrimitive& primitive,
-        const CesiumGltf::AccessorView<std::uint32_t>& indicesView,
-        std::int32_t uvIndex,
-        bool generateUnIndexedMesh)
-    {
-        // find the existing UV attribute
-        std::string uvAttribute = "UV_" + std::to_string(uvIndex);
-        auto attribute = primitive.attributes.find(uvAttribute);
-        if (attribute == primitive.attributes.end())
-        {
-            return AZ::Data::Asset<AZ::RPI::BufferAsset>();
-        }
-
-        auto accessor = model.getSafe<CesiumGltf::Accessor>(&model.accessors, attribute->second);
-        if (!accessor)
-        {
-            return AZ::Data::Asset<AZ::RPI::BufferAsset>();
-        }
-
-        if (accessor->type == CesiumGltf::AccessorSpec::Type::VEC2)
-        {
-            if (accessor->componentType == CesiumGltf::AccessorSpec::ComponentType::FLOAT)
-            {
-                auto accessorView = CesiumGltf::AccessorView<glm::vec2>(model, *accessor);
-                if (accessorView.status() != CesiumGltf::AccessorViewStatus::Valid)
-                {
-                    return AZ::Data::Asset<AZ::RPI::BufferAsset>();
-                }
-
-                if (generateUnIndexedMesh)
-                {
-                    if (indicesView.status() != CesiumGltf::AccessorViewStatus::Valid)
-                    {
-                        return AZ::Data::Asset<AZ::RPI::BufferAsset>();
-                    }
-
-                    AZStd::vector<glm::vec2> uvs(static_cast<std::size_t>(indicesView.size()), glm::vec2(0.0f));
-                    for (std::int64_t i = 0; i < indicesView.size(); i += 3)
-                    {
-                        std::size_t index = static_cast<std::size_t>(i);
-                        uvs[index] = accessorView[indicesView[i]];
-                    }
-
-                    return CreateBufferAsset(uvs.data(), uvs.size(), AZ::RHI::Format::R32G32_FLOAT);
-                }
-
-                return CreateBufferAssetFromGlmVector(model, *accessor, accessorView, AZ::RHI::Format::R32G32_FLOAT);
-            }
-        }
-
-        return AZ::Data::Asset<AZ::RPI::BufferAsset>();
     }
 
     AZ::Data::Asset<AZ::RPI::BufferAsset> GltfModelComponent::CreateBufferAsset(
@@ -518,12 +633,48 @@ namespace Cesium
         return bufferAsset;
     }
 
-    void GltfModelComponent::CreateTangentAndBitangent(
-        [[maybe_unused]] const AZStd::vector<glm::vec3>& positions,
-        [[maybe_unused]] const AZStd::vector<glm::vec3>& normals,
-        [[maybe_unused]] AZStd::vector<glm::vec4>& tangents,
-        [[maybe_unused]] AZStd::vector<glm::vec3>& bitangent)
+    AZStd::vector<glm::vec2> GltfModelComponent::CreateUVAttribute(
+        const CesiumGltf::Model& model,
+        const CesiumGltf::MeshPrimitive& primitive,
+        const CesiumGltf::AccessorView<std::uint32_t> indicesAccessorView,
+        bool generateUnIndexedMesh,
+        std::int32_t uvIndex)
     {
+        std::string uvName = "UV_" + std::to_string(uvIndex);
+        auto uvAttribute = primitive.attributes.find(uvName);
+        if (uvAttribute == primitive.attributes.end())
+        {
+            return {};
+        }
+
+        GltfUVConverter uvConverter{ indicesAccessorView, {}, generateUnIndexedMesh };
+        if (CesiumGltf::createAccessorView(model, uvAttribute->second, uvConverter))
+        {
+            return uvConverter.m_uvs;
+        }
+
+        return {};
+    }
+
+    AZStd::vector<glm::vec4> GltfModelComponent::CreateColorAttribute(
+        const CesiumGltf::Model& model,
+        const CesiumGltf::MeshPrimitive& primitive,
+        const CesiumGltf::AccessorView<std::uint32_t> indicesAccessorView,
+        bool generateUnIndexedMesh)
+    {
+        auto colorAttribute = primitive.attributes.find("COLOR_0");
+        if (colorAttribute == primitive.attributes.end())
+        {
+            return {};
+        }
+
+        GltfColorConverter colorConverter{ indicesAccessorView, {}, generateUnIndexedMesh };
+        if (CesiumGltf::createAccessorView(model, colorAttribute->second, colorConverter))
+        {
+            return colorConverter.m_colors;
+        }
+
+        return {};
     }
 
     void GltfModelComponent::CreateFlatNormal(const AZStd::vector<glm::vec3>& positions, AZStd::vector<glm::vec3>& normals)

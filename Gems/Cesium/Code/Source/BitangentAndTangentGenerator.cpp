@@ -3,7 +3,7 @@
 
 namespace Cesium
 {
-    struct MikktspaceCustomData
+    struct BitangentAndTangentGenerator::MikktspaceCustomData
     {
         const AZStd::vector<glm::vec3>* positions{nullptr};
         const AZStd::vector<glm::vec3>* normals{nullptr};
@@ -12,7 +12,7 @@ namespace Cesium
         AZStd::vector<glm::vec3>* bitangents{nullptr};
     };
 
-    struct MikktspaceMethods
+    struct BitangentAndTangentGenerator::MikktspaceMethods
     {
         static int GetNumFaces(const SMikkTSpaceContext* context)
         {
@@ -51,10 +51,18 @@ namespace Cesium
         {
             MikktspaceCustomData* customData = static_cast<MikktspaceCustomData*>(context->m_pUserData);
             const AZStd::vector<glm::vec2>& uvs = *customData->uvs;
-            std::size_t vertexIndex = static_cast<std::size_t>(face * 3 + vert);
-            const glm::vec2& uv = uvs[vertexIndex];
-            texOut[0] = uv.x;
-            texOut[1] = uv.y;
+            if (!uvs.empty())
+            {
+                texOut[0] = 0.0f;
+                texOut[1] = 0.0f;
+            }
+            else
+            {
+                std::size_t vertexIndex = static_cast<std::size_t>(face * 3 + vert);
+                const glm::vec2& uv = uvs[vertexIndex];
+                texOut[0] = uv.x;
+                texOut[1] = uv.y;
+            }
         }
 
         static void SetTSpace(const SMikkTSpaceContext* context, const float tangent[], const float bitangent[], const float magS, const float magT, const tbool isOrientationPreserving, const int face, const int vert)
@@ -69,7 +77,7 @@ namespace Cesium
         }
     };
 
-    bool BitangentAndTangentGenerator::GenerateTangentAndBitangent(
+    bool BitangentAndTangentGenerator::Generate(
         const AZStd::vector<glm::vec3>& positions,
         const AZStd::vector<glm::vec3>& normals,
         const AZStd::vector<glm::vec2>& uvs,
