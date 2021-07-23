@@ -6,6 +6,8 @@ set(FILES
     Source/CesiumSystemComponent.h
     Source/BitangentAndTangentGenerator.cpp
     Source/BitangentAndTangentGenerator.h
+    Source/GltfPrimitiveBuilder.cpp
+    Source/GltfPrimitiveBuilder.h
     Source/GltfModelComponent.cpp
     Source/GltfModelComponent.h
     Source/HttpAssetAccessor.cpp
