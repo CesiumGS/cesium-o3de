@@ -84,11 +84,12 @@ namespace Cesium
 
         void HandleRequest(HttpRequest& httpRequest);
 
+        static constexpr const char* const LOGGING_NAME = "Http-Manager";
+
         AZStd::queue<HttpRequest> m_requestsToHandle;
         AZStd::mutex m_requestMutex;
         AZStd::condition_variable m_requestConditionVar;
         AZStd::atomic<bool> m_runThread;
         AZStd::thread m_thread;
-        static const char* s_loggingName;
     };
 }

@@ -22,12 +22,10 @@ AZ_POP_DISABLE_WARNING
 
 namespace Cesium
 {
-    const char* HttpManager::s_loggingName = "Http-Manager";
-
     HttpManager::HttpManager()
     {
         AZStd::thread_desc desc;
-        desc.m_name = s_loggingName;
+        desc.m_name = LOGGING_NAME;
         desc.m_cpuId = AFFINITY_MASK_USERTHREADS;
         m_runThread = true;
         // Shutdown will be handled by the InitializationManager - no need to call in the destructor

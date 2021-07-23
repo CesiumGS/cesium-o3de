@@ -5,10 +5,6 @@
 
 namespace Cesium
 {
-    const char* HttpAssetAccessor::USER_AGENT_HEADER_KEY = "User-Agent";
-
-    const char* HttpAssetAccessor::USER_AGENT_HEADER_VALUE = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36";
-
     HttpAssetAccessor::HttpAssetAccessor(const AZStd::shared_ptr<HttpManager>& httpManager)
         : m_httpManager{httpManager}
     {
