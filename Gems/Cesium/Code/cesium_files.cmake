@@ -8,6 +8,8 @@ set(FILES
     Source/BitangentAndTangentGenerator.h
     Source/GltfPrimitiveBuilder.cpp
     Source/GltfPrimitiveBuilder.h
+    Source/GltfMaterialBuilder.cpp
+    Source/GltfMaterialBuilder.h
     Source/GltfModelComponent.cpp
     Source/GltfModelComponent.h
     Source/HttpAssetAccessor.cpp

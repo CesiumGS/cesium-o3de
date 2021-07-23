@@ -1,7 +1,7 @@
 #include "GltfModelComponent.h"
 #include "BitangentAndTangentGenerator.h"
 #include "GltfPrimitiveBuilder.h"
-#include <CesiumUtility/Math.h>
+#include "GltfMaterialBuilder.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 
@@ -9,185 +9,6 @@ namespace Cesium
 {
     struct GltfModelComponent::GltfLoadContext
     {
-    };
-
-    struct GltfModelComponent::GltfUVConverter
-    {
-        template<typename T>
-        bool operator()([[maybe_unused]] const CesiumGltf::AccessorView<T>& colorAccessorView)
-        {
-            return false;
-        }
-
-        template<typename T>
-        bool operator()(const CesiumGltf::AccessorView<CesiumGltf::AccessorTypes::VEC2<T>>& uvAccessorView)
-        {
-            if (uvAccessorView.status() != CesiumGltf::AccessorViewStatus::Valid)
-            {
-                return false;
-            }
-
-            if (m_generateUnIndexedMesh && m_indicesAccessorView.size() > 0)
-            {
-                m_uvs.resize(static_cast<std::size_t>(m_indicesAccessorView.size()));
-                for (std::int64_t i = 0; i < m_indicesAccessorView.size(); ++i)
-                {
-                    std::int64_t index = m_indicesAccessorView[i];
-                    const auto& uv = uvAccessorView[index];
-                    float u = decodeUV(uv.value[0]);
-                    float v = decodeUV(uv.value[1]);
-                    m_uvs[static_cast<std::size_t>(i)] = glm::vec2(u, v);
-                }
-            }
-            else
-            {
-                m_uvs.resize(uvAccessorView.size());
-                for (std::int64_t i = 0; i < uvAccessorView.size(); ++i)
-                {
-                    const auto& uv = uvAccessorView[i];
-                    float u = decodeUV(uv.value[0]);
-                    float v = decodeUV(uv.value[1]);
-                    m_uvs[static_cast<std::size_t>(i)] = glm::vec2(u, v);
-                }
-            }
-
-            return true;
-        }
-
-        template<typename T>
-        float decodeUV([[maybe_unused]] T c)
-        {
-            return 0.0f;
-        }
-
-        float decodeUV(float c)
-        {
-            return c;
-        }
-
-        float decodeUV(std::uint8_t c)
-        {
-            return c / 256.0f;
-        }
-
-        float decodeUV(std::uint16_t c)
-        {
-            return c / 65536.0f;
-        }
-
-        CesiumGltf::AccessorView<std::uint32_t> m_indicesAccessorView;
-        AZStd::vector<glm::vec2> m_uvs;
-        bool m_generateUnIndexedMesh;
-    };
-
-    struct GltfModelComponent::GltfColorConverter
-    {
-        template<typename T>
-        bool operator()([[maybe_unused]] const CesiumGltf::AccessorView<T>& colorAccessorView)
-        {
-            return false;
-        }
-
-        template<typename T>
-        bool operator()(const CesiumGltf::AccessorView<CesiumGltf::AccessorTypes::VEC3<T>>& colorAccessorView)
-        {
-            if (colorAccessorView.status() != CesiumGltf::AccessorViewStatus::Valid)
-            {
-                return false;
-            }
-
-            if (m_generateUnIndexedMesh && m_indicesAccessorView.size() > 0)
-            {
-                m_colors.resize(static_cast<std::size_t>(m_indicesAccessorView.size()));
-                for (std::int64_t i = 0; i < m_indicesAccessorView.size(); ++i)
-                {
-                    std::int64_t index = m_indicesAccessorView[i];
-                    const auto& color = colorAccessorView[index];
-                    float red = decodeColor(color.value[0]);
-                    float blue = decodeColor(color.value[1]);
-                    float green = decodeColor(color.value[2]);
-                    m_colors[static_cast<std::size_t>(i)] = glm::vec4(red, blue, green, 1.0f);
-                }
-            }
-            else
-            {
-                m_colors.resize(colorAccessorView.size());
-                for (std::int64_t i = 0; i < colorAccessorView.size(); ++i)
-                {
-                    const auto& color = colorAccessorView[i];
-                    float red = decodeColor(color.value[0]);
-                    float blue = decodeColor(color.value[1]);
-                    float green = decodeColor(color.value[2]);
-                    m_colors[static_cast<std::size_t>(i)] = glm::vec4(red, blue, green, 1.0f);
-                }
-            }
-
-            return true;
-        }
-
-        template<typename T>
-        bool operator()(const CesiumGltf::AccessorView<CesiumGltf::AccessorTypes::VEC4<T>>& colorAccessorView)
-        {
-            if (colorAccessorView.status() != CesiumGltf::AccessorViewStatus::Valid)
-            {
-                return false;
-            }
-
-            if (m_generateUnIndexedMesh && m_indicesAccessorView.size() > 0)
-            {
-                m_colors.resize(static_cast<std::size_t>(m_indicesAccessorView.size()));
-                for (std::int64_t i = 0; i < m_indicesAccessorView.size(); ++i)
-                {
-                    std::int64_t index = m_indicesAccessorView[i];
-                    const auto& color = colorAccessorView[index];
-                    float red = decodeColor(color.value[0]);
-                    float blue = decodeColor(color.value[1]);
-                    float green = decodeColor(color.value[2]);
-                    float alpha = decodeColor(color.value[3]);
-                    m_colors[static_cast<std::size_t>(i)] = glm::vec4(red, blue, green, alpha);
-                }
-            }
-            else
-            {
-                m_colors.resize(colorAccessorView.size());
-                for (std::int64_t i = 0; i < colorAccessorView.size(); ++i)
-                {
-                    const auto& color = colorAccessorView[i];
-                    float red = decodeColor(color.value[0]);
-                    float blue = decodeColor(color.value[1]);
-                    float green = decodeColor(color.value[2]);
-                    float alpha = decodeColor(color.value[3]);
-                    m_colors[static_cast<std::size_t>(i)] = glm::vec4(red, blue, green, alpha);
-                }
-            }
-
-            return true;
-        }
-
-        template<typename T>
-        float decodeColor([[maybe_unused]] T c)
-        {
-            return 0.0f;
-        }
-
-        float decodeColor(float c)
-        {
-            return c;
-        }
-
-        float decodeColor(std::uint8_t c)
-        {
-            return c / 256.0f;
-        }
-
-        float decodeColor(std::uint16_t c)
-        {
-            return c / 65536.0f;
-        }
-
-        CesiumGltf::AccessorView<std::uint32_t> m_indicesAccessorView;
-        AZStd::vector<glm::vec4> m_colors;
-        bool m_generateUnIndexedMesh;
     };
 
     void GltfModelComponent::LoadModel(const CesiumGltf::Model& model)
@@ -284,9 +105,9 @@ namespace Cesium
         const CesiumGltf::Model& model,
         const CesiumGltf::MeshPrimitive& primitive,
         const glm::dmat4& transform,
-        GltfLoadContext& loadContext)
+        [[maybe_unused]] GltfLoadContext& loadContext)
     {
-        // create primitive handle
+        // create model asset
         GltfTrianglePrimitiveBuilder primitiveBuilder;
         auto modelAsset = primitiveBuilder.Create(model, primitive);
         if (!modelAsset)
@@ -295,7 +116,17 @@ namespace Cesium
             return;
         }
 
-        auto materialInstance = CreateMaterialInstance(model, primitive.material, loadContext);
+        // create material asset
+        GltfMaterialBuilder materialBuilder;
+        const CesiumGltf::Material* material = model.getSafe<CesiumGltf::Material>(&model.materials, primitive.material);
+        if (!material)
+        {
+            return;
+        }
+        auto materialAsset = materialBuilder.Create(model, *material);
+        auto materialInstance = AZ::RPI::Material::Create(materialAsset);
+
+        // create mesh handle
         auto primitiveHandle = m_meshFeatureProcessor->AcquireMesh(AZ::Render::MeshHandleDescriptor{ modelAsset }, materialInstance);
 
         // set transformation
@@ -307,30 +138,6 @@ namespace Cesium
 
         // save the handle
         m_primitives.emplace_back(std::move(primitiveHandle));
-    }
-
-    AZ::Data::Instance<AZ::RPI::Material> GltfModelComponent::CreateMaterialInstance(
-        [[maybe_unused]] const CesiumGltf::Model& model,
-        [[maybe_unused]] std::int32_t primitiveMaterial,
-        [[maybe_unused]] GltfLoadContext& loadContext)
-    {
-        return AZ::Data::Instance<AZ::RPI::Material>();
-    }
-
-    AZ::Data::Asset<AZ::RPI::MaterialAsset> GltfModelComponent::CreateMaterialAsset(
-        [[maybe_unused]] const CesiumGltf::Model& model,
-        [[maybe_unused]] const CesiumGltf::Material& material,
-        [[maybe_unused]] GltfLoadContext& loadContext)
-    {
-        return AZ::Data::Asset<AZ::RPI::MaterialAsset>();
-    }
-
-    AZ::Data::Asset<AZ::RPI::ImageAsset> GltfModelComponent::CreateImageAsset(
-        [[maybe_unused]] const CesiumGltf::Model& model,
-        [[maybe_unused]] const CesiumGltf::Image& image,
-        [[maybe_unused]] GltfLoadContext& loadContext)
-    {
-        return AZ::Data::Asset<AZ::RPI::ImageAsset>();
     }
 
     bool GltfModelComponent::IsIdentityMatrix(const std::vector<double>& matrix)

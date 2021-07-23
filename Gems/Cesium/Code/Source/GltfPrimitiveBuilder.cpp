@@ -790,6 +790,7 @@ namespace Cesium
             return AZ::Data::Asset<AZ::RPI::BufferAsset>();
         }
 
+        // this accessor should be a valid accessor since we check the validity of the indices before parsing the mesh
         const CesiumGltf::Accessor* accessor = model.getSafe<CesiumGltf::Accessor>(&model.accessors, primitive.indices);
         assert(accessor != nullptr);
         assert(accessor->type == CesiumGltf::AccessorSpec::Type::SCALAR);
