@@ -12,5 +12,8 @@ namespace Cesium
     {
     public:
         AZ::Data::Asset<AZ::RPI::MaterialAsset> Create(const CesiumGltf::Model& model, const CesiumGltf::Material& material);
+
+    private:
+        static constexpr const char* const STANDARD_PBR_MAT_TYPE = "Materials/Types/StandardPBR.azmaterialtype";
     };
 } // namespace Cesium

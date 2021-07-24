@@ -4,3 +4,4 @@
 class GltfMaterialBuilderTest : public UnitTest::AllocatorsTestFixture
 {
 };
+
