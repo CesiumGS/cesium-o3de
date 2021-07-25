@@ -2,6 +2,8 @@
 #include "BitangentAndTangentGenerator.h"
 #include "GltfPrimitiveBuilder.h"
 #include "GltfMaterialBuilder.h"
+#include <CesiumGltf/GltfReader.h>
+#include <AzCore/IO/FileIO.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 
@@ -10,6 +12,25 @@ namespace Cesium
     struct GltfModelComponent::GltfLoadContext
     {
     };
+
+    GltfModelComponent::GltfModelComponent(AZ::Render::MeshFeatureProcessorInterface* meshFeatureProcessor, const CesiumGltf::Model& model)
+        : m_visible{ true }
+        , m_meshFeatureProcessor{ meshFeatureProcessor }
+    {
+        LoadModel(model);
+    }
+
+    GltfModelComponent::GltfModelComponent(AZ::Render::MeshFeatureProcessorInterface* meshFeatureProcessor, const AZStd::string& modelPath)
+        : m_visible{ true }
+        , m_meshFeatureProcessor{ meshFeatureProcessor }
+    {
+        LoadModel(modelPath);
+    }
+
+    GltfModelComponent::~GltfModelComponent() noexcept
+    {
+        Destroy();
+    }
 
     void GltfModelComponent::LoadModel(const CesiumGltf::Model& model)
     {
@@ -33,6 +54,62 @@ namespace Cesium
                 LoadMesh(model, mesh, glm::dmat4(1.0), loadContext);
             }
         }
+    }
+
+    void GltfModelComponent::LoadModel(const AZStd::string& filePath)
+    {
+        AZ::IO::FileIOStream file;
+        if (!file.Open(filePath.data(), AZ::IO::OpenMode::ModeRead))
+        {
+            return;
+        }
+
+        AZ::IO::SizeType length = file.GetLength();
+        if (length == 0)
+        {
+            return;
+        }
+
+        AZStd::vector<std::byte> fileContent(length);
+        AZ::IO::SizeType bytesRead = file.Read(length, fileContent.data());
+        file.Close();
+
+        // Resize again just in case bytesRead is less than length for some reason
+        fileContent.resize(bytesRead);
+        CesiumGltf::GltfReader reader;
+        auto result = reader.readModel(gsl::span<const std::byte>(fileContent.data(), fileContent.size()));
+        if (result.model)
+        {
+            LoadModel(*result.model);
+        }
+    }
+
+    bool GltfModelComponent::IsVisible() const
+    {
+        return m_visible;
+    }
+
+    void GltfModelComponent::SetVisible(bool visible)
+    {
+        if (m_visible == visible)
+        {
+            return;
+        }
+
+        for (auto& primitiveHandle : m_primitives)
+        {
+            m_meshFeatureProcessor->SetVisible(primitiveHandle, visible);
+        }
+    }
+
+    void GltfModelComponent::Destroy()
+    {
+        for (auto& primitiveHandle : m_primitives)
+        {
+            m_meshFeatureProcessor->ReleaseMesh(primitiveHandle);
+        }
+
+        m_primitives.clear();
     }
 
     void GltfModelComponent::LoadScene(const CesiumGltf::Model& model, const CesiumGltf::Scene& scene, GltfLoadContext& loadContext)
@@ -85,7 +162,7 @@ namespace Cesium
 
         for (std::int32_t child : node.children)
         {
-            if (child >= 0 && child < node.children.size())
+            if (child >= 0 && child < model.nodes.size())
             {
                 LoadNode(model, model.nodes[static_cast<std::size_t>(child)], currentTransform, loadContext);
             }

@@ -87,6 +87,8 @@ namespace Cesium
         AZ::Data::Asset<AZ::RPI::BufferAsset> CreateIndicesBufferAsset(
             const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive);
 
+        AZ::Data::Asset<AZ::RPI::BufferAsset> CreateUnIndexedIndicesBufferAsset();
+
         static AZ::Data::Asset<AZ::RPI::BufferAsset> CreateBufferAsset(
             const void* data, const std::size_t elementCount, AZ::RHI::Format format);
 

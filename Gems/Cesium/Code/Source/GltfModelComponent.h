@@ -2,6 +2,7 @@
 
 #include <CesiumGltf/Model.h>
 #include <AzCore/std/containers/vector.h>
+#include <AzCore/std/string/string.h>
 #include <Atom/Feature/Mesh/MeshFeatureProcessorInterface.h>
 #include <glm/glm.hpp>
 #include <vector>
@@ -16,9 +17,23 @@ namespace Cesium
         using PrimitiveHandle = AZ::Render::MeshFeatureProcessorInterface::MeshHandle;
 
     public:
-        void LoadModel(const CesiumGltf::Model& model);
+        GltfModelComponent(AZ::Render::MeshFeatureProcessorInterface* meshFeatureProcessor, const CesiumGltf::Model& model);
+
+        GltfModelComponent(AZ::Render::MeshFeatureProcessorInterface* meshFeatureProcessor, const AZStd::string& modelPath);
+
+        ~GltfModelComponent() noexcept;
+
+        bool IsVisible() const;
+
+        void SetVisible(bool visible);
+
+        void Destroy();
 
     private:
+        void LoadModel(const CesiumGltf::Model& model);
+
+        void LoadModel(const AZStd::string& modelPath);
+
         void LoadScene(const CesiumGltf::Model& model, const CesiumGltf::Scene& scene, GltfLoadContext& loadContext);
 
         void LoadNode(
@@ -35,6 +50,9 @@ namespace Cesium
 
         static bool IsIdentityMatrix(const std::vector<double>& matrix);
 
+        static constexpr const std::size_t DEFAULT_MAX_FILE_SIZE = 5 * 1024 * 1024;
+
+        bool m_visible;
         AZ::Render::MeshFeatureProcessorInterface* m_meshFeatureProcessor;
         AZStd::vector<PrimitiveHandle> m_primitives;
     };

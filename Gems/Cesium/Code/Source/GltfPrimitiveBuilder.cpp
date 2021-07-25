@@ -1,6 +1,7 @@
 #include "GltfPrimitiveBuilder.h"
 #include "BitangentAndTangentGenerator.h"
 #include <CesiumUtility/Math.h>
+#include <AzCore/std/limits.h>
 #include <Atom/RPI.Reflect/Model/ModelLodAsset.h>
 #include <Atom/RPI.Reflect/Buffer/BufferAssetCreator.h>
 #include <Atom/RPI.Reflect/Model/ModelLodAssetCreator.h>
@@ -112,7 +113,7 @@ namespace Cesium
         }
 
         // set indices
-        if (CreateIndices(model, primitive))
+        if (!CreateIndices(model, primitive))
         {
             return AZ::Data::Asset<AZ::RPI::ModelAsset>();
         }
@@ -141,10 +142,25 @@ namespace Cesium
         auto tangentBuffer = CreateBufferAsset(m_tangents.data(), m_tangents.size(), AZ::RHI::Format::R32G32B32A32_FLOAT);
         auto bitangentBuffer = CreateBufferAsset(m_bitangents.data(), m_bitangents.size(), AZ::RHI::Format::R32G32B32_FLOAT);
 
+        AZ::Data::Asset <AZ::RPI::BufferAsset> uvDummyBuffer;
         AZStd::array<AZ::Data::Asset<AZ::RPI::BufferAsset>, 2> uvBuffers;
         for (std::size_t i = 0; i < m_uvs.size(); ++i)
         {
-            uvBuffers[i] = CreateBufferAsset(m_uvs[i].m_buffer.data(), m_uvs[i].m_elementCount, m_uvs[i].m_format);
+            if (!m_uvs[i].m_buffer.empty())
+            {
+                uvBuffers[i] = CreateBufferAsset(m_uvs[i].m_buffer.data(), m_uvs[i].m_elementCount, m_uvs[i].m_format);
+            }
+            else
+            {
+                // create only one dummy buffer and shared between uv to save GPU memory
+                if (!uvDummyBuffer)
+                {
+                    AZStd::vector<std::uint8_t> uvs(2 * m_positions.size(), 0);
+                    uvDummyBuffer = CreateBufferAsset(uvs.data(), uvs.size() / 2, AZ::RHI::Format::R8G8_UNORM);
+                }
+
+                uvBuffers[i] = uvDummyBuffer;
+            }
         }
 
         AZ::Data::Asset<AZ::RPI::BufferAsset> colorBuffer;
@@ -156,16 +172,7 @@ namespace Cesium
         // create LOD asset
         AZ::RPI::ModelLodAssetCreator lodCreator;
         lodCreator.Begin(AZ::Uuid::CreateRandom());
-        if (indicesBuffer)
-        {
-            lodCreator.AddLodStreamBuffer(indicesBuffer);
-        }
-
-        if (colorBuffer)
-        {
-            lodCreator.AddLodStreamBuffer(colorBuffer);
-        }
-
+        lodCreator.AddLodStreamBuffer(indicesBuffer);
         lodCreator.AddLodStreamBuffer(positionBuffer);
         lodCreator.AddLodStreamBuffer(normalBuffer);
         lodCreator.AddLodStreamBuffer(tangentBuffer);
@@ -179,20 +186,14 @@ namespace Cesium
             }
         }
 
-        // create mesh
-        lodCreator.BeginMesh();
-        if (indicesBuffer)
-        {
-            lodCreator.SetMeshIndexBuffer(AZ::RPI::BufferAssetView(indicesBuffer, indicesBuffer->GetBufferViewDescriptor()));
-        }
-
         if (colorBuffer)
         {
-            lodCreator.AddMeshStreamBuffer(
-                AZ::RHI::ShaderSemantic("COLOR"), AZ::Name(),
-                AZ::RPI::BufferAssetView(colorBuffer, colorBuffer->GetBufferViewDescriptor()));
+            lodCreator.AddLodStreamBuffer(colorBuffer);
         }
 
+        // create mesh
+        lodCreator.BeginMesh();
+        lodCreator.SetMeshIndexBuffer(AZ::RPI::BufferAssetView(indicesBuffer, indicesBuffer->GetBufferViewDescriptor()));
         lodCreator.AddMeshStreamBuffer(
             AZ::RHI::ShaderSemantic("POSITION"), AZ::Name(),
             AZ::RPI::BufferAssetView(positionBuffer, positionBuffer->GetBufferViewDescriptor()));
@@ -214,6 +215,14 @@ namespace Cesium
                     AZ::RPI::BufferAssetView(uvBuffers[i], uvBuffers[i]->GetBufferViewDescriptor()));
             }
         }
+
+        if (colorBuffer)
+        {
+            lodCreator.AddMeshStreamBuffer(
+                AZ::RHI::ShaderSemantic("COLOR"), AZ::Name(),
+                AZ::RPI::BufferAssetView(colorBuffer, colorBuffer->GetBufferViewDescriptor()));
+        }
+
 
         lodCreator.SetMeshAabb(std::move(aabb));
         lodCreator.EndMesh();
@@ -787,7 +796,8 @@ namespace Cesium
     {
         if (m_context.m_generateUnIndexedMesh || m_indices.empty())
         {
-            return AZ::Data::Asset<AZ::RPI::BufferAsset>();
+            // because o3de requires to have indices, we will create generate an array of incremental indices 
+            return CreateUnIndexedIndicesBufferAsset();
         }
 
         // this accessor should be a valid accessor since we check the validity of the indices before parsing the mesh
@@ -795,22 +805,14 @@ namespace Cesium
         assert(accessor != nullptr);
         assert(accessor->type == CesiumGltf::AccessorSpec::Type::SCALAR);
 
-        if (accessor->componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_BYTE)
+        if (accessor->componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_BYTE ||
+            accessor->componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_SHORT)
         {
-            AZStd::vector<std::uint8_t> data(m_indices.size());  
+            // o3de doesn't support uin8_t indices buffer, so we pick the next smallest one which is uint16_t
+            AZStd::vector<std::uint16_t> data(m_indices.size());
             for (std::size_t i = 0; i < data.size(); ++i)
             {
-                data[i] = static_cast<std::uint8_t>(m_indices[i]);
-            }
-
-            return CreateBufferAsset(data.data(), data.size(), AZ::RHI::Format::R8_UINT);
-        }
-        else if (accessor->componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_SHORT)
-        {
-            AZStd::vector<std::uint16_t> data(m_indices.size());  
-            for (std::size_t i = 0; i < data.size(); ++i)
-            {
-                data[i] = static_cast<std::uint8_t>(m_indices[i]);
+                data[i] = static_cast<std::uint16_t>(m_indices[i]);
             }
 
             return CreateBufferAsset(data.data(), data.size(), AZ::RHI::Format::R16_UINT);
@@ -820,7 +822,7 @@ namespace Cesium
             AZStd::vector<std::uint32_t> data(m_indices.size());  
             for (std::size_t i = 0; i < data.size(); ++i)
             {
-                data[i] = static_cast<std::uint8_t>(m_indices[i]);
+                data[i] = static_cast<std::uint32_t>(m_indices[i]);
             }
 
             return CreateBufferAsset(data.data(), data.size(), AZ::RHI::Format::R32_UINT);
@@ -830,6 +832,31 @@ namespace Cesium
             // this code path should not run since we check the validity of indices accessor at the very beginning
             assert(false);
             return AZ::Data::Asset<AZ::RPI::BufferAsset>();
+        }
+    }
+
+    AZ::Data::Asset<AZ::RPI::BufferAsset> GltfTrianglePrimitiveBuilder::CreateUnIndexedIndicesBufferAsset()
+    {
+        if (m_positions.size() < static_cast<std::size_t>(AZStd::numeric_limits<std::uint16_t>::max()))
+        {
+            // o3de doesn't support uint8_t indices, so we pick the next smallest one which is uint16_t
+            AZStd::vector<std::uint16_t> indices(m_positions.size());
+            for (std::size_t i = 0; i < indices.size(); ++i)
+            {
+                indices[i] = static_cast<std::uint16_t>(i);
+            }
+
+            return CreateBufferAsset(indices.data(), indices.size(), AZ::RHI::Format::R16_UINT);
+        }
+        else
+        {
+            AZStd::vector<std::uint32_t> indices(m_positions.size());
+            for (std::size_t i = 0; i < indices.size(); ++i)
+            {
+                indices[i] = static_cast<std::uint32_t>(i);
+            }
+
+            return CreateBufferAsset(indices.data(), indices.size(), AZ::RHI::Format::R32_UINT);
         }
     }
 
