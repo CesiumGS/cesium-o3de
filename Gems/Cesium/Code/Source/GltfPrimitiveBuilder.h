@@ -1,5 +1,12 @@
 #pragma once
 
+// Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
+// This only happens with unity build
+#ifdef AZ_COMPILER_MSVC
+#pragma push_macro("OPAQUE")
+#undef OPAQUE
+#endif // AZ_COMPILER_MSVC
+
 #include <stdexcept>
 #include <CesiumGltf/Model.h>
 #include <CesiumGltf/AccessorView.h>
@@ -104,3 +111,9 @@ namespace Cesium
         GPUBuffer m_colors;
     };
 } // namespace Cesium
+
+// Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
+// This only happens with unity build
+#ifdef AZ_COMPILER_MSVC
+#pragma pop_macro("OPAQUE")
+#endif // AZ_COMPILER_MSVC

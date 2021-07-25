@@ -1,5 +1,12 @@
 #pragma once
 
+// Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
+// This only happens with unity build
+#ifdef AZ_COMPILER_MSVC
+#pragma push_macro("OPAQUE")
+#undef OPAQUE
+#endif // AZ_COMPILER_MSVC
+
 #include <CesiumGltf/Model.h>
 #include <AzCore/std/containers/vector.h>
 #include <AzCore/std/string/string.h>
@@ -57,3 +64,9 @@ namespace Cesium
         AZStd::vector<PrimitiveHandle> m_primitives;
     };
 } // namespace Cesium
+
+// Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
+// This only happens with unity build
+#ifdef AZ_COMPILER_MSVC
+#pragma pop_macro("OPAQUE")
+#endif // AZ_COMPILER_MSVC

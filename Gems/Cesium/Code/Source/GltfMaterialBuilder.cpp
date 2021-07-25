@@ -1,3 +1,10 @@
+// Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
+// This only happens with unity build
+#ifdef AZ_COMPILER_MSVC
+#pragma push_macro("OPAQUE")
+#undef OPAQUE
+#endif // AZ_COMPILER_MSVC
+
 #include "GltfMaterialBuilder.h"
 #include <Atom/RPI.Reflect/Material/MaterialTypeAsset.h>
 #include <Atom/RPI.Reflect/Material/MaterialAssetCreator.h>
@@ -36,3 +43,10 @@ namespace Cesium
         return standardPBRMaterial;
     }
 } // namespace Cesium
+
+// Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
+// This only happens with unity build
+#ifdef AZ_COMPILER_MSVC
+#pragma pop_macro("OPAQUE")
+#endif // AZ_COMPILER_MSVC
+
