@@ -1,14 +1,16 @@
 // Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
 // This only happens with unity build
-#ifdef AZ_COMPILER_MSVC
 #pragma push_macro("OPAQUE")
 #undef OPAQUE
-#endif // AZ_COMPILER_MSVC
 
 #include "GltfModelComponent.h"
 #include "BitangentAndTangentGenerator.h"
 #include "GltfPrimitiveBuilder.h"
 #include "GltfMaterialBuilder.h"
+#include "GltfLoadContext.h"
+#include "GenericIOManager.h"
+#include "LocalFileManager.h"
+#include <CesiumGltf/Model.h>
 #include <CesiumGltf/GltfReader.h>
 #include <AzCore/IO/FileIO.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -16,15 +18,12 @@
 
 namespace Cesium
 {
-    struct GltfModelComponent::GltfLoadContext
-    {
-    };
-
     GltfModelComponent::GltfModelComponent(AZ::Render::MeshFeatureProcessorInterface* meshFeatureProcessor, const CesiumGltf::Model& model)
         : m_visible{ true }
         , m_meshFeatureProcessor{ meshFeatureProcessor }
     {
-        LoadModel(model);
+        GltfLoadContext loadContext{"", nullptr};
+        LoadModel(model, loadContext);
     }
 
     GltfModelComponent::GltfModelComponent(AZ::Render::MeshFeatureProcessorInterface* meshFeatureProcessor, const AZStd::string& modelPath)
@@ -39,9 +38,8 @@ namespace Cesium
         Destroy();
     }
 
-    void GltfModelComponent::LoadModel(const CesiumGltf::Model& model)
+    void GltfModelComponent::LoadModel(const CesiumGltf::Model& model, GltfLoadContext& loadContext)
     {
-        GltfLoadContext loadContext{};
 
         if (model.scene >= 0 && model.scene < model.scenes.size())
         {
@@ -87,7 +85,9 @@ namespace Cesium
         auto result = reader.readModel(gsl::span<const std::byte>(fileContent.data(), fileContent.size()));
         if (result.model)
         {
-            LoadModel(*result.model);
+            LocalFileManager io;
+            GltfLoadContext loadContext{filePath, &io};
+            LoadModel(*result.model, loadContext);
         }
     }
 
@@ -233,6 +233,4 @@ namespace Cesium
 
 // Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
 // This only happens with unity build
-#ifdef AZ_COMPILER_MSVC
 #pragma pop_macro("OPAQUE")
-#endif // AZ_COMPILER_MSVC

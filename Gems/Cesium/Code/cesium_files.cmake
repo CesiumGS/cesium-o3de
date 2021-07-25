@@ -6,12 +6,6 @@ set(FILES
     Source/CesiumSystemComponent.h
     Source/BitangentAndTangentGenerator.cpp
     Source/BitangentAndTangentGenerator.h
-    Source/GltfPrimitiveBuilder.cpp
-    Source/GltfPrimitiveBuilder.h
-    Source/GltfMaterialBuilder.cpp
-    Source/GltfMaterialBuilder.h
-    Source/GltfModelComponent.cpp
-    Source/GltfModelComponent.h
     Source/HttpAssetAccessor.cpp
     Source/HttpAssetAccessor.h
     Source/HttpManager.cpp
@@ -20,4 +14,12 @@ set(FILES
     Source/LocalFileManager.h
     Source/GenericIOManager.cpp
     Source/GenericIOManager.h
+    Source/GltfLoadContext.cpp
+    Source/GltfLoadContext.h
+    Source/GltfPrimitiveBuilder.cpp
+    Source/GltfPrimitiveBuilder.h
+    Source/GltfMaterialBuilder.cpp
+    Source/GltfMaterialBuilder.h
+    Source/GltfModelComponent.cpp
+    Source/GltfModelComponent.h
 )

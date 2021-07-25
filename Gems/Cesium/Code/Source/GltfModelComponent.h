@@ -2,12 +2,9 @@
 
 // Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
 // This only happens with unity build
-#ifdef AZ_COMPILER_MSVC
 #pragma push_macro("OPAQUE")
 #undef OPAQUE
-#endif // AZ_COMPILER_MSVC
 
-#include <CesiumGltf/Model.h>
 #include <AzCore/std/containers/vector.h>
 #include <AzCore/std/string/string.h>
 #include <Atom/Feature/Mesh/MeshFeatureProcessorInterface.h>
@@ -15,12 +12,19 @@
 #include <vector>
 #include <cstdint>
 
+namespace CesiumGltf
+{
+    struct Model;
+    struct Node;
+    struct MeshPrimitive;
+}
+
 namespace Cesium
 {
+    class GltfLoadContext;
+
     class GltfModelComponent
     {
-        struct GltfLoadContext;
-
         using PrimitiveHandle = AZ::Render::MeshFeatureProcessorInterface::MeshHandle;
 
     public:
@@ -37,7 +41,7 @@ namespace Cesium
         void Destroy();
 
     private:
-        void LoadModel(const CesiumGltf::Model& model);
+        void LoadModel(const CesiumGltf::Model& model, GltfLoadContext& loadContext);
 
         void LoadModel(const AZStd::string& modelPath);
 
@@ -67,6 +71,4 @@ namespace Cesium
 
 // Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
 // This only happens with unity build
-#ifdef AZ_COMPILER_MSVC
 #pragma pop_macro("OPAQUE")
-#endif // AZ_COMPILER_MSVC
