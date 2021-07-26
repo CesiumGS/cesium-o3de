@@ -4,6 +4,7 @@
 #undef OPAQUE
 
 #include "GltfPrimitiveBuilder.h"
+#include "GltfLoadContext.h"
 #include "BitangentAndTangentGenerator.h"
 #include <CesiumUtility/Math.h>
 #include <AzCore/std/limits.h>

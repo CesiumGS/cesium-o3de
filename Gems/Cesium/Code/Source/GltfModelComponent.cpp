@@ -10,11 +10,11 @@
 #include "GltfLoadContext.h"
 #include "GenericIOManager.h"
 #include "LocalFileManager.h"
-#include <CesiumGltf/Model.h>
 #include <CesiumGltf/GltfReader.h>
 #include <AzCore/IO/FileIO.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <filesystem>
 
 namespace Cesium
 {
@@ -36,59 +36,6 @@ namespace Cesium
     GltfModelComponent::~GltfModelComponent() noexcept
     {
         Destroy();
-    }
-
-    void GltfModelComponent::LoadModel(const CesiumGltf::Model& model, GltfLoadContext& loadContext)
-    {
-
-        if (model.scene >= 0 && model.scene < model.scenes.size())
-        {
-            // display default scene
-            LoadScene(model, model.scenes[model.scene], loadContext);
-        }
-        else if (model.scenes.size() > 0)
-        {
-            // no default scene, display the first one
-            LoadScene(model, model.scenes.front(), loadContext);
-        }
-        else
-        {
-            // load all meshes in the gltf
-            for (const auto& mesh : model.meshes)
-            {
-                LoadMesh(model, mesh, glm::dmat4(1.0), loadContext);
-            }
-        }
-    }
-
-    void GltfModelComponent::LoadModel(const AZStd::string& filePath)
-    {
-        AZ::IO::FileIOStream file;
-        if (!file.Open(filePath.data(), AZ::IO::OpenMode::ModeRead))
-        {
-            return;
-        }
-
-        AZ::IO::SizeType length = file.GetLength();
-        if (length == 0)
-        {
-            return;
-        }
-
-        AZStd::vector<std::byte> fileContent(length);
-        AZ::IO::SizeType bytesRead = file.Read(length, fileContent.data());
-        file.Close();
-
-        // Resize again just in case bytesRead is less than length for some reason
-        fileContent.resize(bytesRead);
-        CesiumGltf::GltfReader reader;
-        auto result = reader.readModel(gsl::span<const std::byte>(fileContent.data(), fileContent.size()));
-        if (result.model)
-        {
-            LocalFileManager io;
-            GltfLoadContext loadContext{filePath, &io};
-            LoadModel(*result.model, loadContext);
-        }
     }
 
     bool GltfModelComponent::IsVisible() const
@@ -117,6 +64,61 @@ namespace Cesium
         }
 
         m_primitives.clear();
+    }
+
+    void GltfModelComponent::LoadModel(const AZStd::string& filePath)
+    {
+        AZ::IO::FileIOStream file;
+        if (!file.Open(filePath.data(), AZ::IO::OpenMode::ModeRead))
+        {
+            return;
+        }
+
+        AZ::IO::SizeType length = file.GetLength();
+        if (length == 0)
+        {
+            return;
+        }
+
+        AZStd::vector<std::byte> fileContent(length);
+        AZ::IO::SizeType bytesRead = file.Read(length, fileContent.data());
+        file.Close();
+
+        // Resize again just in case bytesRead is less than length for some reason
+        fileContent.resize(bytesRead);
+        CesiumGltf::GltfReader reader;
+        auto result = reader.readModel(gsl::span<const std::byte>(fileContent.data(), fileContent.size()));
+        if (result.model)
+        {
+            std::filesystem::path parent = std::filesystem::path(filePath.c_str()).parent_path();
+            LocalFileManager io;
+            GltfLoadContext loadContext{parent.string().c_str(), &io};
+            ResolveExternalBuffers(*result.model, loadContext);
+            LoadModel(*result.model, loadContext);
+        }
+    }
+
+    void GltfModelComponent::LoadModel(const CesiumGltf::Model& model, GltfLoadContext& loadContext)
+    {
+
+        if (model.scene >= 0 && model.scene < model.scenes.size())
+        {
+            // display default scene
+            LoadScene(model, model.scenes[model.scene], loadContext);
+        }
+        else if (model.scenes.size() > 0)
+        {
+            // no default scene, display the first one
+            LoadScene(model, model.scenes.front(), loadContext);
+        }
+        else
+        {
+            // load all meshes in the gltf
+            for (const auto& mesh : model.meshes)
+            {
+                LoadMesh(model, mesh, glm::dmat4(1.0), loadContext);
+            }
+        }
     }
 
     void GltfModelComponent::LoadScene(const CesiumGltf::Model& model, const CesiumGltf::Scene& scene, GltfLoadContext& loadContext)
@@ -222,6 +224,19 @@ namespace Cesium
 
         // save the handle
         m_primitives.emplace_back(std::move(primitiveHandle));
+    }
+
+    void GltfModelComponent::ResolveExternalBuffers(CesiumGltf::Model& model, GltfLoadContext& loadContext)
+    {
+        for (CesiumGltf::Buffer& buffer : model.buffers)
+        {
+            if (!buffer.cesium.data.empty() || !buffer.uri.has_value())
+            {
+                continue;
+            }
+
+            loadContext.LoadExternalBuffer(buffer);
+        }
     }
 
     bool GltfModelComponent::IsIdentityMatrix(const std::vector<double>& matrix)

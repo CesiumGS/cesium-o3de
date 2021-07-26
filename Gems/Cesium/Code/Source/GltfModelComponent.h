@@ -5,19 +5,14 @@
 #pragma push_macro("OPAQUE")
 #undef OPAQUE
 
+#include <stdexcept>
+#include <CesiumGltf/Model.h>
 #include <AzCore/std/containers/vector.h>
 #include <AzCore/std/string/string.h>
 #include <Atom/Feature/Mesh/MeshFeatureProcessorInterface.h>
 #include <glm/glm.hpp>
 #include <vector>
 #include <cstdint>
-
-namespace CesiumGltf
-{
-    struct Model;
-    struct Node;
-    struct MeshPrimitive;
-}
 
 namespace Cesium
 {
@@ -41,9 +36,9 @@ namespace Cesium
         void Destroy();
 
     private:
-        void LoadModel(const CesiumGltf::Model& model, GltfLoadContext& loadContext);
-
         void LoadModel(const AZStd::string& modelPath);
+
+        void LoadModel(const CesiumGltf::Model& model, GltfLoadContext& loadContext);
 
         void LoadScene(const CesiumGltf::Model& model, const CesiumGltf::Scene& scene, GltfLoadContext& loadContext);
 
@@ -58,6 +53,8 @@ namespace Cesium
             const CesiumGltf::MeshPrimitive& primitive,
             const glm::dmat4& transform,
             GltfLoadContext& loadContext);
+
+        void ResolveExternalBuffers(CesiumGltf::Model& model, GltfLoadContext& loadContext);
 
         static bool IsIdentityMatrix(const std::vector<double>& matrix);
 
