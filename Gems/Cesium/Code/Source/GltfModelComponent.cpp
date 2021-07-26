@@ -100,7 +100,6 @@ namespace Cesium
 
     void GltfModelComponent::LoadModel(const CesiumGltf::Model& model, GltfLoadContext& loadContext)
     {
-
         if (model.scene >= 0 && model.scene < model.scenes.size())
         {
             // display default scene
@@ -123,7 +122,7 @@ namespace Cesium
 
     void GltfModelComponent::LoadScene(const CesiumGltf::Model& model, const CesiumGltf::Scene& scene, GltfLoadContext& loadContext)
     {
-        glm::dmat4 parentTransform(1.0);
+        glm::dmat4 parentTransform(-1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
         for (std::int32_t rootIndex : scene.nodes)
         {
             if (rootIndex >= 0 && rootIndex <= model.nodes.size())
@@ -155,7 +154,7 @@ namespace Cesium
 
             if (node.rotation.size() == 4)
             {
-                currentTransform *= glm::dmat4(glm::dquat(node.rotation[0], node.rotation[1], node.rotation[2], node.rotation[3]));
+                currentTransform *= glm::dmat4(glm::dquat(node.rotation[3], node.rotation[0], node.rotation[1], node.rotation[2]));
             }
 
             if (node.scale.size() == 3)

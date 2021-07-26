@@ -579,6 +579,11 @@ namespace Cesium
                         assert(false);
                     }
                 }
+
+                if (success)
+                {
+                    break;
+                }
             }
 
             // if we still cannot generate MikkTSpace, then we generate dummy
