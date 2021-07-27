@@ -542,7 +542,7 @@ namespace Cesium
         if (m_context.m_generateTangent)
         {
             // positions, normals, and uvs should be unindexed at this point
-            assert(generateUnIndexedMesh);
+            assert(m_context.m_generateUnIndexedMesh);
             assert(m_positions.size() == m_normals.size());
             assert(m_positions.size() > 0);
             assert(m_positions.size() % 3 == 0);
