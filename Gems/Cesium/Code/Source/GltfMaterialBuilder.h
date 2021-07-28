@@ -5,25 +5,25 @@
 #pragma push_macro("OPAQUE")
 #undef OPAQUE
 
+#include "GltfLoadContext.h"
+#include <CesiumGltf/Model.h>
 #include <Atom/RPI.Reflect/Image/ImageAsset.h>
 #include <Atom/RPI.Reflect/Material/MaterialAsset.h>
 #include <Atom/RPI.Public/Material/Material.h>
 #include <stdexcept>
-
-namespace CesiumGltf
-{
-    struct Model;
-    struct Material;
-}
 
 namespace Cesium
 {
     class GltfMaterialBuilder
     {
     public:
-        AZ::Data::Asset<AZ::RPI::MaterialAsset> Create(const CesiumGltf::Model& model, const CesiumGltf::Material& material);
+        AZ::Data::Asset<AZ::RPI::MaterialAsset> Create(
+            const CesiumGltf::Model& model, const CesiumGltf::Material& material, GltfLoadContext& loadContext);
 
     private:
+        AZ::Data::Asset<AZ::RPI::ImageAsset> GetOrCreateImage(
+            const CesiumGltf::Model& model, const CesiumGltf::TextureInfo& textureInfo, GltfLoadContext& loadContext);
+
         static constexpr const char* const STANDARD_PBR_MAT_TYPE = "Materials/Types/StandardPBR.azmaterialtype";
     };
 } // namespace Cesium

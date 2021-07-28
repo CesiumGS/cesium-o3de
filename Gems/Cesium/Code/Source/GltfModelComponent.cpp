@@ -208,7 +208,7 @@ namespace Cesium
         {
             return;
         }
-        auto materialAsset = materialBuilder.Create(model, *material);
+        auto materialAsset = materialBuilder.Create(model, *material, loadContext);
         auto materialInstance = AZ::RPI::Material::Create(materialAsset);
 
         // create mesh handle
