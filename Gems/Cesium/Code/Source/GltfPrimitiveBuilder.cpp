@@ -299,7 +299,8 @@ namespace Cesium
             AccessorType* value = reinterpret_cast<AccessorType*>(buffer.data());
             for (std::size_t i = 0; i < m_indices.size(); ++i)
             {
-                value[i] = accessorView[static_cast<std::int64_t>(i)];
+                std::int64_t index = static_cast<std::int64_t>(m_indices[i]);
+                value[i] = accessorView[index];
             }
         }
         else
@@ -471,7 +472,7 @@ namespace Cesium
     {
         for (std::size_t i = 0; i < m_uvs.size(); ++i)
         {
-            auto uvAttribute = primitive.attributes.find("UV_" + std::to_string(i));
+            auto uvAttribute = primitive.attributes.find("TEXCOORD_" + std::to_string(i));
             if (uvAttribute == primitive.attributes.end())
             {
                 continue;
@@ -497,7 +498,7 @@ namespace Cesium
                 }
 
                 CopyAccessorToBuffer(view, m_uvs[i].m_buffer);
-                m_uvs[i].m_elementCount = view.size();
+                m_uvs[i].m_elementCount = m_uvs[i].m_buffer.size() / (sizeof(float) * 2);
                 m_uvs[i].m_format = AZ::RHI::Format::R32G32_FLOAT;
             }
             else if (uvAccessor->componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_BYTE)
@@ -514,7 +515,7 @@ namespace Cesium
                 }
 
                 CopyAccessorToBuffer(view, m_uvs[i].m_buffer);
-                m_uvs[i].m_elementCount = view.size();
+                m_uvs[i].m_elementCount = m_uvs[i].m_buffer.size() / (sizeof(std::uint8_t) * 2);
                 m_uvs[i].m_format = AZ::RHI::Format::R8G8_UNORM;
             }
             else if (uvAccessor->componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_SHORT)
@@ -531,7 +532,7 @@ namespace Cesium
                 }
 
                 CopyAccessorToBuffer(view, m_uvs[i].m_buffer);
-                m_uvs[i].m_elementCount = view.size();
+                m_uvs[i].m_elementCount = m_uvs[i].m_buffer.size() / (sizeof(std::uint16_t) * 2);
                 m_uvs[i].m_format = AZ::RHI::Format::R16G16_UNORM;
             }
         }
@@ -542,7 +543,7 @@ namespace Cesium
         if (m_context.m_generateTangent)
         {
             // positions, normals, and uvs should be unindexed at this point
-            assert(generateUnIndexedMesh);
+            assert(m_context.m_generateUnIndexedMesh);
             assert(m_positions.size() == m_normals.size());
             assert(m_positions.size() > 0);
             assert(m_positions.size() % 3 == 0);
