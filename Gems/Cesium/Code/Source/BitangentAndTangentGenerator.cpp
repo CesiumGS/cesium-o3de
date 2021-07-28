@@ -53,7 +53,7 @@ namespace Cesium
         {
             MikktspaceCustomData* customData = static_cast<MikktspaceCustomData*>(context->m_pUserData);
             const AZStd::array_view<glm::vec2>& uvs = customData->uvs;
-            if (!uvs.empty())
+            if (uvs.empty())
             {
                 texOut[0] = 0.0f;
                 texOut[1] = 0.0f;
@@ -71,7 +71,7 @@ namespace Cesium
         {
             MikktspaceCustomData* customData = static_cast<MikktspaceCustomData*>(context->m_pUserData);
             const AZStd::array_view<glm::u8vec2>& uvs = customData->unorm_u8_uvs;
-            if (!uvs.empty())
+            if (uvs.empty())
             {
                 texOut[0] = 0.0f;
                 texOut[1] = 0.0f;
@@ -89,7 +89,7 @@ namespace Cesium
         {
             MikktspaceCustomData* customData = static_cast<MikktspaceCustomData*>(context->m_pUserData);
             const AZStd::array_view<glm::u16vec2>& uvs = customData->unorm_u16_uvs;
-            if (!uvs.empty())
+            if (uvs.empty())
             {
                 texOut[0] = 0.0f;
                 texOut[1] = 0.0f;
