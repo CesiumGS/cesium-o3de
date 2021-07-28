@@ -122,6 +122,9 @@ namespace Cesium
         AZStd::vector<glm::vec4>& tangents,
         AZStd::vector<glm::vec3>& bitangents)
     {
+        tangents.resize(positions.size());
+        bitangents.resize(positions.size());
+
         SMikkTSpaceInterface mikkInterface;
         mikkInterface.m_getNumFaces = MikktspaceMethods::GetNumFaces;
         mikkInterface.m_getNormal = MikktspaceMethods::GetNormal;
@@ -153,6 +156,9 @@ namespace Cesium
         AZStd::vector<glm::vec4>& tangents,
         AZStd::vector<glm::vec3>& bitangents)
     {
+        tangents.resize(positions.size());
+        bitangents.resize(positions.size());
+
         SMikkTSpaceInterface mikkInterface;
         mikkInterface.m_getNumFaces = MikktspaceMethods::GetNumFaces;
         mikkInterface.m_getNormal = MikktspaceMethods::GetNormal;
@@ -184,6 +190,9 @@ namespace Cesium
         AZStd::vector<glm::vec4>& tangents,
         AZStd::vector<glm::vec3>& bitangents)
     {
+        tangents.resize(positions.size());
+        bitangents.resize(positions.size());
+
         SMikkTSpaceInterface mikkInterface;
         mikkInterface.m_getNumFaces = MikktspaceMethods::GetNumFaces;
         mikkInterface.m_getNormal = MikktspaceMethods::GetNormal;
