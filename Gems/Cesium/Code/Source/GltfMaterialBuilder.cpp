@@ -33,6 +33,21 @@ namespace Cesium
             ConfigurePbrMetallicRoughness(model, *pbrMetallicRoughness, materialCreator, loadContext);
         }
 
+        // configure occlusion
+        const std::optional<CesiumGltf::MaterialOcclusionTextureInfo> occlusionTexture = material.occlusionTexture;
+        if (occlusionTexture)
+        {
+            AZ::Data::Asset<AZ::RPI::ImageAsset> occlusionImage = GetOrCreateOcclusionImage(model, *occlusionTexture, loadContext);
+            std::int64_t occlusionTexCoord = occlusionTexture->texCoord;
+            if (occlusionImage && occlusionTexCoord >= 0 && occlusionTexCoord < 2)
+            {
+                materialCreator.SetPropertyValue(AZ::Name("occlusion.diffuseUseTexture"), true);
+                materialCreator.SetPropertyValue(AZ::Name("occlusion.diffuseTextureMap"), occlusionImage);
+                materialCreator.SetPropertyValue(AZ::Name("occlusion.diffuseTextureMapUv"), static_cast<std::uint32_t>(occlusionTexCoord));
+                materialCreator.SetPropertyValue(AZ::Name("occlusion.diffuseFactor"), static_cast<float>(occlusionTexture->strength));
+            }
+        }
+
         // configure emissive 
         bool enableEmissive = false;
         if (material.emissiveFactor.size() == 3)
@@ -178,6 +193,57 @@ namespace Cesium
         }
     }
 
+    AZ::Data::Asset<AZ::RPI::ImageAsset> GltfMaterialBuilder::GetOrCreateOcclusionImage(
+        const CesiumGltf::Model& model, const CesiumGltf::TextureInfo& textureInfo, [[maybe_unused]] GltfLoadContext& loadContext)
+    {
+        const CesiumGltf::Texture* texture = model.getSafe<CesiumGltf::Texture>(&model.textures, textureInfo.index);
+        if (!texture)
+        {
+            return AZ::Data::Asset<AZ::RPI::ImageAsset>();
+        }
+
+        const CesiumGltf::Image* image = model.getSafe<CesiumGltf::Image>(&model.images, texture->source);
+        if (!image || image->cesium.pixelData.empty())
+        {
+            return AZ::Data::Asset<AZ::RPI::ImageAsset>();
+        }
+
+        if (image->cesium.width <= 0 || image->cesium.height <= 0)
+        {
+            return AZ::Data::Asset<AZ::RPI::ImageAsset>();
+        }
+
+        const CesiumGltf::ImageCesium& imageData = image->cesium;
+        std::size_t width = static_cast<std::size_t>(imageData.width);
+        std::size_t height = static_cast<std::size_t>(imageData.height);
+        if (imageData.bytesPerChannel != 1 || imageData.channels < 1)
+        {
+            return AZ::Data::Asset<AZ::RPI::ImageAsset>();
+        }
+
+        if (imageData.pixelData.size() != width * height * imageData.channels)
+        {
+            return AZ::Data::Asset<AZ::RPI::ImageAsset>();
+        }
+
+        // Do the fast path. Copy the whole data over
+        if (imageData.channels == 1)
+        {
+            return Create2DImage(imageData.pixelData.data(), imageData.pixelData.size(), width, height, AZ::RHI::Format::R8_UNORM);
+        }
+
+        // Just copy the red channel
+        std::size_t j = 0;
+        AZStd::vector<std::byte> pixels(width * height);
+        for (std::size_t i = 0; i < imageData.pixelData.size(); i += imageData.channels * imageData.bytesPerChannel)
+        {
+            pixels[j] = imageData.pixelData[i];
+            ++j;
+        }
+
+        return Create2DImage(pixels.data(), pixels.size(), width, height, AZ::RHI::Format::R8_UNORM);
+    }
+
     AZ::Data::Asset<AZ::RPI::ImageAsset> GltfMaterialBuilder::GetOrCreateRGBAImage(
         const CesiumGltf::Model& model,
         const CesiumGltf::TextureInfo& textureInfo,
@@ -224,11 +290,11 @@ namespace Cesium
                 pixels[i + 3] = static_cast<std::byte>(255);
             }
 
-            return Create2DImage(pixels.data(), pixels.size(), width, height, AZ::RHI::Format::R8G8B8A8_UNORM_SRGB);
+            return Create2DImage(pixels.data(), pixels.size(), width, height, AZ::RHI::Format::R8G8B8A8_UNORM);
         }
         else
         {
-            return Create2DImage(imageData.pixelData.data(), imageData.pixelData.size(), width, height, AZ::RHI::Format::R8G8B8A8_UNORM_SRGB);
+            return Create2DImage(imageData.pixelData.data(), imageData.pixelData.size(), width, height, AZ::RHI::Format::R8G8B8A8_UNORM);
         }
     }
 

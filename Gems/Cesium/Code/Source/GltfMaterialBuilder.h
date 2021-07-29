@@ -27,6 +27,9 @@ namespace Cesium
             AZ::RPI::MaterialAssetCreator& materialCreator,
             GltfLoadContext& loadContext);
 
+        AZ::Data::Asset<AZ::RPI::ImageAsset> GetOrCreateOcclusionImage(
+            const CesiumGltf::Model& model, const CesiumGltf::TextureInfo& textureInfo, GltfLoadContext& loadContext);
+
         AZ::Data::Asset<AZ::RPI::ImageAsset> GetOrCreateRGBAImage(
             const CesiumGltf::Model& model, const CesiumGltf::TextureInfo& textureInfo, GltfLoadContext& loadContext);
 
