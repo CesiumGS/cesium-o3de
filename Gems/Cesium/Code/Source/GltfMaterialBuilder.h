@@ -21,7 +21,13 @@ namespace Cesium
             const CesiumGltf::Model& model, const CesiumGltf::Material& material, GltfLoadContext& loadContext);
 
     private:
-        AZ::Data::Asset<AZ::RPI::ImageAsset> GetOrCreateBaseColorImage(
+        void ConfigurePbrMetallicRoughness(
+            const CesiumGltf::Model& model,
+            const CesiumGltf::MaterialPBRMetallicRoughness& pbrMetallicRoughness,
+            AZ::RPI::MaterialAssetCreator& materialCreator,
+            GltfLoadContext& loadContext);
+
+        AZ::Data::Asset<AZ::RPI::ImageAsset> GetOrCreateRGBAImage(
             const CesiumGltf::Model& model, const CesiumGltf::TextureInfo& textureInfo, GltfLoadContext& loadContext);
 
         void GltfMaterialBuilder::GetOrCreateMetallicRoughnessImage(
