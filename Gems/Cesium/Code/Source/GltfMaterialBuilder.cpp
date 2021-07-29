@@ -33,33 +33,65 @@ namespace Cesium
             ConfigurePbrMetallicRoughness(model, *pbrMetallicRoughness, materialCreator, loadContext);
         }
 
-        // configure normal texture
-        const std::optional<CesiumGltf::MaterialNormalTextureInfo>& normalTexture = material.normalTexture; 
-        if (normalTexture)
+        // configure emissive 
+        bool enableEmissive = false;
+        if (material.emissiveFactor.size() == 3)
         {
-            AZ::Data::Asset<AZ::RPI::ImageAsset> normalImage = GetOrCreateRGBAImage(model, *normalTexture, loadContext);
-            std::int64_t normalTexCoord = normalTexture->texCoord;
-            if (normalTexture && normalTexCoord >= 0 && normalTexCoord < 2)
+            bool isBlack = std::all_of(
+                material.emissiveFactor.begin(), material.emissiveFactor.end(),
+                [](double c)
+                {
+                    return c == 0.0;
+                });
+
+            if (!isBlack)
             {
-                materialCreator.SetPropertyValue(AZ::Name("normal.useTexture"), true);
-                materialCreator.SetPropertyValue(AZ::Name("normal.textureMap"), normalImage);
-                materialCreator.SetPropertyValue(AZ::Name("normal.textureMapUv"), static_cast<std::uint32_t>(normalTexCoord));
-                materialCreator.SetPropertyValue(AZ::Name("normal.factor"), static_cast<float>(normalTexture->scale));
-                materialCreator.SetPropertyValue(AZ::Name("normal.flipY"), true);
-            }
-            else
-            {
-                materialCreator.SetPropertyValue(AZ::Name("normal.useTexture"), false);
+                enableEmissive = true;
+                materialCreator.SetPropertyValue(
+                    AZ::Name("emissive.color"),
+                    AZ::Color{ static_cast<float>(material.emissiveFactor[0]), static_cast<float>(material.emissiveFactor[1]),
+                               static_cast<float>(material.emissiveFactor[2]), 1.0f });
             }
         }
 
-        // configure emissive texture
         const std::optional<CesiumGltf::TextureInfo>& emissiveTexture = material.emissiveTexture;
         if (emissiveTexture)
         {
+            AZ::Data::Asset<AZ::RPI::ImageAsset> emissiveImage = GetOrCreateRGBAImage(model, *emissiveTexture, loadContext);
+            std::int64_t emissiveTexCoord = emissiveTexture->texCoord;
+            if (emissiveImage && emissiveTexCoord >= 0 && emissiveTexCoord < 2)
+            {
+                enableEmissive = true;
+                materialCreator.SetPropertyValue(AZ::Name("emissive.useTexture"), true);
+                materialCreator.SetPropertyValue(AZ::Name("emissive.textureMap"), emissiveImage);
+                materialCreator.SetPropertyValue(AZ::Name("emissive.textureMapUv"), static_cast<std::uint32_t>(emissiveTexCoord));
+            }
+            else
+            {
+                materialCreator.SetPropertyValue(AZ::Name("emissive.useTexture"), false);
+            }
+        }
+
+        if (enableEmissive)
+        {
+            materialCreator.SetPropertyValue(AZ::Name("emissive.enable"), true);
         }
 
         // set opacity
+        if (material.alphaMode == CesiumGltf::Material::AlphaMode::OPAQUE)
+        {
+            materialCreator.SetPropertyValue(AZ::Name("opacity.mode"), static_cast<std::uint32_t>(0));
+        }
+        else if (material.alphaMode == CesiumGltf::Material::AlphaMode::MASK)
+        {
+            materialCreator.SetPropertyValue(AZ::Name("opacity.mode"), static_cast<std::uint32_t>(1));
+            materialCreator.SetPropertyValue(AZ::Name("opacity.factor"), static_cast<float>(1.0 - material.alphaCutoff));
+        }
+        else if (material.alphaMode == CesiumGltf::Material::AlphaMode::BLEND)
+        {
+            materialCreator.SetPropertyValue(AZ::Name("opacity.mode"), static_cast<std::uint32_t>(2));
+        }
+
         if (material.doubleSided)
         {
             materialCreator.SetPropertyValue(AZ::Name("opacity.doubleSided"), true);
@@ -192,11 +224,11 @@ namespace Cesium
                 pixels[i + 3] = static_cast<std::byte>(255);
             }
 
-            return Create2DImage(pixels.data(), pixels.size(), width, height, AZ::RHI::Format::R8G8B8A8_UNORM);
+            return Create2DImage(pixels.data(), pixels.size(), width, height, AZ::RHI::Format::R8G8B8A8_UNORM_SRGB);
         }
         else
         {
-            return Create2DImage(imageData.pixelData.data(), imageData.pixelData.size(), width, height, AZ::RHI::Format::R8G8B8A8_UNORM);
+            return Create2DImage(imageData.pixelData.data(), imageData.pixelData.size(), width, height, AZ::RHI::Format::R8G8B8A8_UNORM_SRGB);
         }
     }
 
