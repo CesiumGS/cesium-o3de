@@ -60,26 +60,6 @@ namespace Cesium
         {
             m_tangents = CesiumGltf::AccessorView<glm::vec4>(model, tangentAttribute->second);
         }
-
-        // get uvs
-        for (std::size_t i = 0; i < 2; ++i)
-        {
-            auto uvAttribute = primitive.attributes.find("UV_" + std::to_string(i));
-            if (uvAttribute != primitive.attributes.end())
-            {
-                auto uvAccessor = model.getSafe<CesiumGltf::Accessor>(&model.accessors, uvAttribute->second);
-                if (uvAccessor)
-                {
-                    if (uvAccessor->type == CesiumGltf::AccessorSpec::Type::VEC2)
-                    {
-                        if (uvAccessor->componentType == CesiumGltf::AccessorSpec::ComponentType::FLOAT)
-                        {
-                            m_uvs[i] = CesiumGltf::AccessorView<glm::vec2>(model, *uvAccessor);
-                        }
-                    }
-                }
-            }
-        }
     }
 
     GltfTrianglePrimitiveBuilder::LoadContext::LoadContext()

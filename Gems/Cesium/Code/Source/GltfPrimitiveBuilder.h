@@ -45,7 +45,6 @@ namespace Cesium
             CesiumGltf::AccessorView<glm::vec3> m_positions;
             CesiumGltf::AccessorView<glm::vec3> m_normals;
             CesiumGltf::AccessorView<glm::vec4> m_tangents;
-            AZStd::array<CesiumGltf::AccessorView<glm::vec2>, 2> m_uvs;
         };
 
     public:
