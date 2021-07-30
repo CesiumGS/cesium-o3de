@@ -49,7 +49,7 @@ namespace Cesium
 
     public:
         AZ::Data::Asset<AZ::RPI::ModelAsset> Create(
-            const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive);
+            const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive, GltfLoadContext& gltfLoadContext);
 
     private:
         void DetermineLoadContext(const CommonAccessorViews& accessorViews);

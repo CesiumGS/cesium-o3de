@@ -70,7 +70,7 @@ namespace Cesium
     }
 
     AZ::Data::Asset<AZ::RPI::ModelAsset> GltfTrianglePrimitiveBuilder::Create(
-        const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive)
+        const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive, [[maybe_unused]] GltfLoadContext& gltfLoadContext)
     {
         // Construct common accessor views. This is needed to begin determine loading context
         CommonAccessorViews commonAccessorViews{ model, primitive };

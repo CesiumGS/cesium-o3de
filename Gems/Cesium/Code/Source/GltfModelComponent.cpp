@@ -190,11 +190,11 @@ namespace Cesium
         const CesiumGltf::Model& model,
         const CesiumGltf::MeshPrimitive& primitive,
         const glm::dmat4& transform,
-        [[maybe_unused]] GltfLoadContext& loadContext)
+        GltfLoadContext& loadContext)
     {
         // create model asset
         GltfTrianglePrimitiveBuilder primitiveBuilder;
-        auto modelAsset = primitiveBuilder.Create(model, primitive);
+        auto modelAsset = primitiveBuilder.Create(model, primitive, loadContext);
         if (!modelAsset)
         {
             // Cannot create asset, skip rendering it
