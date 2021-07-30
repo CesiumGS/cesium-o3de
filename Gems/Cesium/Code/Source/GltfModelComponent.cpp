@@ -214,12 +214,25 @@ namespace Cesium
         // create mesh handle
         auto primitiveHandle = m_meshFeatureProcessor->AcquireMesh(AZ::Render::MeshHandleDescriptor{ modelAsset }, materialInstance);
 
-        // set transformation
-        AZ::Matrix3x4 o3deMatrix = AZ::Matrix3x4::CreateFromColumns(
-            AZ::Vector3(transform[0][0], transform[0][1], transform[0][2]), AZ::Vector3(transform[1][0], transform[1][1], transform[1][2]),
-            AZ::Vector3(transform[2][0], transform[2][1], transform[2][2]), AZ::Vector3(transform[3][0], transform[3][1], transform[3][2]));
-        AZ::Transform o3deTransform = AZ::Transform::CreateFromMatrix3x4(o3deMatrix);
-        m_meshFeatureProcessor->SetTransform(primitiveHandle, o3deTransform);
+        // set transformation. Since AZ::Transform doesn' accept non-uniform scale, we
+        // decompose matrix to translation and rotation and set them for AZ::Transform.
+        // For non-uniform scale, we set it separately
+        const glm::dvec4& translation = transform[3];
+        glm::dvec3 scale;
+        for (std::size_t i = 0; i < 3; ++i)
+        {
+            scale[i] = glm::length(transform[i]);
+        }
+        const glm::dmat3 rotMtx(
+            glm::dvec3(transform[0]) / scale[0], glm::dvec3(transform[1]) / scale[1], glm::dvec3(transform[2]) / scale[2]);
+        glm::dquat quarternion = glm::quat_cast(rotMtx);
+        AZ::Quaternion o3deQuarternion{ static_cast<float>(quarternion.x), static_cast<float>(quarternion.y),
+                                        static_cast<float>(quarternion.z), static_cast<float>(quarternion.w) };
+        AZ::Vector3 o3deTranslation{ static_cast<float>(translation.x), static_cast<float>(translation.y),
+                                     static_cast<float>(translation.z) };
+        AZ::Vector3 o3deScale{ static_cast<float>(scale.x), static_cast<float>(scale.y), static_cast<float>(scale.z) };
+        AZ::Transform o3deTransform = AZ::Transform::CreateFromQuaternionAndTranslation(o3deQuarternion, o3deTranslation);
+        m_meshFeatureProcessor->SetTransform(primitiveHandle, o3deTransform, o3deScale);
 
         // save the handle
         m_primitives.emplace_back(std::move(primitiveHandle));
