@@ -76,19 +76,6 @@ namespace Cesium
 
         void CreateTangentsAndBitangentsAttributes(const CommonAccessorViews& commonAccessorViews);
 
-        void CreateColorsAttribute(
-            const CommonAccessorViews& commonAccessorViews, const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive);
-
-        void CreateVec3ColorsAttribute(
-            const CommonAccessorViews& commonAccessorViews, const CesiumGltf::Model& model, const CesiumGltf::Accessor& accessor);
-
-        void CreateVec4ColorsAttribute(
-            const CommonAccessorViews& commonAccessorViews, const CesiumGltf::Model& model, const CesiumGltf::Accessor& accessor);
-
-        template<typename Type, glm::qualifier Q>
-        void CopyVec3ColorAccessorToVec4Buffer(
-            const CesiumGltf::AccessorView<glm::vec<3, Type, Q>>& accessorView, Type w, AZStd::vector<std::byte>& buffer);
-
         void CreateFlatNormal();
 
         AZ::Data::Asset<AZ::RPI::BufferAsset> CreateIndicesBufferAsset(
@@ -108,7 +95,6 @@ namespace Cesium
         AZStd::vector<glm::vec4> m_tangents;
         AZStd::vector<glm::vec3> m_bitangents;
         AZStd::array<GPUBuffer, 2> m_uvs;
-        GPUBuffer m_colors;
     };
 } // namespace Cesium
 

@@ -139,7 +139,6 @@ namespace Cesium
         CreateNormalsAttribute(commonAccessorViews);
         CreateUVsAttributes(commonAccessorViews, model, primitive);
         CreateTangentsAndBitangentsAttributes(commonAccessorViews);
-        CreateColorsAttribute(commonAccessorViews, model, primitive);
 
         // create buffer assets
         auto indicesBuffer = CreateIndicesBufferAsset(model, primitive);
@@ -169,12 +168,6 @@ namespace Cesium
             }
         }
 
-        AZ::Data::Asset<AZ::RPI::BufferAsset> colorBuffer;
-        if (!m_colors.m_buffer.empty())
-        {
-            colorBuffer = CreateBufferAsset(m_colors.m_buffer.data(), m_colors.m_elementCount, m_colors.m_format);
-        }
-
         // create LOD asset
         AZ::RPI::ModelLodAssetCreator lodCreator;
         lodCreator.Begin(AZ::Uuid::CreateRandom());
@@ -190,11 +183,6 @@ namespace Cesium
             {
                 lodCreator.AddLodStreamBuffer(uvBuffers[i]);
             }
-        }
-
-        if (colorBuffer)
-        {
-            lodCreator.AddLodStreamBuffer(colorBuffer);
         }
 
         // create mesh
@@ -221,14 +209,6 @@ namespace Cesium
                     AZ::RPI::BufferAssetView(uvBuffers[i], uvBuffers[i]->GetBufferViewDescriptor()));
             }
         }
-
-        if (colorBuffer)
-        {
-            lodCreator.AddMeshStreamBuffer(
-                AZ::RHI::ShaderSemantic("COLOR"), AZ::Name(),
-                AZ::RPI::BufferAssetView(colorBuffer, colorBuffer->GetBufferViewDescriptor()));
-        }
-
 
         lodCreator.SetMeshAabb(std::move(aabb));
         lodCreator.EndMesh();
@@ -608,173 +588,6 @@ namespace Cesium
             for (std::size_t i = 0; i < m_tangents.size(); ++i)
             {
                 m_bitangents[i] = glm::cross(m_normals[i], glm::vec3(m_tangents[i])) * m_tangents[i].w;
-            }
-        }
-    }
-
-    void GltfTrianglePrimitiveBuilder::CreateColorsAttribute(
-        const CommonAccessorViews& commonAccessorViews, const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive)
-    {
-        auto colorAttribute = primitive.attributes.find("COLOR_0");
-        if (colorAttribute == primitive.attributes.end())
-        {
-            return;
-        }
-
-        const CesiumGltf::Accessor* colorAccessor = model.getSafe<CesiumGltf::Accessor>(&model.accessors, colorAttribute->second);
-        if (colorAccessor->type == CesiumGltf::AccessorSpec::Type::VEC3)
-        {
-            CreateVec3ColorsAttribute(commonAccessorViews, model, *colorAccessor);
-        }
-        else if (colorAccessor->type == CesiumGltf::AccessorSpec::Type::VEC4)
-        {
-            CreateVec4ColorsAttribute(commonAccessorViews, model, *colorAccessor);
-        }
-    }
-
-    void GltfTrianglePrimitiveBuilder::CreateVec3ColorsAttribute(
-        const CommonAccessorViews& commonAccessorViews, const CesiumGltf::Model& model, const CesiumGltf::Accessor& colorAccessor)
-    {
-        if (colorAccessor.componentType == CesiumGltf::AccessorSpec::ComponentType::FLOAT)
-        {
-            CesiumGltf::AccessorView<glm::vec3> view{ model, colorAccessor };
-            if (view.status() != CesiumGltf::AccessorViewStatus::Valid)
-            {
-                return;
-            }
-
-            if (view.size() != commonAccessorViews.m_positions.size())
-            {
-                return;
-            }
-
-            CopyVec3ColorAccessorToVec4Buffer(view, 1.0f, m_colors.m_buffer);
-            m_colors.m_elementCount = view.size();
-            m_colors.m_format = AZ::RHI::Format::R32G32B32A32_FLOAT;
-        }
-        else if (colorAccessor.componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_BYTE)
-        {
-            CesiumGltf::AccessorView<glm::u8vec3> view{ model, colorAccessor };
-            if (view.status() != CesiumGltf::AccessorViewStatus::Valid)
-            {
-                return;
-            }
-
-            if (view.size() != commonAccessorViews.m_positions.size())
-            {
-                return;
-            }
-
-            CopyVec3ColorAccessorToVec4Buffer(view, static_cast<glm::u8>(256), m_colors.m_buffer);
-            m_colors.m_elementCount = view.size();
-            m_colors.m_format = AZ::RHI::Format::R8G8B8A8_UNORM;
-        }
-        else if (colorAccessor.componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_SHORT)
-        {
-            CesiumGltf::AccessorView<glm::u16vec3> view{ model, colorAccessor };
-            if (view.status() != CesiumGltf::AccessorViewStatus::Valid)
-            {
-                return;
-            }
-
-            if (view.size() != commonAccessorViews.m_positions.size())
-            {
-                return;
-            }
-
-            CopyVec3ColorAccessorToVec4Buffer(view, static_cast<glm::u16>(65536), m_colors.m_buffer);
-            m_colors.m_elementCount = view.size();
-            m_colors.m_format = AZ::RHI::Format::R16G16B16A16_UNORM;
-        }
-    }
-
-    void GltfTrianglePrimitiveBuilder::CreateVec4ColorsAttribute(
-        const CommonAccessorViews& commonAccessorViews, const CesiumGltf::Model& model, const CesiumGltf::Accessor& colorAccessor)
-    {
-        if (colorAccessor.componentType == CesiumGltf::AccessorSpec::ComponentType::FLOAT)
-        {
-            CesiumGltf::AccessorView<glm::vec4> view{ model, colorAccessor };
-            if (view.status() != CesiumGltf::AccessorViewStatus::Valid)
-            {
-                return;
-            }
-
-            if (view.size() != commonAccessorViews.m_positions.size())
-            {
-                return;
-            }
-
-            CopyAccessorToBuffer(view, m_colors.m_buffer);
-            m_colors.m_elementCount = view.size();
-            m_colors.m_format = AZ::RHI::Format::R32G32B32A32_FLOAT;
-        }
-        else if (colorAccessor.componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_BYTE)
-        {
-            CesiumGltf::AccessorView<glm::u8vec4> view{ model, colorAccessor };
-            if (view.status() != CesiumGltf::AccessorViewStatus::Valid)
-            {
-                return;
-            }
-
-            if (view.size() != commonAccessorViews.m_positions.size())
-            {
-                return;
-            }
-
-            CopyAccessorToBuffer(view, m_colors.m_buffer);
-            m_colors.m_elementCount = view.size();
-            m_colors.m_format = AZ::RHI::Format::R8G8B8A8_UNORM;
-        }
-        else if (colorAccessor.componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_SHORT)
-        {
-            CesiumGltf::AccessorView<glm::u16vec4> view{ model, colorAccessor };
-            if (view.status() != CesiumGltf::AccessorViewStatus::Valid)
-            {
-                return;
-            }
-
-            if (view.size() != commonAccessorViews.m_positions.size())
-            {
-                return;
-            }
-
-            CopyAccessorToBuffer(view, m_colors.m_buffer);
-            m_colors.m_elementCount = view.size();
-            m_colors.m_format = AZ::RHI::Format::R16G16B16A16_UNORM;
-        }
-    }
-
-    template<typename Type, glm::qualifier Q>
-    void GltfTrianglePrimitiveBuilder::CopyVec3ColorAccessorToVec4Buffer(
-        const CesiumGltf::AccessorView<glm::vec<3, Type, Q>>& accessorView, Type w, AZStd::vector<std::byte>& buffer)
-    {
-        using AccessorType = glm::vec<3, Type, Q>;
-        using BufferType = glm::vec<4, Type, Q>;
-
-        if (m_context.m_generateUnIndexedMesh && m_indices.size() > 0)
-        {
-            buffer.resize(m_indices.size() * sizeof(BufferType));
-            BufferType* value = reinterpret_cast<BufferType*>(buffer.data());
-            for (std::size_t i = 0; i < m_indices.size(); ++i)
-            {
-                const AccessorType& valueView = accessorView[static_cast<std::int64_t>(i)]; 
-                value[i].x = valueView.x;
-                value[i].y = valueView.y;
-                value[i].z = valueView.z;
-                value[i].w = w;
-            }
-        }
-        else
-        {
-            buffer.resize(static_cast<std::size_t>(accessorView.size()) * sizeof(BufferType));
-            BufferType* value = reinterpret_cast<BufferType*>(buffer.data());
-            for (std::int64_t i = 0; i < accessorView.size(); ++i)
-            {
-                const AccessorType& valueView = accessorView[static_cast<std::int64_t>(i)]; 
-                value[i].x = valueView.x;
-                value[i].y = valueView.y;
-                value[i].z = valueView.z;
-                value[i].w = w;
             }
         }
     }
