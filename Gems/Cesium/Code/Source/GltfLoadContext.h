@@ -8,23 +8,30 @@
 #include "GenericIOManager.h"
 #include <CesiumGltf/Image.h>
 #include <CesiumGltf/Buffer.h>
+#include <Atom/RPI.Reflect/Image/ImageAsset.h>
+#include <Atom/RPI.Public/Material/Material.h>
 #include <AzCore/std/string/string.h>
+#include <AzCore/std/containers/map.h>
 
 namespace Cesium
 {
     class GltfLoadContext
     {
     public:
-        GltfLoadContext(AZStd::string&& parentPath, GenericIOManager* io);
+        void StoreMaterial(std::uint32_t materialIdx, std::uint32_t subIdx, const AZ::Data::Instance<AZ::RPI::Material>& material);
 
-        GltfLoadContext(const AZStd::string& parentPath, GenericIOManager* io);
+        AZ::Data::Instance<AZ::RPI::Material> FindCachedMaterial(std::uint32_t materialIdx, std::uint32_t subIdx);
 
-        bool LoadExternalBuffer(CesiumGltf::Buffer& externalBuffer);
+        void StoreImageAsset(std::uint32_t textureIdx, std::uint32_t subIdx, const AZ::Data::Asset<AZ::RPI::ImageAsset>& imageAsset);
 
-        bool LoadExternalImage(CesiumGltf::Image& externalImage);
+        AZ::Data::Asset<AZ::RPI::ImageAsset> FindCachedImageAsset(std::uint32_t textureIdx, std::uint32_t subIdx);
 
     private:
-        GenericIOManager* m_io;
-        AZStd::string m_parentPath;
+        AZStd::map<std::size_t, AZ::Data::Instance<AZ::RPI::Material>> m_cachedMaterials;
+        AZStd::map<std::size_t, AZ::Data::Asset<AZ::RPI::ImageAsset>> m_cachedImages;
     };
 } // namespace Cesium
+
+// Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
+// This only happens with unity build
+#pragma pop_macro("OPAQUE")

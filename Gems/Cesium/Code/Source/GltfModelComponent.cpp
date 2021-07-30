@@ -11,10 +11,9 @@
 #include "GenericIOManager.h"
 #include "LocalFileManager.h"
 #include <CesiumGltf/GltfReader.h>
-#include <AzCore/IO/FileIO.h>
+#include <Atom/RPI.Public/Material/Material.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
-#include <filesystem>
 
 namespace Cesium
 {
@@ -22,7 +21,7 @@ namespace Cesium
         : m_visible{ true }
         , m_meshFeatureProcessor{ meshFeatureProcessor }
     {
-        GltfLoadContext loadContext{"", nullptr};
+        GltfLoadContext loadContext{};
         LoadModel(model, loadContext);
     }
 
@@ -68,33 +67,17 @@ namespace Cesium
 
     void GltfModelComponent::LoadModel(const AZStd::string& filePath)
     {
-        AZ::IO::FileIOStream file;
-        if (!file.Open(filePath.data(), AZ::IO::OpenMode::ModeRead))
-        {
-            return;
-        }
-
-        AZ::IO::SizeType length = file.GetLength();
-        if (length == 0)
-        {
-            return;
-        }
-
-        AZStd::vector<std::byte> fileContent(length);
-        AZ::IO::SizeType bytesRead = file.Read(length, fileContent.data());
-        file.Close();
-
-        // Resize again just in case bytesRead is less than length for some reason
-        fileContent.resize(bytesRead);
+        LocalFileManager io;
+        auto fileContent = io.GetFileContent({ "", filePath });
         CesiumGltf::GltfReader reader;
         auto result = reader.readModel(gsl::span<const std::byte>(fileContent.data(), fileContent.size()));
         if (result.model)
         {
             std::filesystem::path parent = std::filesystem::path(filePath.c_str()).parent_path();
-            LocalFileManager io;
-            GltfLoadContext loadContext{parent.string().c_str(), &io};
-            ResolveExternalImages(*result.model, loadContext);
-            ResolveExternalBuffers(*result.model, loadContext);
+            ResolveExternalImages(parent, reader, *result.model, io);
+            ResolveExternalBuffers(parent, *result.model, io);
+
+            GltfLoadContext loadContext{};
             LoadModel(*result.model, loadContext);
         }
     }
@@ -203,14 +186,21 @@ namespace Cesium
         }
 
         // create material asset
-        GltfMaterialBuilder materialBuilder;
         const CesiumGltf::Material* material = model.getSafe<CesiumGltf::Material>(&model.materials, primitive.material);
         if (!material)
         {
             return;
         }
-        auto materialAsset = materialBuilder.Create(model, *material, loadContext);
-        auto materialInstance = AZ::RPI::Material::Create(materialAsset);
+
+        std::uint32_t materialSourceIdx = static_cast<std::uint32_t>(primitive.material);
+        auto materialInstance = loadContext.FindCachedMaterial(materialSourceIdx, materialSourceIdx);
+        if (!materialInstance)
+        {
+            GltfMaterialBuilder materialBuilder;
+            auto materialAsset = materialBuilder.Create(model, *material, loadContext);
+            materialInstance = AZ::RPI::Material::Create(materialAsset);
+            loadContext.StoreMaterial(materialSourceIdx, materialSourceIdx, materialInstance);
+        }
 
         // create mesh handle
         auto primitiveHandle = m_meshFeatureProcessor->AcquireMesh(AZ::Render::MeshHandleDescriptor{ modelAsset }, materialInstance);
@@ -239,7 +229,8 @@ namespace Cesium
         m_primitives.emplace_back(std::move(primitiveHandle));
     }
 
-    void GltfModelComponent::ResolveExternalImages(CesiumGltf::Model& model, GltfLoadContext& loadContext)
+    void GltfModelComponent::ResolveExternalImages(
+        const std::filesystem::path& parentPath, const CesiumGltf::GltfReader& gltfReader, CesiumGltf::Model& model, GenericIOManager& io)
     {
         for (CesiumGltf::Image& image : model.images)
         {
@@ -248,11 +239,32 @@ namespace Cesium
                 continue;
             }
 
-            loadContext.LoadExternalImage(image);
+            if (!image.uri.has_value())
+            {
+                continue;
+            }
+
+            AZStd::string path = image.uri.value().c_str();
+            IORequestParameter param;
+            param.m_parentPath = parentPath.string().c_str();
+            param.m_path = std::move(path);
+            auto content = io.GetFileContent(param);
+            if (content.empty())
+            {
+                continue;
+            }
+
+            auto readResult = gltfReader.readImage(gsl::span<const std::byte>(content.data(), content.size()));
+            if (!readResult.image)
+            {
+                continue;
+            }
+
+            image.cesium = std::move(*readResult.image);
         }
     }
 
-    void GltfModelComponent::ResolveExternalBuffers(CesiumGltf::Model& model, GltfLoadContext& loadContext)
+    void GltfModelComponent::ResolveExternalBuffers(const std::filesystem::path& parentPath, CesiumGltf::Model& model, GenericIOManager& io)
     {
         for (CesiumGltf::Buffer& buffer : model.buffers)
         {
@@ -261,7 +273,23 @@ namespace Cesium
                 continue;
             }
 
-            loadContext.LoadExternalBuffer(buffer);
+            if (!buffer.uri.has_value())
+            {
+                continue;
+            }
+
+            AZStd::string path = buffer.uri.value().c_str();
+            IORequestParameter param;
+            param.m_parentPath = parentPath.string().c_str();
+            param.m_path = std::move(path);
+            auto content = io.GetFileContent(param);
+            if (content.empty())
+            {
+                continue;
+            }
+
+            buffer.cesium.data.resize(content.size());
+            std::memcpy(buffer.cesium.data.data(), content.data(), content.size());
         }
     }
 

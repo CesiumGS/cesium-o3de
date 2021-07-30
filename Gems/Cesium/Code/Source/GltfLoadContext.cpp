@@ -5,80 +5,50 @@
 
 #include "GltfLoadContext.h"
 #include <CesiumGltf/GltfReader.h>
+#include <AzCore/std/hash.h>
 
 namespace Cesium
 {
-    GltfLoadContext::GltfLoadContext(AZStd::string&& parentPath, GenericIOManager* io)
-        : m_parentPath{ std::move(parentPath) }
-        , m_io{ io }
+    void GltfLoadContext::StoreMaterial(
+        std::uint32_t materialIdx, std::uint32_t subIdx, const AZ::Data::Instance<AZ::RPI::Material>& material)
     {
+        std::size_t seed = 0;
+        AZStd::hash_combine(seed, materialIdx, subIdx);
+        m_cachedMaterials.insert_or_assign(seed, material);
     }
 
-    GltfLoadContext::GltfLoadContext(const AZStd::string& parentPath, GenericIOManager* io)
-        : m_parentPath{parentPath}
-        , m_io{io}
+    AZ::Data::Instance<AZ::RPI::Material> GltfLoadContext::FindCachedMaterial(std::uint32_t materialIdx, std::uint32_t subIdx)
     {
+        std::size_t seed = 0;
+        AZStd::hash_combine(seed, materialIdx, subIdx);
+        auto it = m_cachedMaterials.find(seed);
+        if (it == m_cachedMaterials.end())
+        {
+            return AZ::Data::Instance<AZ::RPI::Material>();
+        }
+
+        return it->second;
     }
 
-    bool GltfLoadContext::LoadExternalBuffer(CesiumGltf::Buffer& externalBuffer)
+    void GltfLoadContext::StoreImageAsset(
+        std::uint32_t textureIdx, std::uint32_t subIdx, const AZ::Data::Asset<AZ::RPI::ImageAsset>& imageAsset)
     {
-        if (!m_io)
-        {
-            return false;
-        }
-
-        if (!externalBuffer.uri.has_value())
-        {
-            return false;
-        }
-
-        AZStd::string path = externalBuffer.uri.value().c_str();
-        IORequestParameter param;
-        param.m_parentPath = m_parentPath;
-        param.m_path = std::move(path);
-        auto content = m_io->GetFileContent(param);
-        if (content.empty())
-        {
-            return false;
-        }
-
-        externalBuffer.cesium.data.resize(content.size());
-        std::memcpy(externalBuffer.cesium.data.data(), content.data(), content.size());
-        return true;
+        std::size_t seed = 0;
+        AZStd::hash_combine(seed, textureIdx, subIdx);
+        m_cachedImages.insert_or_assign(seed, imageAsset);
     }
 
-    bool GltfLoadContext::LoadExternalImage(CesiumGltf::Image& externalImage)
+    AZ::Data::Asset<AZ::RPI::ImageAsset> GltfLoadContext::FindCachedImageAsset(std::uint32_t textureIdx, std::uint32_t subIdx)
     {
-        static CesiumGltf::GltfReader imageReader;
-
-        if (!m_io)
+        std::size_t seed = 0;
+        AZStd::hash_combine(seed, textureIdx, subIdx);
+        auto it = m_cachedImages.find(seed);
+        if (it == m_cachedImages.end())
         {
-            return false;
+            return AZ::Data::Asset<AZ::RPI::ImageAsset>();
         }
 
-        if (!externalImage.uri.has_value())
-        {
-            return false;
-        }
-
-        AZStd::string path = externalImage.uri.value().c_str();
-        IORequestParameter param;
-        param.m_parentPath = m_parentPath;
-        param.m_path = std::move(path);
-        auto content = m_io->GetFileContent(param);
-        if (content.empty())
-        {
-            return false;
-        }
-
-        auto readResult = imageReader.readImage(gsl::span<const std::byte>(content.data(), content.size()));
-        if (!readResult.image)
-        {
-            return false;
-        }
-
-        externalImage.cesium = std::move(*readResult.image);
-        return true;
+        return it->second;
     }
 } // namespace Cesium
 

@@ -9,7 +9,6 @@
 #include <CesiumGltf/Model.h>
 #include <Atom/RPI.Reflect/Image/ImageAsset.h>
 #include <Atom/RPI.Reflect/Material/MaterialAsset.h>
-#include <Atom/RPI.Public/Material/Material.h>
 #include <stdexcept>
 
 namespace Cesium

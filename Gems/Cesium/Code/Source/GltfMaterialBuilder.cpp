@@ -19,7 +19,7 @@ namespace Cesium
         [[maybe_unused]] const CesiumGltf::Model& model, const CesiumGltf::Material& material, GltfLoadContext& loadContext)
     {
         // Load StandardPBR material type
-        auto standardPBRMaterialType = AZ::RPI::AssetUtils::LoadCriticalAsset<AZ::RPI::MaterialTypeAsset>(STANDARD_PBR_MAT_TYPE);
+        auto standardPBRMaterialType = AZ::RPI::AssetUtils::LoadAssetByProductPath<AZ::RPI::MaterialTypeAsset>(STANDARD_PBR_MAT_TYPE);
 
         // Create PBR Material dynamically
         AZ::Data::Asset<AZ::RPI::MaterialAsset> standardPBRMaterial;
@@ -213,6 +213,16 @@ namespace Cesium
             return AZ::Data::Asset<AZ::RPI::ImageAsset>();
         }
 
+        // Lookup cache
+        std::uint32_t imageSourceIdx = static_cast<std::uint32_t>(texture->source);
+        auto cachedAsset = loadContext.FindCachedImageAsset(imageSourceIdx, imageSourceIdx);
+        if (cachedAsset)
+        {
+            return cachedAsset;
+        }
+
+        // Create new asset
+        AZ::Data::Asset<AZ::RPI::ImageAsset> newAsset;
         const CesiumGltf::ImageCesium& imageData = image->cesium;
         std::size_t width = static_cast<std::size_t>(imageData.width);
         std::size_t height = static_cast<std::size_t>(imageData.height);
@@ -229,25 +239,30 @@ namespace Cesium
         // Do the fast path. Copy the whole data over
         if (imageData.channels == 1)
         {
-            return Create2DImage(imageData.pixelData.data(), imageData.pixelData.size(), width, height, AZ::RHI::Format::R8_UNORM);
+            newAsset = Create2DImage(imageData.pixelData.data(), imageData.pixelData.size(), width, height, AZ::RHI::Format::R8_UNORM);
         }
-
-        // Just copy the red channel
-        std::size_t j = 0;
-        AZStd::vector<std::byte> pixels(width * height);
-        for (std::size_t i = 0; i < imageData.pixelData.size(); i += imageData.channels * imageData.bytesPerChannel)
+        else
         {
-            pixels[j] = imageData.pixelData[i];
-            ++j;
+            // Just copy the red channel
+            std::size_t j = 0;
+            AZStd::vector<std::byte> pixels(width * height);
+            for (std::size_t i = 0; i < imageData.pixelData.size(); i += imageData.channels * imageData.bytesPerChannel)
+            {
+                pixels[j] = imageData.pixelData[i];
+                ++j;
+            }
+
+            newAsset = Create2DImage(pixels.data(), pixels.size(), width, height, AZ::RHI::Format::R8_UNORM);
         }
 
-        return Create2DImage(pixels.data(), pixels.size(), width, height, AZ::RHI::Format::R8_UNORM);
+        loadContext.StoreImageAsset(imageSourceIdx, imageSourceIdx, newAsset);
+        return newAsset;
     }
 
     AZ::Data::Asset<AZ::RPI::ImageAsset> GltfMaterialBuilder::GetOrCreateRGBAImage(
         const CesiumGltf::Model& model,
         const CesiumGltf::TextureInfo& textureInfo,
-        [[maybe_unused]] GltfLoadContext& loadContext)
+        GltfLoadContext& loadContext)
     {
         const CesiumGltf::Texture* texture = model.getSafe<CesiumGltf::Texture>(&model.textures, textureInfo.index);
         if (!texture)
@@ -266,6 +281,16 @@ namespace Cesium
             return AZ::Data::Asset<AZ::RPI::ImageAsset>();
         }
 
+        // Lookup cache
+        std::uint32_t imageSourceIdx = static_cast<std::uint32_t>(texture->source);
+        auto cachedAsset = loadContext.FindCachedImageAsset(imageSourceIdx, imageSourceIdx);
+        if (cachedAsset)
+        {
+            return cachedAsset;
+        }
+
+        // Create a new asset if cache doesn't have it
+        AZ::Data::Asset<AZ::RPI::ImageAsset> newAsset;
         const CesiumGltf::ImageCesium& imageData = image->cesium;
         std::size_t width = static_cast<std::size_t>(imageData.width);
         std::size_t height = static_cast<std::size_t>(imageData.height);
@@ -290,12 +315,15 @@ namespace Cesium
                 pixels[i + 3] = static_cast<std::byte>(255);
             }
 
-            return Create2DImage(pixels.data(), pixels.size(), width, height, AZ::RHI::Format::R8G8B8A8_UNORM);
+            newAsset = Create2DImage(pixels.data(), pixels.size(), width, height, AZ::RHI::Format::R8G8B8A8_UNORM);
         }
         else
         {
-            return Create2DImage(imageData.pixelData.data(), imageData.pixelData.size(), width, height, AZ::RHI::Format::R8G8B8A8_UNORM);
+            newAsset = Create2DImage(imageData.pixelData.data(), imageData.pixelData.size(), width, height, AZ::RHI::Format::R8G8B8A8_UNORM);
         }
+
+        loadContext.StoreImageAsset(imageSourceIdx, imageSourceIdx, newAsset);
+        return newAsset;
     }
 
     void GltfMaterialBuilder::GetOrCreateMetallicRoughnessImage(
@@ -305,6 +333,9 @@ namespace Cesium
         AZ::Data::Asset<AZ::RPI::ImageAsset>& roughness,
         [[maybe_unused]] GltfLoadContext& loadContext)
     {
+        static const std::uint32_t roughnessTextureSubIdx = 0;
+        static const std::uint32_t metallicTextureSubIdx = 1;
+
         const CesiumGltf::Texture* texture = model.getSafe<CesiumGltf::Texture>(&model.textures, textureInfo.index);
         if (!texture)
         {
@@ -322,6 +353,18 @@ namespace Cesium
             return;
         }
 
+        // Lookup cache
+        std::uint32_t imageSourceIdx = static_cast<std::uint32_t>(texture->source);
+        auto cachedRoughnessTexture = loadContext.FindCachedImageAsset(imageSourceIdx, roughnessTextureSubIdx);
+        auto cachedMetallicTexture = loadContext.FindCachedImageAsset(imageSourceIdx, metallicTextureSubIdx);
+        if (cachedRoughnessTexture && cachedMetallicTexture)
+        {
+            roughness = cachedRoughnessTexture;
+            metallic = cachedMetallicTexture;
+            return;
+        }
+
+        // Create new assets if caches are not found
         const CesiumGltf::ImageCesium& imageData = image->cesium;
         std::size_t width = static_cast<std::size_t>(imageData.width);
         std::size_t height = static_cast<std::size_t>(imageData.height);
@@ -347,6 +390,8 @@ namespace Cesium
 
         metallic = Create2DImage(metallicPixels.data(), metallicPixels.size(), width, height, AZ::RHI::Format::R8_UNORM);
         roughness = Create2DImage(roughnessPixels.data(), roughnessPixels.size(), width, height, AZ::RHI::Format::R8_UNORM);
+        loadContext.StoreImageAsset(imageSourceIdx, roughnessTextureSubIdx, roughness);
+        loadContext.StoreImageAsset(imageSourceIdx, metallicTextureSubIdx, metallic);
     }
 
     AZ::Data::Asset<AZ::RPI::ImageAsset> GltfMaterialBuilder::Create2DImage(

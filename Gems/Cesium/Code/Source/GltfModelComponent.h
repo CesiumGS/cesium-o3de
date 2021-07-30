@@ -13,9 +13,16 @@
 #include <glm/glm.hpp>
 #include <vector>
 #include <cstdint>
+#include <filesystem>
+
+namespace CesiumGltf
+{
+    class GltfReader;
+}
 
 namespace Cesium
 {
+    class GenericIOManager;
     class GltfLoadContext;
 
     class GltfModelComponent
@@ -54,9 +61,9 @@ namespace Cesium
             const glm::dmat4& transform,
             GltfLoadContext& loadContext);
 
-        void ResolveExternalImages(CesiumGltf::Model& model, GltfLoadContext& loadContext);
+        void ResolveExternalImages(const std::filesystem::path& parentPath, const CesiumGltf::GltfReader& gltfReader, CesiumGltf::Model& model, GenericIOManager& io);
 
-        void ResolveExternalBuffers(CesiumGltf::Model& model, GltfLoadContext& loadContext);
+        void ResolveExternalBuffers(const std::filesystem::path& parentPath, CesiumGltf::Model& model, GenericIOManager& io);
 
         static bool IsIdentityMatrix(const std::vector<double>& matrix);
 
