@@ -93,6 +93,7 @@ namespace Cesium
             std::filesystem::path parent = std::filesystem::path(filePath.c_str()).parent_path();
             LocalFileManager io;
             GltfLoadContext loadContext{parent.string().c_str(), &io};
+            ResolveExternalImages(*result.model, loadContext);
             ResolveExternalBuffers(*result.model, loadContext);
             LoadModel(*result.model, loadContext);
         }
@@ -238,11 +239,24 @@ namespace Cesium
         m_primitives.emplace_back(std::move(primitiveHandle));
     }
 
+    void GltfModelComponent::ResolveExternalImages(CesiumGltf::Model& model, GltfLoadContext& loadContext)
+    {
+        for (CesiumGltf::Image& image : model.images)
+        {
+            if (!image.cesium.pixelData.empty())
+            {
+                continue;
+            }
+
+            loadContext.LoadExternalImage(image);
+        }
+    }
+
     void GltfModelComponent::ResolveExternalBuffers(CesiumGltf::Model& model, GltfLoadContext& loadContext)
     {
         for (CesiumGltf::Buffer& buffer : model.buffers)
         {
-            if (!buffer.cesium.data.empty() || !buffer.uri.has_value())
+            if (!buffer.cesium.data.empty())
             {
                 continue;
             }

@@ -54,6 +54,8 @@ namespace Cesium
             const glm::dmat4& transform,
             GltfLoadContext& loadContext);
 
+        void ResolveExternalImages(CesiumGltf::Model& model, GltfLoadContext& loadContext);
+
         void ResolveExternalBuffers(CesiumGltf::Model& model, GltfLoadContext& loadContext);
 
         static bool IsIdentityMatrix(const std::vector<double>& matrix);
