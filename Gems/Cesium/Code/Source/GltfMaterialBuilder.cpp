@@ -5,8 +5,6 @@
 
 #include "GltfMaterialBuilder.h"
 #include <Atom/RPI.Public/Image/StreamingImage.h>
-#include <Atom/RPI.Public/Image/ImageSystemInterface.h>
-#include <Atom/RPI.Public/Image/StreamingImagePool.h>
 #include <Atom/RPI.Reflect/Material/MaterialTypeAsset.h>
 #include <Atom/RPI.Reflect/Material/MaterialAssetCreator.h>
 #include <Atom/RPI.Reflect/Image/StreamingImageAssetCreator.h>
@@ -19,7 +17,7 @@ namespace Cesium
         [[maybe_unused]] const CesiumGltf::Model& model, const CesiumGltf::Material& material, GltfLoadContext& loadContext)
     {
         // Load StandardPBR material type
-        auto standardPBRMaterialType = AZ::RPI::AssetUtils::LoadAssetByProductPath<AZ::RPI::MaterialTypeAsset>(STANDARD_PBR_MAT_TYPE);
+        static auto standardPBRMaterialType = AZ::RPI::AssetUtils::LoadAssetByProductPath<AZ::RPI::MaterialTypeAsset>(STANDARD_PBR_MAT_TYPE);
 
         // Create PBR Material dynamically
         AZ::Data::Asset<AZ::RPI::MaterialAsset> standardPBRMaterial;
@@ -421,7 +419,6 @@ namespace Cesium
         imageCreator.SetImageDescriptor(imageDesc);
         imageCreator.AddMipChainAsset(*mipChainAsset);
         imageCreator.SetFlags(AZ::RPI::StreamingImageFlags::NotStreamable);
-        imageCreator.SetPoolAssetId(AZ::RPI::ImageSystemInterface::Get()->GetSystemStreamingPool()->GetAssetId());
         AZ::Data::Asset<AZ::RPI::StreamingImageAsset> imageAsset;
         imageCreator.End(imageAsset);
 
