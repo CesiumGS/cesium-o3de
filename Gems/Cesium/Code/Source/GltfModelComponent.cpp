@@ -196,8 +196,7 @@ namespace Cesium
         if (!materialInstance)
         {
             GltfMaterialBuilder materialBuilder;
-            auto materialAsset = materialBuilder.Create(model, *material, loadContext);
-            materialInstance = AZ::RPI::Material::Create(materialAsset);
+            materialInstance = materialBuilder.Create(model, *material, loadContext);
             loadContext.StoreMaterial(materialSourceIdx, materialSourceIdx, materialInstance);
         }
 

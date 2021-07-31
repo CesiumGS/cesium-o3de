@@ -30,22 +30,22 @@ namespace Cesium
         return it->second;
     }
 
-    void GltfLoadContext::StoreImageAsset(
-        std::uint32_t textureIdx, std::uint32_t subIdx, const AZ::Data::Asset<AZ::RPI::ImageAsset>& imageAsset)
+    void GltfLoadContext::StoreImage(
+        std::uint32_t textureIdx, std::uint32_t subIdx, const AZ::Data::Instance<AZ::RPI::Image>& imageAsset)
     {
         std::size_t seed = 0;
         AZStd::hash_combine(seed, textureIdx, subIdx);
         m_cachedImages.insert_or_assign(seed, imageAsset);
     }
 
-    AZ::Data::Asset<AZ::RPI::ImageAsset> GltfLoadContext::FindCachedImageAsset(std::uint32_t textureIdx, std::uint32_t subIdx)
+    AZ::Data::Instance<AZ::RPI::Image> GltfLoadContext::FindCachedImage(std::uint32_t textureIdx, std::uint32_t subIdx)
     {
         std::size_t seed = 0;
         AZStd::hash_combine(seed, textureIdx, subIdx);
         auto it = m_cachedImages.find(seed);
         if (it == m_cachedImages.end())
         {
-            return AZ::Data::Asset<AZ::RPI::ImageAsset>();
+            return AZ::Data::Instance<AZ::RPI::Image>();
         }
 
         return it->second;

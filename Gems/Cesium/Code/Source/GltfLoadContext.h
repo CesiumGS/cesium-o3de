@@ -8,7 +8,7 @@
 #include "GenericIOManager.h"
 #include <CesiumGltf/Image.h>
 #include <CesiumGltf/Buffer.h>
-#include <Atom/RPI.Reflect/Image/ImageAsset.h>
+#include <Atom/RPI.Reflect/Image/Image.h>
 #include <Atom/RPI.Public/Material/Material.h>
 #include <AzCore/std/string/string.h>
 #include <AzCore/std/containers/map.h>
@@ -22,13 +22,13 @@ namespace Cesium
 
         AZ::Data::Instance<AZ::RPI::Material> FindCachedMaterial(std::uint32_t materialIdx, std::uint32_t subIdx);
 
-        void StoreImageAsset(std::uint32_t textureIdx, std::uint32_t subIdx, const AZ::Data::Asset<AZ::RPI::ImageAsset>& imageAsset);
+        void StoreImage(std::uint32_t textureIdx, std::uint32_t subIdx, const AZ::Data::Instance<AZ::RPI::Image>& image);
 
-        AZ::Data::Asset<AZ::RPI::ImageAsset> FindCachedImageAsset(std::uint32_t textureIdx, std::uint32_t subIdx);
+        AZ::Data::Instance<AZ::RPI::Image> FindCachedImage(std::uint32_t textureIdx, std::uint32_t subIdx);
 
     private:
         AZStd::map<std::size_t, AZ::Data::Instance<AZ::RPI::Material>> m_cachedMaterials;
-        AZStd::map<std::size_t, AZ::Data::Asset<AZ::RPI::ImageAsset>> m_cachedImages;
+        AZStd::map<std::size_t, AZ::Data::Instance<AZ::RPI::Image>> m_cachedImages;
     };
 } // namespace Cesium
 
