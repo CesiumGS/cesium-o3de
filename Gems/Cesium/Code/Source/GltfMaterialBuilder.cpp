@@ -17,7 +17,7 @@ namespace Cesium
         [[maybe_unused]] const CesiumGltf::Model& model, const CesiumGltf::Material& material, GltfLoadContext& loadContext)
     {
         // Load StandardPBR material type
-        static auto standardPBRMaterialType = AZ::RPI::AssetUtils::LoadAssetByProductPath<AZ::RPI::MaterialTypeAsset>(STANDARD_PBR_MAT_TYPE);
+        auto standardPBRMaterialType = AZ::RPI::AssetUtils::LoadAssetByProductPath<AZ::RPI::MaterialTypeAsset>(STANDARD_PBR_MAT_TYPE);
 
         // Create PBR Material dynamically
         AZ::Data::Asset<AZ::RPI::MaterialAsset> standardPBRMaterial;
