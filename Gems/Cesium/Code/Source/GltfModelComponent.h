@@ -67,7 +67,7 @@ namespace Cesium
 
         static bool IsIdentityMatrix(const std::vector<double>& matrix);
 
-        static constexpr const std::size_t DEFAULT_MAX_FILE_SIZE = 5 * 1024 * 1024;
+        static constexpr glm::dmat4 GLTF_TO_O3DE = glm::dmat4(-1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
 
         bool m_visible;
         AZ::Render::MeshFeatureProcessorInterface* m_meshFeatureProcessor;

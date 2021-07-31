@@ -99,19 +99,18 @@ namespace Cesium
             // load all meshes in the gltf
             for (const auto& mesh : model.meshes)
             {
-                LoadMesh(model, mesh, glm::dmat4(1.0), loadContext);
+                LoadMesh(model, mesh, GLTF_TO_O3DE, loadContext);
             }
         }
     }
 
     void GltfModelComponent::LoadScene(const CesiumGltf::Model& model, const CesiumGltf::Scene& scene, GltfLoadContext& loadContext)
     {
-        glm::dmat4 parentTransform(-1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
         for (std::int32_t rootIndex : scene.nodes)
         {
             if (rootIndex >= 0 && rootIndex <= model.nodes.size())
             {
-                LoadNode(model, model.nodes[static_cast<std::size_t>(rootIndex)], parentTransform, loadContext);
+                LoadNode(model, model.nodes[static_cast<std::size_t>(rootIndex)], GLTF_TO_O3DE, loadContext);
             }
         }
     }
