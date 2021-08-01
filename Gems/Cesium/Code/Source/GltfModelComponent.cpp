@@ -192,7 +192,7 @@ namespace Cesium
         }
 
         // create model asset
-        GltfPrimitiveBuilderOption option;
+        GltfTrianglePrimitiveBuilderOption option;
         GltfTrianglePrimitiveBuilder primitiveBuilder;
         auto modelAsset = primitiveBuilder.Create(model, primitive, option);
         if (!modelAsset)

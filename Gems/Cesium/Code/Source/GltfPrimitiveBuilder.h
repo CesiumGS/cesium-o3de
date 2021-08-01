@@ -17,9 +17,9 @@ namespace Cesium
 {
     class GltfLoadContext;
 
-    struct GltfPrimitiveBuilderOption
+    struct GltfTrianglePrimitiveBuilderOption
     {
-        GltfPrimitiveBuilderOption();
+        GltfTrianglePrimitiveBuilderOption();
 
         bool m_needTangents;
     };
@@ -55,10 +55,10 @@ namespace Cesium
         };
 
     public:
-        AZ::Data::Asset<AZ::RPI::ModelAsset> Create(const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive, const GltfPrimitiveBuilderOption& option);
+        AZ::Data::Asset<AZ::RPI::ModelAsset> Create(const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive, const GltfTrianglePrimitiveBuilderOption& option);
 
     private:
-        void DetermineLoadContext(const CommonAccessorViews& accessorViews, const GltfPrimitiveBuilderOption& option);
+        void DetermineLoadContext(const CommonAccessorViews& accessorViews, const GltfTrianglePrimitiveBuilderOption& option);
 
         template<typename AccessorType>
         void CopyAccessorToBuffer(
