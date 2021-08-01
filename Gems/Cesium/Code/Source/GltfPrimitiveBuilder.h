@@ -17,6 +17,13 @@ namespace Cesium
 {
     class GltfLoadContext;
 
+    struct GltfPrimitiveBuilderOption
+    {
+        GltfPrimitiveBuilderOption();
+
+        bool m_needTangents;
+    };
+
     class GltfTrianglePrimitiveBuilder
     {
         struct GPUBuffer
@@ -48,11 +55,10 @@ namespace Cesium
         };
 
     public:
-        AZ::Data::Asset<AZ::RPI::ModelAsset> Create(
-            const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive, GltfLoadContext& gltfLoadContext);
+        AZ::Data::Asset<AZ::RPI::ModelAsset> Create(const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive, const GltfPrimitiveBuilderOption& option);
 
     private:
-        void DetermineLoadContext(const CommonAccessorViews& accessorViews);
+        void DetermineLoadContext(const CommonAccessorViews& accessorViews, const GltfPrimitiveBuilderOption& option);
 
         template<typename AccessorType>
         void CopyAccessorToBuffer(

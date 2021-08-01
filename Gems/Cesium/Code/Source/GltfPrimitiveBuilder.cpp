@@ -17,6 +17,11 @@
 
 namespace Cesium
 {
+    GltfTrianglePrimitiveBuilderOption::GltfTrianglePrimitiveBuilderOption()
+        : m_needTangents{ false }
+    {
+    }
+
     GltfTrianglePrimitiveBuilder::GPUBuffer::GPUBuffer()
         : m_buffer{}
         , m_format{ AZ::RHI::Format::Unknown }
@@ -70,7 +75,7 @@ namespace Cesium
     }
 
     AZ::Data::Asset<AZ::RPI::ModelAsset> GltfTrianglePrimitiveBuilder::Create(
-        const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive, [[maybe_unused]] GltfLoadContext& gltfLoadContext)
+        const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive, const GltfTrianglePrimitiveBuilderOption& option)
     {
         // Construct common accessor views. This is needed to begin determine loading context
         CommonAccessorViews commonAccessorViews{ model, primitive };
@@ -112,7 +117,7 @@ namespace Cesium
         }
 
         // determine loading context
-        DetermineLoadContext(commonAccessorViews);
+        DetermineLoadContext(commonAccessorViews, option);
 
         // Create attributes. The order call of the functions is important
         CreatePositionsAttribute(commonAccessorViews);
@@ -127,7 +132,7 @@ namespace Cesium
         auto tangentBuffer = CreateBufferAsset(m_tangents.data(), m_tangents.size(), AZ::RHI::Format::R32G32B32A32_FLOAT);
         auto bitangentBuffer = CreateBufferAsset(m_bitangents.data(), m_bitangents.size(), AZ::RHI::Format::R32G32B32_FLOAT);
 
-        AZ::Data::Asset <AZ::RPI::BufferAsset> uvDummyBuffer;
+        AZ::Data::Asset<AZ::RPI::BufferAsset> uvDummyBuffer;
         AZStd::array<AZ::Data::Asset<AZ::RPI::BufferAsset>, 2> uvBuffers;
         for (std::size_t i = 0; i < m_uvs.size(); ++i)
         {
@@ -207,7 +212,7 @@ namespace Cesium
         return modelAsset;
     }
 
-    void GltfTrianglePrimitiveBuilder::DetermineLoadContext(const CommonAccessorViews& accessorViews)
+    void GltfTrianglePrimitiveBuilder::DetermineLoadContext(const CommonAccessorViews& accessorViews, const GltfTrianglePrimitiveBuilderOption& option)
     {
         // check if we should generate normal
         bool isNormalAccessorValid = accessorViews.m_normals.status() == CesiumGltf::AccessorViewStatus::Valid;
@@ -215,9 +220,16 @@ namespace Cesium
         m_context.m_generateFlatNormal = !isNormalAccessorValid || !hasEnoughNormalVertices;
 
         // check if we should generate tangent
-        bool isTangentAccessorValid = accessorViews.m_tangents.status() == CesiumGltf::AccessorViewStatus::Valid;
-        bool hasEnoughTangentVertices = accessorViews.m_tangents.size() == accessorViews.m_positions.size();
-        m_context.m_generateTangent = !isTangentAccessorValid || !hasEnoughTangentVertices;
+        if (option.m_needTangents)
+        {
+            bool isTangentAccessorValid = accessorViews.m_tangents.status() == CesiumGltf::AccessorViewStatus::Valid;
+            bool hasEnoughTangentVertices = accessorViews.m_tangents.size() == accessorViews.m_positions.size();
+            m_context.m_generateTangent = !isTangentAccessorValid || !hasEnoughTangentVertices;
+        }
+        else
+        {
+            m_context.m_generateTangent = false;
+        }
 
         // check if we should generate unindexed mesh
         m_context.m_generateUnIndexedMesh = m_context.m_generateFlatNormal || m_context.m_generateTangent;
@@ -553,13 +565,15 @@ namespace Cesium
                 m_tangents.resize(m_positions.size(), glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
                 m_bitangents.resize(m_positions.size(), glm::vec3(0.0f, 0.0f, 0.0f));
             }
-        }
-        else
-        {
-            assert(commonAccessorViews.m_tangents.status() == CesiumGltf::AccessorViewStatus::Valid);
-            assert(commonAccessorViews.m_tangents.size() > 0);
-            assert(commonAccessorViews.m_tangents.size() == commonAccessorViews.m_positions.size());
 
+            return;
+        }
+
+        // check if tangents accessor is valid. If it is, we just copy to the buffer
+        const CesiumGltf::AccessorView<glm::vec4>& tangents = commonAccessorViews.m_tangents;
+        if ((tangents.status() == CesiumGltf::AccessorViewStatus::Valid) && (tangents.size() > 0) &&
+            (tangents.size() == commonAccessorViews.m_positions.size()))
+        {
             // copy tangents to vector
             CopyAccessorToBuffer(commonAccessorViews.m_tangents, m_tangents);
 
@@ -569,7 +583,13 @@ namespace Cesium
             {
                 m_bitangents[i] = glm::cross(m_normals[i], glm::vec3(m_tangents[i])) * m_tangents[i].w;
             }
+
+            return;
         }
+
+        // generate dummy if accessor is not valid
+        m_tangents.resize(m_positions.size(), glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
+        m_bitangents.resize(m_positions.size(), glm::vec3(0.0f, 0.0f, 0.0f));
     }
 
     void GltfTrianglePrimitiveBuilder::CreateFlatNormal()

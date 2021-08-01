@@ -175,15 +175,6 @@ namespace Cesium
         const glm::dmat4& transform,
         GltfLoadContext& loadContext)
     {
-        // create model asset
-        GltfTrianglePrimitiveBuilder primitiveBuilder;
-        auto modelAsset = primitiveBuilder.Create(model, primitive, loadContext);
-        if (!modelAsset)
-        {
-            // Cannot create asset, skip rendering it
-            return;
-        }
-
         // create material asset
         const CesiumGltf::Material* material = model.getSafe<CesiumGltf::Material>(&model.materials, primitive.material);
         if (!material)
@@ -198,6 +189,16 @@ namespace Cesium
             GltfMaterialBuilder materialBuilder;
             materialInstance = materialBuilder.Create(model, *material, loadContext);
             loadContext.StoreMaterial(materialSourceIdx, materialSourceIdx, materialInstance);
+        }
+
+        // create model asset
+        GltfPrimitiveBuilderOption option;
+        GltfTrianglePrimitiveBuilder primitiveBuilder;
+        auto modelAsset = primitiveBuilder.Create(model, primitive, option);
+        if (!modelAsset)
+        {
+            // Cannot create asset, skip rendering it
+            return;
         }
 
         // create mesh handle
