@@ -15,7 +15,7 @@
 
 namespace Cesium
 {
-    AZ::Data::Instance<AZ::RPI::Material> GltfMaterialBuilder::Create(
+    GltfLoadMaterial GltfMaterialBuilder::Create(
         const CesiumGltf::Model& model, const CesiumGltf::Material& material, GltfLoadContext& loadContext)
     {
         // Load StandardPBR material type
@@ -123,7 +123,7 @@ namespace Cesium
             standardPBRMaterial->Compile();
         }
 
-        return standardPBRMaterial;
+        return GltfLoadMaterial(std::move(standardPBRMaterial), false);
     }
 
     void GltfMaterialBuilder::ConfigurePbrMetallicRoughness(

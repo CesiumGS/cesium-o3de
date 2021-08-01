@@ -16,8 +16,7 @@ namespace Cesium
     class GltfMaterialBuilder
     {
     public:
-        AZ::Data::Instance<AZ::RPI::Material> Create(
-            const CesiumGltf::Model& model, const CesiumGltf::Material& material, GltfLoadContext& loadContext);
+        GltfLoadMaterial Create(const CesiumGltf::Model& model, const CesiumGltf::Material& material, GltfLoadContext& loadContext);
 
     private:
         void ConfigurePbrMetallicRoughness(

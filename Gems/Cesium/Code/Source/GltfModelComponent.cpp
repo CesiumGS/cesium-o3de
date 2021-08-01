@@ -187,12 +187,13 @@ namespace Cesium
         if (!materialInstance)
         {
             GltfMaterialBuilder materialBuilder;
-            materialInstance = materialBuilder.Create(model, *material, loadContext);
-            loadContext.StoreMaterial(materialSourceIdx, materialSourceIdx, materialInstance);
+            GltfLoadMaterial loadMaterial = materialBuilder.Create(model, *material, loadContext);
+            materialInstance = &loadContext.StoreMaterial(materialSourceIdx, materialSourceIdx, loadMaterial);
         }
 
         // create model asset
         GltfTrianglePrimitiveBuilderOption option;
+        option.m_needTangents = materialInstance->m_needTangents;
         GltfTrianglePrimitiveBuilder primitiveBuilder;
         auto modelAsset = primitiveBuilder.Create(model, primitive, option);
         if (!modelAsset)
@@ -202,7 +203,7 @@ namespace Cesium
         }
 
         // create mesh handle
-        auto primitiveHandle = m_meshFeatureProcessor->AcquireMesh(AZ::Render::MeshHandleDescriptor{ modelAsset }, materialInstance);
+        auto primitiveHandle = m_meshFeatureProcessor->AcquireMesh(AZ::Render::MeshHandleDescriptor{ modelAsset }, materialInstance->m_material);
 
         // set transformation. Since AZ::Transform doesn' accept non-uniform scale, we
         // decompose matrix to translation and rotation and set them for AZ::Transform.

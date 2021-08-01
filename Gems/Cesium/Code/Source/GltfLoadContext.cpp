@@ -4,34 +4,37 @@
 #undef OPAQUE
 
 #include "GltfLoadContext.h"
-#include <CesiumGltf/GltfReader.h>
 #include <AzCore/std/hash.h>
 
 namespace Cesium
 {
-    void GltfLoadContext::StoreMaterial(
-        std::uint32_t materialIdx, std::uint32_t subIdx, const AZ::Data::Instance<AZ::RPI::Material>& material)
+    GltfLoadMaterial::GltfLoadMaterial(AZ::Data::Instance<AZ::RPI::Material>&& material, bool needTangents)
+        : m_material{ std::move(material) }
+        , m_needTangents{ needTangents }
+    {
+    }
+
+    GltfLoadMaterial& GltfLoadContext::StoreMaterial(std::uint32_t materialIdx, std::uint32_t subIdx, const GltfLoadMaterial& material)
     {
         std::size_t seed = 0;
         AZStd::hash_combine(seed, materialIdx, subIdx);
-        m_cachedMaterials.insert_or_assign(seed, material);
+        return m_cachedMaterials.insert_or_assign(seed, material).first->second;
     }
 
-    AZ::Data::Instance<AZ::RPI::Material> GltfLoadContext::FindCachedMaterial(std::uint32_t materialIdx, std::uint32_t subIdx)
+    GltfLoadMaterial* GltfLoadContext::FindCachedMaterial(std::uint32_t materialIdx, std::uint32_t subIdx)
     {
         std::size_t seed = 0;
         AZStd::hash_combine(seed, materialIdx, subIdx);
         auto it = m_cachedMaterials.find(seed);
         if (it == m_cachedMaterials.end())
         {
-            return AZ::Data::Instance<AZ::RPI::Material>();
+            return nullptr;
         }
 
-        return it->second;
+        return &it->second;
     }
 
-    void GltfLoadContext::StoreImage(
-        std::uint32_t textureIdx, std::uint32_t subIdx, const AZ::Data::Instance<AZ::RPI::Image>& imageAsset)
+    void GltfLoadContext::StoreImage(std::uint32_t textureIdx, std::uint32_t subIdx, const AZ::Data::Instance<AZ::RPI::Image>& imageAsset)
     {
         std::size_t seed = 0;
         AZStd::hash_combine(seed, textureIdx, subIdx);
