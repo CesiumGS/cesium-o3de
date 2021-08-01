@@ -77,6 +77,8 @@ namespace Cesium
     AZ::Data::Asset<AZ::RPI::ModelAsset> GltfTrianglePrimitiveBuilder::Create(
         const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive, const GltfTrianglePrimitiveBuilderOption& option)
     {
+        Reset();
+
         // Construct common accessor views. This is needed to begin determine loading context
         CommonAccessorViews commonAccessorViews{ model, primitive };
         if (commonAccessorViews.m_positions.status() != CesiumGltf::AccessorViewStatus::Valid)
@@ -682,6 +684,22 @@ namespace Cesium
             }
 
             return CreateBufferAsset(indices.data(), indices.size(), AZ::RHI::Format::R32_UINT);
+        }
+    }
+
+    void GltfTrianglePrimitiveBuilder::Reset()
+    {
+        m_context = LoadContext{};
+        m_indices.clear();
+        m_positions.clear();
+        m_normals.clear();
+        m_tangents.clear();
+        m_bitangents.clear();
+        for (std::size_t i = 0; i < m_uvs.size(); ++i)
+        {
+            m_uvs[i].m_buffer.clear();
+            m_uvs[i].m_elementCount = 0;
+            m_uvs[i].m_format = AZ::RHI::Format::Unknown;
         }
     }
 

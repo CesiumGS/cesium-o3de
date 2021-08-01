@@ -88,6 +88,8 @@ namespace Cesium
 
         AZ::Data::Asset<AZ::RPI::BufferAsset> CreateUnIndexedIndicesBufferAsset();
 
+        void Reset();
+
         static AZ::Data::Asset<AZ::RPI::BufferAsset> CreateBufferAsset(
             const void* data, const std::size_t elementCount, AZ::RHI::Format format);
 
