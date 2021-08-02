@@ -1,5 +1,4 @@
 #include "LocalFileManager.h"
-#include <AzCore/std/smart_ptr/make_shared.h>
 #include <fstream>
 #include <filesystem>
 
