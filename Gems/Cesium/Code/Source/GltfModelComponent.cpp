@@ -1,9 +1,12 @@
+#include "GltfModelComponent.h"
+
 // Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
 // This only happens with unity build
+#ifdef AZ_COMPILER_MSVC
 #pragma push_macro("OPAQUE")
 #undef OPAQUE
+#endif
 
-#include "GltfModelComponent.h"
 #include "BitangentAndTangentGenerator.h"
 #include "GltfPrimitiveBuilder.h"
 #include "GltfMaterialBuilder.h"
@@ -302,4 +305,6 @@ namespace Cesium
 
 // Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
 // This only happens with unity build
+#ifdef AZ_COMPILER_MSVC
 #pragma pop_macro("OPAQUE")
+#endif

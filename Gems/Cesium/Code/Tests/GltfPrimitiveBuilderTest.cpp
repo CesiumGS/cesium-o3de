@@ -4,3 +4,4 @@
 class GltfPrimitiveBuilderTest : public UnitTest::AllocatorsTestFixture
 {
 };
+
