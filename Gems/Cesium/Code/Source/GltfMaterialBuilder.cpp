@@ -121,10 +121,7 @@ namespace Cesium
             SetMaterialPropertyValue(standardPBRMaterial, AZ::Name("opacity.doubleSided"), true);
         }
 
-        if (standardPBRMaterial->NeedsCompile())
-        {
-            standardPBRMaterial->Compile();
-        }
+        standardPBRMaterial->Compile();
 
         return GltfLoadMaterial(std::move(standardPBRMaterial), false);
     }
