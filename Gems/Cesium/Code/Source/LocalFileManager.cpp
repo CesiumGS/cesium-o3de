@@ -1,7 +1,6 @@
 #include "LocalFileManager.h"
 #include <AzCore/StringFunc/StringFunc.h>
-#include <fstream>
-#include <filesystem>
+#include <AzCore/IO/FileIO.h>
 
 namespace Cesium
 {
@@ -17,20 +16,16 @@ namespace Cesium
         AZStd::string absolutePath;
         AZ::StringFunc::Path::Join(request.m_parentPath.c_str(), request.m_path.c_str(), absolutePath);
 
-        std::ifstream f(absolutePath.c_str(), std::ios::in | std::ios::binary);
-        if (!f)
+        AZ::IO::FileIOStream stream(absolutePath.c_str(), AZ::IO::OpenMode::ModeRead | AZ::IO::OpenMode::ModeBinary);
+        if (!stream.IsOpen())
         {
             return {};
         }
 
-        // Obtain the size of the file.
-        const auto sz = std::filesystem::file_size(absolutePath.c_str());
-
         // Create a buffer.
-        AZStd::vector<std::byte> content(sz);
-
-        // Read the whole file into the buffer.
-        f.read(reinterpret_cast<char*>(content.data()), sz);        
+        std::size_t fileSize = stream.GetLength();
+        AZStd::vector<std::byte> content(fileSize);
+        stream.Read(fileSize, content.data());
         return content;
     }
 
