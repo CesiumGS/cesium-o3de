@@ -14,6 +14,7 @@
 #include "GenericIOManager.h"
 #include "LocalFileManager.h"
 #include <CesiumGltf/GltfReader.h>
+#include <AzCore/std/algorithm.h>
 #include <Atom/RPI.Public/Material/Material.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -38,6 +39,20 @@ namespace Cesium
     GltfModelComponent::~GltfModelComponent() noexcept
     {
         Destroy();
+    }
+
+    void GltfModelComponent::Update()
+    {
+        if (!m_materialsToCompile.empty())
+        {
+            auto it = AZStd::remove_if(
+                m_materialsToCompile.begin(), m_materialsToCompile.end(),
+                [](auto& mat)
+                {
+                    return !mat->NeedsCompile() || mat->Compile();
+                });
+            m_materialsToCompile.erase(it, m_materialsToCompile.end());
+        }
     }
 
     bool GltfModelComponent::IsVisible() const
@@ -192,6 +207,13 @@ namespace Cesium
             GltfMaterialBuilder materialBuilder;
             GltfLoadMaterial loadMaterial = materialBuilder.Create(model, *material, loadContext);
             materialInstance = &loadContext.StoreMaterial(materialSourceIdx, materialSourceIdx, loadMaterial);
+
+            // Though material builder call Material::Compile(), sometime, the material is still not successfully compiled. So
+            // we add it to the queue and check the compile status in the Update() method each frame
+            if (materialInstance->m_material->NeedsCompile())
+            {
+                m_materialsToCompile.emplace_back(materialInstance->m_material);
+            }
         }
 
         // create model asset

@@ -40,6 +40,8 @@ namespace Cesium
 
         ~GltfModelComponent() noexcept;
 
+        void Update();
+
         bool IsVisible() const;
 
         void SetVisible(bool visible);
@@ -76,6 +78,7 @@ namespace Cesium
         bool m_visible;
         AZ::Render::MeshFeatureProcessorInterface* m_meshFeatureProcessor;
         AZStd::vector<PrimitiveHandle> m_primitives;
+        AZStd::vector<AZ::Data::Instance<AZ::RPI::Material>> m_materialsToCompile;
     };
 } // namespace Cesium
 
