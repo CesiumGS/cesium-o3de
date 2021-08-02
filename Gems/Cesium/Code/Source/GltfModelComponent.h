@@ -65,9 +65,9 @@ namespace Cesium
             const glm::dmat4& transform,
             GltfLoadContext& loadContext);
 
-        void ResolveExternalImages(const std::filesystem::path& parentPath, const CesiumGltf::GltfReader& gltfReader, CesiumGltf::Model& model, GenericIOManager& io);
+        void ResolveExternalImages(const AZStd::string& parentPath, const CesiumGltf::GltfReader& gltfReader, CesiumGltf::Model& model, GenericIOManager& io);
 
-        void ResolveExternalBuffers(const std::filesystem::path& parentPath, CesiumGltf::Model& model, GenericIOManager& io);
+        void ResolveExternalBuffers(const AZStd::string& parentPath, CesiumGltf::Model& model, GenericIOManager& io);
 
         static bool IsIdentityMatrix(const std::vector<double>& matrix);
 

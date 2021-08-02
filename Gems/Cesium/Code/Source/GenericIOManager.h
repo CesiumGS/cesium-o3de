@@ -17,6 +17,8 @@ namespace Cesium
     public:
         virtual ~GenericIOManager() = default;
 
+        virtual AZStd::string GetParentPath(const AZStd::string& path) = 0;
+
         virtual AZStd::vector<std::byte> GetFileContent(const IORequestParameter& request) = 0;
 
         virtual AZStd::vector<std::byte> GetFileContent(IORequestParameter&& request) = 0;

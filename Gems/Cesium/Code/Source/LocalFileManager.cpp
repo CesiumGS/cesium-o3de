@@ -5,6 +5,12 @@
 
 namespace Cesium
 {
+    AZStd::string LocalFileManager::GetParentPath(const AZStd::string& path)
+    {
+        std::filesystem::path parent = std::filesystem::path(path.c_str()).parent_path();
+        return parent.string().c_str();
+    }
+
     AZStd::vector<std::byte> LocalFileManager::GetFileContent(const IORequestParameter& request)
     {
         std::filesystem::path parentPath = request.m_parentPath.c_str();

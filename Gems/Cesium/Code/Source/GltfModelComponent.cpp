@@ -76,9 +76,9 @@ namespace Cesium
         auto result = reader.readModel(gsl::span<const std::byte>(fileContent.data(), fileContent.size()));
         if (result.model)
         {
-            std::filesystem::path parent = std::filesystem::path(filePath.c_str()).parent_path();
-            ResolveExternalImages(parent, reader, *result.model, io);
-            ResolveExternalBuffers(parent, *result.model, io);
+            AZStd::string parentPath = io.GetParentPath(filePath);
+            ResolveExternalImages(parentPath, reader, *result.model, io);
+            ResolveExternalBuffers(parentPath, *result.model, io);
 
             GltfLoadContext loadContext{};
             LoadModel(*result.model, loadContext);
@@ -233,7 +233,7 @@ namespace Cesium
     }
 
     void GltfModelComponent::ResolveExternalImages(
-        const std::filesystem::path& parentPath, const CesiumGltf::GltfReader& gltfReader, CesiumGltf::Model& model, GenericIOManager& io)
+        const AZStd::string& parentPath, const CesiumGltf::GltfReader& gltfReader, CesiumGltf::Model& model, GenericIOManager& io)
     {
         for (CesiumGltf::Image& image : model.images)
         {
@@ -249,7 +249,7 @@ namespace Cesium
 
             AZStd::string path = image.uri.value().c_str();
             IORequestParameter param;
-            param.m_parentPath = parentPath.string().c_str();
+            param.m_parentPath = parentPath;
             param.m_path = std::move(path);
             auto content = io.GetFileContent(param);
             if (content.empty())
@@ -267,7 +267,7 @@ namespace Cesium
         }
     }
 
-    void GltfModelComponent::ResolveExternalBuffers(const std::filesystem::path& parentPath, CesiumGltf::Model& model, GenericIOManager& io)
+    void GltfModelComponent::ResolveExternalBuffers(const AZStd::string& parentPath, CesiumGltf::Model& model, GenericIOManager& io)
     {
         for (CesiumGltf::Buffer& buffer : model.buffers)
         {
@@ -283,7 +283,7 @@ namespace Cesium
 
             AZStd::string path = buffer.uri.value().c_str();
             IORequestParameter param;
-            param.m_parentPath = parentPath.string().c_str();
+            param.m_parentPath = parentPath;
             param.m_path = std::move(path);
             auto content = io.GetFileContent(param);
             if (content.empty())
