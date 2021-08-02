@@ -1,4 +1,5 @@
 #include "LocalFileManager.h"
+#include <AzCore/StringFunc/StringFunc.h>
 #include <fstream>
 #include <filesystem>
 
@@ -6,24 +7,24 @@ namespace Cesium
 {
     AZStd::string LocalFileManager::GetParentPath(const AZStd::string& path)
     {
-        std::filesystem::path parent = std::filesystem::path(path.c_str()).parent_path();
-        return parent.string().c_str();
+        AZStd::string parentPath(path);
+        AZ::StringFunc::Path::StripFullName(parentPath);
+        return parentPath;
     }
 
     AZStd::vector<std::byte> LocalFileManager::GetFileContent(const IORequestParameter& request)
     {
-        std::filesystem::path parentPath = request.m_parentPath.c_str();
-        std::filesystem::path path = request.m_path.c_str();
-        path = std::filesystem::weakly_canonical(parentPath / path);
+        AZStd::string absolutePath;
+        AZ::StringFunc::Path::Join(request.m_parentPath.c_str(), request.m_path.c_str(), absolutePath);
 
-        std::ifstream f(path, std::ios::in | std::ios::binary);
+        std::ifstream f(absolutePath.c_str(), std::ios::in | std::ios::binary);
         if (!f)
         {
             return {};
         }
 
         // Obtain the size of the file.
-        const auto sz = std::filesystem::file_size(path.c_str());
+        const auto sz = std::filesystem::file_size(absolutePath.c_str());
 
         // Create a buffer.
         AZStd::vector<std::byte> content(sz);
