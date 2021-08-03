@@ -8,4 +8,6 @@ set(FILES
     Source/HttpManager.h
     Source/HttpAssetAccessor.cpp
     Source/HttpAssetAccessor.h
+    Source/TaskProcessor.cpp
+    Source/TaskProcessor.h
 )
