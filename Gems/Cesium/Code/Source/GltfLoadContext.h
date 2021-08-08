@@ -4,28 +4,14 @@
 #include <Atom/RPI.Reflect/Material/MaterialAsset.h>
 #include <Atom/RPI.Reflect/Model/ModelAsset.h>
 #include <AzCore/std/containers/unordered_map.h>
-#include <AzCore/std/containers/compressed_pair.h>
-#include <AzCore/std/hash.h>
+#include <AzCore/std/string/string.h>
 #include <AzCore/Name/Name.h>
 #include <glm/glm.hpp>
 #include <cstdint>
 
-namespace AZStd
-{
-    // hash specialization used for texture id
-    template<>
-    struct hash<AZStd::compressed_pair<std::int32_t, std::int32_t>>
-    {
-        std::size_t operator()(const AZStd::compressed_pair<std::int32_t, std::int32_t>& id) const;
-    };
-
-    bool operator==(
-        const AZStd::compressed_pair<std::int32_t, std::int32_t>& lhs, const AZStd::compressed_pair<std::int32_t, std::int32_t>& rhs);
-} // namespace AZStd
-
 namespace Cesium
 {
-    using TextureId = AZStd::compressed_pair<std::int32_t, std::int32_t>;
+    using TextureId = AZStd::string;
     using MaterialId = std::int32_t;
 
     struct GltfLoadTexture final

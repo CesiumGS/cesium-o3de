@@ -251,7 +251,7 @@ namespace Cesium
         }
 
         // Lookup cache
-        TextureId imageSourceIdx{ texture->source, texture->source };
+        TextureId imageSourceIdx = AZStd::string::format("Occlusion_%d", texture->source);
         auto cachedAsset = textureCache.find(imageSourceIdx);
         if (cachedAsset != textureCache.end())
         {
@@ -317,7 +317,7 @@ namespace Cesium
         }
 
         // Lookup cache
-        TextureId imageSourceIdx{ texture->source, texture->source };
+        TextureId imageSourceIdx = AZStd::string::format("RGBA_%d", texture->source);
         auto cachedAsset = textureCache.find(imageSourceIdx);
         if (cachedAsset != textureCache.end())
         {
@@ -389,8 +389,8 @@ namespace Cesium
         }
 
         // Lookup cache
-        TextureId roughnessImageIdx{ texture->source, roughnessTextureSubIdx };
-        TextureId metallicImageIdx{texture->source, metallicTextureSubIdx};
+        TextureId roughnessImageIdx = AZStd::string::format("Roughness_%d", texture->source);
+        TextureId metallicImageIdx = AZStd::string::format("Metallic_%d", texture->source);
         auto cachedRoughness = textureCache.find(roughnessImageIdx);
         auto cachedMetallic = textureCache.find(metallicImageIdx);
         if (cachedRoughness != textureCache.end() && cachedMetallic != textureCache.end())

@@ -1,22 +1,5 @@
 #include "GltfLoadContext.h"
 
-namespace AZStd
-{
-    std::size_t hash<AZStd::compressed_pair<std::int32_t, std::int32_t>>::operator()(
-        const AZStd::compressed_pair<std::int32_t, std::int32_t>& id) const
-    {
-        std::size_t seed = 0;
-        AZStd::hash_combine(seed, id.first(), id.second());
-        return seed;
-    }
-
-    bool operator==(
-        const AZStd::compressed_pair<std::int32_t, std::int32_t>& lhs, const AZStd::compressed_pair<std::int32_t, std::int32_t>& rhs)
-    {
-        return lhs.first() == rhs.first() && lhs.second() == rhs.second();
-    }
-} // namespace AZStd
-
 namespace Cesium
 {
     GltfLoadTexture::GltfLoadTexture()
