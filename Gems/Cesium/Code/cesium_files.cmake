@@ -1,6 +1,8 @@
 
 set(FILES
     Include/Cesium/CesiumBus.h
+    Include/Cesium/GltfModelComponentBus.h
+    Include/Cesium/GltfModelComponent.h
     Source/CesiumModuleInterface.h
     Source/CesiumSystemComponent.cpp
     Source/CesiumSystemComponent.h
@@ -20,6 +22,9 @@ set(FILES
     Source/GltfPrimitiveBuilder.h
     Source/GltfMaterialBuilder.cpp
     Source/GltfMaterialBuilder.h
+    Source/GltfModelBuilder.cpp
+    Source/GltfModelBuilder.h
+    Source/GltfModel.cpp
+    Source/GltfModel.h
     Source/GltfModelComponent.cpp
-    Source/GltfModelComponent.h
 )

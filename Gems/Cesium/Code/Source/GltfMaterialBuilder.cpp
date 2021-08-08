@@ -2,61 +2,143 @@
 
 // Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
 // This only happens with unity build
+#include <AzCore/PlatformDef.h>
+
 #ifdef AZ_COMPILER_MSVC
 #pragma push_macro("OPAQUE")
 #undef OPAQUE
 #endif
 
-#include <Atom/RPI.Public/Image/StreamingImage.h>
-#include <Atom/RPI.Reflect/Image/ImageAsset.h>
+#include <CesiumGltf/Model.h>
+#include <CesiumGltf/Material.h>
+#include <Atom/RPI.Reflect/Material/MaterialAssetCreator.h>
+#include <Atom/RPI.Reflect/Image/StreamingImageAsset.h>
 #include <Atom/RPI.Reflect/Material/MaterialTypeAsset.h>
 #include <Atom/RPI.Reflect/Material/MaterialAsset.h>
-#include <Atom/RPI.Reflect/Material/MaterialAssetCreator.h>
 #include <Atom/RPI.Reflect/Image/StreamingImageAssetCreator.h>
 #include <Atom/RPI.Reflect/Image/ImageMipChainAssetCreator.h>
 #include <Atom/RPI.Reflect/Asset/AssetUtils.h>
 
 namespace Cesium
 {
-    GltfLoadMaterial GltfMaterialBuilder::Create(
-        const CesiumGltf::Model& model, const CesiumGltf::Material& material, GltfLoadContext& loadContext)
+    void GltfMaterialBuilder::Create(
+            const CesiumGltf::Model& model,
+            const CesiumGltf::Material& material,
+            AZStd::unordered_map<TextureId, GltfLoadTexture>& textureCache,
+            GltfLoadMaterial& result)
     {
         // Load StandardPBR material type
         auto standardPBRMaterialType = AZ::RPI::AssetUtils::LoadAssetByProductPath<AZ::RPI::MaterialTypeAsset>(STANDARD_PBR_MAT_TYPE);
 
-        // Create PBR Material dynamically
+        // Create material asset
+        TextureProperties textureProperties;
         AZ::Data::Asset<AZ::RPI::MaterialAsset> standardPBRMaterialAsset;
         AZ::RPI::MaterialAssetCreator materialCreator;
         materialCreator.Begin(AZ::Uuid::CreateRandom(), *standardPBRMaterialType);
+
+        ConfigurePbrMetallicRoughness(model, material, textureCache, textureProperties, materialCreator);
+        ConfigureOcclusion(model, material, textureCache, textureProperties, materialCreator);
+        ConfigureEmissive(model, material, textureCache, textureProperties, materialCreator);
+        ConfigureOpacity(material, materialCreator);
+
         materialCreator.End(standardPBRMaterialAsset);
 
-        AZ::Data::Instance<AZ::RPI::Material> standardPBRMaterial = AZ::RPI::Material::Create(standardPBRMaterialAsset);
+        // populate result
+        result.m_materialAsset = std::move(standardPBRMaterialAsset);
+        result.m_textureProperties = std::move(textureProperties);
+        result.m_needTangents = false; // We don't load normal texture, so no need for tangents vertices for now
+    }
 
-        // configure pbr mettalic roughness
+    void GltfMaterialBuilder::ConfigurePbrMetallicRoughness(
+        const CesiumGltf::Model& model,
+        const CesiumGltf::Material& material,
+        TextureCache& textureCache,
+        TextureProperties& textureProperties,
+        AZ::RPI::MaterialAssetCreator& materialCreator)
+    {
         const auto& pbrMetallicRoughness = material.pbrMetallicRoughness;
         if (pbrMetallicRoughness)
         {
-            ConfigurePbrMetallicRoughness(model, *pbrMetallicRoughness, standardPBRMaterial, loadContext);
+            return;
         }
 
-        // configure occlusion
-        const std::optional<CesiumGltf::MaterialOcclusionTextureInfo> occlusionTexture = material.occlusionTexture;
-        if (occlusionTexture)
+        const std::vector<double>& baseColorFactor = pbrMetallicRoughness->baseColorFactor;
+        if (baseColorFactor.size() == 4)
         {
-            AZ::Data::Instance<AZ::RPI::Image> occlusionImage = GetOrCreateOcclusionImage(model, *occlusionTexture, loadContext);
-            std::int64_t occlusionTexCoord = occlusionTexture->texCoord;
-            if (occlusionImage && occlusionTexCoord >= 0 && occlusionTexCoord < 2)
-            {
-                SetMaterialPropertyValue(standardPBRMaterial, AZ::Name("occlusion.diffuseUseTexture"), true);
-                SetMaterialPropertyValue(standardPBRMaterial, AZ::Name("occlusion.diffuseTextureMap"), occlusionImage);
-                SetMaterialPropertyValue(
-                    standardPBRMaterial, AZ::Name("occlusion.diffuseTextureMapUv"), static_cast<std::uint32_t>(occlusionTexCoord));
-                SetMaterialPropertyValue(
-                    standardPBRMaterial, AZ::Name("occlusion.diffuseFactor"), static_cast<float>(occlusionTexture->strength));
-            }
+            materialCreator.SetPropertyValue(
+                AZ::Name("baseColor.color"),
+                AZ::Color(
+                    static_cast<float>(baseColorFactor[0]), static_cast<float>(baseColorFactor[1]), static_cast<float>(baseColorFactor[2]),
+                    static_cast<float>(baseColorFactor[3])));
         }
 
-        // configure emissive
+        const std::optional<CesiumGltf::TextureInfo>& baseColorTexture = pbrMetallicRoughness->baseColorTexture;
+        AZStd::optional<TextureId> baseColorImage;
+        std::int64_t baseColorTexCoord = -1;
+        if (baseColorTexture)
+        {
+            baseColorImage = GetOrCreateRGBAImage(model, *baseColorTexture, textureCache);
+            baseColorTexCoord = baseColorTexture->texCoord;
+        }
+
+        if (baseColorImage && baseColorTexCoord >= 0 && baseColorTexCoord < 2)
+        {
+            materialCreator.SetPropertyValue(AZ::Name("baseColor.useTexture"), true);
+            materialCreator.SetPropertyValue(AZ::Name("baseColor.textureMapUv"), static_cast<std::uint32_t>(baseColorTexCoord));
+            textureProperties[AZ::Name("baseColor.textureMap")] = baseColorImage.value();
+        }
+        else
+        {
+            materialCreator.SetPropertyValue(AZ::Name("baseColor.useTexture"), false);
+        }
+
+        // configure metallic and roughness
+        double metallicFactor = pbrMetallicRoughness->metallicFactor;
+        materialCreator.SetPropertyValue(AZ::Name("metallic.factor"), static_cast<float>(metallicFactor));
+
+        double roughnessFactor = pbrMetallicRoughness->roughnessFactor;
+        materialCreator.SetPropertyValue(AZ::Name("roughness.factor"), static_cast<float>(roughnessFactor));
+
+        const std::optional<CesiumGltf::TextureInfo>& metallicRoughnessTexture = pbrMetallicRoughness->metallicRoughnessTexture;
+        AZStd::optional<TextureId> metallicImage;
+        AZStd::optional<TextureId> roughnessImage;
+        std::int64_t metallicRoughnessTexCoord = -1;
+        if (metallicRoughnessTexture)
+        {
+            GetOrCreateMetallicRoughnessImage(model, *metallicRoughnessTexture, metallicImage, roughnessImage, textureCache);
+            metallicRoughnessTexCoord = metallicRoughnessTexture->texCoord;
+        }
+
+        if (metallicImage && metallicRoughnessTexCoord >= 0 && metallicRoughnessTexCoord < 2)
+        {
+            materialCreator.SetPropertyValue(AZ::Name("metallic.useTexture"), true);
+            materialCreator.SetPropertyValue(AZ::Name("metallic.textureMapUv"), static_cast<std::uint32_t>(metallicRoughnessTexCoord));
+            textureProperties[AZ::Name("metallic.textureMap")] = metallicImage.value();
+        }
+        else
+        {
+            materialCreator.SetPropertyValue(AZ::Name("metallic.useTexture"), false);
+        }
+
+        if (roughnessImage && metallicRoughnessTexCoord >= 0 && metallicRoughnessTexCoord < 2)
+        {
+            materialCreator.SetPropertyValue(AZ::Name("roughness.useTexture"), true);
+            materialCreator.SetPropertyValue(AZ::Name("roughness.textureMapUv"), static_cast<std::uint32_t>(metallicRoughnessTexCoord));
+            textureProperties[AZ::Name("roughness.textureMap")] = roughnessImage.value();
+        }
+        else
+        {
+            materialCreator.SetPropertyValue(AZ::Name("roughness.useTexture"), false);
+        }
+    }
+
+    void GltfMaterialBuilder::ConfigureEmissive(
+        const CesiumGltf::Model& model,
+        const CesiumGltf::Material& material,
+        TextureCache& textureCache,
+        TextureProperties& textureProperties,
+        AZ::RPI::MaterialAssetCreator& materialCreator)
+    {
         bool enableEmissive = false;
         if (material.emissiveFactor.size() == 3)
         {
@@ -70,8 +152,8 @@ namespace Cesium
             if (!isBlack)
             {
                 enableEmissive = true;
-                SetMaterialPropertyValue(
-                    standardPBRMaterial, AZ::Name("emissive.color"),
+                materialCreator.SetPropertyValue(
+                    AZ::Name("emissive.color"),
                     AZ::Color{ static_cast<float>(material.emissiveFactor[0]), static_cast<float>(material.emissiveFactor[1]),
                                static_cast<float>(material.emissiveFactor[2]), 1.0f });
             }
@@ -80,170 +162,115 @@ namespace Cesium
         const std::optional<CesiumGltf::TextureInfo>& emissiveTexture = material.emissiveTexture;
         if (emissiveTexture)
         {
-            AZ::Data::Instance<AZ::RPI::Image> emissiveImage = GetOrCreateRGBAImage(model, *emissiveTexture, loadContext);
+            AZStd::optional<TextureId> emissiveImage = GetOrCreateRGBAImage(model, *emissiveTexture, textureCache);
             std::int64_t emissiveTexCoord = emissiveTexture->texCoord;
             if (emissiveImage && emissiveTexCoord >= 0 && emissiveTexCoord < 2)
             {
                 enableEmissive = true;
-                SetMaterialPropertyValue(standardPBRMaterial, AZ::Name("emissive.useTexture"), true);
-                SetMaterialPropertyValue(standardPBRMaterial, AZ::Name("emissive.textureMap"), emissiveImage);
-                SetMaterialPropertyValue(
-                    standardPBRMaterial, AZ::Name("emissive.textureMapUv"), static_cast<std::uint32_t>(emissiveTexCoord));
+                materialCreator.SetPropertyValue(AZ::Name("emissive.useTexture"), true);
+                materialCreator.SetPropertyValue(AZ::Name("emissive.textureMapUv"), static_cast<std::uint32_t>(emissiveTexCoord));
+                textureProperties[AZ::Name("emissive.textureMap")] = emissiveImage.value();
             }
             else
             {
-                SetMaterialPropertyValue(standardPBRMaterial, AZ::Name("emissive.useTexture"), false);
+                materialCreator.SetPropertyValue(AZ::Name("emissive.useTexture"), false);
             }
         }
 
         if (enableEmissive)
         {
-            SetMaterialPropertyValue(standardPBRMaterial, AZ::Name("emissive.enable"), true);
+            materialCreator.SetPropertyValue(AZ::Name("emissive.enable"), true);
         }
 
-        // set opacity
+    }
+
+    void GltfMaterialBuilder::ConfigureOcclusion(
+        const CesiumGltf::Model& model,
+        const CesiumGltf::Material& material,
+        TextureCache& textureCache,
+        TextureProperties& textureProperties,
+        AZ::RPI::MaterialAssetCreator& materialCreator)
+    {
+        const std::optional<CesiumGltf::MaterialOcclusionTextureInfo> occlusionTexture = material.occlusionTexture;
+        if (occlusionTexture)
+        {
+            AZStd::optional<TextureId> occlusionImage = GetOrCreateOcclusionImage(model, *occlusionTexture, textureCache);
+            std::int64_t occlusionTexCoord = occlusionTexture->texCoord;
+            if (occlusionImage && occlusionTexCoord >= 0 && occlusionTexCoord < 2)
+            {
+                materialCreator.SetPropertyValue(AZ::Name("occlusion.diffuseUseTexture"), true);
+                materialCreator.SetPropertyValue(AZ::Name("occlusion.diffuseTextureMapUv"), static_cast<std::uint32_t>(occlusionTexCoord));
+                materialCreator.SetPropertyValue(AZ::Name("occlusion.diffuseFactor"), static_cast<float>(occlusionTexture->strength));
+                textureProperties[AZ::Name("occlusion.diffuseTextureMap")] = occlusionImage.value();
+            }
+        }
+    }
+
+    void GltfMaterialBuilder::ConfigureOpacity(
+        const CesiumGltf::Material& material,
+        AZ::RPI::MaterialAssetCreator& materialCreator)
+    {
         if (material.alphaMode == CesiumGltf::Material::AlphaMode::OPAQUE)
         {
-            SetMaterialPropertyValue(standardPBRMaterial, AZ::Name("opacity.mode"), static_cast<std::uint32_t>(0));
+            materialCreator.SetPropertyValue(AZ::Name("opacity.mode"), static_cast<std::uint32_t>(0));
         }
         else if (material.alphaMode == CesiumGltf::Material::AlphaMode::MASK)
         {
-            SetMaterialPropertyValue(standardPBRMaterial, AZ::Name("opacity.mode"), static_cast<std::uint32_t>(1));
-            SetMaterialPropertyValue(standardPBRMaterial, AZ::Name("opacity.factor"), static_cast<float>(1.0 - material.alphaCutoff));
+            materialCreator.SetPropertyValue(AZ::Name("opacity.mode"), static_cast<std::uint32_t>(1));
+            materialCreator.SetPropertyValue(AZ::Name("opacity.factor"), static_cast<float>(1.0 - material.alphaCutoff));
         }
         else if (material.alphaMode == CesiumGltf::Material::AlphaMode::BLEND)
         {
-            SetMaterialPropertyValue(standardPBRMaterial, AZ::Name("opacity.mode"), static_cast<std::uint32_t>(2));
+            materialCreator.SetPropertyValue(AZ::Name("opacity.mode"), static_cast<std::uint32_t>(2));
         }
 
         if (material.doubleSided)
         {
-            SetMaterialPropertyValue(standardPBRMaterial, AZ::Name("opacity.doubleSided"), true);
-        }
-
-        standardPBRMaterial->Compile();
-
-        return GltfLoadMaterial(std::move(standardPBRMaterial), false);
-    }
-
-    void GltfMaterialBuilder::ConfigurePbrMetallicRoughness(
-        const CesiumGltf::Model& model,
-        const CesiumGltf::MaterialPBRMetallicRoughness& pbrMetallicRoughness,
-        AZ::Data::Instance<AZ::RPI::Material>& material,
-        GltfLoadContext& loadContext)
-    {
-        const std::vector<double>& baseColorFactor = pbrMetallicRoughness.baseColorFactor;
-        if (baseColorFactor.size() == 4)
-        {
-            SetMaterialPropertyValue(
-                material,
-                AZ::Name("baseColor.color"),
-                AZ::Color(
-                    static_cast<float>(baseColorFactor[0]), static_cast<float>(baseColorFactor[1]), static_cast<float>(baseColorFactor[2]),
-                    static_cast<float>(baseColorFactor[3])));
-        }
-
-        const std::optional<CesiumGltf::TextureInfo>& baseColorTexture = pbrMetallicRoughness.baseColorTexture;
-        AZ::Data::Instance<AZ::RPI::Image> baseColorImage;
-        std::int64_t baseColorTexCoord = -1;
-        if (baseColorTexture)
-        {
-            baseColorImage = GetOrCreateRGBAImage(model, *baseColorTexture, loadContext);
-            baseColorTexCoord = baseColorTexture->texCoord;
-        }
-
-        if (baseColorImage && baseColorTexCoord >= 0 && baseColorTexCoord < 2)
-        {
-            SetMaterialPropertyValue(material, AZ::Name("baseColor.useTexture"), true);
-            SetMaterialPropertyValue(material, AZ::Name("baseColor.textureMap"), baseColorImage);
-            SetMaterialPropertyValue(material, AZ::Name("baseColor.textureMapUv"), static_cast<std::uint32_t>(baseColorTexCoord));
-        }
-        else
-        {
-            SetMaterialPropertyValue(material, AZ::Name("baseColor.useTexture"), false);
-        }
-
-        // configure metallic and roughness
-        double metallicFactor = pbrMetallicRoughness.metallicFactor;
-        SetMaterialPropertyValue(material, AZ::Name("metallic.factor"), static_cast<float>(metallicFactor));
-
-        double roughnessFactor = pbrMetallicRoughness.roughnessFactor;
-        SetMaterialPropertyValue(material, AZ::Name("roughness.factor"), static_cast<float>(roughnessFactor));
-
-        const std::optional<CesiumGltf::TextureInfo>& metallicRoughnessTexture = pbrMetallicRoughness.metallicRoughnessTexture;
-        AZ::Data::Instance<AZ::RPI::Image> metallicImage;
-        AZ::Data::Instance<AZ::RPI::Image> roughnessImage;
-        std::int64_t metallicRoughnessTexCoord = -1;
-        if (metallicRoughnessTexture)
-        {
-            GetOrCreateMetallicRoughnessImage(model, *metallicRoughnessTexture, metallicImage, roughnessImage, loadContext);
-            metallicRoughnessTexCoord = metallicRoughnessTexture->texCoord;
-        }
-
-        if (metallicImage && metallicRoughnessTexCoord >= 0 && metallicRoughnessTexCoord < 2)
-        {
-            SetMaterialPropertyValue(material, AZ::Name("metallic.useTexture"), true);
-            SetMaterialPropertyValue(material, AZ::Name("metallic.textureMap"), metallicImage);
-            SetMaterialPropertyValue(material, AZ::Name("metallic.textureMapUv"), static_cast<std::uint32_t>(metallicRoughnessTexCoord));
-        }
-        else
-        {
-            SetMaterialPropertyValue(material, AZ::Name("metallic.useTexture"), false);
-        }
-
-        if (roughnessImage && metallicRoughnessTexCoord >= 0 && metallicRoughnessTexCoord < 2)
-        {
-            SetMaterialPropertyValue(material, AZ::Name("roughness.useTexture"), true);
-            SetMaterialPropertyValue(material, AZ::Name("roughness.textureMap"), roughnessImage);
-            SetMaterialPropertyValue(material, AZ::Name("roughness.textureMapUv"), static_cast<std::uint32_t>(metallicRoughnessTexCoord));
-        }
-        else
-        {
-            SetMaterialPropertyValue(material, AZ::Name("roughness.useTexture"), false);
+            materialCreator.SetPropertyValue(AZ::Name("opacity.doubleSided"), true);
         }
     }
 
-    AZ::Data::Instance<AZ::RPI::Image> GltfMaterialBuilder::GetOrCreateOcclusionImage(
-        const CesiumGltf::Model& model, const CesiumGltf::TextureInfo& textureInfo, GltfLoadContext& loadContext)
+    AZStd::optional<TextureId> GltfMaterialBuilder::GetOrCreateOcclusionImage(
+        const CesiumGltf::Model& model, const CesiumGltf::TextureInfo& textureInfo, TextureCache& textureCache)
     {
         const CesiumGltf::Texture* texture = model.getSafe<CesiumGltf::Texture>(&model.textures, textureInfo.index);
         if (!texture)
         {
-            return AZ::Data::Instance<AZ::RPI::Image>();
+            return AZStd::nullopt;
         }
 
         const CesiumGltf::Image* image = model.getSafe<CesiumGltf::Image>(&model.images, texture->source);
         if (!image || image->cesium.pixelData.empty())
         {
-            return AZ::Data::Instance<AZ::RPI::Image>();
+            return AZStd::nullopt;
         }
 
         if (image->cesium.width <= 0 || image->cesium.height <= 0)
         {
-            return AZ::Data::Instance<AZ::RPI::Image>();
+            return AZStd::nullopt;
         }
 
         // Lookup cache
-        std::uint32_t imageSourceIdx = static_cast<std::uint32_t>(texture->source);
-        auto cachedAsset = loadContext.FindCachedImage(imageSourceIdx, imageSourceIdx);
-        if (cachedAsset)
+        TextureId imageSourceIdx{ texture->source, texture->source };
+        auto cachedAsset = textureCache.find(imageSourceIdx);
+        if (cachedAsset != textureCache.end())
         {
-            return cachedAsset;
+            return imageSourceIdx;
         }
 
         // Create new asset
-        AZ::Data::Instance<AZ::RPI::Image> newImage;
+        AZ::Data::Asset<AZ::RPI::StreamingImageAsset> newImage;
         const CesiumGltf::ImageCesium& imageData = image->cesium;
         std::size_t width = static_cast<std::size_t>(imageData.width);
         std::size_t height = static_cast<std::size_t>(imageData.height);
         if (imageData.bytesPerChannel != 1 || imageData.channels < 1)
         {
-            return AZ::Data::Instance<AZ::RPI::Image>();
+            return AZStd::nullopt;
         }
 
         if (imageData.pixelData.size() != width * height * imageData.channels)
         {
-            return AZ::Data::Instance<AZ::RPI::Image>();
+            return AZStd::nullopt;
         }
 
         // Do the fast path. Copy the whole data over
@@ -265,53 +292,51 @@ namespace Cesium
             newImage = Create2DImage(pixels.data(), pixels.size(), width, height, AZ::RHI::Format::R8_UNORM);
         }
 
-        loadContext.StoreImage(imageSourceIdx, imageSourceIdx, newImage);
-        return newImage;
+        textureCache.insert({ imageSourceIdx, std::move(newImage) });
+        return imageSourceIdx;
     }
 
-    AZ::Data::Instance<AZ::RPI::Image> GltfMaterialBuilder::GetOrCreateRGBAImage(
-        const CesiumGltf::Model& model,
-        const CesiumGltf::TextureInfo& textureInfo,
-        GltfLoadContext& loadContext)
+    AZStd::optional<TextureId> GltfMaterialBuilder::GetOrCreateRGBAImage(
+        const CesiumGltf::Model& model, const CesiumGltf::TextureInfo& textureInfo, TextureCache& textureCache)
     {
         const CesiumGltf::Texture* texture = model.getSafe<CesiumGltf::Texture>(&model.textures, textureInfo.index);
         if (!texture)
         {
-            return AZ::Data::Instance<AZ::RPI::Image>();
+            return AZStd::nullopt;
         }
 
         const CesiumGltf::Image* image = model.getSafe<CesiumGltf::Image>(&model.images, texture->source);
         if (!image || image->cesium.pixelData.empty())
         {
-            return AZ::Data::Instance<AZ::RPI::Image>();
+            return AZStd::nullopt;
         }
 
         if (image->cesium.width <= 0 || image->cesium.height <= 0)
         {
-            return AZ::Data::Instance<AZ::RPI::Image>();
+            return AZStd::nullopt;
         }
 
         // Lookup cache
-        std::uint32_t imageSourceIdx = static_cast<std::uint32_t>(texture->source);
-        auto cachedImage = loadContext.FindCachedImage(imageSourceIdx, imageSourceIdx);
-        if (cachedImage)
+        TextureId imageSourceIdx{ texture->source, texture->source };
+        auto cachedAsset = textureCache.find(imageSourceIdx);
+        if (cachedAsset != textureCache.end())
         {
-            return cachedImage;
+            return imageSourceIdx;
         }
 
         // Create a new asset if cache doesn't have it
-        AZ::Data::Instance<AZ::RPI::Image> newImage;
+        AZ::Data::Asset<AZ::RPI::StreamingImageAsset> newImage;
         const CesiumGltf::ImageCesium& imageData = image->cesium;
         std::size_t width = static_cast<std::size_t>(imageData.width);
         std::size_t height = static_cast<std::size_t>(imageData.height);
         if (imageData.bytesPerChannel != 1 || imageData.channels < 3 || imageData.channels > 4)
         {
-            return AZ::Data::Instance<AZ::RPI::Image>();
+            return AZStd::nullopt;
         }
 
         if (imageData.pixelData.size() != width * height * imageData.channels)
         {
-            return AZ::Data::Instance<AZ::RPI::Image>();
+            return AZStd::nullopt;
         }
 
         if (imageData.channels == 3)
@@ -332,19 +357,19 @@ namespace Cesium
             newImage = Create2DImage(imageData.pixelData.data(), imageData.pixelData.size(), width, height, AZ::RHI::Format::R8G8B8A8_UNORM);
         }
 
-        loadContext.StoreImage(imageSourceIdx, imageSourceIdx, newImage);
-        return newImage;
+        textureCache.insert({ imageSourceIdx, std::move(newImage) });
+        return imageSourceIdx;
     }
 
     void GltfMaterialBuilder::GetOrCreateMetallicRoughnessImage(
         const CesiumGltf::Model& model,
         const CesiumGltf::TextureInfo& textureInfo,
-        AZ::Data::Instance<AZ::RPI::Image>& metallic,
-        AZ::Data::Instance<AZ::RPI::Image>& roughness,
-        GltfLoadContext& loadContext)
+        AZStd::optional<TextureId>& metallic,
+        AZStd::optional<TextureId>& roughness,
+        TextureCache& textureCache)
     {
-        static const std::uint32_t roughnessTextureSubIdx = 0;
-        static const std::uint32_t metallicTextureSubIdx = 1;
+        static const std::int32_t roughnessTextureSubIdx = 0;
+        static const std::int32_t metallicTextureSubIdx = 1;
 
         const CesiumGltf::Texture* texture = model.getSafe<CesiumGltf::Texture>(&model.textures, textureInfo.index);
         if (!texture)
@@ -364,13 +389,14 @@ namespace Cesium
         }
 
         // Lookup cache
-        std::uint32_t imageSourceIdx = static_cast<std::uint32_t>(texture->source);
-        auto cachedRoughness = loadContext.FindCachedImage(imageSourceIdx, roughnessTextureSubIdx);
-        auto cachedMetallic = loadContext.FindCachedImage(imageSourceIdx, metallicTextureSubIdx);
-        if (cachedRoughness && cachedMetallic)
+        TextureId roughnessImageIdx{ texture->source, roughnessTextureSubIdx };
+        TextureId metallicImageIdx{texture->source, metallicTextureSubIdx};
+        auto cachedRoughness = textureCache.find(roughnessImageIdx);
+        auto cachedMetallic = textureCache.find(metallicImageIdx);
+        if (cachedRoughness != textureCache.end() && cachedMetallic != textureCache.end())
         {
-            roughness = cachedRoughness;
-            metallic = cachedMetallic;
+            roughness = roughnessImageIdx;
+            metallic = metallicImageIdx;
             return;
         }
 
@@ -398,13 +424,13 @@ namespace Cesium
             ++j;
         }
 
-        metallic = Create2DImage(metallicPixels.data(), metallicPixels.size(), width, height, AZ::RHI::Format::R8_UNORM);
-        roughness = Create2DImage(roughnessPixels.data(), roughnessPixels.size(), width, height, AZ::RHI::Format::R8_UNORM);
-        loadContext.StoreImage(imageSourceIdx, roughnessTextureSubIdx, roughness);
-        loadContext.StoreImage(imageSourceIdx, metallicTextureSubIdx, metallic);
+        textureCache.insert({metallicImageIdx, Create2DImage(metallicPixels.data(), metallicPixels.size(), width, height, AZ::RHI::Format::R8_UNORM)});
+        textureCache.insert({roughnessImageIdx, Create2DImage(roughnessPixels.data(), roughnessPixels.size(), width, height, AZ::RHI::Format::R8_UNORM)});
+        metallic = metallicImageIdx;
+        roughness = roughnessImageIdx;
     }
 
-    AZ::Data::Instance<AZ::RPI::Image> GltfMaterialBuilder::Create2DImage(
+    AZ::Data::Asset<AZ::RPI::StreamingImageAsset> GltfMaterialBuilder::Create2DImage(
         const std::byte* pixelData, std::size_t bytesPerImage, std::uint32_t width, std::uint32_t height, AZ::RHI::Format format)
     {
         // image has 4 channels, so we just copy the data over
@@ -434,14 +460,7 @@ namespace Cesium
         AZ::Data::Asset<AZ::RPI::StreamingImageAsset> imageAsset;
         imageCreator.End(imageAsset);
 
-        return AZ::RPI::StreamingImage::FindOrCreate(imageAsset);
-    }
-
-    void GltfMaterialBuilder::SetMaterialPropertyValue(
-        AZ::Data::Instance<AZ::RPI::Material>& material, const AZ::Name& properyName, const AZ::RPI::MaterialPropertyValue& value)
-    {
-        const AZ::RPI::MaterialPropertyIndex& index = material->FindPropertyIndex(properyName);
-        material->SetPropertyValue(index, value);
+        return imageAsset;
     }
 } // namespace Cesium
 

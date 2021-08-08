@@ -1,49 +1,89 @@
 #pragma once
 
-#include <AzCore/PlatformDef.h>
+#include <Atom/RPI.Reflect/Image/StreamingImageAsset.h>
+#include <Atom/RPI.Reflect/Material/MaterialAsset.h>
+#include <Atom/RPI.Reflect/Model/ModelAsset.h>
+#include <AzCore/std/containers/unordered_map.h>
+#include <AzCore/std/containers/compressed_pair.h>
+#include <AzCore/std/hash.h>
+#include <AzCore/Name/Name.h>
+#include <glm/glm.hpp>
+#include <cstdint>
 
-// Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
-// This only happens with unity build
-#ifdef AZ_COMPILER_MSVC
-#pragma push_macro("OPAQUE")
-#undef OPAQUE
-#endif
+namespace AZStd
+{
+    // hash specialization used for texture id
+    template<>
+    struct hash<AZStd::compressed_pair<std::int32_t, std::int32_t>>
+    {
+        std::size_t operator()(const AZStd::compressed_pair<std::int32_t, std::int32_t>& id) const;
+    };
 
-#include "GenericIOManager.h"
-#include <Atom/RPI.Reflect/Image/Image.h>
-#include <Atom/RPI.Public/Material/Material.h>
-#include <AzCore/std/string/string.h>
-#include <AzCore/std/containers/map.h>
+    bool operator==(
+        const AZStd::compressed_pair<std::int32_t, std::int32_t>& lhs, const AZStd::compressed_pair<std::int32_t, std::int32_t>& rhs);
+} // namespace AZStd
 
 namespace Cesium
 {
-    struct GltfLoadMaterial
-    {
-        GltfLoadMaterial(AZ::Data::Instance<AZ::RPI::Material>&& material, bool needTangents);
+    using TextureId = AZStd::compressed_pair<std::int32_t, std::int32_t>;
+    using MaterialId = std::int32_t;
 
-        AZ::Data::Instance<AZ::RPI::Material> m_material;
+    struct GltfLoadTexture final
+    {
+        GltfLoadTexture();
+
+        GltfLoadTexture(AZ::Data::Asset<AZ::RPI::StreamingImageAsset>&& imageAsset);
+
+        bool IsEmpty() const;
+
+        AZ::Data::Asset<AZ::RPI::StreamingImageAsset> m_imageAsset;
+    };
+
+    struct GltfLoadMaterial final
+    {
+        GltfLoadMaterial();
+
+        GltfLoadMaterial(
+            AZ::Data::Asset<AZ::RPI::MaterialAsset>&& materialAsset,
+            AZStd::unordered_map<AZ::Name, TextureId>&& textureMap,
+            bool needTangents);
+
+        bool IsEmpty() const;
+
+        AZ::Data::Asset<AZ::RPI::MaterialAsset> m_materialAsset;
+        AZStd::unordered_map<AZ::Name, TextureId> m_textureProperties;
         bool m_needTangents;
     };
 
-    class GltfLoadContext
+    struct GltfLoadPrimitive final
     {
-    public:
-        GltfLoadMaterial& StoreMaterial(std::uint32_t materialIdx, std::uint32_t subIdx, const GltfLoadMaterial& material);
+        GltfLoadPrimitive();
 
-        GltfLoadMaterial* FindCachedMaterial(std::uint32_t materialIdx, std::uint32_t subIdx);
+        GltfLoadPrimitive(AZ::Data::Asset<AZ::RPI::ModelAsset>&& modelAsset, MaterialId materialId);
 
-        void StoreImage(std::uint32_t textureIdx, std::uint32_t subIdx, const AZ::Data::Instance<AZ::RPI::Image>& image);
+        bool IsEmpty() const;
 
-        AZ::Data::Instance<AZ::RPI::Image> FindCachedImage(std::uint32_t textureIdx, std::uint32_t subIdx);
+        AZ::Data::Asset<AZ::RPI::ModelAsset> m_modelAsset;
+        MaterialId m_materialId;
+    };
 
-    private:
-        AZStd::map<std::size_t, GltfLoadMaterial> m_cachedMaterials;
-        AZStd::map<std::size_t, AZ::Data::Instance<AZ::RPI::Image>> m_cachedImages;
+    struct GltfLoadMesh final
+    {
+        GltfLoadMesh();
+
+        GltfLoadMesh(AZStd::vector<GltfLoadPrimitive>&& primitives, const glm::dmat4& transform);
+
+        bool IsEmpty() const;
+
+        AZStd::vector<GltfLoadPrimitive> m_primitives;
+        glm::dmat4 m_transform;
+    };
+
+    struct GltfLoadModel final
+    {
+        AZStd::unordered_map<TextureId, GltfLoadTexture> m_textures;
+        AZStd::vector<GltfLoadMaterial> m_materials;
+        AZStd::vector<GltfLoadMesh> m_meshes;
     };
 } // namespace Cesium
 
-// Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
-// This only happens with unity build
-#ifdef AZ_COMPILER_MSVC
-#pragma pop_macro("OPAQUE")
-#endif

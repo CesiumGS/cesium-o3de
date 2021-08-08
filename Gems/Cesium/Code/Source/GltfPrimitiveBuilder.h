@@ -1,45 +1,52 @@
 #pragma once
 
-#include <AzCore/PlatformDef.h>
-
-// Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
-// This only happens with unity build
-#ifdef AZ_COMPILER_MSVC
-#pragma push_macro("OPAQUE")
-#undef OPAQUE
-#endif
-
-#include <stdexcept>
-#include <CesiumGltf/AccessorView.h>
+#include <Atom/RHI.Reflect/Format.h>
 #include <AzCore/std/containers/vector.h>
 #include <AzCore/std/containers/array.h>
-#include <Atom/RPI.Reflect/Model/ModelAsset.h>
-#include <Atom/RPI.Reflect/Buffer/BufferAsset.h>
 #include <glm/glm.hpp>
+
+namespace CesiumGltf
+{
+    struct Model;
+    struct MeshPrimitive;
+
+    template<typename AccessorType>
+    class AccessorView;
+}
+
+namespace AZ
+{
+    class Aabb;
+
+    namespace RPI
+    {
+        class ModelAsset;
+        class BufferAsset;
+    }
+
+    namespace Data
+    {
+        template<typename T>
+        class Asset;
+    }
+}
 
 namespace Cesium
 {
-    class GltfLoadContext;
+    struct GltfLoadPrimitive;
 
-    struct GltfTrianglePrimitiveBuilderOption
+    struct GltfTrianglePrimitiveBuilderOption final
     {
-        GltfTrianglePrimitiveBuilderOption();
+        GltfTrianglePrimitiveBuilderOption(bool needTangents);
 
         bool m_needTangents;
     };
 
-    class GltfTrianglePrimitiveBuilder
+    class GltfTrianglePrimitiveBuilder final
     {
-        struct GPUBuffer
-        {
-            GPUBuffer();
+        struct CommonAccessorViews;
 
-            AZStd::vector<std::byte> m_buffer;
-            AZ::RHI::Format m_format;
-            std::size_t m_elementCount;
-        };
-
-        struct LoadContext
+        struct LoadContext final
         {
             LoadContext();
 
@@ -48,18 +55,21 @@ namespace Cesium
             bool m_generateUnIndexedMesh;
         };
 
-        struct CommonAccessorViews
+        struct GPUBuffer final
         {
-            CommonAccessorViews(const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive);
+            GPUBuffer();
 
-            const CesiumGltf::Accessor* m_positionAccessor;
-            CesiumGltf::AccessorView<glm::vec3> m_positions;
-            CesiumGltf::AccessorView<glm::vec3> m_normals;
-            CesiumGltf::AccessorView<glm::vec4> m_tangents;
+            AZStd::vector<std::byte> m_buffer;
+            AZ::RHI::Format m_format;
+            std::size_t m_elementCount;
         };
 
     public:
-        AZ::Data::Asset<AZ::RPI::ModelAsset> Create(const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive, const GltfTrianglePrimitiveBuilderOption& option);
+        void Create(
+            const CesiumGltf::Model& model,
+            const CesiumGltf::MeshPrimitive& primitive,
+            const GltfTrianglePrimitiveBuilderOption& option,
+            GltfLoadPrimitive& result);
 
     private:
         void DetermineLoadContext(const CommonAccessorViews& accessorViews, const GltfTrianglePrimitiveBuilderOption& option);
@@ -109,8 +119,3 @@ namespace Cesium
     };
 } // namespace Cesium
 
-// Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
-// This only happens with unity build
-#ifdef AZ_COMPILER_MSVC
-#pragma pop_macro("OPAQUE")
-#endif
