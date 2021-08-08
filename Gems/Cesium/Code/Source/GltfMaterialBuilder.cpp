@@ -57,7 +57,7 @@ namespace Cesium
         AZ::RPI::MaterialAssetCreator& materialCreator)
     {
         const auto& pbrMetallicRoughness = material.pbrMetallicRoughness;
-        if (pbrMetallicRoughness)
+        if (!pbrMetallicRoughness)
         {
             return;
         }

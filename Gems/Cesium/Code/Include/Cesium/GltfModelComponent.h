@@ -1,6 +1,5 @@
 #pragma once
 
-#include <GltfModel.h>
 #include <Cesium/GltfModelComponentBus.h>
 #include <AzCore/Component/Component.h>
 #include <AzCore/Component/TickBus.h>
@@ -9,8 +8,6 @@
 
 namespace Cesium
 {
-    class GltfModel;
-
     class GltfModelComponent
         : public AZ::Component
         , public AZ::TickBus::Handler
@@ -21,6 +18,8 @@ namespace Cesium
 
         static void Reflect(AZ::ReflectContext* context);
 
+        GltfModelComponent();
+
         void LoadModel(const AZStd::string& filePath) override;
 
     private:
@@ -30,6 +29,7 @@ namespace Cesium
 
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
 
-        AZStd::unique_ptr<GltfModel> m_gltfModel;
+        struct Impl;
+        AZStd::unique_ptr<Impl> m_impl;
     };
 } // namespace Cesium
