@@ -34,12 +34,17 @@ namespace Cesium
 
         void SetVisible(bool visible);
 
+        void SetTransform(const glm::dmat4& transform);
+
+        const glm::dmat4& GetTransform() const;
+
         void Destroy() noexcept;
 
     private:
         void ConvertMat4ToTransformAndScale(const glm::dmat4& mat4, AZ::Transform& o3deTransform, AZ::Vector3& o3deScale);
 
         bool m_visible;
+        glm::dmat4 m_transform;
         AZ::Render::MeshFeatureProcessorInterface* m_meshFeatureProcessor;
         AZStd::vector<GltfMesh> m_meshes;
         AZStd::vector<AZ::Data::Instance<AZ::RPI::Material>> m_materialsToCompile;

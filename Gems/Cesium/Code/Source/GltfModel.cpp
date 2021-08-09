@@ -117,6 +117,27 @@ namespace Cesium
         }
     }
 
+    void GltfModel::SetTransform(const glm::dmat4& transform)
+    {
+        m_transform = transform;
+        for (GltfMesh& mesh : m_meshes)
+        {
+            glm::dmat4 newTransform = transform * mesh.m_transform;
+            AZ::Transform o3deTransform;
+            AZ::Vector3 o3deScale;
+            ConvertMat4ToTransformAndScale(newTransform, o3deTransform, o3deScale);
+            for (auto& primitiveHandle : mesh.m_primitiveHandles)
+            {
+                m_meshFeatureProcessor->SetTransform(primitiveHandle, o3deTransform, o3deScale);
+            }
+        }
+    }
+
+    const glm::dmat4& GltfModel::GetTransform() const
+    {
+        return m_transform;
+    }
+
     void GltfModel::Destroy() noexcept
     {
         if (m_meshes.empty())

@@ -6,6 +6,8 @@
 #include <Atom/Feature/Mesh/MeshFeatureProcessorInterface.h>
 #include <Atom/RPI.Public/Scene.h>
 #include <AzCore/Serialization/SerializeContext.h>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 namespace Cesium
 {
@@ -56,5 +58,21 @@ namespace Cesium
         {
             m_impl->m_gltfModel->Update();
         }
+    }
+
+    void GltfModelComponent::OnTransformChanged([[maybe_unused]] const AZ::Transform& local, const AZ::Transform& world)
+    {
+        const AZ::Vector3& o3deTranslation = world.GetTranslation();
+        const AZ::Quaternion& o3deRotation = world.GetRotation();
+        float scale = world.GetUniformScale();
+        glm::dvec3 translation{ static_cast<double>(o3deTranslation.GetX()), static_cast<double>(o3deTranslation.GetY()),
+                                static_cast<double>(o3deTranslation.GetZ()) };
+        glm::dquat rotation{ static_cast<double>(o3deRotation.GetW()), static_cast<double>(o3deRotation.GetX()),
+                             static_cast<double>(o3deRotation.GetY()), static_cast<double>(o3deRotation.GetZ()) };
+        glm::dmat4 newTransform = glm::translate(m_impl->m_gltfModel->GetTransform(), translation);
+        newTransform *= glm::dmat4(rotation);
+        newTransform = glm::scale(newTransform, glm::dvec3(static_cast<double>(scale)));
+
+        m_impl->m_gltfModel->SetTransform(newTransform);
     }
 } // namespace Cesium
