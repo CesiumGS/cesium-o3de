@@ -1,27 +1,91 @@
 #include "GltfPrimitiveBuilder.h"
+#include "BitangentAndTangentGenerator.h"
+#include "GltfLoadContext.h"
 
 // Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
 // This only happens with unity build
+#include <AzCore/PlatformDef.h>
 #ifdef AZ_COMPILER_MSVC
 #pragma push_macro("OPAQUE")
 #undef OPAQUE
 #endif
 
-#include "GltfLoadContext.h"
-#include "BitangentAndTangentGenerator.h"
+#include <CesiumGltf/Model.h>
+#include <CesiumGltf/MeshPrimitive.h>
+#include <CesiumGltf/AccessorView.h>
+
+#ifdef AZ_COMPILER_MSVC
+#pragma pop_macro("OPAQUE")
+#endif
+
 #include <CesiumUtility/Math.h>
-#include <AzCore/std/limits.h>
+#include <Atom/RPI.Reflect/Model/ModelAsset.h>
+#include <Atom/RPI.Reflect/Buffer/BufferAsset.h>
 #include <Atom/RPI.Reflect/Model/ModelLodAsset.h>
 #include <Atom/RPI.Reflect/Buffer/BufferAssetCreator.h>
 #include <Atom/RPI.Reflect/Model/ModelLodAssetCreator.h>
 #include <Atom/RPI.Reflect/Model/ModelAssetCreator.h>
+#include <AzCore/Asset/AssetCommon.h>
+#include <AzCore/std/limits.h>
 #include <cassert>
 #include <cstdint>
 
 namespace Cesium
 {
-    GltfTrianglePrimitiveBuilderOption::GltfTrianglePrimitiveBuilderOption()
-        : m_needTangents{ false }
+    GltfTrianglePrimitiveBuilderOption::GltfTrianglePrimitiveBuilderOption(bool needTangents)
+        : m_needTangents{needTangents}
+    {
+    }
+
+    struct GltfTrianglePrimitiveBuilder::CommonAccessorViews final
+    {
+        CommonAccessorViews(const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive)
+            : m_positionAccessor{ nullptr }
+        {
+            // retrieve required positions first
+            auto positionAttribute = primitive.attributes.find("POSITION");
+            if (positionAttribute == primitive.attributes.end())
+            {
+                return;
+            }
+
+            m_positionAccessor = model.getSafe<CesiumGltf::Accessor>(&model.accessors, positionAttribute->second);
+            if (!m_positionAccessor)
+            {
+                return;
+            }
+
+            m_positions = CesiumGltf::AccessorView<glm::vec3>(model, *m_positionAccessor);
+            if (m_positions.status() != CesiumGltf::AccessorViewStatus::Valid)
+            {
+                return;
+            }
+
+            // get normal view
+            auto normalAttribute = primitive.attributes.find("NORMAL");
+            if (normalAttribute != primitive.attributes.end())
+            {
+                m_normals = CesiumGltf::AccessorView<glm::vec3>(model, normalAttribute->second);
+            }
+
+            // get tangent
+            auto tangentAttribute = primitive.attributes.find("TANGENT");
+            if (tangentAttribute != primitive.attributes.end())
+            {
+                m_tangents = CesiumGltf::AccessorView<glm::vec4>(model, tangentAttribute->second);
+            }
+        }
+
+        const CesiumGltf::Accessor* m_positionAccessor;
+        CesiumGltf::AccessorView<glm::vec3> m_positions;
+        CesiumGltf::AccessorView<glm::vec3> m_normals;
+        CesiumGltf::AccessorView<glm::vec4> m_tangents;
+    };
+
+     GltfTrianglePrimitiveBuilder::LoadContext::LoadContext()
+        : m_generateFlatNormal{ false }
+        , m_generateTangent{ false }
+        , m_generateUnIndexedMesh{ false }
     {
     }
 
@@ -32,53 +96,11 @@ namespace Cesium
     {
     }
 
-    GltfTrianglePrimitiveBuilder::CommonAccessorViews::CommonAccessorViews(
-        const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive)
-        : m_positionAccessor{ nullptr }
-    {
-        // retrieve required positions first
-        auto positionAttribute = primitive.attributes.find("POSITION");
-        if (positionAttribute == primitive.attributes.end())
-        {
-            return;
-        }
-
-        m_positionAccessor = model.getSafe<CesiumGltf::Accessor>(&model.accessors, positionAttribute->second);
-        if (!m_positionAccessor)
-        {
-            return;
-        }
-
-        m_positions = CesiumGltf::AccessorView<glm::vec3>(model, *m_positionAccessor);
-        if (m_positions.status() != CesiumGltf::AccessorViewStatus::Valid)
-        {
-            return;
-        }
-
-        // get normal view
-        auto normalAttribute = primitive.attributes.find("NORMAL");
-        if (normalAttribute != primitive.attributes.end())
-        {
-            m_normals = CesiumGltf::AccessorView<glm::vec3>(model, normalAttribute->second);
-        }
-
-        // get tangent
-        auto tangentAttribute = primitive.attributes.find("TANGENT");
-        if (tangentAttribute != primitive.attributes.end())
-        {
-            m_tangents = CesiumGltf::AccessorView<glm::vec4>(model, tangentAttribute->second);
-        }
-    }
-
-    GltfTrianglePrimitiveBuilder::LoadContext::LoadContext()
-        : m_generateFlatNormal{ false }
-        , m_generateTangent{ false }
-        , m_generateUnIndexedMesh{ false }
-    {
-    }
-
-    AZ::Data::Asset<AZ::RPI::ModelAsset> GltfTrianglePrimitiveBuilder::Create(
-        const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive, const GltfTrianglePrimitiveBuilderOption& option)
+    void GltfTrianglePrimitiveBuilder::Create(
+        const CesiumGltf::Model& model,
+        const CesiumGltf::MeshPrimitive& primitive,
+        const GltfTrianglePrimitiveBuilderOption& option,
+        GltfLoadPrimitive& result)
     {
         Reset();
 
@@ -86,12 +108,12 @@ namespace Cesium
         CommonAccessorViews commonAccessorViews{ model, primitive };
         if (commonAccessorViews.m_positions.status() != CesiumGltf::AccessorViewStatus::Valid)
         {
-            return AZ::Data::Asset<AZ::RPI::ModelAsset>();
+            return;
         }
 
         if (commonAccessorViews.m_positions.size() == 0)
         {
-            return AZ::Data::Asset<AZ::RPI::ModelAsset>();
+            return;
         }
 
         // construct bounding volume
@@ -111,14 +133,14 @@ namespace Cesium
         // set indices
         if (!CreateIndices(model, primitive))
         {
-            return AZ::Data::Asset<AZ::RPI::ModelAsset>();
+            return;
         }
 
         // if indices is empty, so the mesh is non-indexed mesh. We should expect positions size
         // is a multiple of 3
         if (m_indices.empty() && (commonAccessorViews.m_positions.size() % 3 == 0))
         {
-            return AZ::Data::Asset<AZ::RPI::ModelAsset>();
+            return;
         }
 
         // determine loading context
@@ -214,7 +236,8 @@ namespace Cesium
         AZ::Data::Asset<AZ::RPI::ModelAsset> modelAsset;
         modelCreator.End(modelAsset);
 
-        return modelAsset;
+        result.m_modelAsset = std::move(modelAsset);
+        result.m_materialId = primitive.material;
     }
 
     void GltfTrianglePrimitiveBuilder::DetermineLoadContext(const CommonAccessorViews& accessorViews, const GltfTrianglePrimitiveBuilderOption& option)
@@ -718,9 +741,3 @@ namespace Cesium
         return aabb;
     }
 } // namespace Cesium
-
-// Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
-// This only happens with unity build
-#ifdef AZ_COMPILER_MSVC
-#pragma pop_macro("OPAQUE")
-#endif

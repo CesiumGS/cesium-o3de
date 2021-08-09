@@ -1,59 +1,81 @@
 #pragma once
 
-#include <AzCore/PlatformDef.h>
-
-// Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
-// This only happens with unity build
-#ifdef AZ_COMPILER_MSVC
-#pragma push_macro("OPAQUE")
-#undef OPAQUE
-#endif
-
 #include "GltfLoadContext.h"
-#include <CesiumGltf/Model.h>
-#include <Atom/RPI.Public/Material/Material.h>
-#include <Atom/RPI.Reflect/Material/MaterialPropertyValue.h>
-#include <stdexcept>
+#include <AzCore/std/optional.h>
+#include <AzCore/std/containers/unordered_map.h>
+
+namespace CesiumGltf
+{
+    struct Model;
+    struct Material;
+    struct TextureInfo;
+}
+
+namespace AZ
+{
+    namespace RPI
+    {
+        class MaterialAssetCreator;
+        class StreamingImageAsset;
+    }
+}
 
 namespace Cesium
 {
-    class GltfMaterialBuilder
+    class GltfMaterialBuilder final
     {
+        using TextureCache = AZStd::unordered_map<TextureId, GltfLoadTexture>;
+        using TextureProperties = AZStd::unordered_map<AZ::Name, TextureId>;
+
     public:
-        GltfLoadMaterial Create(const CesiumGltf::Model& model, const CesiumGltf::Material& material, GltfLoadContext& loadContext);
+        void Create(
+            const CesiumGltf::Model& model,
+            const CesiumGltf::Material& material,
+            AZStd::unordered_map<TextureId, GltfLoadTexture>& textureCache,
+            GltfLoadMaterial& result);
 
     private:
         void ConfigurePbrMetallicRoughness(
             const CesiumGltf::Model& model,
-            const CesiumGltf::MaterialPBRMetallicRoughness& pbrMetallicRoughness,
-            AZ::Data::Instance<AZ::RPI::Material>& material,
-            GltfLoadContext& loadContext);
+            const CesiumGltf::Material& material,
+            TextureCache& textureCache,
+            TextureProperties& textureProperties,
+            AZ::RPI::MaterialAssetCreator& materialCreator);
 
-        AZ::Data::Instance<AZ::RPI::Image> GetOrCreateOcclusionImage(
-            const CesiumGltf::Model& model, const CesiumGltf::TextureInfo& textureInfo, GltfLoadContext& loadContext);
+        void ConfigureEmissive(
+            const CesiumGltf::Model& model,
+            const CesiumGltf::Material& material,
+            TextureCache& textureCache,
+            TextureProperties& textureProperties,
+            AZ::RPI::MaterialAssetCreator& materialCreator);
 
-        AZ::Data::Instance<AZ::RPI::Image> GetOrCreateRGBAImage(
-            const CesiumGltf::Model& model, const CesiumGltf::TextureInfo& textureInfo, GltfLoadContext& loadContext);
+        void ConfigureOcclusion(
+            const CesiumGltf::Model& model,
+            const CesiumGltf::Material& material,
+            TextureCache& textureCache,
+            TextureProperties& textureProperties,
+            AZ::RPI::MaterialAssetCreator& materialCreator);
+
+        void ConfigureOpacity(
+            const CesiumGltf::Material& material,
+            AZ::RPI::MaterialAssetCreator& materialCreator);
+
+        AZStd::optional<TextureId> GetOrCreateOcclusionImage(
+            const CesiumGltf::Model& model, const CesiumGltf::TextureInfo& textureInfo, TextureCache& textureCache);
+
+        AZStd::optional<TextureId> GetOrCreateRGBAImage(
+            const CesiumGltf::Model& model, const CesiumGltf::TextureInfo& textureInfo, TextureCache& textureCache);
 
         void GltfMaterialBuilder::GetOrCreateMetallicRoughnessImage(
             const CesiumGltf::Model& model,
             const CesiumGltf::TextureInfo& textureInfo,
-            AZ::Data::Instance<AZ::RPI::Image>& metallic,
-            AZ::Data::Instance<AZ::RPI::Image>& roughness,
-            GltfLoadContext& loadContext);
+            AZStd::optional<TextureId>& metallic,
+            AZStd::optional<TextureId>& roughness,
+            TextureCache& textureCache);
 
-        AZ::Data::Instance<AZ::RPI::Image> Create2DImage(
+        AZ::Data::Asset<AZ::RPI::StreamingImageAsset> Create2DImage(
             const std::byte* pixelData, std::size_t bytesPerImage, std::uint32_t width, std::uint32_t height, AZ::RHI::Format format);
-
-        void SetMaterialPropertyValue(
-            AZ::Data::Instance<AZ::RPI::Material>& material, const AZ::Name& properyName, const AZ::RPI::MaterialPropertyValue& value);
 
         static constexpr const char* const STANDARD_PBR_MAT_TYPE = "Materials/Types/StandardPBR.azmaterialtype";
     };
 } // namespace Cesium
-
-// Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
-// This only happens with unity build
-#ifdef AZ_COMPILER_MSVC
-#pragma pop_macro("OPAQUE")
-#endif

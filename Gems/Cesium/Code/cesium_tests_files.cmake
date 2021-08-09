@@ -9,6 +9,8 @@ set(FILES
     Tests/GltfLoadContextTest.cpp
     Tests/GltfPrimitiveBuilderTest.cpp
     Tests/GltfMaterialBuilderTest.cpp
+    Tests/GltfModelBuilderTest.cpp
+    Tests/GltfModelTest.cpp
     Tests/GltfModelComponentTest.cpp
     Tests/CesiumTilesetComponentTest.cpp
 )

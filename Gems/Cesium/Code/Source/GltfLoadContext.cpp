@@ -1,65 +1,74 @@
 #include "GltfLoadContext.h"
 
-// Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
-// This only happens with unity build
-#ifdef AZ_COMPILER_MSVC
-#pragma push_macro("OPAQUE")
-#undef OPAQUE
-#endif
-
-#include <AzCore/std/hash.h>
-
 namespace Cesium
 {
-    GltfLoadMaterial::GltfLoadMaterial(AZ::Data::Instance<AZ::RPI::Material>&& material, bool needTangents)
-        : m_material{ std::move(material) }
+    GltfLoadTexture::GltfLoadTexture()
+        : m_imageAsset{}
+    {
+    }
+
+    GltfLoadTexture::GltfLoadTexture(AZ::Data::Asset<AZ::RPI::StreamingImageAsset>&& imageAsset)
+        : m_imageAsset{ std::move(imageAsset) }
+    {
+    }
+
+    bool GltfLoadTexture::IsEmpty() const
+    {
+        return !m_imageAsset;
+    }
+
+    GltfLoadMaterial::GltfLoadMaterial()
+        : m_materialAsset{}
+        , m_textureProperties{}
+        , m_needTangents{ false }
+    {
+    }
+
+    GltfLoadMaterial::GltfLoadMaterial(
+        AZ::Data::Asset<AZ::RPI::MaterialAsset>&& materialAsset, AZStd::unordered_map<AZ::Name, TextureId>&& textureMap, bool needTangents)
+        : m_materialAsset{ std::move(materialAsset) }
+        , m_textureProperties{ std::move(textureMap) }
         , m_needTangents{ needTangents }
     {
     }
 
-    GltfLoadMaterial& GltfLoadContext::StoreMaterial(std::uint32_t materialIdx, std::uint32_t subIdx, const GltfLoadMaterial& material)
+    bool GltfLoadMaterial::IsEmpty() const
     {
-        std::size_t seed = 0;
-        AZStd::hash_combine(seed, materialIdx, subIdx);
-        return m_cachedMaterials.insert_or_assign(seed, material).first->second;
+        return !m_materialAsset;
     }
 
-    GltfLoadMaterial* GltfLoadContext::FindCachedMaterial(std::uint32_t materialIdx, std::uint32_t subIdx)
+    GltfLoadPrimitive::GltfLoadPrimitive()
+        : m_modelAsset{}
+        , m_materialId{ -1 }
     {
-        std::size_t seed = 0;
-        AZStd::hash_combine(seed, materialIdx, subIdx);
-        auto it = m_cachedMaterials.find(seed);
-        if (it == m_cachedMaterials.end())
-        {
-            return nullptr;
-        }
-
-        return &it->second;
     }
 
-    void GltfLoadContext::StoreImage(std::uint32_t textureIdx, std::uint32_t subIdx, const AZ::Data::Instance<AZ::RPI::Image>& imageAsset)
+    GltfLoadPrimitive::GltfLoadPrimitive(AZ::Data::Asset<AZ::RPI::ModelAsset>&& modelAsset, MaterialId materialId)
+        : m_modelAsset{ std::move(modelAsset) }
+        , m_materialId{ materialId }
     {
-        std::size_t seed = 0;
-        AZStd::hash_combine(seed, textureIdx, subIdx);
-        m_cachedImages.insert_or_assign(seed, imageAsset);
     }
 
-    AZ::Data::Instance<AZ::RPI::Image> GltfLoadContext::FindCachedImage(std::uint32_t textureIdx, std::uint32_t subIdx)
+    bool GltfLoadPrimitive::IsEmpty() const
     {
-        std::size_t seed = 0;
-        AZStd::hash_combine(seed, textureIdx, subIdx);
-        auto it = m_cachedImages.find(seed);
-        if (it == m_cachedImages.end())
-        {
-            return AZ::Data::Instance<AZ::RPI::Image>();
-        }
+        return !m_modelAsset;
+    }
 
-        return it->second;
+    GltfLoadMesh::GltfLoadMesh()
+        : m_primitives{}
+        , m_transform{ glm::dmat4(1.0) }
+    {
+    }
+
+    GltfLoadMesh::GltfLoadMesh(AZStd::vector<GltfLoadPrimitive>&& primitives, const glm::dmat4& transform)
+        : m_primitives{ std::move(primitives) }
+        , m_transform{ transform }
+    {
+    }
+
+    bool GltfLoadMesh::IsEmpty() const
+    {
+        return m_primitives.empty();
     }
 } // namespace Cesium
 
-// Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
-// This only happens with unity build
-#ifdef AZ_COMPILER_MSVC
-#pragma pop_macro("OPAQUE")
-#endif

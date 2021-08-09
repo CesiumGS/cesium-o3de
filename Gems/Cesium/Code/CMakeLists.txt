@@ -57,9 +57,10 @@ ly_add_target(
         cesium_shared_files.cmake
         ${pal_dir}/cesium_shared_${PAL_PLATFORM_NAME_LOWERCASE}_files.cmake
     INCLUDE_DIRECTORIES
+        PRIVATE
+            Source
         PUBLIC
             Include
-            Source
     BUILD_DEPENDENCIES
         PRIVATE
             Gem::Cesium.Static
