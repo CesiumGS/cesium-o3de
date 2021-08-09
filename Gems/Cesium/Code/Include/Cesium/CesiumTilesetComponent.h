@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Cesium3DTiles/ViewState.h>
-#include <Cesium/CesiumTilesetBus.h>
+#include <Cesium/CesiumTilesetComponentBus.h>
 #include <AzFramework/Components/CameraBus.h>
 #include <AzCore/Component/Component.h>
 #include <AzCore/Component/EntityId.h>

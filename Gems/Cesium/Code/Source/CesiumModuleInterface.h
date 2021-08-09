@@ -1,7 +1,7 @@
 
-#include "CesiumTilesetComponent.h"
 #include <AzCore/Memory/SystemAllocator.h>
 #include <AzCore/Module/Module.h>
+#include <Cesium/CesiumTilesetComponent.h>
 #include <Cesium/GltfModelComponent.h>
 #include <CesiumSystemComponent.h>
 

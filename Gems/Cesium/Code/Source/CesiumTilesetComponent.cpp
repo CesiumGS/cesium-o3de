@@ -1,4 +1,4 @@
-#include "CesiumTilesetComponent.h"
+#include <Cesium/CesiumTilesetComponent.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/std/algorithm.h>
 #include <AzFramework/Components/CameraBus.h>
