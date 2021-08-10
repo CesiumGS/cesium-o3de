@@ -29,7 +29,13 @@
 
 namespace Cesium
 {
-    void GltfModelBuilder::Create(GenericIOManager& io, const AZStd::string& filePath, GltfLoadModel& result)
+    GltfModelBuilderOption::GltfModelBuilderOption(const glm::dmat4& transform)
+        : m_transform{ transform }
+    {
+    }
+
+    void GltfModelBuilder::Create(
+        GenericIOManager& io, const AZStd::string& filePath, const GltfModelBuilderOption& option, GltfLoadModel& result)
     {
         auto fileContent = io.GetFileContent({ "", filePath });
         CesiumGltf::GltfReader reader;
@@ -40,11 +46,11 @@ namespace Cesium
             ResolveExternalImages(parentPath, reader, *load.model, io);
             ResolveExternalBuffers(parentPath, *load.model, io);
 
-            return Create(*load.model, result);
+            return Create(*load.model, option, result);
         }
     }
 
-    void GltfModelBuilder::Create(const CesiumGltf::Model& model, GltfLoadModel& result)
+    void GltfModelBuilder::Create(const CesiumGltf::Model& model, const GltfModelBuilderOption& option, GltfLoadModel& result)
     {
         // Resize materials to be the same with gltf materials, so that we can use it as a cache.
         // It maybe wasteful when some gltfs has more materials than what are used in the its primitives.
@@ -56,30 +62,33 @@ namespace Cesium
         if (model.scene >= 0 && model.scene < model.scenes.size())
         {
             // display default scene
-            LoadScene(model, model.scenes[model.scene], result);
+            LoadScene(model, model.scenes[model.scene], option, result);
         }
         else if (model.scenes.size() > 0)
         {
             // no default scene, display the first one
-            LoadScene(model, model.scenes.front(), result);
+            LoadScene(model, model.scenes.front(), option, result);
         }
         else
         {
             // load all meshes in the gltf
+            glm::dmat4 worldTransform = option.m_transform * GLTF_TO_O3DE;
             for (std::size_t i = 0; i < model.meshes.size(); ++i)
             {
-                LoadMesh(model, i, GLTF_TO_O3DE, result);
+                LoadMesh(model, i, worldTransform, result);
             }
         }
     }
 
-    void GltfModelBuilder::LoadScene(const CesiumGltf::Model& model, const CesiumGltf::Scene& scene, GltfLoadModel& result)
+    void GltfModelBuilder::LoadScene(
+        const CesiumGltf::Model& model, const CesiumGltf::Scene& scene, const GltfModelBuilderOption& option, GltfLoadModel& result)
     {
+        glm::dmat4 worldTransform = option.m_transform * GLTF_TO_O3DE;
         for (std::int32_t rootIndex : scene.nodes)
         {
             if (rootIndex >= 0 && rootIndex <= model.nodes.size())
             {
-                LoadNode(model, model.nodes[static_cast<std::size_t>(rootIndex)], GLTF_TO_O3DE, result);
+                LoadNode(model, model.nodes[static_cast<std::size_t>(rootIndex)], worldTransform, result);
             }
         }
     }
@@ -153,7 +162,7 @@ namespace Cesium
             }
 
             // load primitive
-            GltfLoadPrimitive& loadPrimitive = gltfLoadMesh.m_primitives.emplace_back(); 
+            GltfLoadPrimitive& loadPrimitive = gltfLoadMesh.m_primitives.emplace_back();
             GltfTrianglePrimitiveBuilderOption option{ loadMaterial.m_needTangents };
             GltfTrianglePrimitiveBuilder primitiveBuilder;
             primitiveBuilder.Create(model, primitive, option, loadPrimitive);
@@ -229,4 +238,4 @@ namespace Cesium
         static constexpr double identity[] = { 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 };
         return std::equal(matrix.begin(), matrix.end(), identity);
     }
-}
+} // namespace Cesium
