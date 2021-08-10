@@ -317,7 +317,7 @@ namespace Cesium
     AZ::Data::Asset<AZ::RPI::BufferAsset> GltfTrianglePrimitiveBuilder::CreateBufferAsset(
         const void* data, const std::size_t elementCount, AZ::RHI::Format format)
     {
-        AZ::RHI::BufferViewDescriptor bufferViewDescriptor = AZ::RHI::BufferViewDescriptor::CreateTyped(0, elementCount, format);
+        AZ::RHI::BufferViewDescriptor bufferViewDescriptor = AZ::RHI::BufferViewDescriptor::CreateTyped(0, static_cast<std::uint32_t>(elementCount), format);
         AZ::RHI::BufferDescriptor bufferDescriptor;
         bufferDescriptor.m_bindFlags = AZ::RHI::BufferBindFlags::InputAssembly | AZ::RHI::BufferBindFlags::ShaderRead;
         bufferDescriptor.m_byteCount = bufferViewDescriptor.m_elementCount * bufferViewDescriptor.m_elementSize;

@@ -163,7 +163,7 @@ namespace Cesium
         // For non-uniform scale, we set it separately
         const glm::dvec4& translation = mat4[3];
         glm::dvec3 scale;
-        for (std::size_t i = 0; i < 3; ++i)
+        for (std::uint32_t i = 0; i < 3; ++i)
         {
             scale[i] = glm::length(mat4[i]);
         }
