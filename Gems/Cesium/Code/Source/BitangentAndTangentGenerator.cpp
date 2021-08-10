@@ -19,7 +19,7 @@ namespace Cesium
         static int GetNumFaces(const SMikkTSpaceContext* context)
         {
             MikktspaceCustomData* customData = static_cast<MikktspaceCustomData*>(context->m_pUserData);
-            return customData->positions.size() / 3;
+            return static_cast<int>(customData->positions.size()) / 3;
         }
 
         static int GetNumVerticesOfFace([[maybe_unused]] const SMikkTSpaceContext* context, [[maybe_unused]] int face)

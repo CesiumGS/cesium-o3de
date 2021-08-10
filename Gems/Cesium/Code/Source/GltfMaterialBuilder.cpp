@@ -261,8 +261,8 @@ namespace Cesium
         // Create new asset
         AZ::Data::Asset<AZ::RPI::StreamingImageAsset> newImage;
         const CesiumGltf::ImageCesium& imageData = image->cesium;
-        std::size_t width = static_cast<std::size_t>(imageData.width);
-        std::size_t height = static_cast<std::size_t>(imageData.height);
+        std::uint32_t width = static_cast<std::uint32_t>(imageData.width);
+        std::uint32_t height = static_cast<std::uint32_t>(imageData.height);
         if (imageData.bytesPerChannel != 1 || imageData.channels < 1)
         {
             return AZStd::nullopt;
@@ -327,8 +327,8 @@ namespace Cesium
         // Create a new asset if cache doesn't have it
         AZ::Data::Asset<AZ::RPI::StreamingImageAsset> newImage;
         const CesiumGltf::ImageCesium& imageData = image->cesium;
-        std::size_t width = static_cast<std::size_t>(imageData.width);
-        std::size_t height = static_cast<std::size_t>(imageData.height);
+        std::uint32_t width = static_cast<std::uint32_t>(imageData.width);
+        std::uint32_t height = static_cast<std::uint32_t>(imageData.height);
         if (imageData.bytesPerChannel != 1 || imageData.channels < 3 || imageData.channels > 4)
         {
             return AZStd::nullopt;
@@ -402,8 +402,8 @@ namespace Cesium
 
         // Create new assets if caches are not found
         const CesiumGltf::ImageCesium& imageData = image->cesium;
-        std::size_t width = static_cast<std::size_t>(imageData.width);
-        std::size_t height = static_cast<std::size_t>(imageData.height);
+        std::uint32_t width = static_cast<std::uint32_t>(imageData.width);
+        std::uint32_t height = static_cast<std::uint32_t>(imageData.height);
         if (imageData.bytesPerChannel != 1 || imageData.channels < 3 || imageData.channels > 4)
         {
             return;
