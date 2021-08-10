@@ -1,13 +1,32 @@
 
 set(FILES
     Include/Cesium/CesiumBus.h
+    Include/Cesium/GltfModelComponentBus.h
+    Include/Cesium/GltfModelComponent.h
     Source/CesiumModuleInterface.h
     Source/CesiumSystemComponent.cpp
     Source/CesiumSystemComponent.h
-    Source/HttpManager.cpp
-    Source/HttpManager.h
+    Source/BitangentAndTangentGenerator.cpp
+    Source/BitangentAndTangentGenerator.h
     Source/HttpAssetAccessor.cpp
     Source/HttpAssetAccessor.h
     Source/TaskProcessor.cpp
     Source/TaskProcessor.h
+    Source/HttpManager.cpp
+    Source/HttpManager.h
+    Source/LocalFileManager.cpp
+    Source/LocalFileManager.h
+    Source/GenericIOManager.cpp
+    Source/GenericIOManager.h
+    Source/GltfLoadContext.cpp
+    Source/GltfLoadContext.h
+    Source/GltfPrimitiveBuilder.cpp
+    Source/GltfPrimitiveBuilder.h
+    Source/GltfMaterialBuilder.cpp
+    Source/GltfMaterialBuilder.h
+    Source/GltfModelBuilder.cpp
+    Source/GltfModelBuilder.h
+    Source/GltfModel.cpp
+    Source/GltfModel.h
+    Source/GltfModelComponent.cpp
 )

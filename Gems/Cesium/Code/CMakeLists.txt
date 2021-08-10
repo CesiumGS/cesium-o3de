@@ -36,11 +36,14 @@ ly_add_target(
             Source
     BUILD_DEPENDENCIES
         PUBLIC
-            AZ::AzCore
-            AZ::AzFramework
             3rdParty::AWSNativeSDK::Core
             3rdParty::CesiumNative
+            3rdParty::mikkelsen
+            AZ::AzCore
+            AZ::AzFramework
             AZ::AWSNativeSDKInit
+            Gem::Atom_RPI.Public
+            Gem::Atom_Feature_Common.Static
     COMPILE_DEFINITIONS
         PUBLIC
             LIBASYNC_STATIC
@@ -54,10 +57,10 @@ ly_add_target(
         cesium_shared_files.cmake
         ${pal_dir}/cesium_shared_${PAL_PLATFORM_NAME_LOWERCASE}_files.cmake
     INCLUDE_DIRECTORIES
-        PUBLIC
-            Include
         PRIVATE
             Source
+        PUBLIC
+            Include
     BUILD_DEPENDENCIES
         PRIVATE
             Gem::Cesium.Static
