@@ -6,6 +6,7 @@ set(FILES
     Tests/HttpManagerTest.cpp
     Tests/LocalFileManagerTest.cpp
     Tests/HttpAssetAccessorTest.cpp
+    Tests/TaskProcessorTest.cpp
     Tests/GltfLoadContextTest.cpp
     Tests/GltfPrimitiveBuilderTest.cpp
     Tests/GltfMaterialBuilderTest.cpp
