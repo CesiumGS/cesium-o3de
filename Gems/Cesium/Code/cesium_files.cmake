@@ -30,6 +30,8 @@ set(FILES
     Source/GltfModelBuilder.h
     Source/GltfModel.cpp
     Source/GltfModel.h
+    Source/RenderResourcesPreparer.cpp
+    Source/RenderResourcesPreparer.h
     Source/GltfModelComponent.cpp
     Source/CesiumTilesetComponent.cpp
 )

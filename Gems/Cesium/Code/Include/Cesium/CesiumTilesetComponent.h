@@ -1,32 +1,14 @@
 #pragma once
 
-#include <Cesium3DTiles/ViewState.h>
 #include <Cesium/CesiumTilesetComponentBus.h>
 #include <AzFramework/Components/CameraBus.h>
 #include <AzCore/Component/Component.h>
 #include <AzCore/Component/EntityId.h>
 #include <AzCore/Component/TickBus.h>
-#include <AzCore/std/containers/vector.h>
-#include <vector>
+#include <AzCore/std/smart_ptr/unique_ptr.h>
 
 namespace Cesium
 {
-    class CameraConfigurations
-    {
-    public:
-        void AddCameraEntity(const AZ::EntityId& cameraEntityId);
-
-        void RemoveCameraEntity(const AZ::EntityId& cameraEntityId);
-
-        const std::vector<Cesium3DTiles::ViewState>& UpdateAndGetViewStates(const glm::dmat4& o3deToCesiumTransform);
-
-    private:
-        static Cesium3DTiles::ViewState GetViewState(const AZ::EntityId& cameraEntityId, const glm::dmat4& o3deToCesiumTransform);
-
-        AZStd::vector<AZ::EntityId> m_cameraEntityIds;
-        std::vector<Cesium3DTiles::ViewState> m_viewStates;
-    };
-
     class CesiumTilesetComponent
         : public AZ::Component
         , public AZ::TickBus::Handler
@@ -37,6 +19,10 @@ namespace Cesium
         AZ_COMPONENT(CesiumTilesetComponent, "{56948418-6C82-4DF2-9A8D-C292C22FCBDF}", AZ::Component)
 
         static void Reflect(AZ::ReflectContext* context);
+
+        CesiumTilesetComponent();
+
+        void Init() override;
 
         void Activate() override;
 
@@ -53,6 +39,8 @@ namespace Cesium
 
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
 
-        CameraConfigurations m_cameraConfigurations;
+        class CameraConfigurations;
+        struct Impl;
+        AZStd::unique_ptr<Impl> m_impl;
     };
 } // namespace Cesium

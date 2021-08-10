@@ -12,6 +12,7 @@ set(FILES
     Tests/GltfMaterialBuilderTest.cpp
     Tests/GltfModelBuilderTest.cpp
     Tests/GltfModelTest.cpp
+    Tests/RenderResourcesPreparerTest.cpp
     Tests/GltfModelComponentTest.cpp
     Tests/CesiumTilesetComponentTest.cpp
 )
