@@ -1,5 +1,6 @@
 #include <Cesium/CesiumTilesetComponent.h>
 #include "RenderResourcesPreparer.h"
+#include "GltfModel.h"
 #include "CesiumSystemComponentBus.h"
 #include <Cesium3DTilesSelection/Tileset.h>
 #include <Cesium3DTilesSelection/TilesetExternals.h>
@@ -153,7 +154,32 @@ namespace Cesium
 
             if (!viewStates.empty())
             {
-                m_impl->m_tileset->updateView(viewStates);
+                Cesium3DTilesSelection::ViewUpdateResult viewUpdate = m_impl->m_tileset->updateView(viewStates);
+                for (Cesium3DTilesSelection::Tile* tile : viewUpdate.tilesToNoLongerRenderThisFrame)
+                {
+                    void* renderResources = tile->getRendererResources();
+                    if (renderResources)
+                    {
+                        GltfModel* model = reinterpret_cast<GltfModel*>(renderResources);
+                        if (model->IsVisible())
+                        {
+                            model->SetVisible(false);
+                        } 
+                    }
+                }
+
+                for (Cesium3DTilesSelection::Tile* tile : viewUpdate.tilesToRenderThisFrame)
+                {
+                    void* renderResources = tile->getRendererResources();
+                    if (renderResources)
+                    {
+                        GltfModel* model = reinterpret_cast<GltfModel*>(renderResources);
+                        if (!model->IsVisible())
+                        {
+                            model->SetVisible(true);
+                        }
+                    }
+                }
             }
         }
     }
@@ -174,7 +200,7 @@ namespace Cesium
         m_impl->m_tileset = AZStd::make_unique<Cesium3DTilesSelection::Tileset>(externals, filePath.c_str());
     }
 
-    void CesiumTilesetComponent::LoadTileset(std::uint32_t cesiumIonAssetId, const AZStd::string& cesiumIonAssetToken)
+    void CesiumTilesetComponent::LoadTilesetFromCesiumIon(std::uint32_t cesiumIonAssetId, const AZStd::string& cesiumIonAssetToken)
     {
         Cesium3DTilesSelection::TilesetExternals externals = m_impl->CreateTilesetExternal();
         m_impl->m_tileset = AZStd::make_unique<Cesium3DTilesSelection::Tileset>(externals, cesiumIonAssetId, cesiumIonAssetToken.c_str());

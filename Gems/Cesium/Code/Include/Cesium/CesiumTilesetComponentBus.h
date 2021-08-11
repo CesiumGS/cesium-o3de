@@ -15,7 +15,7 @@ namespace Cesium
 
         virtual void LoadTileset(const AZStd::string& filePath) = 0;
 
-        virtual void LoadTileset(std::uint32_t cesiumIonAssetId, const AZStd::string& cesiumIonAssetToken) = 0;
+        virtual void LoadTilesetFromCesiumIon(std::uint32_t cesiumIonAssetId, const AZStd::string& cesiumIonAssetToken) = 0;
     };
 
     using CesiumTilesetRequestBus = AZ::EBus<CesiumTilesetRequest>;
