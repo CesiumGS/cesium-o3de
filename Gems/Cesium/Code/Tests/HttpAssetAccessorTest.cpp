@@ -15,11 +15,10 @@ TEST_F(HttpAssetAccessorTest, TestRequestAsset)
     AZStd::shared_ptr<Cesium::HttpManager> httpManager = AZStd::make_shared<Cesium::HttpManager>();
     Cesium::HttpAssetAccessor accessor(httpManager);
 
-    auto result = accessor.requestAsset(asyncSystem, "https://httpbin.org/ip").wait();
-    auto completedRequest = std::get_if<std::shared_ptr<CesiumAsync::IAssetRequest>>(&result);
+    auto completedRequest = accessor.requestAsset(asyncSystem, "https://httpbin.org/ip").wait();
     ASSERT_NE(completedRequest, nullptr);
-    ASSERT_EQ((*completedRequest)->response()->statusCode(), 200);
-    ASSERT_EQ((*completedRequest)->method(), "GET");
+    ASSERT_EQ(completedRequest->response()->statusCode(), 200);
+    ASSERT_EQ(completedRequest->method(), "GET");
 }
 
 TEST_F(HttpAssetAccessorTest, TestPost)
@@ -29,9 +28,8 @@ TEST_F(HttpAssetAccessorTest, TestPost)
     AZStd::shared_ptr<Cesium::HttpManager> httpManager = AZStd::make_shared<Cesium::HttpManager>();
     Cesium::HttpAssetAccessor accessor(httpManager);
 
-    auto result = accessor.post(asyncSystem, "https://httpbin.org/post").wait();
-    auto completedRequest = std::get_if<std::shared_ptr<CesiumAsync::IAssetRequest>>(&result);
+    auto completedRequest = accessor.post(asyncSystem, "https://httpbin.org/post").wait();
     ASSERT_NE(completedRequest, nullptr);
-    ASSERT_EQ((*completedRequest)->response()->statusCode(), 200);
-    ASSERT_EQ((*completedRequest)->method(), "POST");
+    ASSERT_EQ(completedRequest->response()->statusCode(), 200);
+    ASSERT_EQ(completedRequest->method(), "POST");
 }
