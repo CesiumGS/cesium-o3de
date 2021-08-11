@@ -92,6 +92,17 @@ namespace Cesium
 
     struct CesiumTilesetComponent::Impl
     {
+        Cesium3DTilesSelection::TilesetExternals CreateTilesetExternal()
+        {
+            return Cesium3DTilesSelection::TilesetExternals{
+                CesiumInterface::Get()->GetAssetAccessor(),
+                m_renderResourcesPreparer,
+                CesiumAsync::AsyncSystem(CesiumInterface::Get()->GetTaskProcessor()),
+                nullptr,
+                CesiumInterface::Get()->GetLogger(),
+            };
+        }
+
         AZStd::unique_ptr<Cesium3DTilesSelection::Tileset> m_tileset;
         CameraConfigurations m_cameraConfigurations;
         std::shared_ptr<Cesium3DTilesSelection::IPrepareRendererResources> m_renderResourcesPreparer;
@@ -159,14 +170,14 @@ namespace Cesium
 
     void CesiumTilesetComponent::LoadTileset(const AZStd::string& filePath)
     {
-        Cesium3DTilesSelection::TilesetExternals external{
-            CesiumInterface::Get()->GetAssetAccessor(),
-            m_impl->m_renderResourcesPreparer,
-            CesiumAsync::AsyncSystem(CesiumInterface::Get()->GetTaskProcessor()),
-            nullptr,
-            CesiumInterface::Get()->GetLogger(),
-        };
-        m_impl->m_tileset = AZStd::make_unique<Cesium3DTilesSelection::Tileset>(external, filePath.c_str());
+        Cesium3DTilesSelection::TilesetExternals externals = m_impl->CreateTilesetExternal();
+        m_impl->m_tileset = AZStd::make_unique<Cesium3DTilesSelection::Tileset>(externals, filePath.c_str());
+    }
+
+    void CesiumTilesetComponent::LoadTileset(std::uint32_t cesiumIonAssetId, const AZStd::string& cesiumIonAssetToken)
+    {
+        Cesium3DTilesSelection::TilesetExternals externals = m_impl->CreateTilesetExternal();
+        m_impl->m_tileset = AZStd::make_unique<Cesium3DTilesSelection::Tileset>(externals, cesiumIonAssetId, cesiumIonAssetToken.c_str());
     }
 
     void CesiumTilesetComponent::OnCameraAdded(const AZ::EntityId& cameraId)

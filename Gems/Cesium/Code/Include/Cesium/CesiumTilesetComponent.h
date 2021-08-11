@@ -34,6 +34,8 @@ namespace Cesium
 
         void LoadTileset(const AZStd::string& filePath) override;
 
+        void LoadTileset(std::uint32_t cesiumIonAssetId, const AZStd::string& cesiumIonAssetToken) override;
+
     private:
         void OnCameraAdded(const AZ::EntityId& cameraId) override;
 
