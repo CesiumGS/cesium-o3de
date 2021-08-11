@@ -25,6 +25,8 @@ namespace Cesium
         void LoadModel(const AZStd::string& filePath) override;
 
     private:
+        void Init() override;
+
         void Activate() override;
 
         void Deactivate() override;
