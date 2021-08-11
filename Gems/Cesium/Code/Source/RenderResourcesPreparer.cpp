@@ -26,11 +26,12 @@ namespace Cesium
     {
     }
 
-    void* RenderResourcesPreparer::prepareInLoadThread(const CesiumGltf::Model& model, [[maybe_unused]] const glm::dmat4& transform)
+    void* RenderResourcesPreparer::prepareInLoadThread(const CesiumGltf::Model& model, const glm::dmat4& transform)
     {
         AZStd::unique_ptr<GltfLoadModel> loadModel = AZStd::make_unique<GltfLoadModel>();
         GltfModelBuilder builder;
-        builder.Create(model, *loadModel);
+        GltfModelBuilderOption option{transform};
+        builder.Create(model, option, *loadModel);
         return loadModel.release();
     }
 

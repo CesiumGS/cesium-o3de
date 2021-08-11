@@ -1,9 +1,12 @@
-
 #pragma once
 
+#include "CesiumSystemComponentBus.h"
+#include <spdlog/logger.h>
+#include <CesiumAsync/ITaskProcessor.h>
+#include <CesiumAsync/IAssetAccessor.h>
 #include <AzCore/Component/Component.h>
 #include <AzCore/Component/TickBus.h>
-#include <Cesium/CesiumBus.h>
+#include <memory>
 
 namespace Cesium
 {
@@ -18,30 +21,36 @@ namespace Cesium
         static void Reflect(AZ::ReflectContext* context);
 
         static void GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided);
+
         static void GetIncompatibleServices(AZ::ComponentDescriptor::DependencyArrayType& incompatible);
+
         static void GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required);
+
         static void GetDependentServices(AZ::ComponentDescriptor::DependencyArrayType& dependent);
 
         CesiumSystemComponent();
+
         ~CesiumSystemComponent();
 
+        const std::shared_ptr<CesiumAsync::IAssetAccessor>& GetAssetAccessor() const override;
+
+        const std::shared_ptr<CesiumAsync::ITaskProcessor>& GetTaskProcessor() const override;
+
+        const std::shared_ptr<spdlog::logger>& GetLogger() const override;
+
     protected:
-        ////////////////////////////////////////////////////////////////////////
-        // CesiumRequestBus interface implementation
-
-        ////////////////////////////////////////////////////////////////////////
-
-        ////////////////////////////////////////////////////////////////////////
-        // AZ::Component interface implementation
         void Init() override;
-        void Activate() override;
-        void Deactivate() override;
-        ////////////////////////////////////////////////////////////////////////
 
-        ////////////////////////////////////////////////////////////////////////
-        // AZTickBus interface implementation
+        void Activate() override;
+
+        void Deactivate() override;
+
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
-        ////////////////////////////////////////////////////////////////////////
+
+    private:
+        std::shared_ptr<CesiumAsync::IAssetAccessor> m_assetAccessor;
+        std::shared_ptr<CesiumAsync::ITaskProcessor> m_taskProcessor;
+        std::shared_ptr<spdlog::logger> m_logger;
     };
 
 } // namespace Cesium

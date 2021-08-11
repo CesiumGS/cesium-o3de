@@ -1,9 +1,13 @@
-
-#include <CesiumSystemComponent.h>
-
+#include "CesiumSystemComponent.h"
+#include "HttpAssetAccessor.h"
+#include "HttpManager.h"
+#include "TaskProcessor.h"
+#include <Cesium3DTiles/registerAllTileContentTypes.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/EditContext.h>
 #include <AzCore/Serialization/EditContextConstants.inl>
+#include <AzCore/std/smart_ptr/make_shared.h>
+#include <AzCore/std/smart_ptr/shared_ptr.h>
 
 namespace Cesium
 {
@@ -46,6 +50,19 @@ namespace Cesium
 
     CesiumSystemComponent::CesiumSystemComponent()
     {
+        // initialize Cesium Native
+        Cesium3DTiles::registerAllTileContentTypes();
+
+        // initialize asset accessors
+        auto httpManager = AZStd::make_shared<HttpManager>();
+        m_assetAccessor = std::make_shared<HttpAssetAccessor>(httpManager);
+
+        // initialize task processor
+        m_taskProcessor = std::make_shared<TaskProcessor>();
+
+        // initialize logger
+        m_logger = spdlog::default_logger();
+
         if (CesiumInterface::Get() == nullptr)
         {
             CesiumInterface::Register(this);
@@ -58,6 +75,21 @@ namespace Cesium
         {
             CesiumInterface::Unregister(this);
         }
+    }
+
+    const std::shared_ptr<CesiumAsync::IAssetAccessor>& CesiumSystemComponent::GetAssetAccessor() const
+    {
+        return m_assetAccessor;
+    }
+
+    const std::shared_ptr<CesiumAsync::ITaskProcessor>& CesiumSystemComponent::GetTaskProcessor() const
+    {
+        return m_taskProcessor;
+    }
+
+    const std::shared_ptr<spdlog::logger>& CesiumSystemComponent::GetLogger() const
+    {
+        return m_logger;
     }
 
     void CesiumSystemComponent::Init()

@@ -1,13 +1,10 @@
 
 set(FILES
-    Include/Cesium/CesiumBus.h
     Include/Cesium/CesiumTilesetComponentBus.h
     Include/Cesium/CesiumTilesetComponent.h
     Include/Cesium/GltfModelComponentBus.h
     Include/Cesium/GltfModelComponent.h
     Source/CesiumModuleInterface.h
-    Source/CesiumSystemComponent.cpp
-    Source/CesiumSystemComponent.h
     Source/BitangentAndTangentGenerator.cpp
     Source/BitangentAndTangentGenerator.h
     Source/HttpAssetAccessor.cpp
@@ -32,6 +29,9 @@ set(FILES
     Source/GltfModel.h
     Source/RenderResourcesPreparer.cpp
     Source/RenderResourcesPreparer.h
+    Source/CesiumSystemComponent.cpp
+    Source/CesiumSystemComponent.h
+    Source/CesiumSystemComponentBus.h
     Source/GltfModelComponent.cpp
     Source/CesiumTilesetComponent.cpp
 )

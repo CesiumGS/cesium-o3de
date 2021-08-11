@@ -32,6 +32,8 @@ namespace Cesium
 
         void RemoveCameraEntity(const AZ::EntityId& cameraEntityId) override;
 
+        void LoadTileset(const AZStd::string& filePath) override;
+
     private:
         void OnCameraAdded(const AZ::EntityId& cameraId) override;
 

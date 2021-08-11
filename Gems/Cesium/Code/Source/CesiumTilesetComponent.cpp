@@ -1,5 +1,12 @@
 #include <Cesium/CesiumTilesetComponent.h>
+#include "RenderResourcesPreparer.h"
+#include "CesiumSystemComponentBus.h"
+#include <Cesium3DTiles/Tileset.h>
+#include <Cesium3DTiles/TilesetExternals.h>
 #include <Cesium3DTiles/ViewState.h>
+#include <Cesium3DTiles/IPrepareRendererResources.h>
+#include <Atom/Feature/Mesh/MeshFeatureProcessorInterface.h>
+#include <Atom/RPI.Public/Scene.h>
 #include <Atom/RPI.Public/Base.h>
 #include <Atom/RPI.Public/ViewProviderBus.h>
 #include <Atom/RPI.Public/View.h>
@@ -85,7 +92,9 @@ namespace Cesium
 
     struct CesiumTilesetComponent::Impl
     {
+        AZStd::unique_ptr<Cesium3DTiles::Tileset> m_tileset;
         CameraConfigurations m_cameraConfigurations;
+        std::shared_ptr<Cesium3DTiles::IPrepareRendererResources> m_renderResourcesPreparer;
     };
 
     void CesiumTilesetComponent::Reflect(AZ::ReflectContext* context)
@@ -103,6 +112,10 @@ namespace Cesium
     void CesiumTilesetComponent::Init()
     {
         m_impl = AZStd::make_unique<Impl>();
+
+        AZ::Render::MeshFeatureProcessorInterface* meshFeatureProcessor =
+            AZ::RPI::Scene::GetFeatureProcessorForEntity<AZ::Render::MeshFeatureProcessorInterface>(GetEntityId());
+        m_impl->m_renderResourcesPreparer = std::make_shared<RenderResourcesPreparer>(meshFeatureProcessor);
     }
 
     void CesiumTilesetComponent::Activate()
@@ -121,8 +134,17 @@ namespace Cesium
 
     void CesiumTilesetComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
     {
-        [[maybe_unused]] const std::vector<Cesium3DTiles::ViewState>& viewStates =
-            m_impl->m_cameraConfigurations.UpdateAndGetViewStates(glm::dmat4(1.0));
+        if (m_impl->m_tileset)
+        {
+            // update view tileset
+            const std::vector<Cesium3DTiles::ViewState>& viewStates =
+                m_impl->m_cameraConfigurations.UpdateAndGetViewStates(glm::dmat4(1.0));
+
+            if (!viewStates.empty())
+            {
+                m_impl->m_tileset->updateView(viewStates.front());
+            }
+        }
     }
 
     void CesiumTilesetComponent::AddCameraEntity(const AZ::EntityId& cameraEntityId)
@@ -133,6 +155,18 @@ namespace Cesium
     void CesiumTilesetComponent::RemoveCameraEntity(const AZ::EntityId& cameraEntityId)
     {
         m_impl->m_cameraConfigurations.RemoveCameraEntity(cameraEntityId);
+    }
+
+    void CesiumTilesetComponent::LoadTileset(const AZStd::string& filePath)
+    {
+        Cesium3DTiles::TilesetExternals external{
+            CesiumInterface::Get()->GetAssetAccessor(),
+            m_impl->m_renderResourcesPreparer,
+            CesiumAsync::AsyncSystem(CesiumInterface::Get()->GetTaskProcessor()),
+            nullptr,
+            CesiumInterface::Get()->GetLogger(),
+        };
+        m_impl->m_tileset = AZStd::make_unique<Cesium3DTiles::Tileset>(external, filePath.c_str());
     }
 
     void CesiumTilesetComponent::OnCameraAdded(const AZ::EntityId& cameraId)

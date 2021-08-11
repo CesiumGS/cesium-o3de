@@ -1,8 +1,12 @@
 
 #pragma once
 
+#include <spdlog/logger.h>
+#include <CesiumAsync/IAssetAccessor.h>
+#include <CesiumAsync/ITaskProcessor.h>
 #include <AzCore/EBus/EBus.h>
 #include <AzCore/Interface/Interface.h>
+#include <memory>
 
 namespace Cesium
 {
@@ -10,19 +14,23 @@ namespace Cesium
     {
     public:
         AZ_RTTI(CesiumRequests, "{ad337a9b-fa16-4d1c-bdbd-ccb7200937f9}");
+
         virtual ~CesiumRequests() = default;
-        // Put your public methods here
+
+        virtual const std::shared_ptr<CesiumAsync::IAssetAccessor>& GetAssetAccessor() const = 0;
+
+        virtual const std::shared_ptr<CesiumAsync::ITaskProcessor>& GetTaskProcessor() const = 0;
+
+        virtual const std::shared_ptr<spdlog::logger>& GetLogger() const = 0;
     };
     
     class CesiumBusTraits
         : public AZ::EBusTraits
     {
     public:
-        //////////////////////////////////////////////////////////////////////////
-        // EBusTraits overrides
         static constexpr AZ::EBusHandlerPolicy HandlerPolicy = AZ::EBusHandlerPolicy::Single;
+
         static constexpr AZ::EBusAddressPolicy AddressPolicy = AZ::EBusAddressPolicy::Single;
-        //////////////////////////////////////////////////////////////////////////
     };
 
     using CesiumRequestBus = AZ::EBus<CesiumRequests, CesiumBusTraits>;
