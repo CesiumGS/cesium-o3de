@@ -20,7 +20,7 @@ namespace Cesium
             .thenImmediately(
                 [](HttpResult&& result) -> std::shared_ptr<CesiumAsync::IAssetRequest>
                 {
-                    return HttpAssetAccessor::CreateO3DEAssetRequest(*result.request, *result.response);
+                    return HttpAssetAccessor::CreateO3DEAssetRequest(*result.m_request, *result.m_response);
                 });
     }
 
@@ -39,7 +39,7 @@ namespace Cesium
             .thenImmediately(
                 [](HttpResult&& result) -> std::shared_ptr<CesiumAsync::IAssetRequest>
                 {
-                    return HttpAssetAccessor::CreateO3DEAssetRequest(*result.request, *result.response);
+                    return HttpAssetAccessor::CreateO3DEAssetRequest(*result.m_request, *result.m_response);
                 });
     }
 

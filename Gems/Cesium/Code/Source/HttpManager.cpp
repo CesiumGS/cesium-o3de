@@ -49,16 +49,15 @@ namespace Cesium
     CesiumAsync::Future<HttpResult> HttpManager::AddRequest(
         const CesiumAsync::AsyncSystem& asyncSystem, HttpRequestParameter&& httpRequestParameter)
     {
-        return asyncSystem.createFuture<HttpResult>(
-            [this, param = std::move(httpRequestParameter)](const auto& promise) mutable
-            {
-                HttpRequest request(std::move(param), promise);
-                {
-                    AZStd::lock_guard<AZStd::mutex> lock(this->m_requestMutex);
-                    this->m_requestsToHandle.push(AZStd::move(request));
-                }
-                this->m_requestConditionVar.notify_all();
-            });
+        auto promise = asyncSystem.createPromise<HttpResult>();
+        HttpRequest request(std::move(httpRequestParameter), promise);
+        {
+            AZStd::lock_guard<AZStd::mutex> lock(this->m_requestMutex);
+            this->m_requestsToHandle.push(AZStd::move(request));
+        }
+
+        this->m_requestConditionVar.notify_all();
+        return promise.getFuture();
     }
 
     void HttpManager::ThreadFunction()
