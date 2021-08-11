@@ -52,12 +52,14 @@ namespace Cesium
     {
         if (pLoadThreadResult)
         {
-            delete pLoadThreadResult;
+            GltfLoadModel* loadModel = reinterpret_cast<GltfLoadModel*>(pLoadThreadResult);
+            delete loadModel;
         }
 
         if (pMainThreadResult)
         {
-            delete pMainThreadResult;
+            GltfModel* model = reinterpret_cast<GltfModel*>(pMainThreadResult);
+            delete model;
         }
     }
 

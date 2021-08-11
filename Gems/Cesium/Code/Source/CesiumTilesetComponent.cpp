@@ -7,6 +7,8 @@
 #include <Cesium3DTilesSelection/ViewState.h>
 #include <Cesium3DTilesSelection/IPrepareRendererResources.h>
 #include <Atom/Feature/Mesh/MeshFeatureProcessorInterface.h>
+#include <Atom/RPI.Public/ViewportContext.h>
+#include <Atom/RPI.Public/ViewportContextBus.h>
 #include <Atom/RPI.Public/Scene.h>
 #include <Atom/RPI.Public/Base.h>
 #include <Atom/RPI.Public/ViewProviderBus.h>
@@ -40,25 +42,39 @@ namespace Cesium
             m_cameraEntityIds.erase(it, m_cameraEntityIds.end());
         }
 
-        const std::vector<Cesium3DTilesSelection::ViewState>& UpdateAndGetViewStates(const glm::dmat4& o3deToCesiumTransform)
+        const std::vector<Cesium3DTilesSelection::ViewState>& UpdateAndGetViewStates()
         {
+            m_viewStates.clear();
             if (m_cameraEntityIds.empty())
             {
                 return m_viewStates;
             }
 
-            m_viewStates.clear();
+            auto viewportManager = AZ::Interface<AZ::RPI::ViewportContextRequestsInterface>::Get();
+            if (!viewportManager)
+            {
+                return m_viewStates;
+            }
+
+            AZ::RPI::ViewportContextPtr viewportContext = viewportManager->GetDefaultViewportContext();
+            if (!viewportContext)
+            {
+                return m_viewStates;
+            }
+
+            AzFramework::WindowSize windowSize = viewportContext->GetViewportSize();
+            glm::dvec2 viewportSize{windowSize.m_width, windowSize.m_height};
             m_viewStates.reserve(m_cameraEntityIds.size());
             for (std::size_t i = 0; i < m_cameraEntityIds.size(); ++i)
             {
-                m_viewStates.emplace_back(GetViewState(m_cameraEntityIds[i], o3deToCesiumTransform));
+                m_viewStates.emplace_back(GetViewState(m_cameraEntityIds[i], viewportSize));
             }
 
             return m_viewStates;
         }
 
     private:
-        static Cesium3DTilesSelection::ViewState GetViewState(const AZ::EntityId& cameraEntityId, const glm::dmat4& o3deToCesiumTransform)
+        static Cesium3DTilesSelection::ViewState GetViewState(const AZ::EntityId& cameraEntityId, const glm::dvec2& viewportSize)
         {
             // Get o3de camera configuration
             AZ::RPI::ViewPtr view = nullptr;
@@ -72,19 +88,14 @@ namespace Cesium
             AZ::Vector3 o3deCameraPosition = o3deCameraTransform.GetTranslation();
 
             // Convert o3de coordinate to cesium coordinate
-            glm::dvec3 position =
-                o3deToCesiumTransform * glm::dvec4{ o3deCameraPosition.GetX(), o3deCameraPosition.GetY(), o3deCameraPosition.GetZ(), 1.0 };
-            glm::dvec3 direction =
-                o3deToCesiumTransform * glm::dvec4{ o3deCameraFwd.GetX(), o3deCameraFwd.GetY(), o3deCameraFwd.GetZ(), 0.0 };
-            glm::dvec3 up = o3deToCesiumTransform * glm::dvec4{ o3deCameraUp.GetX(), o3deCameraUp.GetY(), o3deCameraUp.GetZ(), 0.0 };
-            direction = glm::normalize(direction);
-            up = glm::normalize(up);
+            glm::dvec3 position = glm::dvec3{ o3deCameraPosition.GetX(), o3deCameraPosition.GetY(), o3deCameraPosition.GetZ() };
+            glm::dvec3 direction = glm::dvec3{ o3deCameraFwd.GetX(), o3deCameraFwd.GetY(), o3deCameraFwd.GetZ() };
+            glm::dvec3 up = glm::dvec3{ o3deCameraUp.GetX(), o3deCameraUp.GetY(), o3deCameraUp.GetZ() };
 
-            glm::dvec2 viewport{ o3deCameraConfiguration.m_frustumWidth, o3deCameraConfiguration.m_frustumHeight };
-            double aspect = o3deCameraConfiguration.m_frustumWidth / o3deCameraConfiguration.m_frustumHeight;
+            double aspect = viewportSize.x / viewportSize.y;
             double verticalFov = o3deCameraConfiguration.m_fovRadians;
             double horizontalFov = 2.0 * glm::atan(glm::tan(verticalFov * 0.5) * aspect);
-            return Cesium3DTilesSelection::ViewState::create(position, direction, up, viewport, horizontalFov, verticalFov);
+            return Cesium3DTilesSelection::ViewState::create(position, direction, up, viewportSize, horizontalFov, verticalFov);
         }
 
         AZStd::vector<AZ::EntityId> m_cameraEntityIds;
@@ -149,8 +160,7 @@ namespace Cesium
         if (m_impl->m_tileset)
         {
             // update view tileset
-            const std::vector<Cesium3DTilesSelection::ViewState>& viewStates =
-                m_impl->m_cameraConfigurations.UpdateAndGetViewStates(glm::dmat4(1.0));
+            const std::vector<Cesium3DTilesSelection::ViewState>& viewStates = m_impl->m_cameraConfigurations.UpdateAndGetViewStates();
 
             if (!viewStates.empty())
             {
@@ -164,7 +174,7 @@ namespace Cesium
                         if (model->IsVisible())
                         {
                             model->SetVisible(false);
-                        } 
+                        }
                     }
                 }
 
