@@ -4,6 +4,7 @@
 #pragma once
 
 #include <CesiumAsync/AsyncSystem.h>
+#include <CesiumAsync/Promise.h>
 #include <CesiumAsync/Future.h>
 #include <CesiumAsync/HttpHeaders.h>
 #include <aws/core/http/HttpResponse.h>
@@ -51,22 +52,22 @@ namespace Cesium
 
     struct HttpResult final
     {
-        std::shared_ptr<Aws::Http::HttpRequest> request;
-        std::shared_ptr<Aws::Http::HttpResponse> response;
+        std::shared_ptr<Aws::Http::HttpRequest> m_request;
+        std::shared_ptr<Aws::Http::HttpResponse> m_response;
     };
 
     class HttpManager final
     {
         struct HttpRequest
         {
-            HttpRequest(HttpRequestParameter&& parameter, const CesiumAsync::AsyncSystem::Promise<HttpResult>& promise)
+            HttpRequest(HttpRequestParameter&& parameter, const CesiumAsync::Promise<HttpResult>& promise)
                 : m_parameter{ std::move(parameter) }
                 , m_promise{ promise }
             {
             }
 
             HttpRequestParameter m_parameter;
-            CesiumAsync::AsyncSystem::Promise<HttpResult> m_promise;
+            CesiumAsync::Promise<HttpResult> m_promise;
         };
 
     public:
