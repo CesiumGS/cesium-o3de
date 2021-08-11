@@ -35,7 +35,7 @@ namespace Cesium
         return loadModel.release();
     }
 
-    void* RenderResourcesPreparer::prepareInMainThread([[maybe_unused]] Cesium3DTiles::Tile& tile, void* pLoadThreadResult)
+    void* RenderResourcesPreparer::prepareInMainThread([[maybe_unused]] Cesium3DTilesSelection::Tile& tile, void* pLoadThreadResult)
     {
         if (pLoadThreadResult)
         {
@@ -47,7 +47,7 @@ namespace Cesium
         return nullptr;
     }
 
-    void RenderResourcesPreparer::free([[maybe_unused]] Cesium3DTiles::Tile& tile, void* pLoadThreadResult, void* pMainThreadResult) noexcept
+    void RenderResourcesPreparer::free([[maybe_unused]] Cesium3DTilesSelection::Tile& tile, void* pLoadThreadResult, void* pMainThreadResult) noexcept
     {
         if (pLoadThreadResult)
         {
@@ -66,22 +66,22 @@ namespace Cesium
     }
 
     void* RenderResourcesPreparer::prepareRasterInMainThread(
-        [[maybe_unused]] const Cesium3DTiles::RasterOverlayTile& rasterTile, [[maybe_unused]] void* pLoadThreadResult)
+        [[maybe_unused]] const Cesium3DTilesSelection::RasterOverlayTile& rasterTile, [[maybe_unused]] void* pLoadThreadResult)
     {
         return nullptr;
     }
 
     void RenderResourcesPreparer::freeRaster(
-        [[maybe_unused]] const Cesium3DTiles::RasterOverlayTile& rasterTile,
+        [[maybe_unused]] const Cesium3DTilesSelection::RasterOverlayTile& rasterTile,
         [[maybe_unused]] void* pLoadThreadResult,
         [[maybe_unused]] void* pMainThreadResult) noexcept
     {
     }
 
     void RenderResourcesPreparer::attachRasterInMainThread(
-        [[maybe_unused]] const Cesium3DTiles::Tile& tile,
+        [[maybe_unused]] const Cesium3DTilesSelection::Tile& tile,
         [[maybe_unused]] std::uint32_t overlayTextureCoordinateID,
-        [[maybe_unused]] const Cesium3DTiles::RasterOverlayTile& rasterTile,
+        [[maybe_unused]] const Cesium3DTilesSelection::RasterOverlayTile& rasterTile,
         [[maybe_unused]] void* pMainThreadRendererResources,
         [[maybe_unused]] const CesiumGeometry::Rectangle& textureCoordinateRectangle,
         [[maybe_unused]] const glm::dvec2& translation,
@@ -90,9 +90,9 @@ namespace Cesium
     }
 
     void RenderResourcesPreparer::detachRasterInMainThread(
-        [[maybe_unused]] const Cesium3DTiles::Tile& tile,
+        [[maybe_unused]] const Cesium3DTilesSelection::Tile& tile,
         [[maybe_unused]] std::uint32_t overlayTextureCoordinateID,
-        [[maybe_unused]] const Cesium3DTiles::RasterOverlayTile& rasterTile,
+        [[maybe_unused]] const Cesium3DTilesSelection::RasterOverlayTile& rasterTile,
         [[maybe_unused]] void* pMainThreadRendererResources,
         [[maybe_unused]] const CesiumGeometry::Rectangle& textureCoordinateRectangle) noexcept
     {

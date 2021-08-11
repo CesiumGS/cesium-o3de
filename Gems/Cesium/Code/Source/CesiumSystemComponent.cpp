@@ -2,7 +2,7 @@
 #include "HttpAssetAccessor.h"
 #include "HttpManager.h"
 #include "TaskProcessor.h"
-#include <Cesium3DTiles/registerAllTileContentTypes.h>
+#include <Cesium3DTilesSelection/registerAllTileContentTypes.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/EditContext.h>
 #include <AzCore/Serialization/EditContextConstants.inl>
@@ -51,7 +51,7 @@ namespace Cesium
     CesiumSystemComponent::CesiumSystemComponent()
     {
         // initialize Cesium Native
-        Cesium3DTiles::registerAllTileContentTypes();
+        Cesium3DTilesSelection::registerAllTileContentTypes();
 
         // initialize asset accessors
         auto httpManager = AZStd::make_shared<HttpManager>();

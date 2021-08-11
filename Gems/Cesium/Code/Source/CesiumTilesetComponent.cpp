@@ -1,10 +1,10 @@
 #include <Cesium/CesiumTilesetComponent.h>
 #include "RenderResourcesPreparer.h"
 #include "CesiumSystemComponentBus.h"
-#include <Cesium3DTiles/Tileset.h>
-#include <Cesium3DTiles/TilesetExternals.h>
-#include <Cesium3DTiles/ViewState.h>
-#include <Cesium3DTiles/IPrepareRendererResources.h>
+#include <Cesium3DTilesSelection/Tileset.h>
+#include <Cesium3DTilesSelection/TilesetExternals.h>
+#include <Cesium3DTilesSelection/ViewState.h>
+#include <Cesium3DTilesSelection/IPrepareRendererResources.h>
 #include <Atom/Feature/Mesh/MeshFeatureProcessorInterface.h>
 #include <Atom/RPI.Public/Scene.h>
 #include <Atom/RPI.Public/Base.h>
@@ -39,7 +39,7 @@ namespace Cesium
             m_cameraEntityIds.erase(it, m_cameraEntityIds.end());
         }
 
-        const std::vector<Cesium3DTiles::ViewState>& UpdateAndGetViewStates(const glm::dmat4& o3deToCesiumTransform)
+        const std::vector<Cesium3DTilesSelection::ViewState>& UpdateAndGetViewStates(const glm::dmat4& o3deToCesiumTransform)
         {
             if (m_cameraEntityIds.empty())
             {
@@ -57,7 +57,7 @@ namespace Cesium
         }
 
     private:
-        static Cesium3DTiles::ViewState GetViewState(const AZ::EntityId& cameraEntityId, const glm::dmat4& o3deToCesiumTransform)
+        static Cesium3DTilesSelection::ViewState GetViewState(const AZ::EntityId& cameraEntityId, const glm::dmat4& o3deToCesiumTransform)
         {
             // Get o3de camera configuration
             AZ::RPI::ViewPtr view = nullptr;
@@ -83,18 +83,18 @@ namespace Cesium
             double aspect = o3deCameraConfiguration.m_frustumWidth / o3deCameraConfiguration.m_frustumHeight;
             double verticalFov = o3deCameraConfiguration.m_fovRadians;
             double horizontalFov = 2.0 * glm::atan(glm::tan(verticalFov * 0.5) * aspect);
-            return Cesium3DTiles::ViewState::create(position, direction, up, viewport, horizontalFov, verticalFov);
+            return Cesium3DTilesSelection::ViewState::create(position, direction, up, viewport, horizontalFov, verticalFov);
         }
 
         AZStd::vector<AZ::EntityId> m_cameraEntityIds;
-        std::vector<Cesium3DTiles::ViewState> m_viewStates;
+        std::vector<Cesium3DTilesSelection::ViewState> m_viewStates;
     };
 
     struct CesiumTilesetComponent::Impl
     {
-        AZStd::unique_ptr<Cesium3DTiles::Tileset> m_tileset;
+        AZStd::unique_ptr<Cesium3DTilesSelection::Tileset> m_tileset;
         CameraConfigurations m_cameraConfigurations;
-        std::shared_ptr<Cesium3DTiles::IPrepareRendererResources> m_renderResourcesPreparer;
+        std::shared_ptr<Cesium3DTilesSelection::IPrepareRendererResources> m_renderResourcesPreparer;
     };
 
     void CesiumTilesetComponent::Reflect(AZ::ReflectContext* context)
@@ -137,12 +137,12 @@ namespace Cesium
         if (m_impl->m_tileset)
         {
             // update view tileset
-            const std::vector<Cesium3DTiles::ViewState>& viewStates =
+            const std::vector<Cesium3DTilesSelection::ViewState>& viewStates =
                 m_impl->m_cameraConfigurations.UpdateAndGetViewStates(glm::dmat4(1.0));
 
             if (!viewStates.empty())
             {
-                m_impl->m_tileset->updateView(viewStates.front());
+                m_impl->m_tileset->updateView(viewStates);
             }
         }
     }
@@ -159,14 +159,14 @@ namespace Cesium
 
     void CesiumTilesetComponent::LoadTileset(const AZStd::string& filePath)
     {
-        Cesium3DTiles::TilesetExternals external{
+        Cesium3DTilesSelection::TilesetExternals external{
             CesiumInterface::Get()->GetAssetAccessor(),
             m_impl->m_renderResourcesPreparer,
             CesiumAsync::AsyncSystem(CesiumInterface::Get()->GetTaskProcessor()),
             nullptr,
             CesiumInterface::Get()->GetLogger(),
         };
-        m_impl->m_tileset = AZStd::make_unique<Cesium3DTiles::Tileset>(external, filePath.c_str());
+        m_impl->m_tileset = AZStd::make_unique<Cesium3DTilesSelection::Tileset>(external, filePath.c_str());
     }
 
     void CesiumTilesetComponent::OnCameraAdded(const AZ::EntityId& cameraId)
