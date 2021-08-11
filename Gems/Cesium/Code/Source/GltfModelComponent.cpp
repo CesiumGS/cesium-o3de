@@ -25,7 +25,6 @@ namespace Cesium
     }
 
     GltfModelComponent::GltfModelComponent()
-        : m_impl{ AZStd::make_unique<Impl>() }
     {
     }
 
@@ -39,6 +38,11 @@ namespace Cesium
         AZ::Render::MeshFeatureProcessorInterface* meshFeatureProcessor =
             AZ::RPI::Scene::GetFeatureProcessorForEntity<AZ::Render::MeshFeatureProcessorInterface>(GetEntityId());
         m_impl->m_gltfModel = AZStd::make_unique<GltfModel>(meshFeatureProcessor, loadModel);
+    }
+
+    void GltfModelComponent::Init()
+    {
+        m_impl = AZStd::make_unique<Impl>();
     }
 
     void GltfModelComponent::Activate()
