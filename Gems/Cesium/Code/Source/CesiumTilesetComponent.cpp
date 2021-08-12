@@ -164,7 +164,7 @@ namespace Cesium
 
             if (!viewStates.empty())
             {
-                Cesium3DTilesSelection::ViewUpdateResult viewUpdate = m_impl->m_tileset->updateView(viewStates);
+                const Cesium3DTilesSelection::ViewUpdateResult& viewUpdate = m_impl->m_tileset->updateView(viewStates);
                 for (Cesium3DTilesSelection::Tile* tile : viewUpdate.tilesToNoLongerRenderThisFrame)
                 {
                     void* renderResources = tile->getRendererResources();

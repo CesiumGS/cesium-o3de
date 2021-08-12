@@ -39,7 +39,8 @@ namespace Cesium
     {
         if (pLoadThreadResult)
         {
-            GltfLoadModel* loadModel = reinterpret_cast<GltfLoadModel*>(pLoadThreadResult);
+            // we destroy loadModel after main thread is done
+            AZStd::unique_ptr<GltfLoadModel> loadModel{ reinterpret_cast<GltfLoadModel*>(pLoadThreadResult) };
             AZStd::unique_ptr<GltfModel> model = AZStd::make_unique<GltfModel>(m_meshFeatureProcessor, *loadModel);
             model->SetVisible(false);
             return model.release();
