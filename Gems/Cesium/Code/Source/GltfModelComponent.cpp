@@ -47,22 +47,12 @@ namespace Cesium
 
     void GltfModelComponent::Activate()
     {
-        AZ::TickBus::Handler::BusConnect();
         GltfModelRequestBus::Handler::BusConnect(GetEntityId());
     }
 
     void GltfModelComponent::Deactivate()
     {
-        AZ::TickBus::Handler::BusDisconnect();
         GltfModelRequestBus::Handler::BusDisconnect();
-    }
-
-    void GltfModelComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
-    {
-        if (m_impl->m_gltfModel)
-        {
-            m_impl->m_gltfModel->Update();
-        }
     }
 
     void GltfModelComponent::OnTransformChanged([[maybe_unused]] const AZ::Transform& local, const AZ::Transform& world)

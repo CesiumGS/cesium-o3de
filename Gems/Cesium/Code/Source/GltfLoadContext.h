@@ -29,15 +29,11 @@ namespace Cesium
     {
         GltfLoadMaterial();
 
-        GltfLoadMaterial(
-            AZ::Data::Asset<AZ::RPI::MaterialAsset>&& materialAsset,
-            AZStd::unordered_map<AZ::Name, TextureId>&& textureMap,
-            bool needTangents);
+        GltfLoadMaterial(AZ::Data::Asset<AZ::RPI::MaterialAsset>&& materialAsset, bool needTangents);
 
         bool IsEmpty() const;
 
         AZ::Data::Asset<AZ::RPI::MaterialAsset> m_materialAsset;
-        AZStd::unordered_map<AZ::Name, TextureId> m_textureProperties;
         bool m_needTangents;
     };
 

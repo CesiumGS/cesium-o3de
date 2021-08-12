@@ -19,15 +19,12 @@ namespace Cesium
 
     GltfLoadMaterial::GltfLoadMaterial()
         : m_materialAsset{}
-        , m_textureProperties{}
         , m_needTangents{ false }
     {
     }
 
-    GltfLoadMaterial::GltfLoadMaterial(
-        AZ::Data::Asset<AZ::RPI::MaterialAsset>&& materialAsset, AZStd::unordered_map<AZ::Name, TextureId>&& textureMap, bool needTangents)
+    GltfLoadMaterial::GltfLoadMaterial(AZ::Data::Asset<AZ::RPI::MaterialAsset>&& materialAsset, bool needTangents)
         : m_materialAsset{ std::move(materialAsset) }
-        , m_textureProperties{ std::move(textureMap) }
         , m_needTangents{ needTangents }
     {
     }

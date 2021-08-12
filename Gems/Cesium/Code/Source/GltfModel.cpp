@@ -44,32 +44,6 @@ namespace Cesium
                     const GltfLoadMaterial& loadMaterial = loadModel.m_materials[loadPrimitive.m_materialId];
                     const AZ::Data::Asset<AZ::RPI::MaterialAsset>& materialAsset = loadMaterial.m_materialAsset;
                     AZ::Data::Instance<AZ::RPI::Material> materialInstance = AZ::RPI::Material::Create(materialAsset);
-
-                    // Set image instance for material
-                    for (const auto& textureProperty : loadMaterial.m_textureProperties)
-                    {
-                        auto textureInstanceIt = textures.find(textureProperty.second);
-                        if (textureInstanceIt == textures.end())
-                        {
-                            AZ::Data::Instance<AZ::RPI::Image> textureInstance =
-                                AZ::RPI::StreamingImage::FindOrCreate(loadModel.m_textures.at(textureProperty.second).m_imageAsset);
-                            textures.insert({ textureProperty.second, textureInstance });
-
-                            auto propertyIndex = materialInstance->FindPropertyIndex(textureProperty.first);
-                            materialInstance->SetPropertyValue(propertyIndex, textureInstance);
-                        }
-                        else
-                        {
-                            auto propertyIndex = materialInstance->FindPropertyIndex(textureProperty.first);
-                            materialInstance->SetPropertyValue(propertyIndex, textureInstanceIt->second);
-                        }
-                    }
-
-                    if (!materialInstance->Compile())
-                    {
-                        m_materialsToCompile.emplace_back(materialInstance);
-                    }
-
                     materials[loadPrimitive.m_materialId] = std::move(materialInstance);
                 }
 
@@ -84,20 +58,6 @@ namespace Cesium
     GltfModel::~GltfModel() noexcept
     {
         Destroy();
-    }
-
-    void GltfModel::Update()
-    {
-        if (!m_materialsToCompile.empty())
-        {
-            auto it = AZStd::remove_if(
-                m_materialsToCompile.begin(), m_materialsToCompile.end(),
-                [](auto& mat)
-                {
-                    return !mat->NeedsCompile() || mat->Compile();
-                });
-            m_materialsToCompile.erase(it, m_materialsToCompile.end());
-        }
     }
 
     bool GltfModel::IsVisible() const

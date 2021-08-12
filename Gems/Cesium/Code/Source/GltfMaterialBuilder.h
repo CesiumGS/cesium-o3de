@@ -1,7 +1,7 @@
 #pragma once
 
 #include "GltfLoadContext.h"
-#include <AzCore/std/optional.h>
+#include <Atom/RPI.Reflect/Image/StreamingImageAsset.h>
 #include <AzCore/std/containers/unordered_map.h>
 
 namespace CesiumGltf
@@ -25,7 +25,6 @@ namespace Cesium
     class GltfMaterialBuilder final
     {
         using TextureCache = AZStd::unordered_map<TextureId, GltfLoadTexture>;
-        using TextureProperties = AZStd::unordered_map<AZ::Name, TextureId>;
 
     public:
         void Create(
@@ -39,38 +38,33 @@ namespace Cesium
             const CesiumGltf::Model& model,
             const CesiumGltf::Material& material,
             TextureCache& textureCache,
-            TextureProperties& textureProperties,
             AZ::RPI::MaterialAssetCreator& materialCreator);
 
         void ConfigureEmissive(
             const CesiumGltf::Model& model,
             const CesiumGltf::Material& material,
             TextureCache& textureCache,
-            TextureProperties& textureProperties,
             AZ::RPI::MaterialAssetCreator& materialCreator);
 
         void ConfigureOcclusion(
             const CesiumGltf::Model& model,
             const CesiumGltf::Material& material,
             TextureCache& textureCache,
-            TextureProperties& textureProperties,
             AZ::RPI::MaterialAssetCreator& materialCreator);
 
-        void ConfigureOpacity(
-            const CesiumGltf::Material& material,
-            AZ::RPI::MaterialAssetCreator& materialCreator);
+        void ConfigureOpacity(const CesiumGltf::Material& material, AZ::RPI::MaterialAssetCreator& materialCreator);
 
-        AZStd::optional<TextureId> GetOrCreateOcclusionImage(
+        AZ::Data::Asset<AZ::RPI::StreamingImageAsset> GetOrCreateOcclusionImage(
             const CesiumGltf::Model& model, const CesiumGltf::TextureInfo& textureInfo, TextureCache& textureCache);
 
-        AZStd::optional<TextureId> GetOrCreateRGBAImage(
+        AZ::Data::Asset<AZ::RPI::StreamingImageAsset> GetOrCreateRGBAImage(
             const CesiumGltf::Model& model, const CesiumGltf::TextureInfo& textureInfo, TextureCache& textureCache);
 
         void GltfMaterialBuilder::GetOrCreateMetallicRoughnessImage(
             const CesiumGltf::Model& model,
             const CesiumGltf::TextureInfo& textureInfo,
-            AZStd::optional<TextureId>& metallic,
-            AZStd::optional<TextureId>& roughness,
+            AZ::Data::Asset<AZ::RPI::StreamingImageAsset>& metallic,
+            AZ::Data::Asset<AZ::RPI::StreamingImageAsset>& roughness,
             TextureCache& textureCache);
 
         AZ::Data::Asset<AZ::RPI::StreamingImageAsset> Create2DImage(
