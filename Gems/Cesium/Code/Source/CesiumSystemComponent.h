@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CriticalAssetManager.h"
 #include "CesiumSystemComponentBus.h"
 #include <spdlog/logger.h>
 #include <CesiumAsync/ITaskProcessor.h>
@@ -38,6 +39,8 @@ namespace Cesium
 
         const std::shared_ptr<spdlog::logger>& GetLogger() const override;
 
+        const CriticalAssetManager& GetCriticalAssetManager() const override;
+
     protected:
         void Init() override;
 
@@ -51,6 +54,7 @@ namespace Cesium
         std::shared_ptr<CesiumAsync::IAssetAccessor> m_assetAccessor;
         std::shared_ptr<CesiumAsync::ITaskProcessor> m_taskProcessor;
         std::shared_ptr<spdlog::logger> m_logger;
+        CriticalAssetManager m_criticalAssetManager;
     };
 
 } // namespace Cesium

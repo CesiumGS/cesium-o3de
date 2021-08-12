@@ -92,6 +92,11 @@ namespace Cesium
         return m_logger;
     }
 
+    const CriticalAssetManager& CesiumSystemComponent::GetCriticalAssetManager() const
+    {
+        return m_criticalAssetManager;
+    }
+
     void CesiumSystemComponent::Init()
     {
     }

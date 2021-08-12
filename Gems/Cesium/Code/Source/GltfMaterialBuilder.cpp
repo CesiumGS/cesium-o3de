@@ -1,4 +1,6 @@
 #include "GltfMaterialBuilder.h"
+#include "CesiumSystemComponentBus.h"
+#include "CriticalAssetManager.h"
 
 // Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
 // This only happens with unity build
@@ -26,13 +28,11 @@ namespace Cesium
             AZStd::unordered_map<TextureId, GltfLoadTexture>& textureCache,
             GltfLoadMaterial& result)
     {
-        // Load StandardPBR material type
-        auto standardPBRMaterialType = AZ::RPI::AssetUtils::LoadAssetByProductPath<AZ::RPI::MaterialTypeAsset>(STANDARD_PBR_MAT_TYPE);
-
         // Create material asset
+        const CriticalAssetManager& criticalAssetManager = CesiumInterface::Get()->GetCriticalAssetManager(); 
         AZ::Data::Asset<AZ::RPI::MaterialAsset> standardPBRMaterialAsset;
         AZ::RPI::MaterialAssetCreator materialCreator;
-        materialCreator.Begin(AZ::Uuid::CreateRandom(), *standardPBRMaterialType);
+        materialCreator.Begin(AZ::Uuid::CreateRandom(), *criticalAssetManager.m_standardPbrMaterialType);
 
         ConfigurePbrMetallicRoughness(model, material, textureCache, materialCreator);
         ConfigureOcclusion(model, material, textureCache, materialCreator);

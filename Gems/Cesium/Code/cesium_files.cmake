@@ -5,6 +5,8 @@ set(FILES
     Include/Cesium/GltfModelComponentBus.h
     Include/Cesium/GltfModelComponent.h
     Source/CesiumModuleInterface.h
+    Source/CriticalAssetManager.cpp
+    Source/CriticalAssetManager.h
     Source/BitangentAndTangentGenerator.cpp
     Source/BitangentAndTangentGenerator.h
     Source/HttpAssetAccessor.cpp
