@@ -28,8 +28,6 @@ namespace Cesium
 
         ~GltfModel() noexcept;
 
-        void Update();
-
         bool IsVisible() const;
 
         void SetVisible(bool visible);
@@ -47,7 +45,6 @@ namespace Cesium
         glm::dmat4 m_transform;
         AZ::Render::MeshFeatureProcessorInterface* m_meshFeatureProcessor;
         AZStd::vector<GltfMesh> m_meshes;
-        AZStd::vector<AZ::Data::Instance<AZ::RPI::Material>> m_materialsToCompile;
     };
 }
 

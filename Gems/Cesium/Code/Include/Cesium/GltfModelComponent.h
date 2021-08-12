@@ -2,7 +2,6 @@
 
 #include <Cesium/GltfModelComponentBus.h>
 #include <AzCore/Component/Component.h>
-#include <AzCore/Component/TickBus.h>
 #include <AzCore/Component/TransformBus.h>
 #include <AzCore/std/smart_ptr/unique_ptr.h>
 #include <AzCore/std/string/string.h>
@@ -11,7 +10,6 @@ namespace Cesium
 {
     class GltfModelComponent
         : public AZ::Component
-        , public AZ::TickBus::Handler
         , public GltfModelRequestBus::Handler
         , private AZ::TransformNotificationBus::Handler
     {
@@ -30,8 +28,6 @@ namespace Cesium
         void Activate() override;
 
         void Deactivate() override;
-
-        void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
 
         void OnTransformChanged(const AZ::Transform& local, const AZ::Transform& world) override;
 
