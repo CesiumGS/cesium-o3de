@@ -49,7 +49,7 @@ namespace Cesium
         static bool IsIdentityMatrix(const std::vector<double>& matrix);
 
         static constexpr glm::dmat4 GLTF_TO_O3DE =
-            glm::dmat4(-1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+            glm::dmat4(1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
     };
 } // namespace Cesium
 
