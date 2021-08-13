@@ -14,7 +14,7 @@ namespace Cesium
 
         virtual void RemoveCamera(const AZ::EntityId& cameraEntityId) = 0;
 
-        virtual void LoadTileset(const AZStd::string& filePath) = 0;
+        virtual void LoadTilesetFromUrl(const AZStd::string& url) = 0;
 
         virtual void LoadTilesetFromCesiumIon(std::uint32_t cesiumIonAssetId, const AZStd::string& cesiumIonAssetToken) = 0;
     };

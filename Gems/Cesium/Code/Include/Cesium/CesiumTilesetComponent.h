@@ -31,7 +31,7 @@ namespace Cesium
 
         void RemoveCamera(const AZ::EntityId& cameraEntityId) override;
 
-        void LoadTileset(const AZStd::string& filePath) override;
+        void LoadTilesetFromUrl(const AZStd::string& url) override;
 
         void LoadTilesetFromCesiumIon(std::uint32_t cesiumIonAssetId, const AZStd::string& cesiumIonAssetToken) override;
 

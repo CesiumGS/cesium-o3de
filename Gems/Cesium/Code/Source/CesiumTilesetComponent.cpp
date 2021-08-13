@@ -217,10 +217,10 @@ namespace Cesium
         m_impl->m_cameraConfigurations.RemoveCameraEntity(cameraEntityId);
     }
 
-    void CesiumTilesetComponent::LoadTileset(const AZStd::string& filePath)
+    void CesiumTilesetComponent::LoadTilesetFromUrl(const AZStd::string& url)
     {
         Cesium3DTilesSelection::TilesetExternals externals = m_impl->CreateTilesetExternal();
-        m_impl->m_tileset = AZStd::make_unique<Cesium3DTilesSelection::Tileset>(externals, filePath.c_str());
+        m_impl->m_tileset = AZStd::make_unique<Cesium3DTilesSelection::Tileset>(externals, url.c_str());
     }
 
     void CesiumTilesetComponent::LoadTilesetFromCesiumIon(std::uint32_t cesiumIonAssetId, const AZStd::string& cesiumIonAssetToken)
