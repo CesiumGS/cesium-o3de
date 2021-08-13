@@ -18,34 +18,49 @@
 #include <AzCore/std/algorithm.h>
 #include <AzCore/std/containers/vector.h>
 #include <glm/glm.hpp>
-#include <cassert>
 #include <vector>
 
 namespace Cesium
 {
     class CesiumTilesetComponent::CameraConfigurations
     {
-    public:
-        void AddCameraEntity(const AZ::EntityId& cameraEntityId)
+        struct CameraConfig
         {
-            auto it = AZStd::find(m_cameraEntityIds.begin(), m_cameraEntityIds.end(), cameraEntityId);
+            AZ::EntityId m_cameraEntityId;
+            AzFramework::ViewportId m_viewportId;
+        };
 
-            if (it == m_cameraEntityIds.end())
+    public:
+        void AddCameraEntity(const AZ::EntityId& cameraEntityId, const AzFramework::ViewportId& viewportId)
+        {
+            auto it = AZStd::find_if(
+                m_cameraConfigs.begin(), m_cameraConfigs.end(),
+                [&cameraEntityId](const CameraConfig& pair)
+                {
+                    return pair.m_cameraEntityId == cameraEntityId;
+                });
+
+            if (it == m_cameraConfigs.end())
             {
-                m_cameraEntityIds.emplace_back(cameraEntityId);
+                m_cameraConfigs.emplace_back(CameraConfig{ cameraEntityId, viewportId });
             }
         }
 
         void RemoveCameraEntity(const AZ::EntityId& cameraEntityId)
         {
-            auto it = AZStd::remove(m_cameraEntityIds.begin(), m_cameraEntityIds.end(), cameraEntityId);
-            m_cameraEntityIds.erase(it, m_cameraEntityIds.end());
+            auto it = AZStd::remove_if(
+                m_cameraConfigs.begin(), m_cameraConfigs.end(),
+                [&cameraEntityId](const CameraConfig& pair)
+                {
+                    return pair.m_cameraEntityId == cameraEntityId;
+                });
+            m_cameraConfigs.erase(it, m_cameraConfigs.end());
         }
 
         const std::vector<Cesium3DTilesSelection::ViewState>& UpdateAndGetViewStates()
         {
             m_viewStates.clear();
-            if (m_cameraEntityIds.empty())
+            if (m_cameraConfigs.empty())
             {
                 return m_viewStates;
             }
@@ -56,18 +71,18 @@ namespace Cesium
                 return m_viewStates;
             }
 
-            AZ::RPI::ViewportContextPtr viewportContext = viewportManager->GetDefaultViewportContext();
-            if (!viewportContext)
+            m_viewStates.reserve(m_cameraConfigs.size());
+            for (std::size_t i = 0; i < m_cameraConfigs.size(); ++i)
             {
-                return m_viewStates;
-            }
+                AZ::RPI::ViewportContextPtr viewportContext = viewportManager->GetViewportContextById(m_cameraConfigs[i].m_viewportId);
+                if (!viewportContext)
+                {
+                    continue;
+                }
 
-            AzFramework::WindowSize windowSize = viewportContext->GetViewportSize();
-            glm::dvec2 viewportSize{windowSize.m_width, windowSize.m_height};
-            m_viewStates.reserve(m_cameraEntityIds.size());
-            for (std::size_t i = 0; i < m_cameraEntityIds.size(); ++i)
-            {
-                m_viewStates.emplace_back(GetViewState(m_cameraEntityIds[i], viewportSize));
+                AzFramework::WindowSize windowSize = viewportContext->GetViewportSize();
+                glm::dvec2 viewportSize{ windowSize.m_width, windowSize.m_height };
+                m_viewStates.emplace_back(GetViewState(m_cameraConfigs[i].m_cameraEntityId, viewportSize));
             }
 
             return m_viewStates;
@@ -98,7 +113,7 @@ namespace Cesium
             return Cesium3DTilesSelection::ViewState::create(position, direction, up, viewportSize, horizontalFov, verticalFov);
         }
 
-        AZStd::vector<AZ::EntityId> m_cameraEntityIds;
+        AZStd::vector<CameraConfig> m_cameraConfigs;
         std::vector<Cesium3DTilesSelection::ViewState> m_viewStates;
     };
 
@@ -144,14 +159,12 @@ namespace Cesium
     void CesiumTilesetComponent::Activate()
     {
         AZ::TickBus::Handler::BusConnect();
-        Camera::CameraNotificationBus::Handler::BusConnect();
         CesiumTilesetRequestBus::Handler::BusConnect(GetEntityId());
     }
 
     void CesiumTilesetComponent::Deactivate()
     {
         AZ::TickBus::Handler::BusDisconnect();
-        Camera::CameraNotificationBus::Handler::BusDisconnect();
         CesiumTilesetRequestBus::Handler::BusDisconnect();
     }
 
@@ -194,12 +207,12 @@ namespace Cesium
         }
     }
 
-    void CesiumTilesetComponent::AddCameraEntity(const AZ::EntityId& cameraEntityId)
+    void CesiumTilesetComponent::AddCamera(const AZ::EntityId& cameraEntityId, const AzFramework::ViewportId& viewportId)
     {
-        m_impl->m_cameraConfigurations.AddCameraEntity(cameraEntityId);
+        m_impl->m_cameraConfigurations.AddCameraEntity(cameraEntityId, viewportId);
     }
 
-    void CesiumTilesetComponent::RemoveCameraEntity(const AZ::EntityId& cameraEntityId)
+    void CesiumTilesetComponent::RemoveCamera(const AZ::EntityId& cameraEntityId)
     {
         m_impl->m_cameraConfigurations.RemoveCameraEntity(cameraEntityId);
     }
@@ -214,15 +227,5 @@ namespace Cesium
     {
         Cesium3DTilesSelection::TilesetExternals externals = m_impl->CreateTilesetExternal();
         m_impl->m_tileset = AZStd::make_unique<Cesium3DTilesSelection::Tileset>(externals, cesiumIonAssetId, cesiumIonAssetToken.c_str());
-    }
-
-    void CesiumTilesetComponent::OnCameraAdded(const AZ::EntityId& cameraId)
-    {
-        AddCameraEntity(cameraId);
-    }
-
-    void CesiumTilesetComponent::OnCameraRemoved(const AZ::EntityId& cameraId)
-    {
-        RemoveCameraEntity(cameraId);
     }
 } // namespace Cesium

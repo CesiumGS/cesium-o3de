@@ -1,5 +1,6 @@
 #pragma once
 
+#include <AzFramework/Viewport/ViewportId.h>
 #include <AzCore/Component/ComponentBus.h>
 #include <AzCore/std/string/string.h>
 #include <cstdint>
@@ -9,9 +10,9 @@ namespace Cesium
     class CesiumTilesetRequest : public AZ::ComponentBus
     {
     public:
-        virtual void AddCameraEntity(const AZ::EntityId& cameraEntityId) = 0;
+        virtual void AddCamera(const AZ::EntityId& cameraEntityId, const AzFramework::ViewportId& viewportId) = 0;
 
-        virtual void RemoveCameraEntity(const AZ::EntityId& cameraEntityId) = 0;
+        virtual void RemoveCamera(const AZ::EntityId& cameraEntityId) = 0;
 
         virtual void LoadTileset(const AZStd::string& filePath) = 0;
 
