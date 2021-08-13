@@ -10,11 +10,16 @@ namespace Cesium
 
     CriticalAssetManager::~CriticalAssetManager() noexcept
     {
-        AzFramework::AssetCatalogEventBus::Handler::BusDisconnect();
     }
 
     void CriticalAssetManager::OnCatalogLoaded([[maybe_unused]] const char* catalogFile)
     {
         m_standardPbrMaterialType = AZ::RPI::AssetUtils::LoadCriticalAsset<AZ::RPI::MaterialTypeAsset>(STANDARD_PBR_MAT_TYPE);
+        AzFramework::AssetCatalogEventBus::Handler::BusDisconnect();
+    }
+
+    void CriticalAssetManager::Shutdown()
+    {
+        m_standardPbrMaterialType.Release();
     }
 } // namespace Cesium

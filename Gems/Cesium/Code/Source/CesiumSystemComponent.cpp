@@ -111,6 +111,7 @@ namespace Cesium
     {
         AZ::TickBus::Handler::BusDisconnect();
         CesiumRequestBus::Handler::BusDisconnect();
+        m_criticalAssetManager.Shutdown();
     }
 
     void CesiumSystemComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)

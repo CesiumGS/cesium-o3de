@@ -15,6 +15,8 @@ namespace Cesium
 
         void OnCatalogLoaded(const char* catalogFile) override;
 
+        void Shutdown();
+
         AZ::Data::Asset<AZ::RPI::MaterialTypeAsset> m_standardPbrMaterialType;
 
     private:
