@@ -27,6 +27,10 @@ namespace Cesium
 
         void Deactivate() override;
 
+        void SetConfiguration(const CesiumTilesetConfiguration& configration) override;
+
+        const CesiumTilesetConfiguration& GetConfiguration() const override;
+
         void AddCamera(const AZ::EntityId& cameraEntityId, const AzFramework::ViewportId& viewportId) override;
 
         void RemoveCamera(const AZ::EntityId& cameraEntityId) override;

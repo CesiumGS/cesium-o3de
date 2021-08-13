@@ -130,9 +130,10 @@ namespace Cesium
             };
         }
 
+        std::shared_ptr<Cesium3DTilesSelection::IPrepareRendererResources> m_renderResourcesPreparer;
         AZStd::unique_ptr<Cesium3DTilesSelection::Tileset> m_tileset;
         CameraConfigurations m_cameraConfigurations;
-        std::shared_ptr<Cesium3DTilesSelection::IPrepareRendererResources> m_renderResourcesPreparer;
+        CesiumTilesetConfiguration m_tilesetConfiguration;
     };
 
     void CesiumTilesetComponent::Reflect(AZ::ReflectContext* context)
@@ -166,6 +167,26 @@ namespace Cesium
     {
         AZ::TickBus::Handler::BusDisconnect();
         CesiumTilesetRequestBus::Handler::BusDisconnect();
+    }
+
+    void CesiumTilesetComponent::SetConfiguration(const CesiumTilesetConfiguration& configration)
+    {
+        m_impl->m_tilesetConfiguration = configration;
+        if (m_impl->m_tileset)
+        {
+            Cesium3DTilesSelection::TilesetOptions& options = m_impl->m_tileset->getOptions();
+            options.maximumScreenSpaceError = m_impl->m_tilesetConfiguration.m_maximumScreenSpaceError;
+            options.maximumCachedBytes = m_impl->m_tilesetConfiguration.m_maximumCacheBytes;
+            options.maximumSimultaneousTileLoads = m_impl->m_tilesetConfiguration.m_maximumSimultaneousTileLoads;
+            options.loadingDescendantLimit = m_impl->m_tilesetConfiguration.m_loadingDescendantLimit;
+            options.preloadAncestors = m_impl->m_tilesetConfiguration.m_preloadAncestors;
+            options.preloadSiblings = m_impl->m_tilesetConfiguration.m_preloadSiblings;
+        }
+    }
+
+    const CesiumTilesetConfiguration& CesiumTilesetComponent::GetConfiguration() const
+    {
+        return m_impl->m_tilesetConfiguration;
     }
 
     void CesiumTilesetComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
