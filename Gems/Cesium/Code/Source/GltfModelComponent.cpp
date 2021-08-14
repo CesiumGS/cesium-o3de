@@ -30,6 +30,7 @@ namespace Cesium
 
     void GltfModelComponent::LoadModel(const AZStd::string& filePath)
     {
+        // Load model
         LocalFileManager io;
         GltfModelBuilder builder;
         GltfModelBuilderOption option{ glm::dmat4(1.0) };
@@ -38,6 +39,11 @@ namespace Cesium
         AZ::Render::MeshFeatureProcessorInterface* meshFeatureProcessor =
             AZ::RPI::Scene::GetFeatureProcessorForEntity<AZ::Render::MeshFeatureProcessorInterface>(GetEntityId());
         m_impl->m_gltfModel = AZStd::make_unique<GltfModel>(meshFeatureProcessor, loadModel);
+
+        // Set the model transform
+        AZ::Transform worldTransform;
+        AZ::TransformBus::EventResult(worldTransform, GetEntityId(), &AZ::TransformBus::Events::GetWorldTM);
+        SetWorldTransform(worldTransform);
     }
 
     void GltfModelComponent::Init()
@@ -58,6 +64,11 @@ namespace Cesium
     }
 
     void GltfModelComponent::OnTransformChanged([[maybe_unused]] const AZ::Transform& local, const AZ::Transform& world)
+    {
+        SetWorldTransform(world);
+    }
+
+    void GltfModelComponent::SetWorldTransform(const AZ::Transform& world)
     {
         const AZ::Vector3& o3deTranslation = world.GetTranslation();
         const AZ::Quaternion& o3deRotation = world.GetRotation();

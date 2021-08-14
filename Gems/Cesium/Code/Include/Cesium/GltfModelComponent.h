@@ -31,6 +31,8 @@ namespace Cesium
 
         void OnTransformChanged(const AZ::Transform& local, const AZ::Transform& world) override;
 
+        void SetWorldTransform(const AZ::Transform& world);
+
         struct Impl;
         AZStd::unique_ptr<Impl> m_impl;
     };
