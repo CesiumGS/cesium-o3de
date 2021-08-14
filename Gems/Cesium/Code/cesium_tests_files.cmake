@@ -11,5 +11,6 @@ set(FILES
     Tests/GltfMaterialBuilderTest.cpp
     Tests/GltfModelBuilderTest.cpp
     Tests/GltfModelTest.cpp
+    Tests/GltfModelComponentBusTest.cpp
     Tests/GltfModelComponentTest.cpp
 )
