@@ -1,8 +1,11 @@
 
 set(FILES
     Include/Cesium/CesiumTilesetComponentBus.h
+    Source/CesiumTilesetComponent.cpp
     Include/Cesium/CesiumTilesetComponent.h
+    Source/GltfModelComponentBus.cpp
     Include/Cesium/GltfModelComponentBus.h
+    Source/GltfModelComponent.cpp
     Include/Cesium/GltfModelComponent.h
     Source/CesiumModuleInterface.h
     Source/CriticalAssetManager.cpp
@@ -34,6 +37,4 @@ set(FILES
     Source/CesiumSystemComponent.cpp
     Source/CesiumSystemComponent.h
     Source/CesiumSystemComponentBus.h
-    Source/GltfModelComponent.cpp
-    Source/CesiumTilesetComponent.cpp
 )
