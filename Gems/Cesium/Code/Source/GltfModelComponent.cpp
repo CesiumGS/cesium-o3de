@@ -48,11 +48,13 @@ namespace Cesium
     void GltfModelComponent::Activate()
     {
         GltfModelRequestBus::Handler::BusConnect(GetEntityId());
+        AZ::TransformNotificationBus::Handler::BusConnect(GetEntityId());
     }
 
     void GltfModelComponent::Deactivate()
     {
         GltfModelRequestBus::Handler::BusDisconnect();
+        AZ::TransformNotificationBus::Handler::BusDisconnect();
     }
 
     void GltfModelComponent::OnTransformChanged([[maybe_unused]] const AZ::Transform& local, const AZ::Transform& world)
@@ -64,7 +66,7 @@ namespace Cesium
                                 static_cast<double>(o3deTranslation.GetZ()) };
         glm::dquat rotation{ static_cast<double>(o3deRotation.GetW()), static_cast<double>(o3deRotation.GetX()),
                              static_cast<double>(o3deRotation.GetY()), static_cast<double>(o3deRotation.GetZ()) };
-        glm::dmat4 newTransform = glm::translate(m_impl->m_gltfModel->GetTransform(), translation);
+        glm::dmat4 newTransform = glm::translate(glm::dmat4(1.0), translation);
         newTransform *= glm::dmat4(rotation);
         newTransform = glm::scale(newTransform, glm::dvec3(static_cast<double>(scale)));
 

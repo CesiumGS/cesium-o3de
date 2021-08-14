@@ -21,7 +21,9 @@ namespace Cesium
 
     GltfModel::GltfModel(AZ::Render::MeshFeatureProcessorInterface* meshFeatureProcessor, const GltfLoadModel& loadModel)
         : m_visible{true}
+        , m_transform{glm::dmat4(1.0)}
         , m_meshFeatureProcessor{ meshFeatureProcessor }
+        , m_meshes{}
     {
         AZStd::unordered_map<TextureId, AZ::Data::Instance<AZ::RPI::Image>> textures;
         AZStd::vector<AZ::Data::Instance<AZ::RPI::Material>> materials(loadModel.m_materials.size());
