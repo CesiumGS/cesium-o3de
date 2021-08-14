@@ -1,5 +1,6 @@
 
 set(FILES
+    Source/CesiumTilesetComponentBus.cpp
     Include/Cesium/CesiumTilesetComponentBus.h
     Source/CesiumTilesetComponent.cpp
     Include/Cesium/CesiumTilesetComponent.h
@@ -36,5 +37,6 @@ set(FILES
     Source/RenderResourcesPreparer.h
     Source/CesiumSystemComponent.cpp
     Source/CesiumSystemComponent.h
+    Source/CesiumSystemComponentBus.cpp
     Source/CesiumSystemComponentBus.h
 )

@@ -8,13 +8,15 @@ set(FILES
     Tests/LocalFileManagerTest.cpp
     Tests/HttpAssetAccessorTest.cpp
     Tests/TaskProcessorTest.cpp
+    Tests/RenderResourcesPreparerTest.cpp
+    Tests/CesiumSystemComponentBusTest.cpp
     Tests/GltfLoadContextTest.cpp
     Tests/GltfPrimitiveBuilderTest.cpp
     Tests/GltfMaterialBuilderTest.cpp
     Tests/GltfModelBuilderTest.cpp
     Tests/GltfModelTest.cpp
-    Tests/RenderResourcesPreparerTest.cpp
     Tests/GltfModelComponentBusTest.cpp
     Tests/GltfModelComponentTest.cpp
+    Tests/CesiumTilesetComponentBusTest.cpp
     Tests/CesiumTilesetComponentTest.cpp
 )

@@ -1,6 +1,7 @@
 #include "RenderResourcesPreparer.h"
 #include "GltfModelBuilder.h"
 #include "GltfModel.h"
+#include "GltfLoadContext.h"
 #include <Atom/Feature/Mesh/MeshFeatureProcessorInterface.h>
 #include <AzCore/std/smart_ptr/unique_ptr.h>
 
