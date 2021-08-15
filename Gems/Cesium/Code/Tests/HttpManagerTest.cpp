@@ -44,7 +44,7 @@ TEST_F(HttpManagerTest, GetFileContent)
     ASSERT_FALSE(content.empty());
 }
 
-TEST_F(HttpManagerTest, GetFileContentAsyn)
+TEST_F(HttpManagerTest, GetFileContentAsync)
 {
     // we don't care about worker thread in this test
     CesiumAsync::AsyncSystem asyncSystem{ nullptr };
