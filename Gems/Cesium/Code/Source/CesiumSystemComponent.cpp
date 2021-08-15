@@ -1,5 +1,6 @@
 #include "CesiumSystemComponent.h"
 #include "HttpAssetAccessor.h"
+#include "GenericAssetAccessor.h"
 #include "TaskProcessor.h"
 #include "LocalFileManager.h"
 #include "HttpManager.h"
@@ -62,6 +63,7 @@ namespace Cesium
 
         // initialize asset accessors
         m_httpAssetAccessor = std::make_shared<HttpAssetAccessor>(m_httpManager.get());
+        m_localFileAssetAccessor = std::make_shared<GenericAssetAccessor>(m_localFileManager.get(), "");
 
         // initialize task processor
         m_taskProcessor = std::make_shared<TaskProcessor>();
@@ -94,7 +96,7 @@ namespace Cesium
         case Cesium::IOKind::Http:
             return *m_httpManager;
         default:
-            return *m_localFileManager;
+            return *m_httpManager;
         }
     }
 
@@ -103,7 +105,9 @@ namespace Cesium
         switch (kind)
         {
         case Cesium::IOKind::LocalFile:
+            return m_localFileAssetAccessor;
         case Cesium::IOKind::Http:
+            return m_httpAssetAccessor;
         default:
             return m_httpAssetAccessor;
         }

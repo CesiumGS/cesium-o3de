@@ -8,6 +8,7 @@ set(FILES
     Tests/LocalFileManagerTest.cpp
     Tests/CriticalAssetManagerTest.cpp
     Tests/HttpAssetAccessorTest.cpp
+    Tests/GenericAssetAccessorTest.cpp
     Tests/TaskProcessorTest.cpp
     Tests/RenderResourcesPreparerTest.cpp
     Tests/CesiumSystemComponentBusTest.cpp

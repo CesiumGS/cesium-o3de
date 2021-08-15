@@ -15,6 +15,8 @@ set(FILES
     Source/CriticalAssetManager.h
     Source/HttpAssetAccessor.cpp
     Source/HttpAssetAccessor.h
+    Source/GenericAssetAccessor.cpp
+    Source/GenericAssetAccessor.h
     Source/RenderResourcesPreparer.cpp
     Source/RenderResourcesPreparer.h
     Source/TaskProcessor.cpp

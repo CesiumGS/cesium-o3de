@@ -62,6 +62,7 @@ namespace Cesium
         AZStd::unique_ptr<HttpManager> m_httpManager;
         AZStd::unique_ptr<LocalFileManager> m_localFileManager;
         std::shared_ptr<CesiumAsync::IAssetAccessor> m_httpAssetAccessor;
+        std::shared_ptr<CesiumAsync::IAssetAccessor> m_localFileAssetAccessor;
         std::shared_ptr<CesiumAsync::ITaskProcessor> m_taskProcessor;
         std::shared_ptr<spdlog::logger> m_logger;
         CriticalAssetManager m_criticalAssetManager;
