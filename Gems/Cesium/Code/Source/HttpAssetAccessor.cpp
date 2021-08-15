@@ -5,7 +5,7 @@
 
 namespace Cesium
 {
-    HttpAssetAccessor::HttpAssetAccessor(const AZStd::shared_ptr<HttpManager>& httpManager)
+    HttpAssetAccessor::HttpAssetAccessor(HttpManager* httpManager)
         : m_httpManager{httpManager}
     {
     }

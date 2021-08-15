@@ -1,16 +1,20 @@
 #pragma once
 
-#include "CriticalAssetManager.h"
 #include "CesiumSystemComponentBus.h"
+#include "CriticalAssetManager.h"
 #include <spdlog/logger.h>
 #include <CesiumAsync/ITaskProcessor.h>
 #include <CesiumAsync/IAssetAccessor.h>
 #include <AzCore/Component/Component.h>
 #include <AzCore/Component/TickBus.h>
+#include <AzCore/std/smart_ptr/unique_ptr.h>
 #include <memory>
 
 namespace Cesium
 {
+    class HttpManager;
+    class SingleThreadScheduler;
+
     class CesiumSystemComponent
         : public AZ::Component
         , protected CesiumRequestBus::Handler
@@ -51,6 +55,8 @@ namespace Cesium
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
 
     private:
+        AZStd::unique_ptr<SingleThreadScheduler> m_ioScheduler;
+        AZStd::unique_ptr<HttpManager> m_httpManager;
         std::shared_ptr<CesiumAsync::IAssetAccessor> m_assetAccessor;
         std::shared_ptr<CesiumAsync::ITaskProcessor> m_taskProcessor;
         std::shared_ptr<spdlog::logger> m_logger;

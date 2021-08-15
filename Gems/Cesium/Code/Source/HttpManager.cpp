@@ -1,11 +1,9 @@
-// Majority of this code below is based on the implementation of the Http Manager class in the O3DE HttpRequestor Gem.
-// Some minor modifications are made to expose Aws::Http::HttpResponse object, instead of just the response body like the Gem.
-// Also instead of returning the callback like the Gem, the new manager returns CesiumAsync::Future for ease of use.
 #include "HttpManager.h"
+#include "SingleThreadScheduler.h"
+#include <CesiumAsync/Promise.h>
+#include <AzFramework/AzFramework_Traits_Platform.h>
 #include <AzCore/PlatformDef.h>
 #include <AWSNativeSDKInit/AWSNativeSDKInit.h>
-#include <AzFramework/AzFramework_Traits_Platform.h>
-#include <stdexcept>
 
 // The AWS Native SDK AWSAllocator triggers a warning due to accessing members of std::allocator directly.
 // AWSAllocator.h(70): warning C4996: 'std::allocator<T>::pointer': warning STL4010: Various members of std::allocator are deprecated in
@@ -22,27 +20,58 @@ AZ_POP_DISABLE_WARNING
 
 namespace Cesium
 {
-    HttpManager::HttpManager()
+    struct HttpManager::RequestHandler
     {
-        AZStd::thread_desc desc;
-        desc.m_name = LOGGING_NAME;
-        desc.m_cpuId = AFFINITY_MASK_USERTHREADS;
-        m_runThread = true;
-        // Shutdown will be handled by the InitializationManager - no need to call in the destructor
+        RequestHandler(HttpRequestParameter&& httpRequestParameter, const CesiumAsync::Promise<HttpResult>& promise)
+            : m_httpRequestParameter{ std::move(httpRequestParameter) }
+            , m_promise{ promise }
+        {
+        }
+
+        void operator()()
+        {
+            Aws::Client::ClientConfiguration config;
+            config.enableTcpKeepAlive = AZ_TRAIT_AZFRAMEWORK_AWS_ENABLE_TCP_KEEP_ALIVE_SUPPORTED;
+            std::shared_ptr<Aws::Http::HttpClient> awsHttpClient = Aws::Http::CreateHttpClient(config);
+
+            Aws::Http::URI awsURI(m_httpRequestParameter.m_url.c_str());
+            auto awsHttpRequest = Aws::Http::CreateHttpRequest(
+                awsURI, m_httpRequestParameter.m_method, Aws::Utils::Stream::DefaultResponseStreamFactoryMethod);
+
+            for (const auto& it : m_httpRequestParameter.m_headers)
+            {
+                awsHttpRequest->SetHeaderValue(it.first.c_str(), it.second.c_str());
+            }
+
+            if (!m_httpRequestParameter.m_body.empty())
+            {
+                auto bodyStream = std::make_shared<std::stringstream>(m_httpRequestParameter.m_body.c_str());
+                awsHttpRequest->AddContentBody(std::move(bodyStream));
+            }
+
+            auto awsHttpResponse = awsHttpClient->MakeRequest(awsHttpRequest);
+            if (!awsHttpRequest || !awsHttpResponse)
+            {
+                m_promise.reject(std::runtime_error("Request failed for url: " + std::string(m_httpRequestParameter.m_url.c_str())));
+            }
+            else
+            {
+                m_promise.resolve({ awsHttpRequest, awsHttpResponse });
+            }
+        }
+
+        HttpRequestParameter m_httpRequestParameter;
+        CesiumAsync::Promise<HttpResult> m_promise;
+    };
+
+    HttpManager::HttpManager(SingleThreadScheduler* scheduler)
+        : m_scheduler{scheduler}
+    {
         AWSNativeSDKInit::InitializationManager::InitAwsApi();
-        auto function = AZStd::bind(&HttpManager::ThreadFunction, this);
-        m_thread = AZStd::thread(function, &desc);
     }
 
     HttpManager::~HttpManager() noexcept
     {
-        // NativeSDK Shutdown does not need to be called here - will be taken care of by the InitializationManager
-        m_runThread = false;
-        m_requestConditionVar.notify_all();
-        if (m_thread.joinable())
-        {
-            m_thread.join();
-        }
         AWSNativeSDKInit::InitializationManager::Shutdown();
     }
 
@@ -50,81 +79,7 @@ namespace Cesium
         const CesiumAsync::AsyncSystem& asyncSystem, HttpRequestParameter&& httpRequestParameter)
     {
         auto promise = asyncSystem.createPromise<HttpResult>();
-        HttpRequest request(std::move(httpRequestParameter), promise);
-        {
-            AZStd::lock_guard<AZStd::mutex> lock(this->m_requestMutex);
-            this->m_requestsToHandle.push(AZStd::move(request));
-        }
-
-        this->m_requestConditionVar.notify_all();
+        m_scheduler->Schedule(RequestHandler{ std::move(httpRequestParameter), promise });
         return promise.getFuture();
-    }
-
-    void HttpManager::ThreadFunction()
-    {
-        // Run the thread as long as directed
-        while (m_runThread)
-        {
-            HandleRequestBatch();
-        }
-    }
-
-    void HttpManager::HandleRequestBatch()
-    {
-        // Lock mutex and wait for work to be signalled via the condition variable
-        AZStd::unique_lock<AZStd::mutex> lock(m_requestMutex);
-        m_requestConditionVar.wait(
-            lock,
-            [&]
-            {
-                return !m_runThread || !m_requestsToHandle.empty();
-            });
-
-        // Swap queues
-        AZStd::queue<HttpRequest> requestsToHandle;
-        requestsToHandle.swap(m_requestsToHandle);
-
-        // Release lock
-        lock.unlock();
-
-        // Handle requests
-        while (!requestsToHandle.empty())
-        {
-            HandleRequest(requestsToHandle.front());
-            requestsToHandle.pop();
-        }
-    }
-
-    void HttpManager::HandleRequest(HttpRequest& httpRequest)
-    {
-        Aws::Client::ClientConfiguration config;
-        config.enableTcpKeepAlive = AZ_TRAIT_AZFRAMEWORK_AWS_ENABLE_TCP_KEEP_ALIVE_SUPPORTED;
-        std::shared_ptr<Aws::Http::HttpClient> awsHttpClient = Aws::Http::CreateHttpClient(config);
-
-        auto& httpRequestParameter = httpRequest.m_parameter;
-        Aws::Http::URI awsURI(httpRequestParameter.m_url.c_str());
-        auto awsHttpRequest =
-            Aws::Http::CreateHttpRequest(awsURI, httpRequestParameter.m_method, Aws::Utils::Stream::DefaultResponseStreamFactoryMethod);
-
-        for (const auto& it : httpRequestParameter.m_headers)
-        {
-            awsHttpRequest->SetHeaderValue(it.first.c_str(), it.second.c_str());
-        }
-
-        if (!httpRequestParameter.m_body.empty())
-        {
-            auto bodyStream = std::make_shared<std::stringstream>(httpRequestParameter.m_body.c_str());
-            awsHttpRequest->AddContentBody(std::move(bodyStream));
-        }
-
-        auto awsHttpResponse = awsHttpClient->MakeRequest(awsHttpRequest);
-        if (!awsHttpRequest || !awsHttpResponse)
-        {
-            httpRequest.m_promise.reject(std::runtime_error("Request failed for url: " + std::string(httpRequestParameter.m_url.c_str())));
-        }
-        else
-        {
-            httpRequest.m_promise.resolve({ awsHttpRequest, awsHttpResponse });
-        }
     }
 } // namespace Cesium

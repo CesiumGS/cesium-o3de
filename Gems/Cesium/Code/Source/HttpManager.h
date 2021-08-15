@@ -1,23 +1,15 @@
-// Majority of this code below is based on the implementation of the Http Manager class in the O3DE HttpRequestor Gem.
-// Some minor modifications are made to expose Aws::Http::HttpResponse object instead of just the response body like the Gem.
-// Also instead of returning the callback, the new manager returns CesiumAsync::Future for ease of use.
 #pragma once
 
 #include <CesiumAsync/AsyncSystem.h>
-#include <CesiumAsync/Promise.h>
 #include <CesiumAsync/Future.h>
 #include <CesiumAsync/HttpHeaders.h>
 #include <aws/core/http/HttpResponse.h>
-#include <AzCore/std/containers/queue.h>
-#include <AzCore/std/parallel/mutex.h>
-#include <AzCore/std/parallel/atomic.h>
-#include <AzCore/std/parallel/thread.h>
-#include <AzCore/std/parallel/condition_variable.h>
-#include <AzCore/std/functional.h>
 #include <AzCore/std/string/string.h>
 
 namespace Cesium
 {
+    class SingleThreadScheduler;
+
     struct HttpRequestParameter final
     {
         HttpRequestParameter(AZStd::string&& url, Aws::Http::HttpMethod method)
@@ -58,20 +50,10 @@ namespace Cesium
 
     class HttpManager final
     {
-        struct HttpRequest
-        {
-            HttpRequest(HttpRequestParameter&& parameter, const CesiumAsync::Promise<HttpResult>& promise)
-                : m_parameter{ std::move(parameter) }
-                , m_promise{ promise }
-            {
-            }
-
-            HttpRequestParameter m_parameter;
-            CesiumAsync::Promise<HttpResult> m_promise;
-        };
+        struct RequestHandler;
 
     public:
-        HttpManager();
+        HttpManager(SingleThreadScheduler* scheduler);
 
         ~HttpManager() noexcept;
 
@@ -79,18 +61,6 @@ namespace Cesium
             const CesiumAsync::AsyncSystem& asyncSystem, HttpRequestParameter&& httpRequestParameter);
 
     private:
-        void ThreadFunction();
-
-        void HandleRequestBatch();
-
-        void HandleRequest(HttpRequest& httpRequest);
-
-        static constexpr const char* const LOGGING_NAME = "Http-Manager";
-
-        AZStd::queue<HttpRequest> m_requestsToHandle;
-        AZStd::mutex m_requestMutex;
-        AZStd::condition_variable m_requestConditionVar;
-        AZStd::atomic<bool> m_runThread;
-        AZStd::thread m_thread;
+        SingleThreadScheduler* m_scheduler;
     };
 }

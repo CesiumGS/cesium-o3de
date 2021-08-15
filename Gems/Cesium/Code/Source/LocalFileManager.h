@@ -9,8 +9,8 @@ namespace Cesium
     public:
         AZStd::string GetParentPath(const AZStd::string& path) override;
 
-        AZStd::vector<std::byte> GetFileContent(const IORequestParameter& request) override;
+        IOContent GetFileContent(const IORequestParameter& request) override;
 
-        AZStd::vector<std::byte> GetFileContent(IORequestParameter&& request) override;
+        IOContent GetFileContent(IORequestParameter&& request) override;
     };
 } // namespace Cesium

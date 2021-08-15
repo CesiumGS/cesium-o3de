@@ -103,7 +103,7 @@ namespace Cesium {
 
     class HttpAssetAccessor final : public CesiumAsync::IAssetAccessor {
     public:
-        HttpAssetAccessor(const AZStd::shared_ptr<HttpManager>& httpManager);
+        HttpAssetAccessor(HttpManager* httpManager);
 
         CesiumAsync::Future<std::shared_ptr<CesiumAsync::IAssetRequest>> requestAsset(
               const CesiumAsync::AsyncSystem& asyncSystem,
@@ -132,6 +132,6 @@ namespace Cesium {
         static constexpr const char* const USER_AGENT_HEADER_KEY = "User-Agent";
         static constexpr const char* const USER_AGENT_HEADER_VALUE = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36";
 
-        AZStd::shared_ptr<HttpManager> m_httpManager;
+        HttpManager* m_httpManager;
     };
 }

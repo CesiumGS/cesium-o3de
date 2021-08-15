@@ -11,7 +11,7 @@ namespace Cesium
         return parentPath;
     }
 
-    AZStd::vector<std::byte> LocalFileManager::GetFileContent(const IORequestParameter& request)
+    IOContent LocalFileManager::GetFileContent(const IORequestParameter& request)
     {
         AZStd::string absolutePath;
         AZ::StringFunc::Path::Join(request.m_parentPath.c_str(), request.m_path.c_str(), absolutePath);
@@ -24,12 +24,12 @@ namespace Cesium
 
         // Create a buffer.
         std::size_t fileSize = stream.GetLength();
-        AZStd::vector<std::byte> content(fileSize);
+        IOContent content(fileSize);
         stream.Read(fileSize, content.data());
         return content;
     }
 
-    AZStd::vector<std::byte> LocalFileManager::GetFileContent(IORequestParameter&& request)
+    IOContent LocalFileManager::GetFileContent(IORequestParameter&& request)
     {
         return GetFileContent(request);
     }

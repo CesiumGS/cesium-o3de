@@ -1,28 +1,26 @@
 
 set(FILES
-    Source/CesiumTilesetComponentBus.cpp
-    Include/Cesium/CesiumTilesetComponentBus.h
-    Source/CesiumTilesetComponent.cpp
-    Include/Cesium/CesiumTilesetComponent.h
-    Source/GltfModelComponentBus.cpp
-    Include/Cesium/GltfModelComponentBus.h
-    Source/GltfModelComponent.cpp
-    Include/Cesium/GltfModelComponent.h
     Source/CesiumModuleInterface.h
-    Source/CriticalAssetManager.cpp
-    Source/CriticalAssetManager.h
+    Source/SingleThreadScheduler.cpp
+    Source/SingleThreadScheduler.h
     Source/BitangentAndTangentGenerator.cpp
     Source/BitangentAndTangentGenerator.h
-    Source/HttpAssetAccessor.cpp
-    Source/HttpAssetAccessor.h
-    Source/TaskProcessor.cpp
-    Source/TaskProcessor.h
+    Source/GenericIOManager.cpp
+    Source/GenericIOManager.h
     Source/HttpManager.cpp
     Source/HttpManager.h
     Source/LocalFileManager.cpp
     Source/LocalFileManager.h
-    Source/GenericIOManager.cpp
-    Source/GenericIOManager.h
+    Source/CriticalAssetManager.cpp
+    Source/CriticalAssetManager.h
+    Source/HttpAssetAccessor.cpp
+    Source/HttpAssetAccessor.h
+    Source/RenderResourcesPreparer.cpp
+    Source/RenderResourcesPreparer.h
+    Source/TaskProcessor.cpp
+    Source/TaskProcessor.h
+    Source/CesiumSystemComponentBus.cpp
+    Source/CesiumSystemComponentBus.h
     Source/GltfLoadContext.cpp
     Source/GltfLoadContext.h
     Source/GltfPrimitiveBuilder.cpp
@@ -33,10 +31,14 @@ set(FILES
     Source/GltfModelBuilder.h
     Source/GltfModel.cpp
     Source/GltfModel.h
-    Source/RenderResourcesPreparer.cpp
-    Source/RenderResourcesPreparer.h
     Source/CesiumSystemComponent.cpp
     Source/CesiumSystemComponent.h
-    Source/CesiumSystemComponentBus.cpp
-    Source/CesiumSystemComponentBus.h
+    Source/CesiumTilesetComponentBus.cpp
+    Include/Cesium/CesiumTilesetComponentBus.h
+    Source/CesiumTilesetComponent.cpp
+    Include/Cesium/CesiumTilesetComponent.h
+    Source/GltfModelComponentBus.cpp
+    Include/Cesium/GltfModelComponentBus.h
+    Source/GltfModelComponent.cpp
+    Include/Cesium/GltfModelComponent.h
 )

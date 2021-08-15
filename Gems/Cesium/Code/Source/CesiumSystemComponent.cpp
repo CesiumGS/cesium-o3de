@@ -1,7 +1,8 @@
 #include "CesiumSystemComponent.h"
 #include "HttpAssetAccessor.h"
-#include "HttpManager.h"
 #include "TaskProcessor.h"
+#include "HttpManager.h"
+#include "SingleThreadScheduler.h"
 #include <Cesium3DTilesSelection/registerAllTileContentTypes.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/EditContext.h>
@@ -53,9 +54,12 @@ namespace Cesium
         // initialize Cesium Native
         Cesium3DTilesSelection::registerAllTileContentTypes();
 
+        // initialize IO managers
+        m_ioScheduler = AZStd::make_unique<SingleThreadScheduler>();
+        m_httpManager = AZStd::make_unique<HttpManager>(m_ioScheduler.get());
+
         // initialize asset accessors
-        auto httpManager = AZStd::make_shared<HttpManager>();
-        m_assetAccessor = std::make_shared<HttpAssetAccessor>(httpManager);
+        m_assetAccessor = std::make_shared<HttpAssetAccessor>(m_httpManager.get());
 
         // initialize task processor
         m_taskProcessor = std::make_shared<TaskProcessor>();
@@ -73,6 +77,8 @@ namespace Cesium
     {
         if (CesiumInterface::Get() == this)
         {
+            // flush io thread first before io manager destructor kick in
+            m_ioScheduler.release();
             CesiumInterface::Unregister(this);
         }
     }
