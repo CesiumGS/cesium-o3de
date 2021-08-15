@@ -1,6 +1,7 @@
 #include "CesiumSystemComponent.h"
 #include "HttpAssetAccessor.h"
 #include "TaskProcessor.h"
+#include "LocalFileManager.h"
 #include "HttpManager.h"
 #include "SingleThreadScheduler.h"
 #include <Cesium3DTilesSelection/registerAllTileContentTypes.h>
@@ -57,9 +58,10 @@ namespace Cesium
         // initialize IO managers
         m_ioScheduler = AZStd::make_unique<SingleThreadScheduler>();
         m_httpManager = AZStd::make_unique<HttpManager>(m_ioScheduler.get());
+        m_localFileManager = AZStd::make_unique<LocalFileManager>(m_ioScheduler.get());
 
         // initialize asset accessors
-        m_assetAccessor = std::make_shared<HttpAssetAccessor>(m_httpManager.get());
+        m_httpAssetAccessor = std::make_shared<HttpAssetAccessor>(m_httpManager.get());
 
         // initialize task processor
         m_taskProcessor = std::make_shared<TaskProcessor>();
@@ -83,9 +85,28 @@ namespace Cesium
         }
     }
 
-    const std::shared_ptr<CesiumAsync::IAssetAccessor>& CesiumSystemComponent::GetAssetAccessor() const
+    GenericIOManager& CesiumSystemComponent::GetIOManager(IOKind kind)
     {
-        return m_assetAccessor;
+        switch (kind)
+        {
+        case Cesium::IOKind::LocalFile:
+            return *m_localFileManager;
+        case Cesium::IOKind::Http:
+            return *m_httpManager;
+        default:
+            return *m_localFileManager;
+        }
+    }
+
+    const std::shared_ptr<CesiumAsync::IAssetAccessor>& CesiumSystemComponent::GetAssetAccessor(IOKind kind) const
+    {
+        switch (kind)
+        {
+        case Cesium::IOKind::LocalFile:
+        case Cesium::IOKind::Http:
+        default:
+            return m_httpAssetAccessor;
+        }
     }
 
     const std::shared_ptr<CesiumAsync::ITaskProcessor>& CesiumSystemComponent::GetTaskProcessor() const

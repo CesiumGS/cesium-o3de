@@ -1,9 +1,11 @@
 #include "HttpManager.h"
 #include "SingleThreadScheduler.h"
+#include <CesiumUtility/Uri.h>
 #include <CesiumAsync/Promise.h>
 #include <AzFramework/AzFramework_Traits_Platform.h>
 #include <AzCore/PlatformDef.h>
 #include <AWSNativeSDKInit/AWSNativeSDKInit.h>
+#include <stdexcept>
 
 // The AWS Native SDK AWSAllocator triggers a warning due to accessing members of std::allocator directly.
 // AWSAllocator.h(70): warning C4996: 'std::allocator<T>::pointer': warning STL4010: Various members of std::allocator are deprecated in
@@ -64,6 +66,54 @@ namespace Cesium
         CesiumAsync::Promise<HttpResult> m_promise;
     };
 
+    struct HttpManager::GenericIORequestHandler
+    {
+        GenericIORequestHandler(const IORequestParameter& request, const CesiumAsync::Promise<IOContent>& promise)
+            : m_request{ request }
+            , m_promise{ promise }
+        {
+        }
+
+        GenericIORequestHandler(IORequestParameter&& request, const CesiumAsync::Promise<IOContent>& promise)
+            : m_request{ std::move(request) }
+            , m_promise{ promise }
+        {
+        }
+
+        void operator()()
+        {
+            std::string absoluteUrl = CesiumUtility::Uri::resolve(m_request.m_parentPath.c_str(), m_request.m_path.c_str());
+
+            Aws::Client::ClientConfiguration config;
+            config.enableTcpKeepAlive = AZ_TRAIT_AZFRAMEWORK_AWS_ENABLE_TCP_KEEP_ALIVE_SUPPORTED;
+            std::shared_ptr<Aws::Http::HttpClient> awsHttpClient = Aws::Http::CreateHttpClient(config);
+
+            Aws::Http::URI awsURI(absoluteUrl.c_str());
+            auto awsHttpRequest = Aws::Http::CreateHttpRequest(
+                awsURI, Aws::Http::HttpMethod::HTTP_GET, Aws::Utils::Stream::DefaultResponseStreamFactoryMethod);
+
+            auto awsHttpResponse = awsHttpClient->MakeRequest(awsHttpRequest);
+            if (!awsHttpRequest || !awsHttpResponse)
+            {
+                m_promise.reject(std::runtime_error("Request failed for url: " + absoluteUrl));
+            }
+
+            auto& ioStream = awsHttpResponse->GetResponseBody();
+            std::size_t totalSize = 0;
+            IOContent content;
+            while (ioStream)
+            {
+                totalSize += 256;
+                content.resize(totalSize);
+                ioStream.read(reinterpret_cast<char*>(content.data()), content.size());
+            }
+            m_promise.resolve(std::move(content));
+        }
+
+        IORequestParameter m_request;
+        CesiumAsync::Promise<IOContent> m_promise;
+    };
+
     HttpManager::HttpManager(SingleThreadScheduler* scheduler)
         : m_scheduler{scheduler}
     {
@@ -80,6 +130,69 @@ namespace Cesium
     {
         auto promise = asyncSystem.createPromise<HttpResult>();
         m_scheduler->Schedule(RequestHandler{ std::move(httpRequestParameter), promise });
+        return promise.getFuture();
+    }
+
+    AZStd::string HttpManager::GetParentPath(const AZStd::string& path)
+    {
+        auto lastSlashPos = path.rfind('/');
+        if (lastSlashPos == AZStd::string::npos)
+        {
+            return path;
+        }
+
+        return path.substr(0, lastSlashPos+1);
+    }
+
+    IOContent HttpManager::GetFileContent(const IORequestParameter& request)
+    {
+        std::string absoluteUrl = CesiumUtility::Uri::resolve(request.m_parentPath.c_str(), request.m_path.c_str());
+
+        Aws::Client::ClientConfiguration config;
+        config.enableTcpKeepAlive = AZ_TRAIT_AZFRAMEWORK_AWS_ENABLE_TCP_KEEP_ALIVE_SUPPORTED;
+        std::shared_ptr<Aws::Http::HttpClient> awsHttpClient = Aws::Http::CreateHttpClient(config);
+
+        Aws::Http::URI awsURI(absoluteUrl.c_str());
+        auto awsHttpRequest =
+            Aws::Http::CreateHttpRequest(awsURI, Aws::Http::HttpMethod::HTTP_GET, Aws::Utils::Stream::DefaultResponseStreamFactoryMethod);
+
+        auto awsHttpResponse = awsHttpClient->MakeRequest(awsHttpRequest);
+        if (!awsHttpRequest || !awsHttpResponse)
+        {
+            return {};
+        }
+
+        auto& ioStream = awsHttpResponse->GetResponseBody();
+        std::size_t totalSize = 0;
+        IOContent content;
+        while (ioStream)
+        {
+            totalSize += 256;
+            content.resize(totalSize);
+            ioStream.read(reinterpret_cast<char*>(content.data()), content.size());
+        }
+
+        return content;
+    }
+
+    IOContent HttpManager::GetFileContent(IORequestParameter&& request)
+    {
+        return GetFileContent(request);
+    }
+
+    CesiumAsync::Future<IOContent> HttpManager::GetFileContentAsync(
+        const CesiumAsync::AsyncSystem& asyncSystem, const IORequestParameter& request)
+    {
+        auto promise = asyncSystem.createPromise<IOContent>();
+        m_scheduler->Schedule(GenericIORequestHandler{ request, promise });
+        return promise.getFuture();
+    }
+
+    CesiumAsync::Future<IOContent> HttpManager::GetFileContentAsync(
+        const CesiumAsync::AsyncSystem& asyncSystem, IORequestParameter&& request)
+    {
+        auto promise = asyncSystem.createPromise<IOContent>();
+        m_scheduler->Schedule(GenericIORequestHandler{ std::move(request), promise });
         return promise.getFuture();
     }
 } // namespace Cesium

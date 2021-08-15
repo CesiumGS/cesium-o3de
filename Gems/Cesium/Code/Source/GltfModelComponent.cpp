@@ -2,7 +2,7 @@
 #include "GltfModel.h"
 #include "GltfModelBuilder.h"
 #include "GltfLoadContext.h"
-#include "LocalFileManager.h"
+#include "CesiumSystemComponentBus.h"
 #include <Atom/Feature/Mesh/MeshFeatureProcessorInterface.h>
 #include <Atom/RPI.Public/Scene.h>
 #include <AzCore/Component/NonUniformScaleBus.h>
@@ -33,11 +33,10 @@ namespace Cesium
     void GltfModelComponent::LoadModel(const AZStd::string& filePath)
     {
         // Load model
-        LocalFileManager io;
         GltfModelBuilder builder;
         GltfModelBuilderOption option{ glm::dmat4(1.0) };
         GltfLoadModel loadModel;
-        builder.Create(io, filePath, option, loadModel);
+        builder.Create(CesiumInterface::Get()->GetIOManager(IOKind::LocalFile), filePath, option, loadModel);
         AZ::Render::MeshFeatureProcessorInterface* meshFeatureProcessor =
             AZ::RPI::Scene::GetFeatureProcessorForEntity<AZ::Render::MeshFeatureProcessorInterface>(GetEntityId());
         m_impl->m_gltfModel = AZStd::make_unique<GltfModel>(meshFeatureProcessor, loadModel);

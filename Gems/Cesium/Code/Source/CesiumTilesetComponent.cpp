@@ -119,10 +119,10 @@ namespace Cesium
 
     struct CesiumTilesetComponent::Impl
     {
-        Cesium3DTilesSelection::TilesetExternals CreateTilesetExternal()
+        Cesium3DTilesSelection::TilesetExternals CreateTilesetExternal(IOKind kind)
         {
             return Cesium3DTilesSelection::TilesetExternals{
-                CesiumInterface::Get()->GetAssetAccessor(),
+                CesiumInterface::Get()->GetAssetAccessor(kind),
                 m_renderResourcesPreparer,
                 CesiumAsync::AsyncSystem(CesiumInterface::Get()->GetTaskProcessor()),
                 nullptr,
@@ -240,13 +240,13 @@ namespace Cesium
 
     void CesiumTilesetComponent::LoadTilesetFromUrl(const AZStd::string& url)
     {
-        Cesium3DTilesSelection::TilesetExternals externals = m_impl->CreateTilesetExternal();
+        Cesium3DTilesSelection::TilesetExternals externals = m_impl->CreateTilesetExternal(IOKind::Http);
         m_impl->m_tileset = AZStd::make_unique<Cesium3DTilesSelection::Tileset>(externals, url.c_str());
     }
 
     void CesiumTilesetComponent::LoadTilesetFromCesiumIon(std::uint32_t cesiumIonAssetId, const AZStd::string& cesiumIonAssetToken)
     {
-        Cesium3DTilesSelection::TilesetExternals externals = m_impl->CreateTilesetExternal();
+        Cesium3DTilesSelection::TilesetExternals externals = m_impl->CreateTilesetExternal(IOKind::Http);
         m_impl->m_tileset = AZStd::make_unique<Cesium3DTilesSelection::Tileset>(externals, cesiumIonAssetId, cesiumIonAssetToken.c_str());
     }
 } // namespace Cesium

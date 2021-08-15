@@ -12,6 +12,7 @@
 
 namespace Cesium
 {
+    class LocalFileManager;
     class HttpManager;
     class SingleThreadScheduler;
 
@@ -37,7 +38,9 @@ namespace Cesium
 
         ~CesiumSystemComponent();
 
-        const std::shared_ptr<CesiumAsync::IAssetAccessor>& GetAssetAccessor() const override;
+        GenericIOManager& GetIOManager(IOKind kind) override;
+
+        const std::shared_ptr<CesiumAsync::IAssetAccessor>& GetAssetAccessor(IOKind kind) const override;
 
         const std::shared_ptr<CesiumAsync::ITaskProcessor>& GetTaskProcessor() const override;
 
@@ -57,7 +60,8 @@ namespace Cesium
     private:
         AZStd::unique_ptr<SingleThreadScheduler> m_ioScheduler;
         AZStd::unique_ptr<HttpManager> m_httpManager;
-        std::shared_ptr<CesiumAsync::IAssetAccessor> m_assetAccessor;
+        AZStd::unique_ptr<LocalFileManager> m_localFileManager;
+        std::shared_ptr<CesiumAsync::IAssetAccessor> m_httpAssetAccessor;
         std::shared_ptr<CesiumAsync::ITaskProcessor> m_taskProcessor;
         std::shared_ptr<spdlog::logger> m_logger;
         CriticalAssetManager m_criticalAssetManager;

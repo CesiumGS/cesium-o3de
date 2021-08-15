@@ -1,6 +1,7 @@
 
 #pragma once
 
+#include "GenericIOManager.h"
 #include <CesiumAsync/IAssetAccessor.h>
 #include <CesiumAsync/ITaskProcessor.h>
 #include <AzCore/EBus/EBus.h>
@@ -12,6 +13,12 @@ namespace Cesium
 {
     class CriticalAssetManager;
 
+    enum class IOKind
+    {
+        LocalFile,
+        Http
+    };
+
     class CesiumRequests
     {
     public:
@@ -19,7 +26,9 @@ namespace Cesium
 
         virtual ~CesiumRequests() = default;
 
-        virtual const std::shared_ptr<CesiumAsync::IAssetAccessor>& GetAssetAccessor() const = 0;
+        virtual GenericIOManager& GetIOManager(IOKind kind) = 0;
+
+        virtual const std::shared_ptr<CesiumAsync::IAssetAccessor>& GetAssetAccessor(IOKind kind) const = 0;
 
         virtual const std::shared_ptr<CesiumAsync::ITaskProcessor>& GetTaskProcessor() const = 0;
 
@@ -27,9 +36,8 @@ namespace Cesium
 
         virtual const CriticalAssetManager& GetCriticalAssetManager() const = 0;
     };
-    
-    class CesiumBusTraits
-        : public AZ::EBusTraits
+
+    class CesiumBusTraits : public AZ::EBusTraits
     {
     public:
         static constexpr AZ::EBusHandlerPolicy HandlerPolicy = AZ::EBusHandlerPolicy::Single;

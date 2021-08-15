@@ -1,5 +1,6 @@
 #pragma once
 
+#include "GenericIOManager.h"
 #include <CesiumAsync/AsyncSystem.h>
 #include <CesiumAsync/Future.h>
 #include <CesiumAsync/HttpHeaders.h>
@@ -48,9 +49,10 @@ namespace Cesium
         std::shared_ptr<Aws::Http::HttpResponse> m_response;
     };
 
-    class HttpManager final
+    class HttpManager final : public GenericIOManager
     {
         struct RequestHandler;
+        struct GenericIORequestHandler;
 
     public:
         HttpManager(SingleThreadScheduler* scheduler);
@@ -59,6 +61,18 @@ namespace Cesium
 
         CesiumAsync::Future<HttpResult> AddRequest(
             const CesiumAsync::AsyncSystem& asyncSystem, HttpRequestParameter&& httpRequestParameter);
+
+        AZStd::string GetParentPath(const AZStd::string& path) override;
+
+        IOContent GetFileContent(const IORequestParameter& request) override;
+
+        IOContent GetFileContent(IORequestParameter&& request) override;
+
+        CesiumAsync::Future<IOContent> GetFileContentAsync(
+            const CesiumAsync::AsyncSystem& asyncSystem, const IORequestParameter& request) override;
+
+        CesiumAsync::Future<IOContent> GetFileContentAsync(
+            const CesiumAsync::AsyncSystem& asyncSystem, IORequestParameter&& request) override;
 
     private:
         SingleThreadScheduler* m_scheduler;
