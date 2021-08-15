@@ -29,7 +29,7 @@ namespace Cesium
         const CesiumAsync::AsyncSystem& asyncSystem, const std::string& url, [[maybe_unused]] const std::vector<THeader>& headers)
     {
         return m_ioManager->GetFileContentAsync(asyncSystem, IORequestParameter{ "", url.c_str() })
-            .thenImmediately(RequestAssetHandler{ url, m_contentType, ConvertToCesiumHeaders(headers) });
+            .thenImmediately(RequestAssetHandler{ m_contentType, url, ConvertToCesiumHeaders(headers) });
     }
 
     CesiumAsync::Future<std::shared_ptr<CesiumAsync::IAssetRequest>> GenericAssetAccessor::post(
