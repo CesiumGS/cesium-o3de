@@ -132,6 +132,7 @@ namespace Cesium
 
         static constexpr const char* const USER_AGENT_HEADER_KEY = "User-Agent";
 
+        std::string m_userAgentHeaderValue;
         HttpManager* m_httpManager;
     };
 } // namespace Cesium
