@@ -1,20 +1,24 @@
 #include "HttpAssetAccessor.h"
 #include "HttpManager.h"
+#include "PlatformInfo.h"
 #include <string>
 #include <cassert>
 
 namespace Cesium
 {
     HttpAssetAccessor::HttpAssetAccessor(const AZStd::shared_ptr<HttpManager>& httpManager)
-        : m_httpManager{httpManager}
+        : m_httpManager{ httpManager }
     {
+        std::string engineVersion = PlatformInfo::GetEngineVersion().c_str();
+        m_userAgentHeaderValue = std::string("Mozilla/5.0 (") + PlatformInfo::GetPlatformName().c_str() + ") Cesium For O3DE/" +
+            engineVersion + " (Project " + PlatformInfo::GetProjectName().c_str() + " Engine O3DE " + engineVersion + ")";
     }
 
     CesiumAsync::Future<std::shared_ptr<CesiumAsync::IAssetRequest>> HttpAssetAccessor::requestAsset(
         const CesiumAsync::AsyncSystem& asyncSystem, const std::string& url, const std::vector<THeader>& headers)
     {
         CesiumAsync::HttpHeaders requestHeaders = ConvertToCesiumHeaders(headers);
-        requestHeaders[USER_AGENT_HEADER_KEY] = USER_AGENT_HEADER_VALUE;
+        requestHeaders[USER_AGENT_HEADER_KEY] = m_userAgentHeaderValue;
         HttpRequestParameter parameter(AZStd ::string(url.c_str()), Aws::Http::HttpMethod::HTTP_GET, std::move(requestHeaders));
         return m_httpManager->AddRequest(asyncSystem, std::move(parameter))
             .thenImmediately(
@@ -31,7 +35,7 @@ namespace Cesium
         const gsl::span<const std::byte>& contentPayload)
     {
         CesiumAsync::HttpHeaders requestHeaders = ConvertToCesiumHeaders(headers);
-        requestHeaders[USER_AGENT_HEADER_KEY] = USER_AGENT_HEADER_VALUE;
+        requestHeaders[USER_AGENT_HEADER_KEY] = m_userAgentHeaderValue;
         AZStd::string requestBody(reinterpret_cast<const char*>(contentPayload.data()), contentPayload.size());
         HttpRequestParameter parameter(
             AZStd ::string(url.c_str()), Aws::Http::HttpMethod::HTTP_POST, std::move(requestHeaders), std::move(requestBody));
