@@ -1,15 +1,15 @@
 #pragma once
 
+#include <AzCore/std/smart_ptr/shared_ptr.h>
 #include <CesiumAsync/AsyncSystem.h>
+#include <CesiumAsync/Future.h>
 #include <CesiumAsync/IAssetAccessor.h>
 #include <CesiumAsync/IAssetResponse.h>
-#include <CesiumAsync/Future.h>
-#include <AzCore/std/smart_ptr/shared_ptr.h>
 #include <aws/core/http/HttpTypes.h>
 #include <cstdint>
+#include <map>
 #include <memory>
 #include <string>
-#include <map>
 
 namespace Aws
 {
@@ -17,10 +17,11 @@ namespace Aws
     {
         class HttpRequest;
         class HttpResponse;
-    }
-}
+    } // namespace Http
+} // namespace Aws
 
-namespace Cesium {
+namespace Cesium
+{
     class HttpManager;
 
     class HttpAssetResponse final : public CesiumAsync::IAssetResponse
@@ -101,37 +102,36 @@ namespace Cesium {
         std::unique_ptr<HttpAssetResponse> m_response;
     };
 
-    class HttpAssetAccessor final : public CesiumAsync::IAssetAccessor {
+    class HttpAssetAccessor final : public CesiumAsync::IAssetAccessor
+    {
     public:
         HttpAssetAccessor(HttpManager* httpManager);
 
         CesiumAsync::Future<std::shared_ptr<CesiumAsync::IAssetRequest>> requestAsset(
-              const CesiumAsync::AsyncSystem& asyncSystem,
-              const std::string& url,
-              const std::vector<THeader>& headers = {}) override;
+            const CesiumAsync::AsyncSystem& asyncSystem, const std::string& url, const std::vector<THeader>& headers = {}) override;
 
         CesiumAsync::Future<std::shared_ptr<CesiumAsync::IAssetRequest>> post(
-              const CesiumAsync::AsyncSystem& asyncSystem,
-              const std::string& url,
-              const std::vector<THeader>& headers = std::vector<THeader>(),
-              const gsl::span<const std::byte>& contentPayload = {}) override;
+            const CesiumAsync::AsyncSystem& asyncSystem,
+            const std::string& url,
+            const std::vector<THeader>& headers = std::vector<THeader>(),
+            const gsl::span<const std::byte>& contentPayload = {}) override;
 
         void tick() noexcept override;
 
     private:
         static std::string ConvertMethodToString(Aws::Http::HttpMethod method);
 
-        static CesiumAsync::HttpHeaders ConvertToCesiumHeaders(const std::vector<THeader> &headers);
+        static CesiumAsync::HttpHeaders ConvertToCesiumHeaders(const std::vector<THeader>& headers);
 
-        static CesiumAsync::HttpHeaders ConvertToCesiumHeaders(const Aws::Http::HeaderValueCollection &headers);
+        static CesiumAsync::HttpHeaders ConvertToCesiumHeaders(const Aws::Http::HeaderValueCollection& headers);
 
-        static std::shared_ptr<HttpAssetRequest> CreateO3DEAssetRequest(const Aws::Http::HttpRequest& request, const Aws::Http::HttpResponse& response);
+        static std::shared_ptr<HttpAssetRequest> CreateO3DEAssetRequest(
+            const Aws::Http::HttpRequest& request, const Aws::Http::HttpResponse& response);
 
         static std::unique_ptr<HttpAssetResponse> CreateO3DEAssetResponse(const Aws::Http::HttpResponse& response);
 
         static constexpr const char* const USER_AGENT_HEADER_KEY = "User-Agent";
-        static constexpr const char* const USER_AGENT_HEADER_VALUE = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36";
 
         HttpManager* m_httpManager;
     };
-}
+} // namespace Cesium
