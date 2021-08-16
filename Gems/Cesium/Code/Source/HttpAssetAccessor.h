@@ -130,8 +130,8 @@ namespace Cesium {
         static std::unique_ptr<HttpAssetResponse> CreateO3DEAssetResponse(const Aws::Http::HttpResponse& response);
 
         static constexpr const char* const USER_AGENT_HEADER_KEY = "User-Agent";
-        static constexpr const char* const USER_AGENT_HEADER_VALUE = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36";
 
+        std::string m_userAgentHeaderValue;
         AZStd::shared_ptr<HttpManager> m_httpManager;
     };
 }
