@@ -5,6 +5,8 @@ set(FILES
     Source/SingleThreadScheduler.h
     Source/BitangentAndTangentGenerator.cpp
     Source/BitangentAndTangentGenerator.h
+    Source/LoggerSink.cpp
+    Source/LoggerSink.h
     Source/GenericIOManager.cpp
     Source/GenericIOManager.h
     Source/HttpManager.cpp

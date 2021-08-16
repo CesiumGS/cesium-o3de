@@ -3,6 +3,7 @@ set(FILES
     Tests/CesiumTest.cpp
     Tests/SingleThreadSchedulerTest.cpp
     Tests/BitangentAndTangentGeneratorTest.cpp
+    Tests/LoggerSinkTest.cpp
     Tests/GenericIOManagerTest.cpp
     Tests/HttpManagerTest.cpp
     Tests/LocalFileManagerTest.cpp

@@ -1,4 +1,5 @@
 #include "CesiumSystemComponent.h"
+#include "LoggerSink.h"
 #include "HttpAssetAccessor.h"
 #include "GenericAssetAccessor.h"
 #include "TaskProcessor.h"
@@ -53,9 +54,6 @@ namespace Cesium
 
     CesiumSystemComponent::CesiumSystemComponent()
     {
-        // initialize Cesium Native
-        Cesium3DTilesSelection::registerAllTileContentTypes();
-
         // initialize IO managers
         m_ioScheduler = AZStd::make_unique<SingleThreadScheduler>();
         m_httpManager = AZStd::make_unique<HttpManager>(m_ioScheduler.get());
@@ -70,6 +68,11 @@ namespace Cesium
 
         // initialize logger
         m_logger = spdlog::default_logger();
+        m_logger->sinks().clear();
+        m_logger->sinks().push_back(std::make_shared<LoggerSink>());
+
+        // initialize Cesium Native
+        Cesium3DTilesSelection::registerAllTileContentTypes();
 
         if (CesiumInterface::Get() == nullptr)
         {

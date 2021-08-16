@@ -23,7 +23,18 @@ namespace Cesium
         void operator()()
         {
             AZStd::string absolutePath;
-            AZ::StringFunc::Path::Join(m_request.m_parentPath.c_str(), m_request.m_path.c_str(), absolutePath);
+            if (m_request.m_parentPath.empty())
+            {
+                absolutePath = m_request.m_path;
+            }
+            else if (m_request.m_path.empty())
+            {
+                absolutePath = m_request.m_parentPath;
+            }
+            else
+            {
+                AZ::StringFunc::Path::Join(m_request.m_parentPath.c_str(), m_request.m_path.c_str(), absolutePath);
+            }
 
             AZ::IO::FileIOStream stream(absolutePath.c_str(), AZ::IO::OpenMode::ModeRead | AZ::IO::OpenMode::ModeBinary);
             if (!stream.IsOpen())
@@ -57,7 +68,18 @@ namespace Cesium
     IOContent LocalFileManager::GetFileContent(const IORequestParameter& request)
     {
         AZStd::string absolutePath;
-        AZ::StringFunc::Path::Join(request.m_parentPath.c_str(), request.m_path.c_str(), absolutePath);
+        if (request.m_parentPath.empty())
+        {
+            absolutePath = request.m_path;
+        }
+        else if (request.m_path.empty())
+        {
+            absolutePath = request.m_parentPath;
+        }
+        else
+        {
+            AZ::StringFunc::Path::Join(request.m_parentPath.c_str(), request.m_path.c_str(), absolutePath);
+        }
 
         AZ::IO::FileIOStream stream(absolutePath.c_str(), AZ::IO::OpenMode::ModeRead | AZ::IO::OpenMode::ModeBinary);
         if (!stream.IsOpen())
