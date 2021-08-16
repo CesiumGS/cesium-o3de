@@ -6,7 +6,7 @@ namespace Cesium
 
     const std::string GenericAssetRequest::GENERIC_REQUEST_METHOD = "GET";
 
-    const std::string GenericAssetAccessor::PREFIX = "prefix:";
+    const std::string GenericAssetAccessor::PREFIX = "o3de:";
 
     struct GenericAssetAccessor::RequestAssetHandler
     {
