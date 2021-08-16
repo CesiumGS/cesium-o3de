@@ -8,8 +8,12 @@ set(FILES
     Source/CesiumModuleInterface.h
     Source/CesiumSystemComponent.cpp
     Source/CesiumSystemComponent.h
+    Source/PlatformInfo.cpp
+    Source/PlatformInfo.h
     Source/BitangentAndTangentGenerator.cpp
     Source/BitangentAndTangentGenerator.h
+    Source/HttpManager.cpp
+    Source/HttpManager.h
     Source/HttpAssetAccessor.cpp
     Source/HttpAssetAccessor.h
     Source/TaskProcessor.cpp
