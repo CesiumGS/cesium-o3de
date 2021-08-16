@@ -106,6 +106,8 @@ namespace Cesium
         void tick() noexcept override;
 
     private:
+        static const std::string PREFIX;
+
         static CesiumAsync::HttpHeaders ConvertToCesiumHeaders(const std::vector<THeader>& headers);
 
         GenericIOManager* m_ioManager;

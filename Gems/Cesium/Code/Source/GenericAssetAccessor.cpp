@@ -6,10 +6,14 @@ namespace Cesium
 
     const std::string GenericAssetRequest::GENERIC_REQUEST_METHOD = "GET";
 
+    const std::string GenericAssetAccessor::PREFIX = "prefix:";
+
     struct GenericAssetAccessor::RequestAssetHandler
     {
         std::shared_ptr<CesiumAsync::IAssetRequest> operator()(IOContent&& result)
         {
+            // Hack: We need to add prefix here, so that Cesium Native can compose absolute url from base url and relative url correctly
+            m_url = PREFIX + m_url;
             auto response = std::make_unique<GenericAssetResponse>(200, std::move(m_contentType), std::move(result));
             return std::make_shared<GenericAssetRequest>(std::move(m_url), std::move(m_headers), std::move(response));
         }
@@ -28,6 +32,15 @@ namespace Cesium
     CesiumAsync::Future<std::shared_ptr<CesiumAsync::IAssetRequest>> GenericAssetAccessor::requestAsset(
         const CesiumAsync::AsyncSystem& asyncSystem, const std::string& url, [[maybe_unused]] const std::vector<THeader>& headers)
     {
+        // Hack: We need to add prefix in the RequestAssetHandler above, so that Cesium Native can compose absolute url from base url and
+        // relative url correctly. We need to remove the prefix before sending the url to GenericIOManager
+        if (url.substr(0, PREFIX.size()) == PREFIX)
+        {
+            std::string noPrefixUrl = url.substr(PREFIX.size());
+            return m_ioManager->GetFileContentAsync(asyncSystem, IORequestParameter{ "", noPrefixUrl.c_str() })
+                .thenImmediately(RequestAssetHandler{ m_contentType, noPrefixUrl, ConvertToCesiumHeaders(headers) });
+        }
+
         return m_ioManager->GetFileContentAsync(asyncSystem, IORequestParameter{ "", url.c_str() })
             .thenImmediately(RequestAssetHandler{ m_contentType, url, ConvertToCesiumHeaders(headers) });
     }
