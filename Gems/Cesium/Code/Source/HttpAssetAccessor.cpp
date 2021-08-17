@@ -1,5 +1,4 @@
 #include "HttpAssetAccessor.h"
-#include "HttpManager.h"
 #include "PlatformInfo.h"
 #include <cassert>
 #include <string>
@@ -96,7 +95,7 @@ namespace Cesium
     }
 
     std::shared_ptr<HttpAssetRequest> HttpAssetAccessor::CreateO3DEAssetRequest(
-        const Aws::Http::HttpRequest& request, const Aws::Http::HttpResponse& response)
+        const Aws::Http::HttpRequest& request, Aws::Http::HttpResponse& response)
     {
         std::string method = ConvertMethodToString(request.GetMethod());
         std::string url = request.GetURIString().c_str();
@@ -106,14 +105,12 @@ namespace Cesium
         return std::make_shared<HttpAssetRequest>(std::move(method), std::move(url), std::move(headers), std::move(assetResponse));
     }
 
-    std::unique_ptr<HttpAssetResponse> HttpAssetAccessor::CreateO3DEAssetResponse(const Aws::Http::HttpResponse& response)
+    std::unique_ptr<HttpAssetResponse> HttpAssetAccessor::CreateO3DEAssetResponse(Aws::Http::HttpResponse& response)
     {
         std::uint16_t statusCode = static_cast<std::uint16_t>(response.GetResponseCode());
         std::string contentType = response.GetContentType().c_str();
         CesiumAsync::HttpHeaders headers = ConvertToCesiumHeaders(response.GetHeaders());
-        std::istreambuf_iterator<char> eos;
-        std::string responseData(std::istreambuf_iterator<char>(response.GetResponseBody()), eos);
-
-        return std::make_unique<HttpAssetResponse>(statusCode, std::move(contentType), std::move(headers), std::move(responseData));
+        return std::make_unique<HttpAssetResponse>(
+            statusCode, std::move(contentType), std::move(headers), HttpManager::GetResponseBodyContent(response));
     }
 } // namespace Cesium

@@ -74,6 +74,8 @@ namespace Cesium
         CesiumAsync::Future<IOContent> GetFileContentAsync(
             const CesiumAsync::AsyncSystem& asyncSystem, IORequestParameter&& request) override;
 
+        static IOContent GetResponseBodyContent(Aws::Http::HttpResponse& response);
+
     private:
         SingleThreadScheduler* m_scheduler;
     };

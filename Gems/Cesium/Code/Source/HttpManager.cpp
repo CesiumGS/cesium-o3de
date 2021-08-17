@@ -98,16 +98,7 @@ namespace Cesium
                 m_promise.reject(std::runtime_error("Request failed for url: " + absoluteUrl));
             }
 
-            auto& ioStream = awsHttpResponse->GetResponseBody();
-            std::size_t totalSize = 0;
-            IOContent content;
-            while (ioStream)
-            {
-                totalSize += 256;
-                content.resize(totalSize);
-                ioStream.read(reinterpret_cast<char*>(content.data()), content.size());
-            }
-            m_promise.resolve(std::move(content));
+            m_promise.resolve(HttpManager::GetResponseBodyContent(*awsHttpResponse));
         }
 
         IORequestParameter m_request;
@@ -162,17 +153,7 @@ namespace Cesium
             return {};
         }
 
-        auto& ioStream = awsHttpResponse->GetResponseBody();
-        std::size_t totalSize = 0;
-        IOContent content;
-        while (ioStream)
-        {
-            totalSize += 256;
-            content.resize(totalSize);
-            ioStream.read(reinterpret_cast<char*>(content.data()), content.size());
-        }
-
-        return content;
+        return GetResponseBodyContent(*awsHttpResponse);
     }
 
     IOContent HttpManager::GetFileContent(IORequestParameter&& request)
@@ -194,5 +175,21 @@ namespace Cesium
         auto promise = asyncSystem.createPromise<IOContent>();
         m_scheduler->Schedule(GenericIORequestHandler{ std::move(request), promise });
         return promise.getFuture();
+    }
+
+    IOContent HttpManager::GetResponseBodyContent(Aws::Http::HttpResponse& response)
+    {
+        auto& ioStream = response.GetResponseBody();
+        std::size_t readSoFar = 0;
+        const std::size_t maxRead = 256;
+        IOContent content;
+        while (ioStream)
+        {
+            content.resize(readSoFar + maxRead);
+            ioStream.read(reinterpret_cast<char*>(content.data() + readSoFar), maxRead);
+            readSoFar += maxRead;
+        }
+
+        return content;
     }
 } // namespace Cesium
