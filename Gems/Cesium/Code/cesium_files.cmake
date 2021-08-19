@@ -3,8 +3,6 @@ set(FILES
     Source/CesiumModuleInterface.h
     Source/PlatformInfo.cpp
     Source/PlatformInfo.h
-    Source/SingleThreadScheduler.cpp
-    Source/SingleThreadScheduler.h
     Source/BitangentAndTangentGenerator.cpp
     Source/BitangentAndTangentGenerator.h
     Source/LoggerSink.cpp

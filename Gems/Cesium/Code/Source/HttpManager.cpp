@@ -1,9 +1,9 @@
 #include "HttpManager.h"
-#include "SingleThreadScheduler.h"
 #include <CesiumUtility/Uri.h>
 #include <CesiumAsync/Promise.h>
 #include <AzFramework/AzFramework_Traits_Platform.h>
 #include <AzCore/PlatformDef.h>
+#include <AzCore/Jobs/JobFunction.h>
 #include <AWSNativeSDKInit/AWSNativeSDKInit.h>
 #include <stdexcept>
 
@@ -105,14 +105,23 @@ namespace Cesium
         CesiumAsync::Promise<IOContent> m_promise;
     };
 
-    HttpManager::HttpManager(SingleThreadScheduler* scheduler)
-        : m_scheduler{scheduler}
+    HttpManager::HttpManager()
     {
+        AZ::JobManagerDesc jobDesc;
+        for (size_t i = 0; i < 2; ++i)
+        {
+            jobDesc.m_workerThreads.push_back({ static_cast<int>(i) });
+        }
+        m_ioJobManager = AZStd::make_unique<AZ::JobManager>(jobDesc);
+        m_ioJobContext = AZStd::make_unique<AZ::JobContext>(*m_ioJobManager);
+
         AWSNativeSDKInit::InitializationManager::InitAwsApi();
     }
 
     HttpManager::~HttpManager() noexcept
     {
+        m_ioJobContext.reset();
+        m_ioJobManager.reset();
         AWSNativeSDKInit::InitializationManager::Shutdown();
     }
 
@@ -120,7 +129,9 @@ namespace Cesium
         const CesiumAsync::AsyncSystem& asyncSystem, HttpRequestParameter&& httpRequestParameter)
     {
         auto promise = asyncSystem.createPromise<HttpResult>();
-        m_scheduler->Schedule(RequestHandler{ std::move(httpRequestParameter), promise });
+        AZ::Job* job =
+            aznew AZ::JobFunction<std::function<void()>>(RequestHandler{ std::move(httpRequestParameter), promise }, true, m_ioJobContext.get());
+        job->Start();
         return promise.getFuture();
     }
 
@@ -165,7 +176,9 @@ namespace Cesium
         const CesiumAsync::AsyncSystem& asyncSystem, const IORequestParameter& request)
     {
         auto promise = asyncSystem.createPromise<IOContent>();
-        m_scheduler->Schedule(GenericIORequestHandler{ request, promise });
+        AZ::Job* job =
+            aznew AZ::JobFunction<std::function<void()>>(GenericIORequestHandler{ request, promise }, true, m_ioJobContext.get());
+        job->Start();
         return promise.getFuture();
     }
 
@@ -173,7 +186,9 @@ namespace Cesium
         const CesiumAsync::AsyncSystem& asyncSystem, IORequestParameter&& request)
     {
         auto promise = asyncSystem.createPromise<IOContent>();
-        m_scheduler->Schedule(GenericIORequestHandler{ std::move(request), promise });
+        AZ::Job* job =
+            aznew AZ::JobFunction<std::function<void()>>(GenericIORequestHandler{ std::move(request), promise }, true, m_ioJobContext.get());
+        job->Start();
         return promise.getFuture();
     }
 

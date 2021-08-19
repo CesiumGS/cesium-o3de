@@ -3,17 +3,17 @@
 #include "GenericIOManager.h"
 #include <CesiumAsync/AsyncSystem.h>
 #include <CesiumAsync/Future.h>
+#include <AzCore/Jobs/JobManager.h>
+#include <AzCore/Jobs/JobContext.h>
 
 namespace Cesium
 {
-    class SingleThreadScheduler;
-
     class LocalFileManager final : public GenericIOManager
     {
         struct RequestHandler;
 
     public:
-        LocalFileManager(SingleThreadScheduler* scheduler);
+        LocalFileManager();
 
         AZStd::string GetParentPath(const AZStd::string& path) override;
 
@@ -28,6 +28,7 @@ namespace Cesium
             const CesiumAsync::AsyncSystem& asyncSystem, IORequestParameter&& request) override;
 
     private:
-        SingleThreadScheduler* m_scheduler;
+        AZStd::unique_ptr<AZ::JobManager> m_ioJobManager;
+        AZStd::unique_ptr<AZ::JobContext> m_ioJobContext;
     };
 } // namespace Cesium

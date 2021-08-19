@@ -2,7 +2,6 @@
 set(FILES
     Tests/CesiumTest.cpp
     Tests/PlatformInfoTest.cpp
-    Tests/SingleThreadSchedulerTest.cpp
     Tests/BitangentAndTangentGeneratorTest.cpp
     Tests/LoggerSinkTest.cpp
     Tests/GenericIOManagerTest.cpp

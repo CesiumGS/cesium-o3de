@@ -5,12 +5,12 @@
 #include <CesiumAsync/Future.h>
 #include <CesiumAsync/HttpHeaders.h>
 #include <aws/core/http/HttpResponse.h>
+#include <AzCore/Jobs/JobManager.h>
+#include <AzCore/Jobs/JobContext.h>
 #include <AzCore/std/string/string.h>
 
 namespace Cesium
 {
-    class SingleThreadScheduler;
-
     struct HttpRequestParameter final
     {
         HttpRequestParameter(AZStd::string&& url, Aws::Http::HttpMethod method)
@@ -55,7 +55,7 @@ namespace Cesium
         struct GenericIORequestHandler;
 
     public:
-        HttpManager(SingleThreadScheduler* scheduler);
+        HttpManager();
 
         ~HttpManager() noexcept;
 
@@ -77,6 +77,7 @@ namespace Cesium
         static IOContent GetResponseBodyContent(Aws::Http::HttpResponse& response);
 
     private:
-        SingleThreadScheduler* m_scheduler;
+        AZStd::unique_ptr<AZ::JobManager> m_ioJobManager;
+        AZStd::unique_ptr<AZ::JobContext> m_ioJobContext;
     };
 }

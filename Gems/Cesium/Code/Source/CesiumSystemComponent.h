@@ -5,6 +5,8 @@
 #include <spdlog/logger.h>
 #include <CesiumAsync/ITaskProcessor.h>
 #include <CesiumAsync/IAssetAccessor.h>
+#include <AzCore/Jobs/JobManager.h>
+#include <AzCore/Jobs/JobContext.h>
 #include <AzCore/Component/Component.h>
 #include <AzCore/Component/TickBus.h>
 #include <AzCore/std/smart_ptr/unique_ptr.h>
@@ -58,7 +60,6 @@ namespace Cesium
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
 
     private:
-        AZStd::unique_ptr<SingleThreadScheduler> m_ioScheduler;
         AZStd::unique_ptr<HttpManager> m_httpManager;
         AZStd::unique_ptr<LocalFileManager> m_localFileManager;
         std::shared_ptr<CesiumAsync::IAssetAccessor> m_httpAssetAccessor;

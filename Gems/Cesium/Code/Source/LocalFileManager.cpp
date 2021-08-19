@@ -1,8 +1,8 @@
 #include "LocalFileManager.h"
-#include "SingleThreadScheduler.h"
 #include <CesiumAsync/Promise.h>
 #include <AzCore/StringFunc/StringFunc.h>
 #include <AzCore/IO/FileIO.h>
+#include <AzCore/Jobs/JobFunction.h>
 
 namespace Cesium
 {
@@ -53,9 +53,15 @@ namespace Cesium
         CesiumAsync::Promise<IOContent> m_promise;
     };
 
-    LocalFileManager::LocalFileManager(SingleThreadScheduler* scheduler)
-        : m_scheduler{ scheduler }
+    LocalFileManager::LocalFileManager()
     {
+        AZ::JobManagerDesc jobDesc;
+        for (size_t i = 0; i < 2; ++i)
+        {
+            jobDesc.m_workerThreads.push_back({ static_cast<int>(i) });
+        }
+        m_ioJobManager = AZStd::make_unique<AZ::JobManager>(jobDesc);
+        m_ioJobContext = AZStd::make_unique<AZ::JobContext>(*m_ioJobManager);
     }
 
     AZStd::string LocalFileManager::GetParentPath(const AZStd::string& path)
@@ -103,7 +109,9 @@ namespace Cesium
         const CesiumAsync::AsyncSystem& asyncSystem, const IORequestParameter& request)
     {
         auto promise = asyncSystem.createPromise<IOContent>();
-        m_scheduler->Schedule(RequestHandler{ request, promise });
+        AZ::Job* job =
+            aznew AZ::JobFunction<std::function<void()>>(RequestHandler{ request, promise }, true, m_ioJobContext.get());
+        job->Start();
         return promise.getFuture();
     }
 
@@ -111,7 +119,9 @@ namespace Cesium
         const CesiumAsync::AsyncSystem& asyncSystem, IORequestParameter&& request)
     {
         auto promise = asyncSystem.createPromise<IOContent>();
-        m_scheduler->Schedule(RequestHandler{ std::move(request), promise });
+        AZ::Job* job =
+            aznew AZ::JobFunction<std::function<void()>>(RequestHandler{ std::move(request), promise }, true, m_ioJobContext.get());
+        job->Start();
         return promise.getFuture();
     }
 
