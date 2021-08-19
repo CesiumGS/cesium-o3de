@@ -181,6 +181,7 @@ namespace Cesium
             options.loadingDescendantLimit = m_impl->m_tilesetConfiguration.m_loadingDescendantLimit;
             options.preloadAncestors = m_impl->m_tilesetConfiguration.m_preloadAncestors;
             options.preloadSiblings = m_impl->m_tilesetConfiguration.m_preloadSiblings;
+            options.forbidHoles = m_impl->m_tilesetConfiguration.m_forbidHole;
         }
     }
 

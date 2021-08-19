@@ -16,6 +16,7 @@ namespace Cesium
             , m_loadingDescendantLimit{20}
             , m_preloadAncestors{true}
             , m_preloadSiblings{true}
+            , m_forbidHole{false}
         {
         }
 
@@ -25,6 +26,7 @@ namespace Cesium
         std::uint32_t m_loadingDescendantLimit;
         bool m_preloadAncestors;
         bool m_preloadSiblings;
+        bool m_forbidHole;
     };
 
     class CesiumTilesetRequest : public AZ::ComponentBus
