@@ -36,6 +36,8 @@ namespace Cesium
 
         virtual const CesiumTilesetConfiguration& GetConfiguration() const = 0;
 
+        virtual void SetCesiumTransform(const AZ::EntityId& cesiumTransformEntityId) = 0;
+
         virtual void AddCamera(const AZ::EntityId& cameraEntityId, const AzFramework::ViewportId& viewportId) = 0;
 
         virtual void RemoveCamera(const AZ::EntityId& cameraEntityId) = 0;

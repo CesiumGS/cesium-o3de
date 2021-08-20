@@ -14,6 +14,7 @@ namespace Cesium
 {
     struct GltfModelComponent::Impl
     {
+        AZStd::string m_filePath;
         AZStd::unique_ptr<GltfModel> m_gltfModel;
         AZ::NonUniformScaleChangedEvent::Handler m_nonUniformScaleChangedHandler;
     };
@@ -32,6 +33,13 @@ namespace Cesium
 
     void GltfModelComponent::LoadModel(const AZStd::string& filePath)
     {
+        if (filePath.empty())
+        {
+            return;
+        }
+
+        m_impl->m_filePath = filePath;
+
         // Load model
         GltfModelBuilder builder;
         GltfModelBuilderOption option{ glm::dmat4(1.0) };
@@ -63,6 +71,7 @@ namespace Cesium
 
     void GltfModelComponent::Activate()
     {
+        LoadModel(m_impl->m_filePath);
         GltfModelRequestBus::Handler::BusConnect(GetEntityId());
         AZ::TransformNotificationBus::Handler::BusConnect(GetEntityId());
         AZ::NonUniformScaleRequestBus::Event(
@@ -73,6 +82,7 @@ namespace Cesium
     {
         GltfModelRequestBus::Handler::BusDisconnect();
         AZ::TransformNotificationBus::Handler::BusDisconnect();
+        m_impl->m_gltfModel.reset();
     }
 
     void GltfModelComponent::OnTransformChanged([[maybe_unused]] const AZ::Transform& local, const AZ::Transform& world)

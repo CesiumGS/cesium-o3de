@@ -31,6 +31,8 @@ namespace Cesium
 
         const CesiumTilesetConfiguration& GetConfiguration() const override;
 
+        void SetCesiumTransform(const AZ::EntityId& cesiumTransformEntityId) override;
+
         void AddCamera(const AZ::EntityId& cameraEntityId, const AzFramework::ViewportId& viewportId) override;
 
         void RemoveCamera(const AZ::EntityId& cameraEntityId) override;
@@ -45,6 +47,9 @@ namespace Cesium
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
 
         class CameraConfigurations;
+        struct LocalFileSource;
+        struct UrlSource;
+        struct CesiumIonSource;
         struct Impl;
         AZStd::unique_ptr<Impl> m_impl;
     };

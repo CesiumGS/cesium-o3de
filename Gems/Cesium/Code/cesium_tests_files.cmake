@@ -15,11 +15,13 @@ set(FILES
     Tests/CesiumSystemComponentBusTest.cpp
     Tests/GltfModelComponentBusTest.cpp
     Tests/CesiumTilesetComponentBusTest.cpp
+    Tests/CesiumTransformComponentBusTest.cpp
     Tests/GltfLoadContextTest.cpp
     Tests/GltfPrimitiveBuilderTest.cpp
     Tests/GltfMaterialBuilderTest.cpp
     Tests/GltfModelBuilderTest.cpp
     Tests/GltfModelTest.cpp
+    Tests/GeoReferenceTransformComponentTest.cpp
     Tests/CesiumSystemComponentTest.cpp
     Tests/GltfModelComponentTest.cpp
     Tests/CesiumTilesetComponentTest.cpp

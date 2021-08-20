@@ -19,6 +19,7 @@
 #include <AzCore/std/containers/vector.h>
 #include <glm/glm.hpp>
 #include <vector>
+#include <variant>
 
 namespace Cesium
 {
@@ -117,8 +118,26 @@ namespace Cesium
         std::vector<Cesium3DTilesSelection::ViewState> m_viewStates;
     };
 
+    struct CesiumTilesetComponent::LocalFileSource
+    {
+        AZStd::string m_filePath;
+    };
+
+    struct CesiumTilesetComponent::UrlSource
+    {
+        AZStd::string m_url;
+    };
+
+    struct CesiumTilesetComponent::CesiumIonSource
+    {
+        std::uint32_t cesiumIonAssetId;
+        AZStd::string cesiumIonAssetToken;
+    };
+
     struct CesiumTilesetComponent::Impl
     {
+        using TilesetSourceConfiguration = std::variant<std::monostate, LocalFileSource, UrlSource, CesiumIonSource>;
+
         Cesium3DTilesSelection::TilesetExternals CreateTilesetExternal(IOKind kind)
         {
             return Cesium3DTilesSelection::TilesetExternals{
@@ -130,10 +149,29 @@ namespace Cesium
             };
         }
 
+        void LoadTilesetFromLocalFile(const AZStd::string& path)
+        {
+            Cesium3DTilesSelection::TilesetExternals externals = CreateTilesetExternal(IOKind::LocalFile);
+            m_tileset = AZStd::make_unique<Cesium3DTilesSelection::Tileset>(externals, path.c_str());
+        }
+
+        void LoadTilesetFromUrl(const AZStd::string& url)
+        {
+            Cesium3DTilesSelection::TilesetExternals externals = CreateTilesetExternal(IOKind::Http);
+            m_tileset = AZStd::make_unique<Cesium3DTilesSelection::Tileset>(externals, url.c_str());
+        }
+
+        void LoadTilesetFromCesiumIon(std::uint32_t cesiumIonAssetId, const AZStd::string& cesiumIonAssetToken)
+        {
+            Cesium3DTilesSelection::TilesetExternals externals = CreateTilesetExternal(IOKind::Http);
+            m_tileset = AZStd::make_unique<Cesium3DTilesSelection::Tileset>(externals, cesiumIonAssetId, cesiumIonAssetToken.c_str());
+        }
+
         std::shared_ptr<Cesium3DTilesSelection::IPrepareRendererResources> m_renderResourcesPreparer;
         AZStd::unique_ptr<Cesium3DTilesSelection::Tileset> m_tileset;
         CameraConfigurations m_cameraConfigurations;
         CesiumTilesetConfiguration m_tilesetConfiguration;
+        TilesetSourceConfiguration m_tilesetSource;
     };
 
     void CesiumTilesetComponent::Reflect(AZ::ReflectContext* context)
@@ -146,19 +184,34 @@ namespace Cesium
 
     CesiumTilesetComponent::CesiumTilesetComponent()
     {
+        m_impl = AZStd::make_unique<Impl>();
     }
 
     void CesiumTilesetComponent::Init()
     {
-        m_impl = AZStd::make_unique<Impl>();
-
-        AZ::Render::MeshFeatureProcessorInterface* meshFeatureProcessor =
-            AZ::RPI::Scene::GetFeatureProcessorForEntity<AZ::Render::MeshFeatureProcessorInterface>(GetEntityId());
-        m_impl->m_renderResourcesPreparer = std::make_shared<RenderResourcesPreparer>(meshFeatureProcessor);
     }
 
     void CesiumTilesetComponent::Activate()
     {
+        // create render resources preparer
+        AZ::Render::MeshFeatureProcessorInterface* meshFeatureProcessor =
+            AZ::RPI::Scene::GetFeatureProcessorForEntity<AZ::Render::MeshFeatureProcessorInterface>(GetEntityId());
+        m_impl->m_renderResourcesPreparer = std::make_shared<RenderResourcesPreparer>(meshFeatureProcessor);
+
+        // load tileset from source if it exists
+        if (auto localFile = std::get_if<LocalFileSource>(&m_impl->m_tilesetSource))
+        {
+            m_impl->LoadTilesetFromLocalFile(localFile->m_filePath);
+        }
+        else if (auto url = std::get_if<UrlSource>(&m_impl->m_tilesetSource))
+        {
+            m_impl->LoadTilesetFromUrl(url->m_url);
+        }
+        else if (auto cesiumIon = std::get_if<CesiumIonSource>(&m_impl->m_tilesetSource))
+        {
+            m_impl->LoadTilesetFromCesiumIon(cesiumIon->cesiumIonAssetId, cesiumIon->cesiumIonAssetToken);
+        }
+
         AZ::TickBus::Handler::BusConnect();
         CesiumTilesetRequestBus::Handler::BusConnect(GetEntityId());
     }
@@ -167,6 +220,9 @@ namespace Cesium
     {
         AZ::TickBus::Handler::BusDisconnect();
         CesiumTilesetRequestBus::Handler::BusDisconnect();
+
+        m_impl->m_tileset.reset();
+        m_impl->m_renderResourcesPreparer.reset();
     }
 
     void CesiumTilesetComponent::SetConfiguration(const CesiumTilesetConfiguration& configration)
@@ -188,6 +244,10 @@ namespace Cesium
     const CesiumTilesetConfiguration& CesiumTilesetComponent::GetConfiguration() const
     {
         return m_impl->m_tilesetConfiguration;
+    }
+
+    void CesiumTilesetComponent::SetCesiumTransform([[maybe_unused]] const AZ::EntityId& cesiumTransformEntityId)
+    {
     }
 
     void CesiumTilesetComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
@@ -241,19 +301,19 @@ namespace Cesium
 
     void CesiumTilesetComponent::LoadTilesetFromLocalFile(const AZStd::string& path)
     {
-        Cesium3DTilesSelection::TilesetExternals externals = m_impl->CreateTilesetExternal(IOKind::LocalFile);
-        m_impl->m_tileset = AZStd::make_unique<Cesium3DTilesSelection::Tileset>(externals, path.c_str());
+        m_impl->LoadTilesetFromLocalFile(path);
+        m_impl->m_tilesetSource = LocalFileSource{ path };
     }
 
     void CesiumTilesetComponent::LoadTilesetFromUrl(const AZStd::string& url)
     {
-        Cesium3DTilesSelection::TilesetExternals externals = m_impl->CreateTilesetExternal(IOKind::Http);
-        m_impl->m_tileset = AZStd::make_unique<Cesium3DTilesSelection::Tileset>(externals, url.c_str());
+        m_impl->LoadTilesetFromUrl(url);
+        m_impl->m_tilesetSource = UrlSource{ url };
     }
 
     void CesiumTilesetComponent::LoadTilesetFromCesiumIon(std::uint32_t cesiumIonAssetId, const AZStd::string& cesiumIonAssetToken)
     {
-        Cesium3DTilesSelection::TilesetExternals externals = m_impl->CreateTilesetExternal(IOKind::Http);
-        m_impl->m_tileset = AZStd::make_unique<Cesium3DTilesSelection::Tileset>(externals, cesiumIonAssetId, cesiumIonAssetToken.c_str());
+        m_impl->LoadTilesetFromCesiumIon(cesiumIonAssetId, cesiumIonAssetToken);
+        m_impl->m_tilesetSource = CesiumIonSource{ cesiumIonAssetId, cesiumIonAssetToken };
     }
 } // namespace Cesium

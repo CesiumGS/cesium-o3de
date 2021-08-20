@@ -38,6 +38,8 @@ set(FILES
     Source/CesiumSystemComponent.cpp
     Source/CesiumSystemComponent.h
     Source/CesiumTilesetComponentBus.cpp
+    Include/Cesium/CesiumTransformComponentBus.h
+    Source/CesiumTransformComponentBus.cpp
     Include/Cesium/CesiumTilesetComponentBus.h
     Source/CesiumTilesetComponent.cpp
     Include/Cesium/CesiumTilesetComponent.h
@@ -45,4 +47,6 @@ set(FILES
     Include/Cesium/GltfModelComponentBus.h
     Source/GltfModelComponent.cpp
     Include/Cesium/GltfModelComponent.h
+    Source/GeoReferenceTransformComponent.cpp
+    Include/Cesium/GeoReferenceTransformComponent.h
 )
