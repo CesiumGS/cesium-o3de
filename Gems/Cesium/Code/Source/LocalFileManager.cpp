@@ -41,12 +41,14 @@ namespace Cesium
             {
                 m_promise.reject(std::runtime_error("Request failed for file: " + std::string(absolutePath.c_str())));
             }
-
-            // Create a buffer.
-            std::size_t fileSize = stream.GetLength();
-            IOContent content(fileSize);
-            stream.Read(fileSize, content.data());
-            m_promise.resolve(std::move(content));
+            else
+            {
+                // Create a buffer.
+                std::size_t fileSize = stream.GetLength();
+                IOContent content(fileSize);
+                stream.Read(fileSize, content.data());
+                m_promise.resolve(std::move(content));
+            }
         }
 
         IORequestParameter m_request;

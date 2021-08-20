@@ -97,8 +97,10 @@ namespace Cesium
             {
                 m_promise.reject(std::runtime_error("Request failed for url: " + absoluteUrl));
             }
-
-            m_promise.resolve(HttpManager::GetResponseBodyContent(*awsHttpResponse));
+            else
+            {
+                m_promise.resolve(HttpManager::GetResponseBodyContent(*awsHttpResponse));
+            }
         }
 
         IORequestParameter m_request;
