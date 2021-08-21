@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Cesium3DTilesSelection/IPrepareRendererResources.h>
+#include <glm/glm.hpp>
 
 namespace AZ
 {
@@ -16,6 +17,10 @@ namespace Cesium
     {
     public:
         RenderResourcesPreparer(AZ::Render::MeshFeatureProcessorInterface* meshFeatureProcessor);
+
+        void SetTransform(const glm::dmat4& transform);
+
+        void SetVisible(void* renderResources, bool visible);
 
         void* prepareInLoadThread(const CesiumGltf::Model& model, const glm::dmat4& transform) override;
 
@@ -48,5 +53,6 @@ namespace Cesium
 
     private:
         AZ::Render::MeshFeatureProcessorInterface* m_meshFeatureProcessor;
+        glm::dmat4 m_transform;
     };
 } // namespace Cesium

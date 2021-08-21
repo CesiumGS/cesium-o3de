@@ -24,14 +24,32 @@ namespace Cesium
 {
     RenderResourcesPreparer::RenderResourcesPreparer(AZ::Render::MeshFeatureProcessorInterface* meshFeatureProcessor)
         : m_meshFeatureProcessor{ meshFeatureProcessor }
+        , m_transform{1.0}
     {
+    }
+
+    void RenderResourcesPreparer::SetTransform(const glm::dmat4& transform)
+    {
+        m_transform = transform;
+    }
+
+    void RenderResourcesPreparer::SetVisible(void* renderResources, bool visible)
+    {
+        if (renderResources)
+        {
+            GltfModel* model = reinterpret_cast<GltfModel*>(renderResources);
+            if (model->IsVisible() != visible)
+            {
+                model->SetVisible(visible);
+            }
+        }
     }
 
     void* RenderResourcesPreparer::prepareInLoadThread(const CesiumGltf::Model& model, const glm::dmat4& transform)
     {
         AZStd::unique_ptr<GltfLoadModel> loadModel = AZStd::make_unique<GltfLoadModel>();
         GltfModelBuilder builder;
-        GltfModelBuilderOption option{transform};
+        GltfModelBuilderOption option{m_transform * transform};
         builder.Create(model, option, *loadModel);
         return loadModel.release();
     }

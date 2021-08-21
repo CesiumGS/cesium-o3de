@@ -5,6 +5,7 @@
 #include <AzCore/Component/Component.h>
 #include <AzCore/Component/EntityId.h>
 #include <AzCore/Component/TickBus.h>
+#include <AzCore/Component/EntityBus.h>
 #include <AzCore/std/smart_ptr/unique_ptr.h>
 
 namespace Cesium
@@ -12,6 +13,7 @@ namespace Cesium
     class CesiumTilesetComponent
         : public AZ::Component
         , public AZ::TickBus::Handler
+        , public AZ::EntityBus::Handler
         , public CesiumTilesetRequestBus::Handler
     {
     public:
@@ -47,6 +49,7 @@ namespace Cesium
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
 
         class CameraConfigurations;
+        struct EntityWrapper;
         struct LocalFileSource;
         struct UrlSource;
         struct CesiumIonSource;

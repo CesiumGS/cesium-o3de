@@ -15,8 +15,6 @@ namespace Cesium
 
         static void Reflect(AZ::ReflectContext* context);
 
-        GeoReferenceTransformComponent();
-
         void Init() override;
 
         void Activate() override;
@@ -29,8 +27,15 @@ namespace Cesium
 
         const glm::dmat4& CesiumCoordToO3DECoord() const override;
 
+        const CesiumTransformConfiguration& GetConfiguration() const override;
+
+        void BindTransformChangeEventHandler(TransformChangeEvent::Handler& handler) override;
+
+        void BindTransformEnableEventHandler(TransformEnableEvent::Handler& handler) override;
+
     private:
-        glm::dmat4 m_O3DEToCesium;
-        glm::dmat4 m_cesiumToO3DE;
+        CesiumTransformConfiguration m_config;
+        TransformChangeEvent m_transformChangeEvent;
+        TransformEnableEvent m_enableEvent;
     };
 }
