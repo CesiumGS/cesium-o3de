@@ -1,6 +1,5 @@
 #include "RenderResourcesPreparer.h"
 #include "GltfModelBuilder.h"
-#include "GltfModel.h"
 #include "GltfLoadContext.h"
 #include <Atom/Feature/Mesh/MeshFeatureProcessorInterface.h>
 #include <AzCore/std/smart_ptr/unique_ptr.h>
@@ -28,19 +27,33 @@ namespace Cesium
     {
     }
 
+    RenderResourcesPreparer::~RenderResourcesPreparer() noexcept
+    {
+        for (auto& intrusiveModel : m_intrusiveModels)
+        {
+            // move the handler out before free it. Otherwise, stack overflow
+            auto handler = std::move(intrusiveModel.m_self); 
+            handler.Free();
+        }
+    }
+
     void RenderResourcesPreparer::SetTransform(const glm::dmat4& transform)
     {
         m_transform = transform;
+        for (auto& intrusiveModel : m_intrusiveModels)
+        {
+            intrusiveModel.m_model.SetTransform(transform);
+        }
     }
 
     void RenderResourcesPreparer::SetVisible(void* renderResources, bool visible)
     {
         if (renderResources)
         {
-            GltfModel* model = reinterpret_cast<GltfModel*>(renderResources);
-            if (model->IsVisible() != visible)
+            IntrusiveGltfModel* intrusiveModel = reinterpret_cast<IntrusiveGltfModel*>(renderResources);
+            if (intrusiveModel->m_model.IsVisible() != visible)
             {
-                model->SetVisible(visible);
+                intrusiveModel->m_model.SetVisible(visible);
             }
         }
     }
@@ -60,9 +73,11 @@ namespace Cesium
         {
             // we destroy loadModel after main thread is done
             AZStd::unique_ptr<GltfLoadModel> loadModel{ reinterpret_cast<GltfLoadModel*>(pLoadThreadResult) };
-            AZStd::unique_ptr<GltfModel> model = AZStd::make_unique<GltfModel>(m_meshFeatureProcessor, *loadModel);
-            model->SetVisible(false);
-            return model.release();
+            auto handle = m_intrusiveModels.emplace(GltfModel(m_meshFeatureProcessor, *loadModel));
+            IntrusiveGltfModel& intrusiveModel = *handle;
+            intrusiveModel.m_self = std::move(handle);
+            intrusiveModel.m_model.SetVisible(false);
+            return &intrusiveModel;
         }
 
         return nullptr;
@@ -78,8 +93,9 @@ namespace Cesium
 
         if (pMainThreadResult)
         {
-            GltfModel* model = reinterpret_cast<GltfModel*>(pMainThreadResult);
-            delete model;
+            IntrusiveGltfModel* intrusiveModel = reinterpret_cast<IntrusiveGltfModel*>(pMainThreadResult);
+            auto handler = std::move(intrusiveModel->m_self); // move the handler out before free it. Otherwise, stack overflow
+            handler.Free();
         }
     }
 

@@ -1,6 +1,8 @@
 #pragma once
 
+#include "GltfModel.h"
 #include <Cesium3DTilesSelection/IPrepareRendererResources.h>
+#include <Atom/Utils/StableDynamicArray.h>
 #include <glm/glm.hpp>
 
 namespace AZ
@@ -13,10 +15,23 @@ namespace AZ
 
 namespace Cesium
 {
+    struct IntrusiveGltfModel
+    {
+        IntrusiveGltfModel(GltfModel&& model)
+            : m_model{ std::move(model) }
+        {
+        }
+
+        GltfModel m_model;
+        AZ::StableDynamicArrayHandle<IntrusiveGltfModel> m_self;
+    };
+
     class RenderResourcesPreparer : public Cesium3DTilesSelection::IPrepareRendererResources
     {
     public:
         RenderResourcesPreparer(AZ::Render::MeshFeatureProcessorInterface* meshFeatureProcessor);
+
+        ~RenderResourcesPreparer() noexcept;
 
         void SetTransform(const glm::dmat4& transform);
 
@@ -53,6 +68,7 @@ namespace Cesium
 
     private:
         AZ::Render::MeshFeatureProcessorInterface* m_meshFeatureProcessor;
+        AZ::StableDynamicArray<IntrusiveGltfModel> m_intrusiveModels;
         glm::dmat4 m_transform;
     };
 } // namespace Cesium

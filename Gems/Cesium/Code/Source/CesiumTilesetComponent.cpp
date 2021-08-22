@@ -151,15 +151,12 @@ namespace Cesium
 
         EntityWrapper(EntityWrapper&& rhs) noexcept
         {
-            if (&rhs != this)
+            if (rhs.m_entityId.IsValid())
             {
-                if (rhs.m_entityId.IsValid())
-                {
-                    AZ::EntityBus::Handler::BusConnect(rhs.m_entityId);
-                }
-
-                m_entityId = rhs.m_entityId;
+                AZ::EntityBus::Handler::BusConnect(rhs.m_entityId);
             }
+
+            m_entityId = rhs.m_entityId;
         }
 
         EntityWrapper& operator=(const EntityWrapper&) = delete;

@@ -57,6 +57,28 @@ namespace Cesium
         }
     }
 
+    GltfModel::GltfModel(GltfModel&& rhs) noexcept
+    {
+        m_visible = rhs.m_visible;
+        m_transform = rhs.m_transform;
+        m_meshFeatureProcessor = rhs.m_meshFeatureProcessor;
+        m_meshes = std::move(rhs.m_meshes);
+    }
+
+    GltfModel& GltfModel::operator=(GltfModel&& rhs) noexcept
+    {
+        using AZStd::swap;
+        if (&rhs != this)
+        {
+            swap(m_visible, rhs.m_visible);
+            swap(m_transform, rhs.m_transform);
+            swap(m_meshFeatureProcessor, rhs.m_meshFeatureProcessor);
+            swap(m_meshes, rhs.m_meshes);
+        }
+
+        return *this;
+    }
+
     GltfModel::~GltfModel() noexcept
     {
         Destroy();
@@ -69,7 +91,7 @@ namespace Cesium
 
     void GltfModel::SetVisible(bool visible)
     {
-        m_visible = visible;
+       m_visible = visible;
         for (auto& mesh : m_meshes)
         {
             for (auto& primitiveHandle : mesh.m_primitiveHandles)
