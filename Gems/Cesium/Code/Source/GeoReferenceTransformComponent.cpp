@@ -1,6 +1,7 @@
 #include <Cesium/GeoReferenceTransformComponent.h>
 #include <CesiumGeospatial/Transforms.h>
 #include <AzCore/Serialization/SerializeContext.h>
+#include <glm/gtc/matrix_inverse.hpp>
 
 namespace Cesium
 {
@@ -30,8 +31,8 @@ namespace Cesium
 
     void GeoReferenceTransformComponent::SetCesiumCoordOrigin(const glm::dvec3& cesiumCoordOrigin)
     {
-        m_config.m_cesiumToO3DE = CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(cesiumCoordOrigin);
-        m_config.m_O3DEToCesium = glm::inverse(m_config.m_cesiumToO3DE);
+        m_config.m_O3DEToCesium = CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(cesiumCoordOrigin);
+        m_config.m_cesiumToO3DE = glm::affineInverse(m_config.m_O3DEToCesium);
         m_transformChangeEvent.Signal(m_config);
     }
 

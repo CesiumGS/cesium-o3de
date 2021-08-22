@@ -3,6 +3,7 @@
 #include "GltfModel.h"
 #include <Cesium3DTilesSelection/IPrepareRendererResources.h>
 #include <Atom/Utils/StableDynamicArray.h>
+#include <AzCore/std/optional.h>
 #include <glm/glm.hpp>
 
 namespace AZ
@@ -11,6 +12,11 @@ namespace AZ
     {
         class MeshFeatureProcessorInterface;
     }
+}
+
+namespace CesiumGltf
+{
+    struct Model;
 }
 
 namespace Cesium
@@ -69,6 +75,10 @@ namespace Cesium
             const CesiumGeometry::Rectangle& textureCoordinateRectangle) noexcept override;
 
     private:
+        AZStd::optional<glm::dvec3> GetRTCFromGltf(const CesiumGltf::Model& model);
+
+        static constexpr char* CESIUM_RTC_CENTER_EXTRA = "RTC_CENTER";
+
         AZ::Render::MeshFeatureProcessorInterface* m_meshFeatureProcessor;
         AZ::StableDynamicArray<IntrusiveGltfModel> m_intrusiveModels;
         glm::dmat4 m_transform;

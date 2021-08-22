@@ -19,6 +19,7 @@
 #include <AzCore/std/algorithm.h>
 #include <AzCore/std/containers/vector.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_inverse.hpp>
 #include <vector>
 #include <variant>
 
@@ -236,7 +237,7 @@ namespace Cesium
                 [this](const CesiumTransformConfiguration& configuration) mutable
                 {
                     this->m_renderResourcesPreparer->SetTransform(m_O3DETransform * configuration.m_cesiumToO3DE);
-                    this->m_cameraConfigurations.SetTransform(m_cesiumTransformConfig.m_O3DEToCesium * glm::inverse(m_O3DETransform));
+                    this->m_cameraConfigurations.SetTransform(configuration.m_O3DEToCesium * glm::affineInverse(m_O3DETransform));
                     this->m_cesiumTransformConfig = configuration;
                 });
 
@@ -246,7 +247,7 @@ namespace Cesium
                     if (enable)
                     {
                         this->m_renderResourcesPreparer->SetTransform(m_O3DETransform * configuration.m_cesiumToO3DE);
-                        this->m_cameraConfigurations.SetTransform(m_cesiumTransformConfig.m_O3DEToCesium * glm::inverse(m_O3DETransform));
+                        this->m_cameraConfigurations.SetTransform(configuration.m_O3DEToCesium * glm::affineInverse(m_O3DETransform));
                         this->m_cesiumTransformConfig = configuration;
                     }
                     else
@@ -317,7 +318,7 @@ namespace Cesium
             }
 
             m_renderResourcesPreparer->SetTransform(m_O3DETransform * config.m_cesiumToO3DE);
-            m_cameraConfigurations.SetTransform(m_cesiumTransformConfig.m_O3DEToCesium * glm::inverse(m_O3DETransform));
+            m_cameraConfigurations.SetTransform(config.m_O3DEToCesium * glm::affineInverse(m_O3DETransform));
             m_cesiumTransformConfig = config;
         }
 
@@ -340,7 +341,7 @@ namespace Cesium
 
             m_O3DETransform = MathHelper::ConvertTransformAndScaleToDMat4(world, nonUniformScale);
             m_renderResourcesPreparer->SetTransform(m_O3DETransform * m_cesiumTransformConfig.m_cesiumToO3DE);
-            m_cameraConfigurations.SetTransform(m_cesiumTransformConfig.m_O3DEToCesium * glm::inverse(m_O3DETransform));
+            m_cameraConfigurations.SetTransform(m_cesiumTransformConfig.m_O3DEToCesium * glm::affineInverse(m_O3DETransform));
         }
 
         void SetNonUniformScale(const AZ::Vector3& scale)

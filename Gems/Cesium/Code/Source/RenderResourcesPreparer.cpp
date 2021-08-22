@@ -1,8 +1,10 @@
 #include "RenderResourcesPreparer.h"
 #include "GltfModelBuilder.h"
 #include "GltfLoadContext.h"
+#include <CesiumUtility/JsonValue.h>
 #include <Atom/Feature/Mesh/MeshFeatureProcessorInterface.h>
 #include <AzCore/std/smart_ptr/unique_ptr.h>
+#include <glm/gtc/matrix_transform.hpp>
 
 // Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
 // This only happens with unity build
@@ -65,9 +67,17 @@ namespace Cesium
 
     void* RenderResourcesPreparer::prepareInLoadThread(const CesiumGltf::Model& model, const glm::dmat4& transform)
     {
+        // set option for model loaders. Especially RTC
+        GltfModelBuilderOption option{transform};
+        AZStd::optional<glm::dvec3> rtc = GetRTCFromGltf(model);
+        if (rtc)
+        {
+            option.m_transform = glm::translate(transform, rtc.value());
+        }
+
+        // build model
         AZStd::unique_ptr<GltfLoadModel> loadModel = AZStd::make_unique<GltfLoadModel>();
         GltfModelBuilder builder;
-        GltfModelBuilderOption option{transform};
         builder.Create(model, option, *loadModel);
         return loadModel.release();
     }
@@ -141,5 +151,32 @@ namespace Cesium
         [[maybe_unused]] void* pMainThreadRendererResources,
         [[maybe_unused]] const CesiumGeometry::Rectangle& textureCoordinateRectangle) noexcept
     {
+    }
+
+    AZStd::optional<glm::dvec3> RenderResourcesPreparer::GetRTCFromGltf(const CesiumGltf::Model& model)
+    {
+        const CesiumUtility::JsonValue& extras = model.extras;
+        const CesiumUtility::JsonValue* rtcObj = extras.getValuePtrForKey(CESIUM_RTC_CENTER_EXTRA);
+        if (!rtcObj)
+        {
+            return AZStd::nullopt;
+        }
+
+        if (!rtcObj->isArray())
+        {
+            return AZStd::nullopt;
+        }
+
+        const auto& array = rtcObj->getArray();
+        if (array.size() != 3)
+        {
+            return AZStd::nullopt;
+        }
+
+        glm::dvec3 rtc{0.0};
+        rtc.x = array[0].getDoubleOrDefault(0.0);
+        rtc.y = array[1].getDoubleOrDefault(0.0);
+        rtc.z = array[2].getDoubleOrDefault(0.0);
+        return rtc;
     }
 } // namespace Cesium
