@@ -17,6 +17,7 @@ namespace Cesium
             , m_preloadAncestors{true}
             , m_preloadSiblings{true}
             , m_forbidHole{false}
+            , m_stopUpdate{false}
         {
         }
 
@@ -27,6 +28,7 @@ namespace Cesium
         bool m_preloadAncestors;
         bool m_preloadSiblings;
         bool m_forbidHole;
+        bool m_stopUpdate;
     };
 
     class CesiumTilesetRequest : public AZ::ComponentBus

@@ -46,6 +46,11 @@ namespace Cesium
         }
     }
 
+    const glm::dmat4& RenderResourcesPreparer::GetTransform() const
+    {
+        return m_transform;
+    }
+
     void RenderResourcesPreparer::SetVisible(void* renderResources, bool visible)
     {
         if (renderResources)
@@ -62,7 +67,7 @@ namespace Cesium
     {
         AZStd::unique_ptr<GltfLoadModel> loadModel = AZStd::make_unique<GltfLoadModel>();
         GltfModelBuilder builder;
-        GltfModelBuilderOption option{m_transform * transform};
+        GltfModelBuilderOption option{transform};
         builder.Create(model, option, *loadModel);
         return loadModel.release();
     }
@@ -76,6 +81,7 @@ namespace Cesium
             auto handle = m_intrusiveModels.emplace(GltfModel(m_meshFeatureProcessor, *loadModel));
             IntrusiveGltfModel& intrusiveModel = *handle;
             intrusiveModel.m_self = std::move(handle);
+            intrusiveModel.m_model.SetTransform(m_transform);
             intrusiveModel.m_model.SetVisible(false);
             return &intrusiveModel;
         }

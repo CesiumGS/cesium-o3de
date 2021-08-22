@@ -1,6 +1,7 @@
 
 set(FILES
     Tests/CesiumTest.cpp
+    Tests/MathHelperTest.cpp
     Tests/PlatformInfoTest.cpp
     Tests/BitangentAndTangentGeneratorTest.cpp
     Tests/LoggerSinkTest.cpp

@@ -35,6 +35,8 @@ namespace Cesium
 
         void SetTransform(const glm::dmat4& transform);
 
+        const glm::dmat4& GetTransform() const;
+
         void SetVisible(void* renderResources, bool visible);
 
         void* prepareInLoadThread(const CesiumGltf::Model& model, const glm::dmat4& transform) override;

@@ -2,6 +2,7 @@
 #include <Cesium/CesiumTransformComponentBus.h>
 #include "RenderResourcesPreparer.h"
 #include "CesiumSystemComponentBus.h"
+#include "MathHelper.h"
 #include <Cesium3DTilesSelection/Tileset.h>
 #include <Cesium3DTilesSelection/TilesetExternals.h>
 #include <Cesium3DTilesSelection/ViewState.h>
@@ -13,6 +14,7 @@
 #include <Atom/RPI.Public/ViewProviderBus.h>
 #include <Atom/RPI.Public/View.h>
 #include <AzFramework/Components/CameraBus.h>
+#include <AzCore/Component/NonUniformScaleBus.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/std/algorithm.h>
 #include <AzCore/std/containers/vector.h>
@@ -39,6 +41,11 @@ namespace Cesium
         void SetTransform(const glm::dmat4& transform)
         {
             m_transform = transform;
+        }
+
+        const glm::dmat4& GetTransform() const
+        {
+            return m_transform;
         }
 
         void AddCameraEntity(const AZ::EntityId& cameraEntityId, const AzFramework::ViewportId& viewportId)
@@ -221,13 +228,16 @@ namespace Cesium
     {
         using TilesetSourceConfiguration = std::variant<std::monostate, LocalFileSource, UrlSource, CesiumIonSource>;
 
-        Impl()
+        Impl(const AZ::EntityId& selfEntity)
+            : m_selfEntity{ selfEntity }
+            , m_O3DETransform{ 1.0 }
         {
             m_cesiumTransformChangeHandler = TransformChangeEvent::Handler(
                 [this](const CesiumTransformConfiguration& configuration) mutable
                 {
-                    this->m_renderResourcesPreparer->SetTransform(configuration.m_cesiumToO3DE);
-                    this->m_cameraConfigurations.SetTransform(configuration.m_O3DEToCesium);
+                    this->m_renderResourcesPreparer->SetTransform(m_O3DETransform * configuration.m_cesiumToO3DE);
+                    this->m_cameraConfigurations.SetTransform(m_cesiumTransformConfig.m_O3DEToCesium * glm::inverse(m_O3DETransform));
+                    this->m_cesiumTransformConfig = configuration;
                 });
 
             m_cesiumTransformEnableHandler = TransformEnableEvent::Handler(
@@ -235,14 +245,22 @@ namespace Cesium
                 {
                     if (enable)
                     {
-                        this->m_renderResourcesPreparer->SetTransform(configuration.m_cesiumToO3DE);
-                        this->m_cameraConfigurations.SetTransform(configuration.m_O3DEToCesium);
+                        this->m_renderResourcesPreparer->SetTransform(m_O3DETransform * configuration.m_cesiumToO3DE);
+                        this->m_cameraConfigurations.SetTransform(m_cesiumTransformConfig.m_O3DEToCesium * glm::inverse(m_O3DETransform));
+                        this->m_cesiumTransformConfig = configuration;
                     }
                     else
                     {
-                        this->m_renderResourcesPreparer->SetTransform(glm::dmat4(1.0));
+                        this->m_renderResourcesPreparer->SetTransform(m_O3DETransform);
                         this->m_cameraConfigurations.SetTransform(glm::dmat4(1.0));
+                        this->m_cesiumTransformConfig = CesiumTransformConfiguration{};
                     }
+                });
+
+            m_nonUniformScaleChangedHandler = AZ::NonUniformScaleChangedEvent::Handler(
+                [this](const AZ::Vector3& scale)
+                {
+                    this->SetNonUniformScale(scale);
                 });
         }
 
@@ -298,8 +316,9 @@ namespace Cesium
                 }
             }
 
-            m_renderResourcesPreparer->SetTransform(config.m_cesiumToO3DE);
-            m_cameraConfigurations.SetTransform(config.m_O3DEToCesium);
+            m_renderResourcesPreparer->SetTransform(m_O3DETransform * config.m_cesiumToO3DE);
+            m_cameraConfigurations.SetTransform(m_cesiumTransformConfig.m_O3DEToCesium * glm::inverse(m_O3DETransform));
+            m_cesiumTransformConfig = config;
         }
 
         void DisconnectCesiumTransformEntityEvents()
@@ -308,7 +327,32 @@ namespace Cesium
             {
                 m_cesiumTransformChangeHandler.Disconnect();
                 m_cesiumTransformEnableHandler.Disconnect();
+                m_cesiumTransformConfig = CesiumTransformConfiguration{};
             }
+        }
+
+        void SetWorldTransform(const AZ::Transform& world, const AZ::Vector3& nonUniformScale)
+        {
+            if (!m_renderResourcesPreparer)
+            {
+                return;
+            }
+
+            m_O3DETransform = MathHelper::ConvertTransformAndScaleToDMat4(world, nonUniformScale);
+            m_renderResourcesPreparer->SetTransform(m_O3DETransform * m_cesiumTransformConfig.m_cesiumToO3DE);
+            m_cameraConfigurations.SetTransform(m_cesiumTransformConfig.m_O3DEToCesium * glm::inverse(m_O3DETransform));
+        }
+
+        void SetNonUniformScale(const AZ::Vector3& scale)
+        {
+            if (!m_renderResourcesPreparer)
+            {
+                return;
+            }
+
+            AZ::Transform worldTransform;
+            AZ::TransformBus::EventResult(worldTransform, m_selfEntity, &AZ::TransformBus::Events::GetWorldTM);
+            SetWorldTransform(worldTransform, scale);
         }
 
         // Resources can be rebuilt from the configurations below
@@ -316,12 +360,16 @@ namespace Cesium
         AZStd::unique_ptr<Cesium3DTilesSelection::Tileset> m_tileset;
         TransformChangeEvent::Handler m_cesiumTransformChangeHandler;
         TransformEnableEvent::Handler m_cesiumTransformEnableHandler;
+        AZ::NonUniformScaleChangedEvent::Handler m_nonUniformScaleChangedHandler;
+        CesiumTransformConfiguration m_cesiumTransformConfig;
 
         // Configurations to rebuild the resources above when activated
+        AZ::EntityId m_selfEntity;
         CameraConfigurations m_cameraConfigurations;
         CesiumTilesetConfiguration m_tilesetConfiguration;
         TilesetSourceConfiguration m_tilesetSource;
         EntityWrapper m_cesiumTransformEntity;
+        glm::dmat4 m_O3DETransform;
     };
 
     void CesiumTilesetComponent::Reflect(AZ::ReflectContext* context)
@@ -334,11 +382,11 @@ namespace Cesium
 
     CesiumTilesetComponent::CesiumTilesetComponent()
     {
-        m_impl = AZStd::make_unique<Impl>();
     }
 
     void CesiumTilesetComponent::Init()
     {
+        m_impl = AZStd::make_unique<Impl>(GetEntityId());
     }
 
     void CesiumTilesetComponent::Activate()
@@ -362,17 +410,29 @@ namespace Cesium
             m_impl->LoadTilesetFromCesiumIon(cesiumIon->cesiumIonAssetId, cesiumIon->cesiumIonAssetToken);
         }
 
+        // Set the O3DE transform first before any transformation from Cesium coord to O3DE coordinate
+        AZ::Transform worldTransform;
+        AZ::TransformBus::EventResult(worldTransform, GetEntityId(), &AZ::TransformBus::Events::GetWorldTM);
+        AZ::Vector3 worldScale = AZ::Vector3::CreateOne();
+        AZ::NonUniformScaleRequestBus::EventResult(worldScale, GetEntityId(), &AZ::NonUniformScaleRequestBus::Events::GetScale);
+        m_impl->m_O3DETransform = MathHelper::ConvertTransformAndScaleToDMat4(worldTransform, worldScale);
+
         // set cesium transform to convert from Cesium Coord to O3DE
         m_impl->ConnectCesiumTransformEntityEvents();
 
         AZ::TickBus::Handler::BusConnect();
         CesiumTilesetRequestBus::Handler::BusConnect(GetEntityId());
+        AZ::TransformNotificationBus::Handler::BusConnect(GetEntityId());
+        AZ::NonUniformScaleRequestBus::Event(
+            GetEntityId(), &AZ::NonUniformScaleRequests::RegisterScaleChangedEvent, m_impl->m_nonUniformScaleChangedHandler);
     }
 
     void CesiumTilesetComponent::Deactivate()
     {
         AZ::TickBus::Handler::BusDisconnect();
         CesiumTilesetRequestBus::Handler::BusDisconnect();
+        AZ::TransformNotificationBus::Handler::BusDisconnect();
+        m_impl->m_nonUniformScaleChangedHandler.Disconnect();
 
         // We remove any unneccessary resources but keep the configurations objects (e.g CameraConfigurations, TilesetSourceConfiguration,
         // etc). The reason is to keep the component as lightweight as possible when being deactivated. Those deleted resources can be
@@ -415,13 +475,20 @@ namespace Cesium
 
     void CesiumTilesetComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
     {
+        if (m_impl->m_tilesetConfiguration.m_stopUpdate)
+        {
+            return;
+        }
+
         if (m_impl->m_tileset)
         {
             // update view tileset
             const std::vector<Cesium3DTilesSelection::ViewState>& viewStates = m_impl->m_cameraConfigurations.UpdateAndGetViewStates();
+
             if (!viewStates.empty())
             {
                 const Cesium3DTilesSelection::ViewUpdateResult& viewUpdate = m_impl->m_tileset->updateView(viewStates);
+
                 for (Cesium3DTilesSelection::Tile* tile : viewUpdate.tilesToNoLongerRenderThisFrame)
                 {
                     void* renderResources = tile->getRendererResources();
@@ -463,5 +530,12 @@ namespace Cesium
     {
         m_impl->LoadTilesetFromCesiumIon(cesiumIonAssetId, cesiumIonAssetToken);
         m_impl->m_tilesetSource = CesiumIonSource{ cesiumIonAssetId, cesiumIonAssetToken };
+    }
+
+    void CesiumTilesetComponent::OnTransformChanged([[maybe_unused]] const AZ::Transform& local, const AZ::Transform& world)
+    {
+        AZ::Vector3 worldScale = AZ::Vector3::CreateOne();
+        AZ::NonUniformScaleRequestBus::EventResult(worldScale, GetEntityId(), &AZ::NonUniformScaleRequestBus::Events::GetScale);
+        m_impl->SetWorldTransform(world, worldScale);
     }
 } // namespace Cesium

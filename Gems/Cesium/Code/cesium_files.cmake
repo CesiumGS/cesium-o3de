@@ -1,6 +1,8 @@
 
 set(FILES
     Source/CesiumModuleInterface.h
+    Source/MathHelper.cpp
+    Source/MathHelper.h
     Source/PlatformInfo.cpp
     Source/PlatformInfo.h
     Source/BitangentAndTangentGenerator.cpp
