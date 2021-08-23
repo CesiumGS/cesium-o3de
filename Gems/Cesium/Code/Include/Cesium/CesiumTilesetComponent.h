@@ -37,6 +37,8 @@ namespace Cesium
 
         void SetCoordinateTransform(const AZ::EntityId& coordinateTransformEntityId) override;
 
+        TilesetBoundingVolume GetBoundingVolumeInECEF() const override;
+
         void AddCamera(const AZ::EntityId& cameraEntityId, const AzFramework::ViewportId& viewportId) override;
 
         void RemoveCamera(const AZ::EntityId& cameraEntityId) override;
@@ -53,6 +55,8 @@ namespace Cesium
         void OnTransformChanged(const AZ::Transform& local, const AZ::Transform& world) override;
 
         class CameraConfigurations;
+        struct BoundingVolumeConverter;
+        struct BoundingVolumeTransform;
         struct EntityWrapper;
         struct LocalFileSource;
         struct UrlSource;

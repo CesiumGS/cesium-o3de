@@ -39,9 +39,15 @@ set(FILES
     Source/GltfModel.h
     Source/CesiumSystemComponent.cpp
     Source/CesiumSystemComponent.h
-    Source/CesiumTilesetComponentBus.cpp
-    Include/Cesium/CoordinateTransformComponentBus.h
+    Source/BoundingRegion.cpp
+    Include/Cesium/BoundingRegion.h
+    Source/OrientedBoundingBox.cpp
+    Include/Cesium/OrientedBoundingBox.h
+    Source/BoundingSphere.cpp
+    Include/Cesium/BoundingSphere.h
     Source/CoordinateTransformComponentBus.cpp
+    Include/Cesium/CoordinateTransformComponentBus.h
+    Source/CesiumTilesetComponentBus.cpp
     Include/Cesium/CesiumTilesetComponentBus.h
     Source/CesiumTilesetComponent.cpp
     Include/Cesium/CesiumTilesetComponent.h

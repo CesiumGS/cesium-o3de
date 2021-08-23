@@ -9,5 +9,7 @@ namespace Cesium
     struct MathHelper
     {
         static glm::dmat4 ConvertTransformAndScaleToDMat4(const AZ::Transform& transform, const AZ::Vector3& nonUniformScale);
+
+        static bool IsIdentityMatrix(const glm::dmat4& mat);
     };
 } // namespace Cesium

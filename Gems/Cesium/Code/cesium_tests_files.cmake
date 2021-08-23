@@ -1,6 +1,9 @@
 
 set(FILES
     Tests/CesiumTest.cpp
+    Tests/BoundingRegionTest.cpp
+    Tests/OrientedBoundingBoxTest.cpp
+    Tests/BoundingSphereTest.cpp
     Tests/MathHelperTest.cpp
     Tests/PlatformInfoTest.cpp
     Tests/BitangentAndTangentGeneratorTest.cpp

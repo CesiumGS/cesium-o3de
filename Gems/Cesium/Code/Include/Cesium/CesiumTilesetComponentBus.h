@@ -1,12 +1,18 @@
 #pragma once
 
+#include <Cesium/BoundingSphere.h>
+#include <Cesium/OrientedBoundingBox.h>
+#include <Cesium/BoundingRegion.h>
 #include <AzFramework/Viewport/ViewportId.h>
 #include <AzCore/Component/ComponentBus.h>
 #include <AzCore/std/string/string.h>
 #include <cstdint>
+#include <variant>
 
 namespace Cesium
 {
+    using TilesetBoundingVolume = std::variant<std::monostate, BoundingSphere, OrientedBoundingBox, BoundingRegion>;
+
     struct CesiumTilesetConfiguration
     {
         CesiumTilesetConfiguration()
@@ -39,6 +45,8 @@ namespace Cesium
         virtual const CesiumTilesetConfiguration& GetConfiguration() const = 0;
 
         virtual void SetCoordinateTransform(const AZ::EntityId& cesiumTransformEntityId) = 0;
+
+        virtual TilesetBoundingVolume GetBoundingVolumeInECEF() const = 0;
 
         virtual void AddCamera(const AZ::EntityId& cameraEntityId, const AzFramework::ViewportId& viewportId) = 0;
 

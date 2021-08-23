@@ -1,4 +1,5 @@
 #include "MathHelper.h"
+#include <CesiumUtility/Math.h>
 #include <AzCore/Math/Quaternion.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -21,5 +22,39 @@ namespace Cesium
             glm::dvec3(static_cast<double>(newScale.GetX()), static_cast<double>(newScale.GetY()), static_cast<double>(newScale.GetZ())));
 
         return newTransform;
+    }
+
+    bool MathHelper::IsIdentityMatrix(const glm::dmat4& mat)
+    {
+        constexpr glm::dvec4 col0 = glm::dvec4(1.0, 0.0, 0.0, 0.0);
+        constexpr glm::dvec4 col1 = glm::dvec4(0.0, 1.0, 0.0, 0.0);
+        constexpr glm::dvec4 col2 = glm::dvec4(0.0, 0.0, 1.0, 0.0);
+        constexpr glm::dvec4 col3 = glm::dvec4(0.0, 0.0, 0.0, 1.0);
+
+        auto column0 = glm::epsilonEqual(mat[0], col0, CesiumUtility::Math::EPSILON14);
+        if (column0 != glm::bvec4(true))
+        {
+            return false;
+        }
+
+        auto column1 = glm::epsilonEqual(mat[1], col1, CesiumUtility::Math::EPSILON14);
+        if (column1 != glm::bvec4(true))
+        {
+            return false;
+        }
+
+        auto column2 = glm::epsilonEqual(mat[2], col2, CesiumUtility::Math::EPSILON14);
+        if (column2 != glm::bvec4(true))
+        {
+            return false;
+        }
+
+        auto column3 = glm::epsilonEqual(mat[3], col3, CesiumUtility::Math::EPSILON14);
+        if (column3 != glm::bvec4(true))
+        {
+            return false;
+        }
+
+        return true;
     }
 } // namespace Cesium

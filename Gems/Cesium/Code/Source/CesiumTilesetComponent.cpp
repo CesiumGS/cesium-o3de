@@ -35,7 +35,7 @@ namespace Cesium
 
     public:
         CameraConfigurations()
-            : m_transform{1.0}
+            : m_transform{ 1.0 }
         {
         }
 
@@ -122,7 +122,8 @@ namespace Cesium
             AZ::Vector3 o3deCameraPosition = o3deCameraTransform.GetTranslation();
 
             // Convert o3de coordinate to cesium coordinate
-            glm::dvec3 position = transform * glm::dvec4{ o3deCameraPosition.GetX(), o3deCameraPosition.GetY(), o3deCameraPosition.GetZ(), 1.0 };
+            glm::dvec3 position =
+                transform * glm::dvec4{ o3deCameraPosition.GetX(), o3deCameraPosition.GetY(), o3deCameraPosition.GetZ(), 1.0 };
             glm::dvec3 direction = transform * glm::dvec4{ o3deCameraFwd.GetX(), o3deCameraFwd.GetY(), o3deCameraFwd.GetZ(), 0.0 };
             glm::dvec3 up = transform * glm::dvec4{ o3deCameraUp.GetX(), o3deCameraUp.GetY(), o3deCameraUp.GetZ(), 0.0 };
             direction = glm::normalize(direction);
@@ -147,7 +148,7 @@ namespace Cesium
         }
 
         EntityWrapper(const AZ::EntityId& entityId)
-            : m_entityId{ entityId}
+            : m_entityId{ entityId }
         {
             if (m_entityId.IsValid())
             {
@@ -209,6 +210,74 @@ namespace Cesium
         AZ::EntityId m_entityId;
     };
 
+    struct CesiumTilesetComponent::BoundingVolumeConverter
+    {
+        TilesetBoundingVolume operator()(const CesiumGeometry::BoundingSphere& sphere)
+        {
+            return BoundingSphere{ sphere.getCenter(), sphere.getRadius() };
+        }
+
+        TilesetBoundingVolume operator()(const CesiumGeometry::OrientedBoundingBox& box)
+        {
+            const glm::dvec3& center = box.getCenter();
+            const glm::dmat3& halfLengthsAndOrientation = box.getHalfAxes();
+            glm::dvec3 halfLength{ glm::length(halfLengthsAndOrientation[0]), glm::length(halfLengthsAndOrientation[1]),
+                                   glm::length(halfLengthsAndOrientation[2]) };
+            glm::dmat3 orientation{ halfLengthsAndOrientation[0] / halfLength.x, halfLengthsAndOrientation[1] / halfLength.y,
+                                    halfLengthsAndOrientation[2] / halfLength.z };
+            return OrientedBoundingBox{ center, glm::dquat(orientation), halfLength };
+        }
+
+        TilesetBoundingVolume operator()(const CesiumGeospatial::BoundingRegion& region)
+        {
+            const CesiumGeospatial::GlobeRectangle& rectangle = region.getRectangle();
+            return BoundingRegion(
+                rectangle.getWest(), rectangle.getSouth(), rectangle.getEast(), rectangle.getNorth(), region.getMinimumHeight(),
+                region.getMaximumHeight());
+        }
+
+        TilesetBoundingVolume operator()(const CesiumGeospatial::BoundingRegionWithLooseFittingHeights& region)
+        {
+            return this->operator()(region.getBoundingRegion());
+        }
+    };
+
+    struct CesiumTilesetComponent::BoundingVolumeTransform
+    {
+        TilesetBoundingVolume operator()(const CesiumGeometry::BoundingSphere& sphere)
+        {
+            glm::dvec3 center = m_transform * glm::dvec4(sphere.getCenter(), 1.0);
+            double uniformScale = glm::max(
+                glm::max(glm::length(glm::dvec3(m_transform[0])), glm::length(glm::dvec3(m_transform[1]))),
+                glm::length(glm::dvec3(m_transform[2])));
+
+            return BoundingSphere{ center, sphere.getRadius() * uniformScale };
+        }
+
+        TilesetBoundingVolume operator()(const CesiumGeometry::OrientedBoundingBox& box)
+        {
+            glm::dvec3 center = m_transform * glm::dvec4(box.getCenter(), 1.0);
+            glm::dmat3 halfLengthsAndOrientation = glm::dmat3(m_transform) * box.getHalfAxes();
+            glm::dvec3 halfLength{ glm::length(halfLengthsAndOrientation[0]), glm::length(halfLengthsAndOrientation[1]),
+                                   glm::length(halfLengthsAndOrientation[2]) };
+            glm::dmat3 orientation{ halfLengthsAndOrientation[0] / halfLength.x, halfLengthsAndOrientation[1] / halfLength.y,
+                                    halfLengthsAndOrientation[2] / halfLength.z };
+            return OrientedBoundingBox{ center, glm::dquat(orientation), halfLength };
+        }
+
+        TilesetBoundingVolume operator()(const CesiumGeospatial::BoundingRegion& region)
+        {
+            return this->operator()(region.getBoundingBox());
+        }
+
+        TilesetBoundingVolume operator()(const CesiumGeospatial::BoundingRegionWithLooseFittingHeights& region)
+        {
+            return this->operator()(region.getBoundingRegion().getBoundingBox());
+        }
+
+        glm::dmat4 m_transform;
+    };
+
     struct CesiumTilesetComponent::LocalFileSource
     {
         AZStd::string m_filePath;
@@ -238,7 +307,7 @@ namespace Cesium
                 {
                     this->m_renderResourcesPreparer->SetTransform(m_O3DETransform * configuration.m_ECEFToO3DE);
                     this->m_cameraConfigurations.SetTransform(configuration.m_O3DEToECEF * glm::affineInverse(m_O3DETransform));
-                    this->m_cesiumTransformConfig = configuration;
+                    this->m_coordinateTransformConfig = configuration;
                 });
 
             m_cesiumTransformEnableHandler = TransformEnableEvent::Handler(
@@ -248,13 +317,13 @@ namespace Cesium
                     {
                         this->m_renderResourcesPreparer->SetTransform(m_O3DETransform * configuration.m_ECEFToO3DE);
                         this->m_cameraConfigurations.SetTransform(configuration.m_O3DEToECEF * glm::affineInverse(m_O3DETransform));
-                        this->m_cesiumTransformConfig = configuration;
+                        this->m_coordinateTransformConfig = configuration;
                     }
                     else
                     {
                         this->m_renderResourcesPreparer->SetTransform(m_O3DETransform);
                         this->m_cameraConfigurations.SetTransform(glm::dmat4(1.0));
-                        this->m_cesiumTransformConfig = CoordinateTransformConfiguration{};
+                        this->m_coordinateTransformConfig = CoordinateTransformConfiguration{};
                     }
                 });
 
@@ -319,7 +388,7 @@ namespace Cesium
 
             m_renderResourcesPreparer->SetTransform(m_O3DETransform * config.m_ECEFToO3DE);
             m_cameraConfigurations.SetTransform(config.m_O3DEToECEF * glm::affineInverse(m_O3DETransform));
-            m_cesiumTransformConfig = config;
+            m_coordinateTransformConfig = config;
         }
 
         void DisconnectCoordinateTransformEntityEvents()
@@ -328,7 +397,7 @@ namespace Cesium
             {
                 m_cesiumTransformChangeHandler.Disconnect();
                 m_cesiumTransformEnableHandler.Disconnect();
-                m_cesiumTransformConfig = CoordinateTransformConfiguration{};
+                m_coordinateTransformConfig = CoordinateTransformConfiguration{};
             }
         }
 
@@ -340,8 +409,8 @@ namespace Cesium
             }
 
             m_O3DETransform = MathHelper::ConvertTransformAndScaleToDMat4(world, nonUniformScale);
-            m_renderResourcesPreparer->SetTransform(m_O3DETransform * m_cesiumTransformConfig.m_ECEFToO3DE);
-            m_cameraConfigurations.SetTransform(m_cesiumTransformConfig.m_O3DEToECEF * glm::affineInverse(m_O3DETransform));
+            m_renderResourcesPreparer->SetTransform(m_O3DETransform * m_coordinateTransformConfig.m_ECEFToO3DE);
+            m_cameraConfigurations.SetTransform(m_coordinateTransformConfig.m_O3DEToECEF * glm::affineInverse(m_O3DETransform));
         }
 
         void SetNonUniformScale(const AZ::Vector3& scale)
@@ -362,7 +431,7 @@ namespace Cesium
         TransformChangeEvent::Handler m_cesiumTransformChangeHandler;
         TransformEnableEvent::Handler m_cesiumTransformEnableHandler;
         AZ::NonUniformScaleChangedEvent::Handler m_nonUniformScaleChangedHandler;
-        CoordinateTransformConfiguration m_cesiumTransformConfig;
+        CoordinateTransformConfiguration m_coordinateTransformConfig;
 
         // Configurations to rebuild the resources above when activated
         AZ::EntityId m_selfEntity;
@@ -472,6 +541,30 @@ namespace Cesium
         // setup a new transform entity
         m_impl->m_coordinateTransformEntity = EntityWrapper{ coordinateTransformEntityId };
         m_impl->ConnectCoordinateTransformEntityEvents();
+    }
+
+    TilesetBoundingVolume CesiumTilesetComponent::GetBoundingVolumeInECEF() const
+    {
+        if (!m_impl->m_tileset)
+        {
+            return std::monostate{};
+        }
+
+        const auto rootTile = m_impl->m_tileset->getRootTile();
+        if (!rootTile)
+        {
+            return std::monostate{};
+        }
+
+        if (MathHelper::IsIdentityMatrix(m_impl->m_O3DETransform))
+        {
+            return std::visit(BoundingVolumeConverter{}, rootTile->getBoundingVolume());
+        }
+
+        return std::visit(
+            BoundingVolumeTransform{ m_impl->m_coordinateTransformConfig.m_O3DEToECEF * m_impl->m_O3DETransform *
+                                     m_impl->m_coordinateTransformConfig.m_ECEFToO3DE },
+            rootTile->getBoundingVolume());
     }
 
     void CesiumTilesetComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)

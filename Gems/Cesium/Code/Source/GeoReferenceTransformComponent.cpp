@@ -29,7 +29,7 @@ namespace Cesium
         CoordinateTransformRequestBus::Handler::BusDisconnect();
     }
 
-    void GeoReferenceTransformComponent::SetCesiumCoordOrigin(const glm::dvec3& cesiumCoordOrigin)
+    void GeoReferenceTransformComponent::SetECEFCoordOrigin(const glm::dvec3& cesiumCoordOrigin)
     {
         m_config.m_O3DEToECEF = CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(cesiumCoordOrigin);
         m_config.m_ECEFToO3DE = glm::affineInverse(m_config.m_O3DEToECEF);
