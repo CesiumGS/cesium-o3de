@@ -35,7 +35,7 @@ namespace Cesium
 
         const CesiumTilesetConfiguration& GetConfiguration() const override;
 
-        void SetCesiumTransform(const AZ::EntityId& cesiumTransformEntityId) override;
+        void SetCoordinateTransform(const AZ::EntityId& coordinateTransformEntityId) override;
 
         void AddCamera(const AZ::EntityId& cameraEntityId, const AzFramework::ViewportId& viewportId) override;
 

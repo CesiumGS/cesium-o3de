@@ -19,34 +19,34 @@ namespace Cesium
 
     void GeoReferenceTransformComponent::Activate()
     {
-        CesiumTransformRequestBus::Handler::BusConnect(GetEntityId());
+        CoordinateTransformRequestBus::Handler::BusConnect(GetEntityId());
         m_enableEvent.Signal(true, m_config);
     }
 
     void GeoReferenceTransformComponent::Deactivate()
     {
         m_enableEvent.Signal(false, m_config);
-        CesiumTransformRequestBus::Handler::BusDisconnect();
+        CoordinateTransformRequestBus::Handler::BusDisconnect();
     }
 
     void GeoReferenceTransformComponent::SetCesiumCoordOrigin(const glm::dvec3& cesiumCoordOrigin)
     {
-        m_config.m_O3DEToCesium = CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(cesiumCoordOrigin);
-        m_config.m_cesiumToO3DE = glm::affineInverse(m_config.m_O3DEToCesium);
+        m_config.m_O3DEToECEF = CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(cesiumCoordOrigin);
+        m_config.m_ECEFToO3DE = glm::affineInverse(m_config.m_O3DEToECEF);
         m_transformChangeEvent.Signal(m_config);
     }
 
-    const glm::dmat4& GeoReferenceTransformComponent::O3DECoordToCesiumCoord() const
+    const glm::dmat4& GeoReferenceTransformComponent::O3DEToECEF() const
     {
-        return m_config.m_O3DEToCesium;
+        return m_config.m_O3DEToECEF;
     }
 
-    const glm::dmat4& GeoReferenceTransformComponent::CesiumCoordToO3DECoord() const
+    const glm::dmat4& GeoReferenceTransformComponent::ECEFToO3DE() const
     {
-        return m_config.m_cesiumToO3DE;
+        return m_config.m_ECEFToO3DE;
     }
 
-    const CesiumTransformConfiguration& GeoReferenceTransformComponent::GetConfiguration() const
+    const CoordinateTransformConfiguration& GeoReferenceTransformComponent::GetConfiguration() const
     {
         return m_config;
     }

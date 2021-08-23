@@ -1,5 +1,5 @@
 #include <Cesium/CesiumTilesetComponent.h>
-#include <Cesium/CesiumTransformComponentBus.h>
+#include <Cesium/CoordinateTransformComponentBus.h>
 #include "RenderResourcesPreparer.h"
 #include "CesiumSystemComponentBus.h"
 #include "MathHelper.h"
@@ -234,27 +234,27 @@ namespace Cesium
             , m_O3DETransform{ 1.0 }
         {
             m_cesiumTransformChangeHandler = TransformChangeEvent::Handler(
-                [this](const CesiumTransformConfiguration& configuration) mutable
+                [this](const CoordinateTransformConfiguration& configuration) mutable
                 {
-                    this->m_renderResourcesPreparer->SetTransform(m_O3DETransform * configuration.m_cesiumToO3DE);
-                    this->m_cameraConfigurations.SetTransform(configuration.m_O3DEToCesium * glm::affineInverse(m_O3DETransform));
+                    this->m_renderResourcesPreparer->SetTransform(m_O3DETransform * configuration.m_ECEFToO3DE);
+                    this->m_cameraConfigurations.SetTransform(configuration.m_O3DEToECEF * glm::affineInverse(m_O3DETransform));
                     this->m_cesiumTransformConfig = configuration;
                 });
 
             m_cesiumTransformEnableHandler = TransformEnableEvent::Handler(
-                [this](bool enable, const CesiumTransformConfiguration& configuration) mutable
+                [this](bool enable, const CoordinateTransformConfiguration& configuration) mutable
                 {
                     if (enable)
                     {
-                        this->m_renderResourcesPreparer->SetTransform(m_O3DETransform * configuration.m_cesiumToO3DE);
-                        this->m_cameraConfigurations.SetTransform(configuration.m_O3DEToCesium * glm::affineInverse(m_O3DETransform));
+                        this->m_renderResourcesPreparer->SetTransform(m_O3DETransform * configuration.m_ECEFToO3DE);
+                        this->m_cameraConfigurations.SetTransform(configuration.m_O3DEToECEF * glm::affineInverse(m_O3DETransform));
                         this->m_cesiumTransformConfig = configuration;
                     }
                     else
                     {
                         this->m_renderResourcesPreparer->SetTransform(m_O3DETransform);
                         this->m_cameraConfigurations.SetTransform(glm::dmat4(1.0));
-                        this->m_cesiumTransformConfig = CesiumTransformConfiguration{};
+                        this->m_cesiumTransformConfig = CoordinateTransformConfiguration{};
                     }
                 });
 
@@ -294,41 +294,41 @@ namespace Cesium
             m_tileset = AZStd::make_unique<Cesium3DTilesSelection::Tileset>(externals, cesiumIonAssetId, cesiumIonAssetToken.c_str());
         }
 
-        void ConnectCesiumTransformEntityEvents()
+        void ConnectCoordinateTransformEntityEvents()
         {
-            CesiumTransformConfiguration config;
-            if (m_cesiumTransformEntity.m_entityId.IsValid())
+            CoordinateTransformConfiguration config;
+            if (m_coordinateTransformEntity.m_entityId.IsValid())
             {
-                CesiumTransformRequestBus::EventResult(
-                    config, m_cesiumTransformEntity.m_entityId, &CesiumTransformRequestBus::Events::GetConfiguration);
+                CoordinateTransformRequestBus::EventResult(
+                    config, m_coordinateTransformEntity.m_entityId, &CoordinateTransformRequestBus::Events::GetConfiguration);
 
                 if (!m_cesiumTransformChangeHandler.IsConnected())
                 {
-                    CesiumTransformRequestBus::Event(
-                        m_cesiumTransformEntity.m_entityId, &CesiumTransformRequestBus::Events::BindTransformChangeEventHandler,
+                    CoordinateTransformRequestBus::Event(
+                        m_coordinateTransformEntity.m_entityId, &CoordinateTransformRequestBus::Events::BindTransformChangeEventHandler,
                         m_cesiumTransformChangeHandler);
                 }
 
                 if (!m_cesiumTransformEnableHandler.IsConnected())
                 {
-                    CesiumTransformRequestBus::Event(
-                        m_cesiumTransformEntity.m_entityId, &CesiumTransformRequestBus::Events::BindTransformEnableEventHandler,
+                    CoordinateTransformRequestBus::Event(
+                        m_coordinateTransformEntity.m_entityId, &CoordinateTransformRequestBus::Events::BindTransformEnableEventHandler,
                         m_cesiumTransformEnableHandler);
                 }
             }
 
-            m_renderResourcesPreparer->SetTransform(m_O3DETransform * config.m_cesiumToO3DE);
-            m_cameraConfigurations.SetTransform(config.m_O3DEToCesium * glm::affineInverse(m_O3DETransform));
+            m_renderResourcesPreparer->SetTransform(m_O3DETransform * config.m_ECEFToO3DE);
+            m_cameraConfigurations.SetTransform(config.m_O3DEToECEF * glm::affineInverse(m_O3DETransform));
             m_cesiumTransformConfig = config;
         }
 
-        void DisconnectCesiumTransformEntityEvents()
+        void DisconnectCoordinateTransformEntityEvents()
         {
-            if (m_cesiumTransformEntity.m_entityId.IsValid())
+            if (m_coordinateTransformEntity.m_entityId.IsValid())
             {
                 m_cesiumTransformChangeHandler.Disconnect();
                 m_cesiumTransformEnableHandler.Disconnect();
-                m_cesiumTransformConfig = CesiumTransformConfiguration{};
+                m_cesiumTransformConfig = CoordinateTransformConfiguration{};
             }
         }
 
@@ -340,8 +340,8 @@ namespace Cesium
             }
 
             m_O3DETransform = MathHelper::ConvertTransformAndScaleToDMat4(world, nonUniformScale);
-            m_renderResourcesPreparer->SetTransform(m_O3DETransform * m_cesiumTransformConfig.m_cesiumToO3DE);
-            m_cameraConfigurations.SetTransform(m_cesiumTransformConfig.m_O3DEToCesium * glm::affineInverse(m_O3DETransform));
+            m_renderResourcesPreparer->SetTransform(m_O3DETransform * m_cesiumTransformConfig.m_ECEFToO3DE);
+            m_cameraConfigurations.SetTransform(m_cesiumTransformConfig.m_O3DEToECEF * glm::affineInverse(m_O3DETransform));
         }
 
         void SetNonUniformScale(const AZ::Vector3& scale)
@@ -362,14 +362,14 @@ namespace Cesium
         TransformChangeEvent::Handler m_cesiumTransformChangeHandler;
         TransformEnableEvent::Handler m_cesiumTransformEnableHandler;
         AZ::NonUniformScaleChangedEvent::Handler m_nonUniformScaleChangedHandler;
-        CesiumTransformConfiguration m_cesiumTransformConfig;
+        CoordinateTransformConfiguration m_cesiumTransformConfig;
 
         // Configurations to rebuild the resources above when activated
         AZ::EntityId m_selfEntity;
         CameraConfigurations m_cameraConfigurations;
         CesiumTilesetConfiguration m_tilesetConfiguration;
         TilesetSourceConfiguration m_tilesetSource;
-        EntityWrapper m_cesiumTransformEntity;
+        EntityWrapper m_coordinateTransformEntity;
         glm::dmat4 m_O3DETransform;
     };
 
@@ -419,7 +419,7 @@ namespace Cesium
         m_impl->m_O3DETransform = MathHelper::ConvertTransformAndScaleToDMat4(worldTransform, worldScale);
 
         // set cesium transform to convert from Cesium Coord to O3DE
-        m_impl->ConnectCesiumTransformEntityEvents();
+        m_impl->ConnectCoordinateTransformEntityEvents();
 
         AZ::TickBus::Handler::BusConnect();
         CesiumTilesetRequestBus::Handler::BusConnect(GetEntityId());
@@ -440,7 +440,7 @@ namespace Cesium
         // rebuilt again using the configuration objects.
         m_impl->m_tileset.reset();
         m_impl->m_renderResourcesPreparer.reset();
-        m_impl->DisconnectCesiumTransformEntityEvents();
+        m_impl->DisconnectCoordinateTransformEntityEvents();
     }
 
     void CesiumTilesetComponent::SetConfiguration(const CesiumTilesetConfiguration& configration)
@@ -464,14 +464,14 @@ namespace Cesium
         return m_impl->m_tilesetConfiguration;
     }
 
-    void CesiumTilesetComponent::SetCesiumTransform(const AZ::EntityId& cesiumTransformEntityId)
+    void CesiumTilesetComponent::SetCoordinateTransform(const AZ::EntityId& coordinateTransformEntityId)
     {
         // disconnect from the current transform entity
-        m_impl->DisconnectCesiumTransformEntityEvents();
+        m_impl->DisconnectCoordinateTransformEntityEvents();
 
         // setup a new transform entity
-        m_impl->m_cesiumTransformEntity = EntityWrapper{ cesiumTransformEntityId };
-        m_impl->ConnectCesiumTransformEntityEvents();
+        m_impl->m_coordinateTransformEntity = EntityWrapper{ coordinateTransformEntityId };
+        m_impl->ConnectCoordinateTransformEntityEvents();
     }
 
     void CesiumTilesetComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)

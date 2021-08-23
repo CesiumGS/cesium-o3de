@@ -40,8 +40,8 @@ set(FILES
     Source/CesiumSystemComponent.cpp
     Source/CesiumSystemComponent.h
     Source/CesiumTilesetComponentBus.cpp
-    Include/Cesium/CesiumTransformComponentBus.h
-    Source/CesiumTransformComponentBus.cpp
+    Include/Cesium/CoordinateTransformComponentBus.h
+    Source/CoordinateTransformComponentBus.cpp
     Include/Cesium/CesiumTilesetComponentBus.h
     Source/CesiumTilesetComponent.cpp
     Include/Cesium/CesiumTilesetComponent.h
