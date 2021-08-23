@@ -25,8 +25,10 @@ set(FILES
     Tests/GltfMaterialBuilderTest.cpp
     Tests/GltfModelBuilderTest.cpp
     Tests/GltfModelTest.cpp
+    Tests/WorldCompositionTest.cpp
     Tests/GeoReferenceTransformComponentTest.cpp
     Tests/CesiumSystemComponentTest.cpp
     Tests/GltfModelComponentTest.cpp
     Tests/CesiumTilesetComponentTest.cpp
+    Tests/GeoReferenceCameraFlyControllerTest.cpp
 )

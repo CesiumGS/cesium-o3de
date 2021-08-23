@@ -3,6 +3,7 @@
 #include <AzCore/Module/Module.h>
 #include <Cesium/CesiumTilesetComponent.h>
 #include <Cesium/GltfModelComponent.h>
+#include <Cesium/GeoReferenceCameraFlyController.h>
 #include <Cesium/GeoReferenceTransformComponent.h>
 #include <CesiumSystemComponent.h>
 
@@ -23,7 +24,8 @@ namespace Cesium
             m_descriptors.insert(
                 m_descriptors.end(),
                 { CesiumSystemComponent::CreateDescriptor(), CesiumTilesetComponent::CreateDescriptor(),
-                  GltfModelComponent::CreateDescriptor(), GeoReferenceTransformComponent::CreateDescriptor() });
+                  GltfModelComponent::CreateDescriptor(), GeoReferenceTransformComponent::CreateDescriptor(),
+                  GeoReferenceCameraFlyController::CreateDescriptor() });
         }
 
         /**

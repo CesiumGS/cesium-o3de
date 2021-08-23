@@ -24,6 +24,21 @@ namespace Cesium
         return newTransform;
     }
 
+    glm::dvec3 MathHelper::ToDVec3(const AZ::Vector3& vec)
+    {
+        return glm::dvec3{ vec.GetX(), vec.GetY(), vec.GetZ() };
+    }
+
+    glm::dvec4 MathHelper::ToDVec4(const AZ::Vector3& vec, double w)
+    {
+        return glm::dvec4{vec.GetX(), vec.GetY(), vec.GetZ(), w};
+    }
+
+    glm::dvec4 MathHelper::ToDVec4(const AZ::Vector4& vec)
+    {
+        return glm::dvec4{ vec.GetX(), vec.GetY(), vec.GetZ(), vec.GetW() };
+    }
+
     bool MathHelper::IsIdentityMatrix(const glm::dmat4& mat)
     {
         constexpr glm::dvec4 col0 = glm::dvec4(1.0, 0.0, 0.0, 0.0);

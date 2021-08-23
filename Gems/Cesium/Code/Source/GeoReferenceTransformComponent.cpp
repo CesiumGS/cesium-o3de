@@ -29,11 +29,17 @@ namespace Cesium
         CoordinateTransformRequestBus::Handler::BusDisconnect();
     }
 
-    void GeoReferenceTransformComponent::SetECEFCoordOrigin(const glm::dvec3& cesiumCoordOrigin)
+    void GeoReferenceTransformComponent::SetECEFCoordOrigin(const glm::dvec3& origin)
     {
-        m_config.m_O3DEToECEF = CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(cesiumCoordOrigin);
+        m_config.m_origin = origin;
+        m_config.m_O3DEToECEF = CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(origin);
         m_config.m_ECEFToO3DE = glm::affineInverse(m_config.m_O3DEToECEF);
         m_transformChangeEvent.Signal(m_config);
+    }
+
+    const glm::dvec3& GeoReferenceTransformComponent::GetECEFCoordOrigin() const
+    {
+        return m_config.m_origin;
     }
 
     const glm::dmat4& GeoReferenceTransformComponent::O3DEToECEF() const

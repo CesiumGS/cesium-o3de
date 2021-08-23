@@ -21,7 +21,9 @@ namespace Cesium
 
         void Deactivate() override;
 
-        void SetECEFCoordOrigin(const glm::dvec3& cesiumCoordOrigin);
+        void SetECEFCoordOrigin(const glm::dvec3& origin) override;
+
+        const glm::dvec3& GetECEFCoordOrigin() const override;
 
         const glm::dmat4& O3DEToECEF() const override;
 

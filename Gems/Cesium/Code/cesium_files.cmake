@@ -39,6 +39,8 @@ set(FILES
     Source/GltfModel.h
     Source/CesiumSystemComponent.cpp
     Source/CesiumSystemComponent.h
+    Source/WorldComposition.cpp
+    Include/Cesium/WorldComposition.h
     Source/BoundingRegion.cpp
     Include/Cesium/BoundingRegion.h
     Source/OrientedBoundingBox.cpp
@@ -57,4 +59,6 @@ set(FILES
     Include/Cesium/GltfModelComponent.h
     Source/GeoReferenceTransformComponent.cpp
     Include/Cesium/GeoReferenceTransformComponent.h
+    Source/GeoReferenceCameraFlyController.cpp
+    Include/Cesium/GeoReferenceCameraFlyController.h
 )
