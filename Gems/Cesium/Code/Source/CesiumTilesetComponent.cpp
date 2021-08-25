@@ -301,13 +301,13 @@ namespace Cesium
         Impl(const AZ::EntityId& selfEntity)
             : m_selfEntity{ selfEntity }
             , m_O3DETransform{ 1.0 }
+            , m_coordinateOrO3DETransformDirty{ false }
         {
             m_cesiumTransformChangeHandler = TransformChangeEvent::Handler(
                 [this](const CoordinateTransformConfiguration& configuration) mutable
                 {
-                    this->m_renderResourcesPreparer->SetTransform(m_O3DETransform * configuration.m_ECEFToO3DE);
-                    this->m_cameraConfigurations.SetTransform(configuration.m_O3DEToECEF * glm::affineInverse(m_O3DETransform));
                     this->m_coordinateTransformConfig = configuration;
+                    this->m_coordinateOrO3DETransformDirty = true;
                 });
 
             m_cesiumTransformEnableHandler = TransformEnableEvent::Handler(
@@ -315,15 +315,13 @@ namespace Cesium
                 {
                     if (enable)
                     {
-                        this->m_renderResourcesPreparer->SetTransform(m_O3DETransform * configuration.m_ECEFToO3DE);
-                        this->m_cameraConfigurations.SetTransform(configuration.m_O3DEToECEF * glm::affineInverse(m_O3DETransform));
                         this->m_coordinateTransformConfig = configuration;
+                        this->m_coordinateOrO3DETransformDirty = true;
                     }
                     else
                     {
-                        this->m_renderResourcesPreparer->SetTransform(m_O3DETransform);
-                        this->m_cameraConfigurations.SetTransform(glm::dmat4(1.0));
                         this->m_coordinateTransformConfig = CoordinateTransformConfiguration{};
+                        this->m_coordinateOrO3DETransformDirty = true;
                     }
                 });
 
@@ -349,18 +347,21 @@ namespace Cesium
         {
             Cesium3DTilesSelection::TilesetExternals externals = CreateTilesetExternal(IOKind::LocalFile);
             m_tileset = AZStd::make_unique<Cesium3DTilesSelection::Tileset>(externals, path.c_str());
+            m_coordinateOrO3DETransformDirty = true; // new tileset needs to be applied to the existing transform
         }
 
         void LoadTilesetFromUrl(const AZStd::string& url)
         {
             Cesium3DTilesSelection::TilesetExternals externals = CreateTilesetExternal(IOKind::Http);
             m_tileset = AZStd::make_unique<Cesium3DTilesSelection::Tileset>(externals, url.c_str());
+            m_coordinateOrO3DETransformDirty = true; // new tileset needs to be applied to the existing transform
         }
 
         void LoadTilesetFromCesiumIon(std::uint32_t cesiumIonAssetId, const AZStd::string& cesiumIonAssetToken)
         {
             Cesium3DTilesSelection::TilesetExternals externals = CreateTilesetExternal(IOKind::Http);
             m_tileset = AZStd::make_unique<Cesium3DTilesSelection::Tileset>(externals, cesiumIonAssetId, cesiumIonAssetToken.c_str());
+            m_coordinateOrO3DETransformDirty = true; // new tileset needs to be applied to the existing transform
         }
 
         void ConnectCoordinateTransformEntityEvents()
@@ -386,9 +387,8 @@ namespace Cesium
                 }
             }
 
-            m_renderResourcesPreparer->SetTransform(m_O3DETransform * config.m_ECEFToO3DE);
-            m_cameraConfigurations.SetTransform(config.m_O3DEToECEF * glm::affineInverse(m_O3DETransform));
             m_coordinateTransformConfig = config;
+            m_coordinateOrO3DETransformDirty = true;
         }
 
         void DisconnectCoordinateTransformEntityEvents()
@@ -397,32 +397,54 @@ namespace Cesium
             {
                 m_cesiumTransformChangeHandler.Disconnect();
                 m_cesiumTransformEnableHandler.Disconnect();
-                m_coordinateTransformConfig = CoordinateTransformConfiguration{};
             }
         }
 
         void SetWorldTransform(const AZ::Transform& world, const AZ::Vector3& nonUniformScale)
         {
-            if (!m_renderResourcesPreparer)
-            {
-                return;
-            }
-
             m_O3DETransform = MathHelper::ConvertTransformAndScaleToDMat4(world, nonUniformScale);
-            m_renderResourcesPreparer->SetTransform(m_O3DETransform * m_coordinateTransformConfig.m_ECEFToO3DE);
-            m_cameraConfigurations.SetTransform(m_coordinateTransformConfig.m_O3DEToECEF * glm::affineInverse(m_O3DETransform));
+            m_coordinateOrO3DETransformDirty = true;
         }
 
         void SetNonUniformScale(const AZ::Vector3& scale)
         {
-            if (!m_renderResourcesPreparer)
+            AZ::Transform worldTransform;
+            AZ::TransformBus::EventResult(worldTransform, m_selfEntity, &AZ::TransformBus::Events::GetWorldTM);
+            SetWorldTransform(worldTransform, scale);
+        }
+
+        void ApplyO3DETransformOrCoordinateTransform()
+        {
+            if (!m_coordinateOrO3DETransformDirty)
             {
                 return;
             }
 
-            AZ::Transform worldTransform;
-            AZ::TransformBus::EventResult(worldTransform, m_selfEntity, &AZ::TransformBus::Events::GetWorldTM);
-            SetWorldTransform(worldTransform, scale);
+            if (!m_tileset || !m_renderResourcesPreparer)
+            {
+                return;
+            }
+
+            auto root = m_tileset->getRootTile();
+            if (!root)
+            {
+                return;
+            }
+
+            glm::dvec3 ecefBoundingCenter = Cesium3DTilesSelection::getBoundingVolumeCenter(root->getBoundingVolume());
+            glm::dvec3 o3deBoundingCenter = m_coordinateTransformConfig.m_ECEFToO3DE * glm::dvec4(ecefBoundingCenter, 1.0);
+            glm::dmat4 totalO3DETransform =
+                glm::translate(glm::dmat4(1.0), o3deBoundingCenter) * glm::translate(m_O3DETransform, -o3deBoundingCenter);
+            m_renderResourcesPreparer->SetTransform(totalO3DETransform * m_coordinateTransformConfig.m_ECEFToO3DE);
+            m_cameraConfigurations.SetTransform(m_coordinateTransformConfig.m_O3DEToECEF * glm::affineInverse(totalO3DETransform));
+            m_coordinateOrO3DETransformDirty = false;
+        }
+
+        void ResetO3DEAndCoordinateTransform()
+        {
+            m_O3DETransform = glm::dmat4(1.0);
+            m_coordinateTransformConfig = CoordinateTransformConfiguration{};
+            m_coordinateOrO3DETransformDirty = true;
         }
 
         // Resources can be rebuilt from the configurations below
@@ -432,6 +454,8 @@ namespace Cesium
         TransformEnableEvent::Handler m_cesiumTransformEnableHandler;
         AZ::NonUniformScaleChangedEvent::Handler m_nonUniformScaleChangedHandler;
         CoordinateTransformConfiguration m_coordinateTransformConfig;
+        glm::dmat4 m_O3DETransform;
+        bool m_coordinateOrO3DETransformDirty;
 
         // Configurations to rebuild the resources above when activated
         AZ::EntityId m_selfEntity;
@@ -439,7 +463,6 @@ namespace Cesium
         CesiumTilesetConfiguration m_tilesetConfiguration;
         TilesetSourceConfiguration m_tilesetSource;
         EntityWrapper m_coordinateTransformEntity;
-        glm::dmat4 m_O3DETransform;
     };
 
     void CesiumTilesetComponent::Reflect(AZ::ReflectContext* context)
@@ -485,7 +508,7 @@ namespace Cesium
         AZ::TransformBus::EventResult(worldTransform, GetEntityId(), &AZ::TransformBus::Events::GetWorldTM);
         AZ::Vector3 worldScale = AZ::Vector3::CreateOne();
         AZ::NonUniformScaleRequestBus::EventResult(worldScale, GetEntityId(), &AZ::NonUniformScaleRequestBus::Events::GetScale);
-        m_impl->m_O3DETransform = MathHelper::ConvertTransformAndScaleToDMat4(worldTransform, worldScale);
+        m_impl->SetWorldTransform(worldTransform, worldScale);
 
         // set cesium transform to convert from Cesium Coord to O3DE
         m_impl->ConnectCoordinateTransformEntityEvents();
@@ -499,17 +522,17 @@ namespace Cesium
 
     void CesiumTilesetComponent::Deactivate()
     {
+        // We remove any unneccessary resources but keep the configurations objects (e.g CameraConfigurations, TilesetSourceConfiguration,
+        // etc). The reason is to keep the component as lightweight as possible when being deactivated. Those deleted resources can be
+        // rebuilt again using the configuration objects.
         AZ::TickBus::Handler::BusDisconnect();
         CesiumTilesetRequestBus::Handler::BusDisconnect();
         AZ::TransformNotificationBus::Handler::BusDisconnect();
         m_impl->m_nonUniformScaleChangedHandler.Disconnect();
-
-        // We remove any unneccessary resources but keep the configurations objects (e.g CameraConfigurations, TilesetSourceConfiguration,
-        // etc). The reason is to keep the component as lightweight as possible when being deactivated. Those deleted resources can be
-        // rebuilt again using the configuration objects.
         m_impl->m_tileset.reset();
         m_impl->m_renderResourcesPreparer.reset();
         m_impl->DisconnectCoordinateTransformEntityEvents();
+        m_impl->ResetO3DEAndCoordinateTransform();
     }
 
     void CesiumTilesetComponent::SetConfiguration(const CesiumTilesetConfiguration& configration)
@@ -576,12 +599,16 @@ namespace Cesium
 
         if (m_impl->m_tileset)
         {
+
             // update view tileset
             const std::vector<Cesium3DTilesSelection::ViewState>& viewStates = m_impl->m_cameraConfigurations.UpdateAndGetViewStates();
 
             if (!viewStates.empty())
             {
                 const Cesium3DTilesSelection::ViewUpdateResult& viewUpdate = m_impl->m_tileset->updateView(viewStates);
+
+                // update tileset transform if needed
+                m_impl->ApplyO3DETransformOrCoordinateTransform();
 
                 for (Cesium3DTilesSelection::Tile* tile : viewUpdate.tilesToNoLongerRenderThisFrame)
                 {
