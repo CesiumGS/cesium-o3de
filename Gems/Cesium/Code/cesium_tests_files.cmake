@@ -4,6 +4,7 @@ set(FILES
     Tests/BoundingRegionTest.cpp
     Tests/OrientedBoundingBoxTest.cpp
     Tests/BoundingSphereTest.cpp
+    Tests/GeospatialHelperTest.cpp
     Tests/MathHelperTest.cpp
     Tests/PlatformInfoTest.cpp
     Tests/BitangentAndTangentGeneratorTest.cpp

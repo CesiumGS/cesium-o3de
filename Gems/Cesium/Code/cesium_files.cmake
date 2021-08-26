@@ -39,6 +39,8 @@ set(FILES
     Source/GltfModel.h
     Source/CesiumSystemComponent.cpp
     Source/CesiumSystemComponent.h
+    Source/GeospatialHelper.cpp
+    Include/Cesium/GeospatialHelper.h
     Source/WorldComposition.cpp
     Include/Cesium/WorldComposition.h
     Source/BoundingRegion.cpp
