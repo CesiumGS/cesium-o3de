@@ -1,19 +1,60 @@
 #include <Cesium/GeoReferenceCameraFlyController.h>
 #include "MathHelper.h"
 #include <Cesium/CoordinateTransformComponentBus.h>
+#include <CesiumUtility/Math.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Component/TransformBus.h>
+#include <CesiumGeospatial/Ellipsoid.h>
+#include <CesiumGeospatial/Cartographic.h>
 
 namespace Cesium
 {
-    Interpolator::Interpolator(const glm::dvec3& begin, const glm::dvec3& destination, double duration)
+    Interpolator::Interpolator(const glm::dvec3& begin, const glm::dvec3& destination)
         : m_begin{begin}
         , m_destination{destination}
         , m_current{begin}
+        , m_beginLongitude{}
+        , m_beginLatitude{}
+        , m_beginHeight{}
+        , m_destinationLongitude{}
+        , m_destinationLatitude{}
+        , m_destinationHeight{}
+        , m_s{}
+        , m_e{}
+        , m_flyPower{}
+        , m_flyFactor{}
+        , m_flyHeight{}
         , m_totalTimePassed{0.0}
-        , m_totalDuration{duration}
+        , m_totalDuration{}
         , m_isStop{false}
     {
+        m_totalDuration = glm::ceil(glm::distance(m_begin, m_destination) / 1000000.0) + 2.0;
+        m_totalDuration = glm::min(m_totalDuration, 3.0);
+
+        auto beginCartographic = CesiumGeospatial::Ellipsoid::WGS84.cartesianToCartographic(m_begin);
+        auto destinationCartographic = CesiumGeospatial::Ellipsoid::WGS84.cartesianToCartographic(m_destination);
+        if (!beginCartographic || !destinationCartographic)
+        {
+            // just end the fly if we can find the cartographic for begin and destination
+            m_isStop = true;
+        }
+        else
+        {
+            m_beginLongitude = beginCartographic->longitude;
+            m_beginLatitude = beginCartographic->latitude;
+            m_beginHeight = beginCartographic->height;
+
+            m_destinationLongitude = destinationCartographic->longitude; 
+            m_destinationLatitude = destinationCartographic->latitude; 
+            m_destinationHeight = destinationCartographic->height; 
+
+            m_flyPower = 4.0;
+            m_flyHeight = 3000.0;
+            m_flyFactor = 1000000.0;
+            double inverseFlyPower = 1.0 / m_flyPower;
+            m_s = -glm::pow((m_flyHeight - m_beginHeight) * m_flyFactor, inverseFlyPower);
+            m_e = glm::pow((m_flyHeight - m_destinationHeight) * m_flyFactor, inverseFlyPower);
+        }
     }
 
     const glm::dvec3& Interpolator::GetBeginPosition() const
@@ -36,7 +77,7 @@ namespace Cesium
         return m_isStop;
     }
 
-    void Interpolator::Update(float deltaTime)
+    void Interpolator::Update([[maybe_unused]] float deltaTime)
     {
         m_totalTimePassed = m_totalTimePassed + static_cast<double>(deltaTime);
         if (m_totalTimePassed > m_totalDuration)
@@ -48,7 +89,11 @@ namespace Cesium
         else
         {
             double t = m_totalTimePassed / m_totalDuration;
-            m_current = (1.0 - t) * m_begin + t * m_destination;
+            double currentLongitude = CesiumUtility::Math::lerp(m_beginLongitude, m_destinationLongitude, t);
+            double currentLatitude = CesiumUtility::Math::lerp(m_beginLatitude, m_destinationLatitude, t);
+            double currentHeight = -glm::pow(t * (m_e - m_s) + m_s, m_flyPower) / m_flyFactor + m_flyHeight;
+            m_current = CesiumGeospatial::Ellipsoid::WGS84.cartographicToCartesian(
+                CesiumGeospatial::Cartographic{ currentLongitude, currentLatitude, currentHeight });
         }
     }
 
@@ -85,31 +130,31 @@ namespace Cesium
         m_coordinateTransformEntityId = coordinateTransformEntityId;
     }
 
-    void GeoReferenceCameraFlyController::FlyToECEFLocation(const glm::dvec3& location, double duration)
+    void GeoReferenceCameraFlyController::FlyToECEFLocation(const glm::dvec3& location)
     {
+        // Get the current ecef position of the camera
         glm::dvec3 ecefCurrentPosition{};
         if (m_ecefPositionInterpolator)
         {
             ecefCurrentPosition = m_ecefPositionInterpolator->GetCurrentPosition();
-            m_ecefPositionInterpolator = Interpolator{ ecefCurrentPosition, location, duration };
         }
         else if (m_coordinateTransformEntityId.IsValid())
         {
-            glm::dmat4 O3DEToECEF{1.0};
+            glm::dmat4 O3DEToECEF{ 1.0 };
             CoordinateTransformRequestBus::EventResult(
                 O3DEToECEF, m_coordinateTransformEntityId, &CoordinateTransformRequestBus::Events::O3DEToECEF);
             AZ::Vector3 O3DECameraTranslation{};
             AZ::TransformBus::EventResult(O3DECameraTranslation, GetEntityId(), &AZ::TransformBus::Events::GetWorldTranslation);
             ecefCurrentPosition = O3DEToECEF * MathHelper::ToDVec4(O3DECameraTranslation, 1.0);
-            m_ecefPositionInterpolator = Interpolator{ ecefCurrentPosition, location, duration };
         }
         else
         {
             AZ::Vector3 O3DECameraTranslation{};
             AZ::TransformBus::EventResult(O3DECameraTranslation, GetEntityId(), &AZ::TransformBus::Events::GetWorldTranslation);
             ecefCurrentPosition = MathHelper::ToDVec3(O3DECameraTranslation);
-            m_ecefPositionInterpolator = Interpolator{ ecefCurrentPosition, location, duration };
         }
+
+        m_ecefPositionInterpolator = Interpolator{ ecefCurrentPosition, location };
 
         // transition to the new state
         TransitionToFlyState(CameraFlyState::BeginFly, ecefCurrentPosition);

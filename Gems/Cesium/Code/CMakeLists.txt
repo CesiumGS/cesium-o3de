@@ -39,6 +39,7 @@ ly_add_target(
             3rdParty::AWSNativeSDK::Core
             3rdParty::CesiumNative
             3rdParty::mikkelsen
+            3rdParty::zlib
             AZ::AzCore
             AZ::AzFramework
             AZ::AWSNativeSDKInit

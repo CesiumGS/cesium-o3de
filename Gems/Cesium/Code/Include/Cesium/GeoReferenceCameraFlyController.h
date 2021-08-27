@@ -13,7 +13,7 @@ namespace Cesium
     class Interpolator
     {
     public:
-        Interpolator(const glm::dvec3& begin, const glm::dvec3& destination, double duration);
+        Interpolator(const glm::dvec3& begin, const glm::dvec3& destination);
 
         const glm::dvec3& GetBeginPosition() const;
 
@@ -29,6 +29,21 @@ namespace Cesium
         glm::dvec3 m_begin;
         glm::dvec3 m_destination;
         glm::dvec3 m_current;
+        double m_beginLongitude;
+        double m_beginLatitude;
+        double m_beginHeight;
+        double m_destinationLongitude;
+        double m_destinationLatitude;
+        double m_destinationHeight;
+
+        // parameters to interpolate height
+        double m_s;
+        double m_e;
+        double m_flyPower;
+        double m_flyFactor;
+        double m_flyHeight;
+
+        // track duration
         double m_totalTimePassed;
         double m_totalDuration;
         bool m_isStop;
@@ -62,7 +77,7 @@ namespace Cesium
 
         void SetCoordinateTransform(const AZ::EntityId& coordinateTransformEntityId);
 
-        void FlyToECEFLocation(const glm::dvec3& location, double duration);
+        void FlyToECEFLocation(const glm::dvec3& location);
 
         void BindCameraTransitionFlyEventHandler(CameraTransitionFlyEvent::Handler& handler);
 
