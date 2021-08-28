@@ -69,6 +69,12 @@ namespace Cesium
             // no default scene, display the first one
             LoadScene(model, model.scenes.front(), option, result);
         }
+        else if (model.nodes.size() > 0)
+        {
+            // no default scene, display the first node
+            glm::dmat4 worldTransform = option.m_transform * GLTF_TO_O3DE;
+            LoadNode(model, model.nodes.front(), worldTransform, result);
+        }
         else
         {
             // load all meshes in the gltf
