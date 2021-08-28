@@ -132,7 +132,10 @@ namespace Cesium
 
         static std::unique_ptr<HttpAssetResponse> CreateO3DEAssetResponse(Aws::Http::HttpResponse& response);
 
+        static IOContent DecodeGzip(IOContent& content);
+
         static constexpr const char* const USER_AGENT_HEADER_KEY = "User-Agent";
+        static constexpr const char* const CONTENT_ENCODING_HEADER_KEY = "Content-Encoding";
 
         std::string m_userAgentHeaderValue;
         HttpManager* m_httpManager;
