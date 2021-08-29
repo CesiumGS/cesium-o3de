@@ -24,18 +24,15 @@ namespace Cesium
 {
     struct HttpManager::RequestHandler
     {
-        RequestHandler(HttpRequestParameter&& httpRequestParameter, const CesiumAsync::Promise<HttpResult>& promise)
-            : m_httpRequestParameter{ std::move(httpRequestParameter) }
+        RequestHandler(const std::shared_ptr<Aws::Http::HttpClient>& awsHttpClient, HttpRequestParameter&& httpRequestParameter, const CesiumAsync::Promise<HttpResult>& promise)
+            : m_awsHttpClient{awsHttpClient}
+            , m_httpRequestParameter{ std::move(httpRequestParameter) }
             , m_promise{ promise }
         {
         }
 
         void operator()()
         {
-            Aws::Client::ClientConfiguration config;
-            config.enableTcpKeepAlive = AZ_TRAIT_AZFRAMEWORK_AWS_ENABLE_TCP_KEEP_ALIVE_SUPPORTED;
-            std::shared_ptr<Aws::Http::HttpClient> awsHttpClient = Aws::Http::CreateHttpClient(config);
-
             Aws::Http::URI awsURI(m_httpRequestParameter.m_url.c_str());
             auto awsHttpRequest = Aws::Http::CreateHttpRequest(
                 awsURI, m_httpRequestParameter.m_method, Aws::Utils::Stream::DefaultResponseStreamFactoryMethod);
@@ -51,7 +48,7 @@ namespace Cesium
                 awsHttpRequest->AddContentBody(std::move(bodyStream));
             }
 
-            auto awsHttpResponse = awsHttpClient->MakeRequest(awsHttpRequest);
+            auto awsHttpResponse = m_awsHttpClient->MakeRequest(awsHttpRequest);
             if (!awsHttpRequest || !awsHttpResponse)
             {
                 m_promise.reject(std::runtime_error("Request failed for url: " + std::string(m_httpRequestParameter.m_url.c_str())));
@@ -62,20 +59,23 @@ namespace Cesium
             }
         }
 
+        std::shared_ptr<Aws::Http::HttpClient> m_awsHttpClient;
         HttpRequestParameter m_httpRequestParameter;
         CesiumAsync::Promise<HttpResult> m_promise;
     };
 
     struct HttpManager::GenericIORequestHandler
     {
-        GenericIORequestHandler(const IORequestParameter& request, const CesiumAsync::Promise<IOContent>& promise)
-            : m_request{ request }
+        GenericIORequestHandler(const std::shared_ptr<Aws::Http::HttpClient>& awsHttpClient, const IORequestParameter& request, const CesiumAsync::Promise<IOContent>& promise)
+            : m_awsHttpClient{awsHttpClient}
+            , m_request{ request }
             , m_promise{ promise }
         {
         }
 
-        GenericIORequestHandler(IORequestParameter&& request, const CesiumAsync::Promise<IOContent>& promise)
-            : m_request{ std::move(request) }
+        GenericIORequestHandler(const std::shared_ptr<Aws::Http::HttpClient>& awsHttpClient, IORequestParameter&& request, const CesiumAsync::Promise<IOContent>& promise)
+            : m_awsHttpClient{awsHttpClient}
+            , m_request{ std::move(request) }
             , m_promise{ promise }
         {
         }
@@ -84,15 +84,11 @@ namespace Cesium
         {
             std::string absoluteUrl = CesiumUtility::Uri::resolve(m_request.m_parentPath.c_str(), m_request.m_path.c_str());
 
-            Aws::Client::ClientConfiguration config;
-            config.enableTcpKeepAlive = AZ_TRAIT_AZFRAMEWORK_AWS_ENABLE_TCP_KEEP_ALIVE_SUPPORTED;
-            std::shared_ptr<Aws::Http::HttpClient> awsHttpClient = Aws::Http::CreateHttpClient(config);
-
             Aws::Http::URI awsURI(absoluteUrl.c_str());
             auto awsHttpRequest = Aws::Http::CreateHttpRequest(
                 awsURI, Aws::Http::HttpMethod::HTTP_GET, Aws::Utils::Stream::DefaultResponseStreamFactoryMethod);
 
-            auto awsHttpResponse = awsHttpClient->MakeRequest(awsHttpRequest);
+            auto awsHttpResponse = m_awsHttpClient->MakeRequest(awsHttpRequest);
             if (!awsHttpRequest || !awsHttpResponse)
             {
                 m_promise.reject(std::runtime_error("Request failed for url: " + absoluteUrl));
@@ -103,6 +99,7 @@ namespace Cesium
             }
         }
 
+        std::shared_ptr<Aws::Http::HttpClient> m_awsHttpClient;
         IORequestParameter m_request;
         CesiumAsync::Promise<IOContent> m_promise;
     };
@@ -118,12 +115,17 @@ namespace Cesium
         m_ioJobContext = AZStd::make_unique<AZ::JobContext>(*m_ioJobManager);
 
         AWSNativeSDKInit::InitializationManager::InitAwsApi();
+
+        Aws::Client::ClientConfiguration config;
+        config.enableTcpKeepAlive = AZ_TRAIT_AZFRAMEWORK_AWS_ENABLE_TCP_KEEP_ALIVE_SUPPORTED;
+        m_awsHttpClient = Aws::Http::CreateHttpClient(config);
     }
 
     HttpManager::~HttpManager() noexcept
     {
         m_ioJobContext.reset();
         m_ioJobManager.reset();
+        m_awsHttpClient.reset();
         AWSNativeSDKInit::InitializationManager::Shutdown();
     }
 
@@ -131,8 +133,8 @@ namespace Cesium
         const CesiumAsync::AsyncSystem& asyncSystem, HttpRequestParameter&& httpRequestParameter)
     {
         auto promise = asyncSystem.createPromise<HttpResult>();
-        AZ::Job* job =
-            aznew AZ::JobFunction<std::function<void()>>(RequestHandler{ std::move(httpRequestParameter), promise }, true, m_ioJobContext.get());
+        AZ::Job* job = aznew AZ::JobFunction<std::function<void()>>(
+            RequestHandler{ m_awsHttpClient, std::move(httpRequestParameter), promise }, true, m_ioJobContext.get());
         job->Start();
         return promise.getFuture();
     }
@@ -178,8 +180,8 @@ namespace Cesium
         const CesiumAsync::AsyncSystem& asyncSystem, const IORequestParameter& request)
     {
         auto promise = asyncSystem.createPromise<IOContent>();
-        AZ::Job* job =
-            aznew AZ::JobFunction<std::function<void()>>(GenericIORequestHandler{ request, promise }, true, m_ioJobContext.get());
+        AZ::Job* job = aznew AZ::JobFunction<std::function<void()>>(
+            GenericIORequestHandler{ m_awsHttpClient, request, promise }, true, m_ioJobContext.get());
         job->Start();
         return promise.getFuture();
     }
@@ -188,8 +190,8 @@ namespace Cesium
         const CesiumAsync::AsyncSystem& asyncSystem, IORequestParameter&& request)
     {
         auto promise = asyncSystem.createPromise<IOContent>();
-        AZ::Job* job =
-            aznew AZ::JobFunction<std::function<void()>>(GenericIORequestHandler{ std::move(request), promise }, true, m_ioJobContext.get());
+        AZ::Job* job = aznew AZ::JobFunction<std::function<void()>>(
+            GenericIORequestHandler{ m_awsHttpClient, std::move(request), promise }, true, m_ioJobContext.get());
         job->Start();
         return promise.getFuture();
     }

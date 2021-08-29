@@ -9,6 +9,14 @@
 #include <AzCore/Jobs/JobContext.h>
 #include <AzCore/std/string/string.h>
 
+namespace Aws
+{
+    namespace Http
+    {
+        class HttpClient;
+    }
+}
+
 namespace Cesium
 {
     struct HttpRequestParameter final
@@ -79,5 +87,6 @@ namespace Cesium
     private:
         AZStd::unique_ptr<AZ::JobManager> m_ioJobManager;
         AZStd::unique_ptr<AZ::JobContext> m_ioJobContext;
+        std::shared_ptr<Aws::Http::HttpClient> m_awsHttpClient;
     };
 }
