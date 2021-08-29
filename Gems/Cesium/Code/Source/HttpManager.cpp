@@ -107,7 +107,7 @@ namespace Cesium
     HttpManager::HttpManager()
     {
         AZ::JobManagerDesc jobDesc;
-        for (size_t i = 0; i < 2; ++i)
+        for (size_t i = 0; i < AZStd::thread::hardware_concurrency(); ++i)
         {
             jobDesc.m_workerThreads.push_back({ static_cast<int>(i) });
         }
