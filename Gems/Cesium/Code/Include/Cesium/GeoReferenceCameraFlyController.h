@@ -1,5 +1,6 @@
 #pragma once
 
+#include <AzFramework/Input/Events/InputChannelEventListener.h>
 #include <AzCore/EBus/Event.h>
 #include <AzCore/Component/Component.h>
 #include <AzCore/Component/EntityId.h>
@@ -61,6 +62,7 @@ namespace Cesium
     class GeoReferenceCameraFlyController
         : public AZ::Component
         , public AZ::TickBus::Handler
+        , public AzFramework::InputChannelEventListener
     {
     public:
         AZ_COMPONENT(GeoReferenceCameraFlyController, "{6CBEF517-E55D-4D22-B957-383722683A78}", AZ::Component)
@@ -74,6 +76,22 @@ namespace Cesium
         void Activate() override;
 
         void Deactivate() override;
+
+        void SetEnable(bool enable);
+
+        bool IsEnable() const;
+
+        void SetMouseSensitivity(double mouseSensitivity);
+
+        double GetMouseSensitivity() const;
+
+        void SetPanningSpeed(double panningSpeed);
+
+        double GetPanningSpeed() const;
+
+        void SetMovementSpeed(double movementSpeed);
+
+        double GetMovementSpeed() const;
 
         void SetCoordinateTransform(const AZ::EntityId& coordinateTransformEntityId);
 
@@ -92,10 +110,25 @@ namespace Cesium
 
         void TransitionToFlyState(CameraFlyState newState, const glm::dvec3& ecefCurrentPosition);
 
+        bool OnInputChannelEventFiltered(const AzFramework::InputChannel& inputChannel) override;
+
+        void OnMouseEvent(const AzFramework::InputChannel& inputChannel);
+
+        void OnKeyEvent(const AzFramework::InputChannel& inputChannel);
+
         AZ::EntityId m_coordinateTransformEntityId;
         AZStd::optional<Interpolator> m_ecefPositionInterpolator;
         CameraTransitionFlyEvent m_flyTransitionEvent;
         CameraFlyState m_prevCameraFlyState;
         CameraFlyState m_cameraFlyState;
+        double m_mouseSensitivity;
+        double m_movementSpeed;
+        double m_panningSpeed;
+        double m_cameraPitch;
+        double m_cameraHead;
+        glm::dvec3 m_cameraMovement;
+        bool m_cameraRotateUpdate;
+        bool m_cameraMoveUpdate;
+        bool m_cameraEnable;
     };
 } // namespace Cesium

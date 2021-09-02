@@ -1,11 +1,16 @@
 #include <Cesium/GeoReferenceCameraFlyController.h>
 #include "MathHelper.h"
 #include <Cesium/CoordinateTransformComponentBus.h>
-#include <CesiumUtility/Math.h>
-#include <AzCore/Serialization/SerializeContext.h>
-#include <AzCore/Component/TransformBus.h>
+#include <CesiumGeospatial/Transforms.h>
 #include <CesiumGeospatial/Ellipsoid.h>
 #include <CesiumGeospatial/Cartographic.h>
+#include <CesiumUtility/Math.h>
+#include <AzFramework/Input/Devices/Mouse/InputDeviceMouse.h>
+#include <AzFramework/Input/Devices/Keyboard/InputDeviceKeyboard.h>
+#include <AzCore/Serialization/SerializeContext.h>
+#include <AzCore/Component/TransformBus.h>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/compatibility.hpp>
 
 namespace Cesium
 {
@@ -108,6 +113,15 @@ namespace Cesium
     GeoReferenceCameraFlyController::GeoReferenceCameraFlyController()
         : m_prevCameraFlyState{ CameraFlyState::NoFly }
         , m_cameraFlyState{ CameraFlyState::NoFly }
+        , m_mouseSensitivity{ 1.0 }
+        , m_movementSpeed{ 1.0 }
+        , m_panningSpeed{ 1.0 }
+        , m_cameraPitch{}
+        , m_cameraHead{}
+        , m_cameraMovement{}
+        , m_cameraRotateUpdate{false}
+        , m_cameraMoveUpdate{false}
+        , m_cameraEnable{true}
     {
     }
 
@@ -117,12 +131,82 @@ namespace Cesium
 
     void GeoReferenceCameraFlyController::Activate()
     {
+        // initialize camera rotation
+        AZ::Transform worldTM{};
+        AZ::TransformBus::EventResult(worldTM, GetEntityId(), &AZ::TransformBus::Events::GetWorldTM);
+        AZ::Vector3 worldOrientation = worldTM.GetRotation().GetEulerRadians();
+        m_cameraPitch = worldOrientation.GetX();
+        m_cameraHead = worldOrientation.GetZ();
+
         AZ::TickBus::Handler::BusConnect();
+        AzFramework::InputChannelEventListener::Connect();
     }
 
     void GeoReferenceCameraFlyController::Deactivate()
     {
         AZ::TickBus::Handler::BusDisconnect();
+        AzFramework::InputChannelEventListener::Disconnect();
+
+        // reset camera parameter
+        m_ecefPositionInterpolator = AZStd::nullopt;
+        m_prevCameraFlyState = CameraFlyState::NoFly;
+        m_cameraFlyState = CameraFlyState::NoFly;
+        m_cameraPitch = 0.0;
+        m_cameraHead = 0.0;
+        m_cameraMovement = glm::dvec3{ 0.0 };
+        m_cameraRotateUpdate = false;
+        m_cameraMoveUpdate = false;
+    }
+
+    void GeoReferenceCameraFlyController::SetEnable(bool enable)
+    {
+        if (m_cameraEnable != enable)
+        {
+            m_cameraEnable = enable;
+            if (m_cameraEnable)
+            {
+                Activate();
+            }
+            else
+            {
+                Deactivate();
+            }
+        }
+    }
+
+    bool GeoReferenceCameraFlyController::IsEnable() const
+    {
+        return m_cameraEnable;
+    }
+
+    void GeoReferenceCameraFlyController::SetMouseSensitivity(double mouseSensitivity)
+    {
+        m_mouseSensitivity = mouseSensitivity;
+    }
+
+    double GeoReferenceCameraFlyController::GetMouseSensitivity() const
+    {
+        return m_mouseSensitivity;
+    }
+
+    void GeoReferenceCameraFlyController::SetPanningSpeed(double panningSpeed)
+    {
+        m_panningSpeed = panningSpeed;
+    }
+
+    double GeoReferenceCameraFlyController::GetPanningSpeed() const
+    {
+        return m_panningSpeed;
+    }
+
+    void GeoReferenceCameraFlyController::SetMovementSpeed(double movementSpeed)
+    {
+        m_movementSpeed = movementSpeed;
+    }
+
+    double GeoReferenceCameraFlyController::GetMovementSpeed() const
+    {
+        return m_movementSpeed;
     }
 
     void GeoReferenceCameraFlyController::SetCoordinateTransform(const AZ::EntityId& coordinateTransformEntityId)
@@ -132,6 +216,11 @@ namespace Cesium
 
     void GeoReferenceCameraFlyController::FlyToECEFLocation(const glm::dvec3& location)
     {
+        if (!m_cameraEnable)
+        {
+            return;
+        }
+
         // Get the current ecef position of the camera
         glm::dvec3 ecefCurrentPosition{};
         if (m_ecefPositionInterpolator)
@@ -140,18 +229,19 @@ namespace Cesium
         }
         else if (m_coordinateTransformEntityId.IsValid())
         {
+            AZ::Vector3 worldTranslation{};
+            AZ::TransformBus::EventResult(worldTranslation, GetEntityId(), &AZ::TransformBus::Events::GetWorldTranslation);
+
             glm::dmat4 O3DEToECEF{ 1.0 };
             CoordinateTransformRequestBus::EventResult(
                 O3DEToECEF, m_coordinateTransformEntityId, &CoordinateTransformRequestBus::Events::O3DEToECEF);
-            AZ::Vector3 O3DECameraTranslation{};
-            AZ::TransformBus::EventResult(O3DECameraTranslation, GetEntityId(), &AZ::TransformBus::Events::GetWorldTranslation);
-            ecefCurrentPosition = O3DEToECEF * MathHelper::ToDVec4(O3DECameraTranslation, 1.0);
+            ecefCurrentPosition = O3DEToECEF * MathHelper::ToDVec4(worldTranslation, 1.0);
         }
         else
         {
-            AZ::Vector3 O3DECameraTranslation{};
-            AZ::TransformBus::EventResult(O3DECameraTranslation, GetEntityId(), &AZ::TransformBus::Events::GetWorldTranslation);
-            ecefCurrentPosition = MathHelper::ToDVec3(O3DECameraTranslation);
+            AZ::Vector3 worldTranslation{};
+            AZ::TransformBus::EventResult(worldTranslation, GetEntityId(), &AZ::TransformBus::Events::GetWorldTranslation);
+            ecefCurrentPosition = MathHelper::ToDVec3(worldTranslation);
         }
 
         m_ecefPositionInterpolator = Interpolator{ ecefCurrentPosition, location };
@@ -226,7 +316,37 @@ namespace Cesium
 
     void GeoReferenceCameraFlyController::ProcessNoFlyState()
     {
-        // when camera is not flying, listen for input event handler
+        if (m_cameraRotateUpdate || m_cameraMoveUpdate)
+        {
+            // when camera is not flying, listen for input event handler
+            CoordinateTransformConfiguration transformConfig{};
+            CoordinateTransformRequestBus::EventResult(
+                transformConfig, m_coordinateTransformEntityId, &CoordinateTransformRequestBus::Events::GetConfiguration);
+
+            // Get camera current world transform
+            AZ::Transform O3DECameraTransform = AZ::Transform::CreateIdentity();
+            AZ::TransformBus::EventResult(O3DECameraTransform, GetEntityId(), &AZ::TransformBus::Events::GetWorldTM);
+
+            // calculate ENU
+            glm::dvec3 ecefCurrentPosition = transformConfig.m_O3DEToECEF * MathHelper::ToDVec4(O3DECameraTransform.GetTranslation(), 1.0);
+            glm::dmat4 enuToO3DE = transformConfig.m_ECEFToO3DE * CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(ecefCurrentPosition);
+
+            // calculate new camera orientation, adjust for ENU coordinate
+            glm::dquat totalRotationQuat = glm::dquat(enuToO3DE) * glm::dquat(glm::dvec3(m_cameraPitch, 0.0, m_cameraHead));
+            O3DECameraTransform.SetRotation(AZ::Quaternion(
+                static_cast<float>(totalRotationQuat.x), static_cast<float>(totalRotationQuat.y), static_cast<float>(totalRotationQuat.z),
+                static_cast<float>(totalRotationQuat.w)));
+
+            // calculate camera position
+            glm::dvec3 moveX = m_cameraMovement.x * MathHelper::ToDVec3(O3DECameraTransform.GetBasisX());
+            glm::dvec3 moveY = m_cameraMovement.y * MathHelper::ToDVec3(O3DECameraTransform.GetBasisY());
+            glm::dvec3 moveZ = m_cameraMovement.z * MathHelper::ToDVec3(O3DECameraTransform.GetBasisZ());
+            glm::dvec3 newPosition = MathHelper::ToDVec3(O3DECameraTransform.GetTranslation()) + moveX + moveY + moveZ;
+            O3DECameraTransform.SetTranslation(
+                AZ::Vector3{ static_cast<float>(newPosition.x), static_cast<float>(newPosition.y), static_cast<float>(newPosition.z) });
+
+            AZ::TransformBus::Event(GetEntityId(), &AZ::TransformBus::Events::SetWorldTM, O3DECameraTransform);
+        }
     }
 
     void GeoReferenceCameraFlyController::TransitionToFlyState(CameraFlyState newState, const glm::dvec3& ecefCurrentPosition)
@@ -234,5 +354,98 @@ namespace Cesium
         m_prevCameraFlyState = m_cameraFlyState;
         m_cameraFlyState = newState;
         m_flyTransitionEvent.Signal(m_prevCameraFlyState, m_cameraFlyState, ecefCurrentPosition);
+    }
+
+    bool GeoReferenceCameraFlyController::OnInputChannelEventFiltered(const AzFramework::InputChannel& inputChannel)
+    {
+        const AzFramework::InputDevice& inputDevice = inputChannel.GetInputDevice();
+        const AzFramework::InputDeviceId& inputDeviceId = inputDevice.GetInputDeviceId();
+        if (AzFramework::InputDeviceMouse::IsMouseDevice(inputDeviceId))
+        {
+            OnMouseEvent(inputChannel);
+        } 
+
+        if (AzFramework::InputDeviceKeyboard::IsKeyboardDevice(inputDeviceId))
+        {
+            OnKeyEvent(inputChannel);
+        }
+
+        return false;
+    }
+
+    void GeoReferenceCameraFlyController::OnMouseEvent(const AzFramework::InputChannel& inputChannel)
+    {
+        // process mouse inputs
+        AzFramework::InputChannel::State state = inputChannel.GetState();
+        const AzFramework::InputChannelId& inputChannelId = inputChannel.GetInputChannelId();
+        if (state == AzFramework::InputChannel::State::Began || state == AzFramework::InputChannel::State::Updated)
+        {
+            double inputValue = inputChannel.GetValue();
+            if (m_cameraRotateUpdate && inputChannelId == AzFramework::InputDeviceMouse::Movement::X)
+            {
+                m_cameraHead += glm::radians(-inputValue / 360.0 * m_mouseSensitivity);
+            }
+            else if (m_cameraRotateUpdate && inputChannelId == AzFramework::InputDeviceMouse::Movement::Y)
+            {
+                m_cameraPitch += glm::radians(-inputValue / 360.0 * m_mouseSensitivity);
+            }
+            else if (inputChannelId == AzFramework::InputDeviceMouse::Button::Right)
+            {
+                m_cameraRotateUpdate = true;
+            }
+        }
+        else if (state == AzFramework::InputChannel::State::Ended)
+        {
+            if (inputChannelId == AzFramework::InputDeviceMouse::Button::Right)
+            {
+                m_cameraRotateUpdate = false;
+            }
+        }
+    }
+
+    void GeoReferenceCameraFlyController::OnKeyEvent(const AzFramework::InputChannel& inputChannel)
+    {
+        // process mouse inputs
+        AzFramework::InputChannel::State state = inputChannel.GetState();
+        const AzFramework::InputChannelId& inputChannelId = inputChannel.GetInputChannelId();
+        if (state == AzFramework::InputChannel::State::Began || state == AzFramework::InputChannel::State::Updated)
+        {
+            double inputValue = inputChannel.GetValue();
+            if (inputChannelId == AzFramework::InputDeviceKeyboard::Key::AlphanumericA)
+            {
+                m_cameraMovement.x = -inputValue * m_panningSpeed;
+                m_cameraMoveUpdate = true;
+            }
+            else if (inputChannelId == AzFramework::InputDeviceKeyboard::Key::AlphanumericD)
+            {
+                m_cameraMovement.x = inputValue * m_panningSpeed;
+                m_cameraMoveUpdate = true;
+            }
+            else if (inputChannelId == AzFramework::InputDeviceKeyboard::Key::AlphanumericS)
+            {
+                m_cameraMovement.y = -inputValue * m_movementSpeed;
+                m_cameraMoveUpdate = true;
+            }
+            else if (inputChannelId == AzFramework::InputDeviceKeyboard::Key::AlphanumericW)
+            {
+                m_cameraMovement.y = inputValue * m_movementSpeed;
+                m_cameraMoveUpdate = true;
+            }
+            else if (inputChannelId == AzFramework::InputDeviceKeyboard::Key::AlphanumericQ)
+            {
+                m_cameraMovement.z = -inputValue * m_panningSpeed;
+                m_cameraMoveUpdate = true;
+            }
+            else if (inputChannelId == AzFramework::InputDeviceKeyboard::Key::AlphanumericE)
+            {
+                m_cameraMovement.z = inputValue * m_panningSpeed;
+                m_cameraMoveUpdate = true;
+            }
+        }
+        else if (state == AzFramework::InputChannel::State::Ended)
+        {
+            m_cameraMovement = glm::dvec3{ 0.0 };
+            m_cameraMoveUpdate = false;
+        }
     }
 } // namespace Cesium
