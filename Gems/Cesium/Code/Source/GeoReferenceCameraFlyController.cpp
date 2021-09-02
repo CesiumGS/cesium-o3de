@@ -32,6 +32,7 @@ namespace Cesium
         , m_totalTimePassed{0.0}
         , m_totalDuration{}
         , m_isStop{false}
+        , m_useHeightLerp{false}
     {
         m_totalDuration = glm::ceil(glm::distance(m_begin, m_destination) / 1000000.0) + 2.0;
         m_totalDuration = glm::min(m_totalDuration, 3.0);
@@ -52,13 +53,22 @@ namespace Cesium
             m_destinationLongitude = destinationCartographic->longitude; 
             m_destinationLatitude = destinationCartographic->latitude; 
             m_destinationHeight = destinationCartographic->height; 
+            double maxHeight = glm::max(m_beginHeight, m_destinationHeight);
 
-            m_flyPower = 4.0;
             m_flyHeight = 3000.0;
-            m_flyFactor = 1000000.0;
-            double inverseFlyPower = 1.0 / m_flyPower;
-            m_s = -glm::pow((m_flyHeight - m_beginHeight) * m_flyFactor, inverseFlyPower);
-            m_e = glm::pow((m_flyHeight - m_destinationHeight) * m_flyFactor, inverseFlyPower);
+            if (maxHeight < m_flyHeight)
+            {
+                m_useHeightLerp = false;
+                m_flyPower = 4.0;
+                m_flyFactor = 1000000.0;
+                double inverseFlyPower = 1.0 / m_flyPower;
+                m_s = -glm::pow((m_flyHeight - m_beginHeight) * m_flyFactor, inverseFlyPower);
+                m_e = glm::pow((m_flyHeight - m_destinationHeight) * m_flyFactor, inverseFlyPower);
+            }
+            else
+            {
+                m_useHeightLerp = true;
+            }
         }
     }
 
@@ -82,7 +92,7 @@ namespace Cesium
         return m_isStop;
     }
 
-    void Interpolator::Update([[maybe_unused]] float deltaTime)
+    void Interpolator::Update(float deltaTime)
     {
         m_totalTimePassed = m_totalTimePassed + static_cast<double>(deltaTime);
         if (m_totalTimePassed > m_totalDuration)
@@ -91,12 +101,21 @@ namespace Cesium
             m_current = m_destination;
             m_isStop = true;
         }
-        else
+        else 
         {
             double t = m_totalTimePassed / m_totalDuration;
             double currentLongitude = CesiumUtility::Math::lerp(m_beginLongitude, m_destinationLongitude, t);
             double currentLatitude = CesiumUtility::Math::lerp(m_beginLatitude, m_destinationLatitude, t);
-            double currentHeight = -glm::pow(t * (m_e - m_s) + m_s, m_flyPower) / m_flyFactor + m_flyHeight;
+            double currentHeight{};
+            if (m_useHeightLerp)
+            {
+                currentHeight = CesiumUtility::Math::lerp(m_beginHeight, m_destinationHeight, t);
+            }
+            else
+            {
+                currentHeight = -glm::pow(t * (m_e - m_s) + m_s, m_flyPower) / m_flyFactor + m_flyHeight;
+            }
+
             m_current = CesiumGeospatial::Ellipsoid::WGS84.cartographicToCartesian(
                 CesiumGeospatial::Cartographic{ currentLongitude, currentLatitude, currentHeight });
         }

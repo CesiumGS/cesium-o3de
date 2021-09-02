@@ -37,7 +37,7 @@ namespace Cesium
         double m_destinationLatitude;
         double m_destinationHeight;
 
-        // parameters to interpolate height
+        // parameters to interpolate height using parabolic
         double m_s;
         double m_e;
         double m_flyPower;
@@ -47,7 +47,11 @@ namespace Cesium
         // track duration
         double m_totalTimePassed;
         double m_totalDuration;
+
         bool m_isStop;
+
+        // determine if we should interpolate height using linear or parabolic
+        bool m_useHeightLerp;
     };
 
     enum class CameraFlyState
