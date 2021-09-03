@@ -14,10 +14,14 @@
 
 namespace Cesium
 {
-    Interpolator::Interpolator(const glm::dvec3& begin, const glm::dvec3& destination)
-        : m_begin{begin}
-        , m_destination{destination}
-        , m_current{begin}
+    Interpolator::Interpolator(
+        const glm::dvec3& begin,
+        const glm::dvec3& destination,
+        const glm::dmat4& cameraTransform,
+        const Camera::Configuration& cameraConfiguration)
+        : m_begin{ begin }
+        , m_destination{ destination }
+        , m_current{ begin }
         , m_beginLongitude{}
         , m_beginLatitude{}
         , m_beginHeight{}
@@ -29,10 +33,10 @@ namespace Cesium
         , m_flyPower{}
         , m_flyFactor{}
         , m_flyHeight{}
-        , m_totalTimePassed{0.0}
+        , m_totalTimePassed{ 0.0 }
         , m_totalDuration{}
-        , m_isStop{false}
-        , m_useHeightLerp{false}
+        , m_isStop{ false }
+        , m_useHeightLerp{ false }
     {
         m_totalDuration = glm::ceil(glm::distance(m_begin, m_destination) / 1000000.0) + 2.0;
         m_totalDuration = glm::min(m_totalDuration, 3.0);
@@ -41,7 +45,7 @@ namespace Cesium
         auto destinationCartographic = CesiumGeospatial::Ellipsoid::WGS84.cartesianToCartographic(m_destination);
         if (!beginCartographic || !destinationCartographic)
         {
-            // just end the fly if we can find the cartographic for begin and destination
+            // just end the fly if we can't find the cartographic for begin and destination
             m_isStop = true;
         }
         else
@@ -50,16 +54,16 @@ namespace Cesium
             m_beginLatitude = beginCartographic->latitude;
             m_beginHeight = beginCartographic->height;
 
-            m_destinationLongitude = destinationCartographic->longitude; 
-            m_destinationLatitude = destinationCartographic->latitude; 
-            m_destinationHeight = destinationCartographic->height; 
+            m_destinationLongitude = destinationCartographic->longitude;
+            m_destinationLatitude = destinationCartographic->latitude;
+            m_destinationHeight = destinationCartographic->height;
             double maxHeight = glm::max(m_beginHeight, m_destinationHeight);
 
-            m_flyHeight = 3000.0;
+            m_flyHeight = EstimateFlyHeight(begin, destination, cameraTransform, cameraConfiguration);
             if (maxHeight < m_flyHeight)
             {
                 m_useHeightLerp = false;
-                m_flyPower = 4.0;
+                m_flyPower = 8.0;
                 m_flyFactor = 1000000.0;
                 double inverseFlyPower = 1.0 / m_flyPower;
                 m_s = -glm::pow((m_flyHeight - m_beginHeight) * m_flyFactor, inverseFlyPower);
@@ -101,7 +105,7 @@ namespace Cesium
             m_current = m_destination;
             m_isStop = true;
         }
-        else 
+        else
         {
             double t = m_totalTimePassed / m_totalDuration;
             double currentLongitude = CesiumUtility::Math::lerp(m_beginLongitude, m_destinationLongitude, t);
@@ -121,6 +125,22 @@ namespace Cesium
         }
     }
 
+    double Interpolator::EstimateFlyHeight(
+        const glm::dvec3& begin,
+        const glm::dvec3& destination,
+        const glm::dmat4& cameraTransform,
+        const Camera::Configuration& cameraConfiguration)
+    {
+        glm::dvec3 diff = destination - begin;
+        double dx = glm::abs(glm::dot(diff, glm::dvec3(cameraTransform[0])));
+        double dy = glm::abs(glm::dot(diff, glm::dvec3(cameraTransform[2])));
+        double tanTheta = glm::tan(0.5 * cameraConfiguration.m_fovRadians);
+        double near = cameraConfiguration.m_nearClipDistance;
+        double top = near * tanTheta;
+        double right = cameraConfiguration.m_frustumWidth / cameraConfiguration.m_frustumHeight * top;
+        return glm::min(glm::max(dx * near / right, dy * near / top) * 0.2, 1000000.0);
+    }
+
     void GeoReferenceCameraFlyController::Reflect(AZ::ReflectContext* context)
     {
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
@@ -138,9 +158,9 @@ namespace Cesium
         , m_cameraPitch{}
         , m_cameraHead{}
         , m_cameraMovement{}
-        , m_cameraRotateUpdate{false}
-        , m_cameraMoveUpdate{false}
-        , m_cameraEnable{true}
+        , m_cameraRotateUpdate{ false }
+        , m_cameraMoveUpdate{ false }
+        , m_cameraEnable{ true }
     {
     }
 
@@ -240,30 +260,45 @@ namespace Cesium
             return;
         }
 
-        // Get the current ecef position of the camera
+        // Get camera current O3DE world transform to calculate its ECEF position and orientation
+        AZ::Transform O3DECameraTransform = AZ::Transform::CreateIdentity();
+        AZ::TransformBus::EventResult(O3DECameraTransform, GetEntityId(), &AZ::TransformBus::Events::GetWorldTM);
+
+        // Get camera configuration for the interpolator
+        Camera::Configuration cameraConfiguration;
+        Camera::CameraRequestBus::EventResult(
+            cameraConfiguration, GetEntityId(), &Camera::CameraRequestBus::Events::GetCameraConfiguration);
+
+        // Get the current ecef position and orientation of the camera
         glm::dvec3 ecefCurrentPosition{};
+        glm::dmat4 ecefCameraTransform{};
         if (m_ecefPositionInterpolator)
         {
             ecefCurrentPosition = m_ecefPositionInterpolator->GetCurrentPosition();
+            if (m_coordinateTransformEntityId.IsValid())
+            {
+                glm::dmat4 O3DEToECEF{ 1.0 };
+                CoordinateTransformRequestBus::EventResult(
+                    O3DEToECEF, m_coordinateTransformEntityId, &CoordinateTransformRequestBus::Events::O3DEToECEF);
+                ecefCameraTransform =
+                    O3DEToECEF * MathHelper::ConvertTransformAndScaleToDMat4(O3DECameraTransform, AZ::Vector3::CreateOne());
+            }
         }
         else if (m_coordinateTransformEntityId.IsValid())
         {
-            AZ::Vector3 worldTranslation{};
-            AZ::TransformBus::EventResult(worldTranslation, GetEntityId(), &AZ::TransformBus::Events::GetWorldTranslation);
-
             glm::dmat4 O3DEToECEF{ 1.0 };
             CoordinateTransformRequestBus::EventResult(
                 O3DEToECEF, m_coordinateTransformEntityId, &CoordinateTransformRequestBus::Events::O3DEToECEF);
-            ecefCurrentPosition = O3DEToECEF * MathHelper::ToDVec4(worldTranslation, 1.0);
+            ecefCurrentPosition = O3DEToECEF * MathHelper::ToDVec4(O3DECameraTransform.GetTranslation(), 1.0);
+            ecefCameraTransform = O3DEToECEF * MathHelper::ConvertTransformAndScaleToDMat4(O3DECameraTransform, AZ::Vector3::CreateOne());
         }
         else
         {
-            AZ::Vector3 worldTranslation{};
-            AZ::TransformBus::EventResult(worldTranslation, GetEntityId(), &AZ::TransformBus::Events::GetWorldTranslation);
-            ecefCurrentPosition = MathHelper::ToDVec3(worldTranslation);
+            ecefCurrentPosition = MathHelper::ToDVec3(O3DECameraTransform.GetTranslation());
+            ecefCameraTransform = MathHelper::ConvertTransformAndScaleToDMat4(O3DECameraTransform, AZ::Vector3::CreateOne());
         }
 
-        m_ecefPositionInterpolator = Interpolator{ ecefCurrentPosition, location };
+        m_ecefPositionInterpolator = Interpolator{ ecefCurrentPosition, location, ecefCameraTransform, cameraConfiguration };
 
         // transition to the new state
         TransitionToFlyState(CameraFlyState::BeginFly, ecefCurrentPosition);
@@ -325,7 +360,7 @@ namespace Cesium
                              static_cast<float>(ecefCurrentPosition.z) });
         }
 
-        // if the interpolator stops updating, then we transition to the end state 
+        // if the interpolator stops updating, then we transition to the end state
         if (m_ecefPositionInterpolator->IsStop())
         {
             m_ecefPositionInterpolator = AZStd::nullopt;
@@ -348,7 +383,8 @@ namespace Cesium
 
             // calculate ENU
             glm::dvec3 ecefCurrentPosition = transformConfig.m_O3DEToECEF * MathHelper::ToDVec4(O3DECameraTransform.GetTranslation(), 1.0);
-            glm::dmat4 enuToO3DE = transformConfig.m_ECEFToO3DE * CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(ecefCurrentPosition);
+            glm::dmat4 enuToO3DE =
+                transformConfig.m_ECEFToO3DE * CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(ecefCurrentPosition);
 
             // calculate new camera orientation, adjust for ENU coordinate
             glm::dquat totalRotationQuat = glm::dquat(enuToO3DE) * glm::dquat(glm::dvec3(m_cameraPitch, 0.0, m_cameraHead));
@@ -382,7 +418,7 @@ namespace Cesium
         if (AzFramework::InputDeviceMouse::IsMouseDevice(inputDeviceId))
         {
             OnMouseEvent(inputChannel);
-        } 
+        }
 
         if (AzFramework::InputDeviceKeyboard::IsKeyboardDevice(inputDeviceId))
         {

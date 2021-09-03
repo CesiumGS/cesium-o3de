@@ -1,6 +1,7 @@
 #pragma once
 
 #include <AzFramework/Input/Events/InputChannelEventListener.h>
+#include <AzFramework/Components/CameraBus.h>
 #include <AzCore/EBus/Event.h>
 #include <AzCore/Component/Component.h>
 #include <AzCore/Component/EntityId.h>
@@ -14,7 +15,11 @@ namespace Cesium
     class Interpolator
     {
     public:
-        Interpolator(const glm::dvec3& begin, const glm::dvec3& destination);
+        Interpolator(
+            const glm::dvec3& begin,
+            const glm::dvec3& destination,
+            const glm::dmat4& cameraTransform,
+            const Camera::Configuration& cameraConfiguration);
 
         const glm::dvec3& GetBeginPosition() const;
 
@@ -27,6 +32,12 @@ namespace Cesium
         void Update(float deltaTime);
 
     private:
+        double EstimateFlyHeight(
+            const glm::dvec3& begin,
+            const glm::dvec3& destination,
+            const glm::dmat4& cameraTransform,
+            const Camera::Configuration& cameraConfiguration);
+
         glm::dvec3 m_begin;
         glm::dvec3 m_destination;
         glm::dvec3 m_current;
