@@ -9,6 +9,7 @@
 #include <AzCore/std/containers/vector.h>
 #include <AzCore/std/optional.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 namespace Cesium
 {
@@ -17,15 +18,15 @@ namespace Cesium
     public:
         Interpolator(
             const glm::dvec3& begin,
+            const glm::dvec3& beginDirection,
             const glm::dvec3& destination,
+            const glm::dvec3& destinationDirection,
             const glm::dmat4& cameraTransform,
             const Camera::Configuration& cameraConfiguration);
 
-        const glm::dvec3& GetBeginPosition() const;
-
-        const glm::dvec3& GetDestinationPosition() const;
-
         const glm::dvec3& GetCurrentPosition() const;
+
+        const glm::dquat& GetCurrentOrientation() const;
 
         bool IsStop() const;
 
@@ -38,9 +39,14 @@ namespace Cesium
             const glm::dmat4& cameraTransform,
             const Camera::Configuration& cameraConfiguration);
 
+        glm::dvec3 CalculatePitchRollHead(const glm::dvec3& position, const glm::dvec3& direction);
+
         glm::dvec3 m_begin;
+        glm::dvec3 m_beginPitchRollHead;
         glm::dvec3 m_destination;
+        glm::dvec3 m_destinationPitchRollHead;
         glm::dvec3 m_current;
+        glm::dquat m_currentOrientation;
         double m_beginLongitude;
         double m_beginLatitude;
         double m_beginHeight;
@@ -110,7 +116,7 @@ namespace Cesium
 
         void SetCoordinateTransform(const AZ::EntityId& coordinateTransformEntityId);
 
-        void FlyToECEFLocation(const glm::dvec3& location);
+        void FlyToECEFLocation(const glm::dvec3& location, const glm::dvec3& direction);
 
         void BindCameraTransitionFlyEventHandler(CameraTransitionFlyEvent::Handler& handler);
 

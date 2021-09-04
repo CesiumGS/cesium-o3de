@@ -99,6 +99,11 @@ namespace Cesium
                 }
 
                 AzFramework::WindowSize windowSize = viewportContext->GetViewportSize();
+                if (windowSize.m_width == 0 || windowSize.m_height == 0)
+                {
+                    continue;
+                }
+
                 glm::dvec2 viewportSize{ windowSize.m_width, windowSize.m_height };
                 m_viewStates.emplace_back(GetViewState(m_cameraConfigs[i].m_cameraEntityId, viewportSize, m_transform));
             }
