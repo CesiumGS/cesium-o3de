@@ -39,6 +39,8 @@ set(FILES
     Source/GltfModel.h
     Source/CesiumSystemComponent.cpp
     Source/CesiumSystemComponent.h
+    Source/GeoReferenceInterpolator.cpp
+    Source/GeoReferenceInterpolator.h
     Source/GeospatialHelper.cpp
     Include/Cesium/GeospatialHelper.h
     Source/WorldComposition.cpp
@@ -61,6 +63,8 @@ set(FILES
     Include/Cesium/GltfModelComponent.h
     Source/GeoReferenceTransformComponent.cpp
     Include/Cesium/GeoReferenceTransformComponent.h
+    Source/GeoReferenceCameraFlyControllerBus.cpp
+    Include/Cesium/GeoReferenceCameraFlyControllerBus.h
     Source/GeoReferenceCameraFlyController.cpp
     Include/Cesium/GeoReferenceCameraFlyController.h
 )

@@ -1,89 +1,22 @@
 #pragma once
 
+#include <Cesium/GeoReferenceCameraFlyControllerBus.h>
 #include <AzFramework/Input/Events/InputChannelEventListener.h>
-#include <AzFramework/Components/CameraBus.h>
-#include <AzCore/EBus/Event.h>
 #include <AzCore/Component/Component.h>
 #include <AzCore/Component/EntityId.h>
 #include <AzCore/Component/TickBus.h>
-#include <AzCore/std/containers/vector.h>
-#include <AzCore/std/optional.h>
+#include <AzCore/std/smart_ptr/unique_ptr.h>
 #include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
 
 namespace Cesium
 {
-    class Interpolator
-    {
-    public:
-        Interpolator(
-            const glm::dvec3& begin,
-            const glm::dvec3& beginDirection,
-            const glm::dvec3& destination,
-            const glm::dvec3& destinationDirection,
-            const glm::dmat4& cameraTransform,
-            const Camera::Configuration& cameraConfiguration);
-
-        const glm::dvec3& GetCurrentPosition() const;
-
-        const glm::dquat& GetCurrentOrientation() const;
-
-        bool IsStop() const;
-
-        void Update(float deltaTime);
-
-    private:
-        double EstimateFlyHeight(
-            const glm::dvec3& begin,
-            const glm::dvec3& destination,
-            const glm::dmat4& cameraTransform,
-            const Camera::Configuration& cameraConfiguration);
-
-        glm::dvec3 CalculatePitchRollHead(const glm::dvec3& position, const glm::dvec3& direction);
-
-        glm::dvec3 m_begin;
-        glm::dvec3 m_beginPitchRollHead;
-        glm::dvec3 m_destination;
-        glm::dvec3 m_destinationPitchRollHead;
-        glm::dvec3 m_current;
-        glm::dquat m_currentOrientation;
-        double m_beginLongitude;
-        double m_beginLatitude;
-        double m_beginHeight;
-        double m_destinationLongitude;
-        double m_destinationLatitude;
-        double m_destinationHeight;
-
-        // parameters to interpolate height using parabolic
-        double m_s;
-        double m_e;
-        double m_flyPower;
-        double m_flyFactor;
-        double m_flyHeight;
-
-        // track duration
-        double m_totalTimePassed;
-        double m_totalDuration;
-
-        bool m_isStop;
-
-        // determine if we should interpolate height using linear or parabolic
-        bool m_useHeightLerp;
-    };
-
-    enum class CameraFlyState
-    {
-        BeginFly,
-        MidFly,
-        NoFly
-    };
-
-    using CameraTransitionFlyEvent = AZ::Event<CameraFlyState, CameraFlyState, const glm::dvec3&>;
+    class GeoReferenceInterpolator;
 
     class GeoReferenceCameraFlyController
         : public AZ::Component
         , public AZ::TickBus::Handler
         , public AzFramework::InputChannelEventListener
+        , public GeoReferenceCameraFlyControllerRequestBus::Handler
     {
     public:
         AZ_COMPONENT(GeoReferenceCameraFlyController, "{6CBEF517-E55D-4D22-B957-383722683A78}", AZ::Component)
@@ -98,27 +31,27 @@ namespace Cesium
 
         void Deactivate() override;
 
-        void SetEnable(bool enable);
+        void SetEnable(bool enable) override;
 
-        bool IsEnable() const;
+        bool IsEnable() const override;
 
-        void SetMouseSensitivity(double mouseSensitivity);
+        void SetMouseSensitivity(double mouseSensitivity) override;
 
-        double GetMouseSensitivity() const;
+        double GetMouseSensitivity() const override;
 
-        void SetPanningSpeed(double panningSpeed);
+        void SetPanningSpeed(double panningSpeed) override;
 
-        double GetPanningSpeed() const;
+        double GetPanningSpeed() const override;
 
-        void SetMovementSpeed(double movementSpeed);
+        void SetMovementSpeed(double movementSpeed) override;
 
-        double GetMovementSpeed() const;
+        double GetMovementSpeed() const override;
 
-        void SetCoordinateTransform(const AZ::EntityId& coordinateTransformEntityId);
+        void SetCoordinateTransform(const AZ::EntityId& coordinateTransformEntityId) override;
 
-        void FlyToECEFLocation(const glm::dvec3& location, const glm::dvec3& direction);
+        void FlyToECEFLocation(const glm::dvec3& location, const glm::dvec3& direction) override;
 
-        void BindCameraTransitionFlyEventHandler(CameraTransitionFlyEvent::Handler& handler);
+        void BindCameraTransitionFlyEventHandler(CameraTransitionFlyEvent::Handler& handler) override;
 
     private:
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
@@ -138,7 +71,7 @@ namespace Cesium
         void OnKeyEvent(const AzFramework::InputChannel& inputChannel);
 
         AZ::EntityId m_coordinateTransformEntityId;
-        AZStd::optional<Interpolator> m_ecefPositionInterpolator;
+        AZStd::unique_ptr<GeoReferenceInterpolator> m_ecefPositionInterpolator;
         CameraTransitionFlyEvent m_flyTransitionEvent;
         CameraFlyState m_prevCameraFlyState;
         CameraFlyState m_cameraFlyState;

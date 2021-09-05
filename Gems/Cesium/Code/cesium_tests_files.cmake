@@ -16,11 +16,13 @@ set(FILES
     Tests/HttpAssetAccessorTest.cpp
     Tests/GenericAssetAccessorTest.cpp
     Tests/TaskProcessorTest.cpp
+    Tests/GeoReferenceInterpolatorTest.cpp
     Tests/RenderResourcesPreparerTest.cpp
     Tests/CesiumSystemComponentBusTest.cpp
     Tests/GltfModelComponentBusTest.cpp
     Tests/CesiumTilesetComponentBusTest.cpp
     Tests/CoordinateTransformComponentBusTest.cpp
+    Tests/GeoReferenceCameraFlyControllerBusTest.cpp
     Tests/GltfLoadContextTest.cpp
     Tests/GltfPrimitiveBuilderTest.cpp
     Tests/GltfMaterialBuilderTest.cpp
