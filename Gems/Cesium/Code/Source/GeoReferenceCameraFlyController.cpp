@@ -2,7 +2,6 @@
 #include "MathHelper.h"
 #include "GeoReferenceInterpolator.h"
 #include <Cesium/CoordinateTransformComponentBus.h>
-#include <CesiumGeospatial/Transforms.h>
 #include <AzFramework/Input/Devices/Mouse/InputDeviceMouse.h>
 #include <AzFramework/Input/Devices/Keyboard/InputDeviceKeyboard.h>
 #include <AzFramework/Components/CameraBus.h>
@@ -255,8 +254,11 @@ namespace Cesium
 
             // calculate ENU
             glm::dvec3 ecefCurrentPosition = transformConfig.m_O3DEToECEF * MathHelper::ToDVec4(O3DECameraTransform.GetTranslation(), 1.0);
-            glm::dmat4 enuToO3DE =
-                transformConfig.m_ECEFToO3DE * CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(ecefCurrentPosition);
+            glm::dmat4 enuToEcef{1.0};
+            CoordinateTransformRequestBus::EventResult(
+                enuToEcef, m_coordinateTransformEntityId, &CoordinateTransformRequestBus::Events::CalculateO3DEToECEFAtOrigin,
+                ecefCurrentPosition);
+            glm::dmat4 enuToO3DE = transformConfig.m_ECEFToO3DE * enuToEcef;
 
             // calculate new camera orientation, adjust for ENU coordinate
             glm::dquat totalRotationQuat = glm::dquat(enuToO3DE) * glm::dquat(glm::dvec3(m_cameraPitch, 0.0, m_cameraHead));

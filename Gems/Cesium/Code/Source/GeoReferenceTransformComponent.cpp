@@ -52,6 +52,16 @@ namespace Cesium
         return m_config.m_ECEFToO3DE;
     }
 
+    glm::dmat4 GeoReferenceTransformComponent::CalculateO3DEToECEFAtOrigin(const glm::dvec3& origin) const
+    {
+        return CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(origin);
+    }
+
+    glm::dmat4 GeoReferenceTransformComponent::CalculateECEFToO3DEAtOrigin(const glm::dvec3& origin) const
+    {
+        return glm::affineInverse(CalculateO3DEToECEFAtOrigin(origin));
+    }
+
     const CoordinateTransformConfiguration& GeoReferenceTransformComponent::GetConfiguration() const
     {
         return m_config;

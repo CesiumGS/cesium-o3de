@@ -35,6 +35,10 @@ namespace Cesium
 
         virtual const glm::dmat4& ECEFToO3DE() const = 0;
 
+        virtual glm::dmat4 CalculateO3DEToECEFAtOrigin(const glm::dvec3& origin) const = 0;
+
+        virtual glm::dmat4 CalculateECEFToO3DEAtOrigin(const glm::dvec3& origin) const = 0;
+
         virtual const CoordinateTransformConfiguration& GetConfiguration() const = 0;
 
         virtual void BindTransformChangeEventHandler(TransformChangeEvent::Handler& handler) = 0;

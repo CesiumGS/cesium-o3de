@@ -29,6 +29,10 @@ namespace Cesium
 
         const glm::dmat4& ECEFToO3DE() const override;
 
+        glm::dmat4 CalculateO3DEToECEFAtOrigin(const glm::dvec3& origin) const override;
+
+        glm::dmat4 CalculateECEFToO3DEAtOrigin(const glm::dvec3& origin) const override;
+
         const CoordinateTransformConfiguration& GetConfiguration() const override;
 
         void BindTransformChangeEventHandler(TransformChangeEvent::Handler& handler) override;
@@ -40,4 +44,4 @@ namespace Cesium
         TransformChangeEvent m_transformChangeEvent;
         TransformEnableEvent m_enableEvent;
     };
-}
+} // namespace Cesium
