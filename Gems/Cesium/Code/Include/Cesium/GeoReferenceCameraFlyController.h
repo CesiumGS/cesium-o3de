@@ -70,6 +70,10 @@ namespace Cesium
 
         void OnKeyEvent(const AzFramework::InputChannel& inputChannel);
 
+        void EnableCamera();
+
+        void DisableCamera();
+
         AZ::EntityId m_coordinateTransformEntityId;
         AZStd::unique_ptr<GeoReferenceInterpolator> m_ecefPositionInterpolator;
         CameraTransitionFlyEvent m_flyTransitionEvent;

@@ -41,31 +41,14 @@ namespace Cesium
 
     void GeoReferenceCameraFlyController::Activate()
     {
-        // initialize camera rotation
-        AZ::Transform worldTM{};
-        AZ::TransformBus::EventResult(worldTM, GetEntityId(), &AZ::TransformBus::Events::GetWorldTM);
-        AZ::Vector3 worldOrientation = worldTM.GetRotation().GetEulerRadians();
-        m_cameraPitch = worldOrientation.GetX();
-        m_cameraHead = worldOrientation.GetZ();
-
-        AZ::TickBus::Handler::BusConnect();
-        AzFramework::InputChannelEventListener::Connect();
+        GeoReferenceCameraFlyControllerRequestBus::Handler::BusConnect(GetEntityId());
+        EnableCamera();
     }
 
     void GeoReferenceCameraFlyController::Deactivate()
     {
-        AZ::TickBus::Handler::BusDisconnect();
-        AzFramework::InputChannelEventListener::Disconnect();
-
-        // reset camera parameter
-        m_ecefPositionInterpolator = nullptr;
-        m_prevCameraFlyState = CameraFlyState::NoFly;
-        m_cameraFlyState = CameraFlyState::NoFly;
-        m_cameraPitch = 0.0;
-        m_cameraHead = 0.0;
-        m_cameraMovement = glm::dvec3{ 0.0 };
-        m_cameraRotateUpdate = false;
-        m_cameraMoveUpdate = false;
+        GeoReferenceCameraFlyControllerRequestBus::Handler::BusDisconnect();
+        DisableCamera();
     }
 
     void GeoReferenceCameraFlyController::SetEnable(bool enable)
@@ -75,11 +58,11 @@ namespace Cesium
             m_cameraEnable = enable;
             if (m_cameraEnable)
             {
-                Activate();
+                EnableCamera();
             }
             else
             {
-                Deactivate();
+                DisableCamera();
             }
         }
     }
@@ -391,5 +374,34 @@ namespace Cesium
             m_cameraMovement = glm::dvec3{ 0.0 };
             m_cameraMoveUpdate = false;
         }
+    }
+
+    void GeoReferenceCameraFlyController::EnableCamera()
+    {
+        // initialize camera rotation
+        AZ::Transform worldTM{};
+        AZ::TransformBus::EventResult(worldTM, GetEntityId(), &AZ::TransformBus::Events::GetWorldTM);
+        AZ::Vector3 worldOrientation = worldTM.GetRotation().GetEulerRadians();
+        m_cameraPitch = worldOrientation.GetX();
+        m_cameraHead = worldOrientation.GetZ();
+
+        AZ::TickBus::Handler::BusConnect();
+        AzFramework::InputChannelEventListener::Connect();
+    }
+
+    void GeoReferenceCameraFlyController::DisableCamera()
+    {
+        AZ::TickBus::Handler::BusDisconnect();
+        AzFramework::InputChannelEventListener::Disconnect();
+
+        // reset camera parameter
+        m_ecefPositionInterpolator = nullptr;
+        m_prevCameraFlyState = CameraFlyState::NoFly;
+        m_cameraFlyState = CameraFlyState::NoFly;
+        m_cameraPitch = 0.0;
+        m_cameraHead = 0.0;
+        m_cameraMovement = glm::dvec3{ 0.0 };
+        m_cameraRotateUpdate = false;
+        m_cameraMoveUpdate = false;
     }
 } // namespace Cesium
