@@ -20,12 +20,14 @@ namespace Cesium
     void GeoReferenceTransformComponent::Activate()
     {
         CoordinateTransformRequestBus::Handler::BusConnect(GetEntityId());
-        m_enableEvent.Signal(true, m_config);
+        m_enable = true;
+        m_enableEvent.Signal(m_enable, m_config);
     }
 
     void GeoReferenceTransformComponent::Deactivate()
     {
-        m_enableEvent.Signal(false, m_config);
+        m_enable = false;
+        m_enableEvent.Signal(m_enable, m_config);
         CoordinateTransformRequestBus::Handler::BusDisconnect();
     }
 
@@ -65,6 +67,11 @@ namespace Cesium
     const CoordinateTransformConfiguration& GeoReferenceTransformComponent::GetConfiguration() const
     {
         return m_config;
+    }
+
+    bool GeoReferenceTransformComponent::IsEnable() const
+    {
+        return m_enable;
     }
 
     void GeoReferenceTransformComponent::BindTransformChangeEventHandler(TransformChangeEvent::Handler& handler)

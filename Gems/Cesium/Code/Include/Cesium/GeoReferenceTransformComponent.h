@@ -35,6 +35,8 @@ namespace Cesium
 
         const CoordinateTransformConfiguration& GetConfiguration() const override;
 
+        bool IsEnable() const override;
+
         void BindTransformChangeEventHandler(TransformChangeEvent::Handler& handler) override;
 
         void BindTransformEnableEventHandler(TransformEnableEvent::Handler& handler) override;
@@ -43,5 +45,6 @@ namespace Cesium
         CoordinateTransformConfiguration m_config;
         TransformChangeEvent m_transformChangeEvent;
         TransformEnableEvent m_enableEvent;
+        bool m_enable;
     };
 } // namespace Cesium

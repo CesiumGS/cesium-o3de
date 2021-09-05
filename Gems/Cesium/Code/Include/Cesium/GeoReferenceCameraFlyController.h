@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Cesium/GeoReferenceCameraFlyControllerBus.h>
+#include <Cesium/CoordinateTransformComponentBus.h>
 #include <AzFramework/Input/Events/InputChannelEventListener.h>
 #include <AzCore/Component/Component.h>
 #include <AzCore/Component/EntityId.h>
@@ -74,7 +75,13 @@ namespace Cesium
 
         void DisableCamera();
 
+        void StopFly();
+
+        void ResetCameraMovement();
+
         AZ::EntityId m_coordinateTransformEntityId;
+        TransformChangeEvent::Handler m_cesiumTransformChangeHandler;
+        TransformEnableEvent::Handler m_cesiumTransformEnableHandler;
         AZStd::unique_ptr<Interpolator> m_ecefPositionInterpolator;
         CameraTransitionFlyEvent m_flyTransitionEvent;
         CameraFlyState m_prevCameraFlyState;
@@ -88,5 +95,6 @@ namespace Cesium
         bool m_cameraRotateUpdate;
         bool m_cameraMoveUpdate;
         bool m_cameraEnable;
+        bool m_coordinateTransformEntityEnable;
     };
 } // namespace Cesium
