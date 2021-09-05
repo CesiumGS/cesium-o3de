@@ -16,7 +16,9 @@ set(FILES
     Tests/HttpAssetAccessorTest.cpp
     Tests/GenericAssetAccessorTest.cpp
     Tests/TaskProcessorTest.cpp
+    Tests/InterpolatorTest.cpp
     Tests/GeoReferenceInterpolatorTest.cpp
+    Tests/LinearInterpolatorTest.cpp
     Tests/RenderResourcesPreparerTest.cpp
     Tests/CesiumSystemComponentBusTest.cpp
     Tests/GltfModelComponentBusTest.cpp

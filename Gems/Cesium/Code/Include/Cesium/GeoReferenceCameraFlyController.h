@@ -10,7 +10,7 @@
 
 namespace Cesium
 {
-    class GeoReferenceInterpolator;
+    class Interpolator;
 
     class GeoReferenceCameraFlyController
         : public AZ::Component
@@ -75,7 +75,7 @@ namespace Cesium
         void DisableCamera();
 
         AZ::EntityId m_coordinateTransformEntityId;
-        AZStd::unique_ptr<GeoReferenceInterpolator> m_ecefPositionInterpolator;
+        AZStd::unique_ptr<Interpolator> m_ecefPositionInterpolator;
         CameraTransitionFlyEvent m_flyTransitionEvent;
         CameraFlyState m_prevCameraFlyState;
         CameraFlyState m_cameraFlyState;

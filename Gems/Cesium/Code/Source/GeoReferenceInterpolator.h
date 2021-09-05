@@ -1,12 +1,13 @@
 #pragma once
 
+#include "Interpolator.h"
 #include <AzFramework/Components/CameraBus.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 
 namespace Cesium
 {
-    class GeoReferenceInterpolator
+    class GeoReferenceInterpolator : public Interpolator
     {
     public:
         GeoReferenceInterpolator(
@@ -17,13 +18,13 @@ namespace Cesium
             const glm::dmat4& cameraTransform,
             const Camera::Configuration& cameraConfiguration);
 
-        const glm::dvec3& GetCurrentPosition() const;
+        const glm::dvec3& GetCurrentPosition() const override;
 
-        const glm::dquat& GetCurrentOrientation() const;
+        const glm::dquat& GetCurrentOrientation() const override;
 
-        bool IsStop() const;
+        bool IsStop() const override;
 
-        void Update(float deltaTime);
+        void Update(float deltaTime) override;
 
     private:
         double EstimateFlyHeight(
@@ -63,5 +64,4 @@ namespace Cesium
         // determine if we should interpolate height using linear or parabolic
         bool m_useHeightLerp;
     };
-
-}
+} // namespace Cesium

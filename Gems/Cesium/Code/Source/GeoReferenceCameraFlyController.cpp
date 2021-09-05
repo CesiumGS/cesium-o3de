@@ -1,6 +1,7 @@
 #include <Cesium/GeoReferenceCameraFlyController.h>
 #include "MathHelper.h"
 #include "GeoReferenceInterpolator.h"
+#include "LinearInterpolator.h"
 #include <Cesium/CoordinateTransformComponentBus.h>
 #include <AzFramework/Input/Devices/Mouse/InputDeviceMouse.h>
 #include <AzFramework/Input/Devices/Keyboard/InputDeviceKeyboard.h>
@@ -136,6 +137,9 @@ namespace Cesium
                 ecefCameraTransform =
                     O3DEToECEF * MathHelper::ConvertTransformAndScaleToDMat4(O3DECameraTransform, AZ::Vector3::CreateOne());
             }
+
+            m_ecefPositionInterpolator = AZStd::make_unique<GeoReferenceInterpolator>(
+                ecefCurrentPosition, ecefCameraTransform[1], location, direction, ecefCameraTransform, cameraConfiguration);
         }
         else if (m_coordinateTransformEntityId.IsValid())
         {
@@ -144,15 +148,17 @@ namespace Cesium
                 O3DEToECEF, m_coordinateTransformEntityId, &CoordinateTransformRequestBus::Events::O3DEToECEF);
             ecefCurrentPosition = O3DEToECEF * MathHelper::ToDVec4(O3DECameraTransform.GetTranslation(), 1.0);
             ecefCameraTransform = O3DEToECEF * MathHelper::ConvertTransformAndScaleToDMat4(O3DECameraTransform, AZ::Vector3::CreateOne());
+
+            m_ecefPositionInterpolator = AZStd::make_unique<GeoReferenceInterpolator>(
+                ecefCurrentPosition, ecefCameraTransform[1], location, direction, ecefCameraTransform, cameraConfiguration);
         }
         else
         {
             ecefCurrentPosition = MathHelper::ToDVec3(O3DECameraTransform.GetTranslation());
             ecefCameraTransform = MathHelper::ConvertTransformAndScaleToDMat4(O3DECameraTransform, AZ::Vector3::CreateOne());
+            m_ecefPositionInterpolator =
+                AZStd::make_unique<LinearInterpolator>(ecefCurrentPosition, ecefCameraTransform[1], location, direction);
         }
-
-        m_ecefPositionInterpolator = AZStd::make_unique<GeoReferenceInterpolator>(
-            ecefCurrentPosition, ecefCameraTransform[1], location, direction, ecefCameraTransform, cameraConfiguration);
 
         // transition to the new state
         TransitionToFlyState(CameraFlyState::BeginFly, ecefCurrentPosition);

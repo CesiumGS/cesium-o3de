@@ -39,8 +39,12 @@ set(FILES
     Source/GltfModel.h
     Source/CesiumSystemComponent.cpp
     Source/CesiumSystemComponent.h
+    Source/Interpolator.cpp
+    Source/Interpolator.h
     Source/GeoReferenceInterpolator.cpp
     Source/GeoReferenceInterpolator.h
+    Source/LinearInterpolator.cpp
+    Source/LinearInterpolator.h
     Source/GeospatialHelper.cpp
     Include/Cesium/GeospatialHelper.h
     Source/WorldComposition.cpp
