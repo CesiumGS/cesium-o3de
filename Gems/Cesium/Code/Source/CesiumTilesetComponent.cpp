@@ -617,14 +617,20 @@ namespace Cesium
 
                 for (Cesium3DTilesSelection::Tile* tile : viewUpdate.tilesToNoLongerRenderThisFrame)
                 {
-                    void* renderResources = tile->getRendererResources();
-                    m_impl->m_renderResourcesPreparer->SetVisible(renderResources, false);
+                    if (tile->getState() == Cesium3DTilesSelection::Tile::LoadState::Done)
+                    {
+                        void* renderResources = tile->getRendererResources();
+                        m_impl->m_renderResourcesPreparer->SetVisible(renderResources, false);
+                    }
                 }
 
                 for (Cesium3DTilesSelection::Tile* tile : viewUpdate.tilesToRenderThisFrame)
                 {
-                    void* renderResources = tile->getRendererResources();
-                    m_impl->m_renderResourcesPreparer->SetVisible(renderResources, true);
+                    if (tile->getState() == Cesium3DTilesSelection::Tile::LoadState::Done)
+                    {
+                        void* renderResources = tile->getRendererResources();
+                        m_impl->m_renderResourcesPreparer->SetVisible(renderResources, true);
+                    }
                 }
             }
         }
