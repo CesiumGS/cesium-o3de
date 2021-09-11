@@ -450,7 +450,6 @@ namespace Cesium
         imageCreator.Begin(AZ::Uuid::CreateRandom());
         imageCreator.SetImageDescriptor(imageDesc);
         imageCreator.AddMipChainAsset(*mipChainAsset);
-        imageCreator.SetFlags(AZ::RPI::StreamingImageFlags::NotStreamable);
         AZ::Data::Asset<AZ::RPI::StreamingImageAsset> imageAsset;
         imageCreator.End(imageAsset);
 
