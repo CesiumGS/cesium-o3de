@@ -4,6 +4,11 @@
         "version": 3,
         "groups": [
             {
+                "id": "raster0",
+                "displayName": "Raster 0 Color",
+                "description": "Properties for configuring the raster overlay drapped over the surface."
+            },
+            {
                 "id": "baseColor",
                 "displayName": "Base Color",
                 "description": "Properties for configuring the surface reflected color for dielectrics or reflectance values for metals."
@@ -147,6 +152,53 @@
                     "connection": {
                         "type": "ShaderOption",
                         "id": "o_materialUseForwardPassIBLSpecular"
+                    }
+                }
+            ],
+            "raster0": [
+                {
+                    "id": "textureMap",
+                    "displayName": "Texture",
+                    "description": "Base color texture map",
+                    "type": "Image",
+                    "connection": {
+                        "type": "ShaderInput",
+                        "id": "raster0_m_rasterMap"
+                    }
+                },
+                {
+                    "id": "useTexture",
+                    "displayName": "Use Texture",
+                    "description": "Whether to use the texture.",
+                    "type": "Bool",
+                    "defaultValue": false,
+                    "connection": {
+                        "type": "ShaderOption",
+                        "id": "raster0_o_raster_useRaster"
+                    }
+                },
+                {
+                    "id": "textureMapUv",
+                    "displayName": "UV",
+                    "description": "Base color map UV set",
+                    "type": "Enum",
+                    "enumIsUv": true,
+                    "defaultValue": "Tiled",
+                    "connection": {
+                        "type": "ShaderInput",
+                        "id": "raster0_m_rasterMapUvIndex"
+                    }
+                },
+                {
+                    "id": "textureBlendMode",
+                    "displayName": "Texture Blend Mode",
+                    "description": "Selects the equation to use when combining Color, Factor, and Texture.",
+                    "type": "Enum",
+                    "enumValues": [ "Multiply", "LinearLight", "Lerp", "Overlay" ],
+                    "defaultValue": "Multiply",
+                    "connection": {
+                        "type": "ShaderOption",
+                        "id": "raster0_o_raster_useRaster"
                     }
                 }
             ],

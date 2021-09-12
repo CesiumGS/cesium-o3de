@@ -14,6 +14,7 @@
 #include <Atom/Features/PBR/LightingOptions.azsli>
 #include <Atom/Features/PBR/AlphaUtils.azsli>
 
+#include "./MaterialInputs/RasterOverlayInput.azsli"
 #include "./MaterialInputs/BaseColorInput.azsli"
 #include "./MaterialInputs/RoughnessInput.azsli"
 #include "./MaterialInputs/MetallicInput.azsli"
@@ -27,6 +28,9 @@
 
 ShaderResourceGroup MaterialSrg : SRG_PerMaterial
 {
+    // Auto-generate material SRG fields for raster overlay inputs
+    COMMON_SRG_INPUTS_RASTER(raster0)
+
     // Auto-generate material SRG fields for common inputs
     COMMON_SRG_INPUTS_BASE_COLOR()
     COMMON_SRG_INPUTS_ROUGHNESS()
@@ -78,6 +82,17 @@ DepthResult GetDepth(float2 uv, float2 uv_ddx, float2 uv_ddy)
     return SampleDepthFromHeightmap(MaterialSrg::m_heightmap, MaterialSrg::m_sampler, uv, uv_ddx, uv_ddy);
 }
 
+COMMON_OPTIONS_RASTER(raster0)
+
+float3 BlendRasterColor(float3 baseColor, float2 vertexUVs[UvSetCount]) 
+{
+    if (raster0_o_raster_useRaster) {
+        float3 raster0_color = GetRasterColorInput(MaterialSrg::raster0_m_rasterMap, MaterialSrg::m_sampler, vertexUVs[MaterialSrg::raster0_m_rasterMapUvIndex]);
+        baseColor = BlendBaseColor(baseColor, raster0_color, 1.0, raster0_o_rasterTextureBlendMode, true);
+    }
+
+    return baseColor;
+}
 
 COMMON_OPTIONS_PARALLAX()
 
