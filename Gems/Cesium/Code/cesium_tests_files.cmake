@@ -28,6 +28,8 @@ set(FILES
     Tests/GltfLoadContextTest.cpp
     Tests/GltfPrimitiveBuilderTest.cpp
     Tests/GltfMaterialBuilderTest.cpp
+    Tests/GltfPBRMaterialBuilderTest.cpp
+    Tests/GltfRasterMaterialBuilderTest.cpp
     Tests/GltfModelBuilderTest.cpp
     Tests/GltfModelTest.cpp
     Tests/WorldCompositionTest.cpp

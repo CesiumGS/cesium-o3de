@@ -1,6 +1,8 @@
 #pragma once
 
+#include "GltfMaterialBuilder.h"
 #include <AzCore/std/string/string.h>
+#include <AzCore/std/smart_ptr/unique_ptr.h>
 #include <glm/glm.hpp>
 #include <vector>
 #include <cstdint>
@@ -28,6 +30,8 @@ namespace Cesium
     class GltfModelBuilder
     {
     public:
+        GltfModelBuilder(AZStd::unique_ptr<GltfMaterialBuilder> materialBuilder);
+
         void Create(GenericIOManager& io, const AZStd::string& modelPath, const GltfModelBuilderOption& option, GltfLoadModel& result);
 
         void Create(const CesiumGltf::Model& model, const GltfModelBuilderOption& option, GltfLoadModel& result);
@@ -50,6 +54,8 @@ namespace Cesium
 
         static constexpr glm::dmat4 GLTF_TO_O3DE =
             glm::dmat4(1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+
+        AZStd::unique_ptr<GltfMaterialBuilder> m_materialBuilder;
     };
 } // namespace Cesium
 

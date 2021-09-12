@@ -33,6 +33,10 @@ set(FILES
     Source/GltfPrimitiveBuilder.h
     Source/GltfMaterialBuilder.cpp
     Source/GltfMaterialBuilder.h
+    Source/GltfPBRMaterialBuilder.cpp
+    Source/GltfPBRMaterialBuilder.h
+    Source/GltfRasterMaterialBuilder.cpp
+    Source/GltfRasterMaterialBuilder.h
     Source/GltfModelBuilder.cpp
     Source/GltfModelBuilder.h
     Source/GltfModel.cpp

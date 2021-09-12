@@ -1,5 +1,6 @@
 #include "RenderResourcesPreparer.h"
 #include "GltfModelBuilder.h"
+#include "GltfRasterMaterialBuilder.h"
 #include "GltfLoadContext.h"
 #include <CesiumUtility/JsonValue.h>
 #include <Atom/Feature/Mesh/MeshFeatureProcessorInterface.h>
@@ -77,7 +78,7 @@ namespace Cesium
 
         // build model
         AZStd::unique_ptr<GltfLoadModel> loadModel = AZStd::make_unique<GltfLoadModel>();
-        GltfModelBuilder builder;
+        GltfModelBuilder builder(AZStd::make_unique<GltfRasterMaterialBuilder>());
         builder.Create(model, option, *loadModel);
         return loadModel.release();
     }

@@ -1,8 +1,9 @@
 #include "GltfModelBuilder.h"
-#include "GltfMaterialBuilder.h"
 #include "GltfPrimitiveBuilder.h"
 #include "GltfLoadContext.h"
 #include "GenericIOManager.h"
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 // Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
 // This only happens with unity build
@@ -24,13 +25,15 @@
 #pragma pop_macro("OPAQUE")
 #endif
 
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/quaternion.hpp>
-
 namespace Cesium
 {
     GltfModelBuilderOption::GltfModelBuilderOption(const glm::dmat4& transform)
         : m_transform{ transform }
+    {
+    }
+
+    GltfModelBuilder::GltfModelBuilder(AZStd::unique_ptr<GltfMaterialBuilder> materialBuilder)
+        : m_materialBuilder{ std::move(materialBuilder) }
     {
     }
 
@@ -163,8 +166,7 @@ namespace Cesium
             GltfLoadMaterial& loadMaterial = result.m_materials[primitive.material];
             if (loadMaterial.IsEmpty())
             {
-                GltfMaterialBuilder materialBuilder;
-                materialBuilder.Create(model, *material, result.m_textures, loadMaterial);
+                m_materialBuilder->Create(model, *material, result.m_textures, loadMaterial);
             }
 
             // load primitive
