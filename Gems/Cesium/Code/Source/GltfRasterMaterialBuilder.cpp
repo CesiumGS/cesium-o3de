@@ -29,4 +29,35 @@ namespace Cesium
     {
         m_pbrMaterialBuilder.Create(model, material, textureCache, result);
     }
+
+    bool GltfRasterMaterialBuilder::SetRasterForMaterial(
+        std::uint32_t textureUv,
+        const AZ::Data::Asset<AZ::RPI::ImageAsset>& raster,
+        AZ::Data::Instance<AZ::RPI::Material>& material)
+    {
+        auto rasterMapIndex = material->FindPropertyIndex(AZ::Name("raster0.textureMap"));
+        material->SetPropertyValue(rasterMapIndex, raster);
+
+        auto useRasterMapIndex = material->FindPropertyIndex(AZ::Name("raster0.useTexture"));
+        material->SetPropertyValue(useRasterMapIndex, true);
+
+        auto textureMapUvIndex = material->FindPropertyIndex(AZ::Name("raster0.textureMapUv"));
+        material->SetPropertyValue(textureMapUvIndex, textureUv);
+
+        return material->Compile();
+    }
+
+    bool GltfRasterMaterialBuilder::UnsetRasterForMaterial(AZ::Data::Instance<AZ::RPI::Material>& material)
+    {
+        auto rasterMapIndex = material->FindPropertyIndex(AZ::Name("raster0.textureMap"));
+        material->SetPropertyValue(rasterMapIndex, AZ::Data::Asset<AZ::RPI::ImageAsset>());
+
+        auto useRasterMapIndex = material->FindPropertyIndex(AZ::Name("raster0.useTexture"));
+        material->SetPropertyValue(useRasterMapIndex, false);
+
+        auto textureMapUvIndex = material->FindPropertyIndex(AZ::Name("raster0.textureMapUv"));
+        material->SetPropertyValue(textureMapUvIndex, static_cast<std::uint32_t>(0));
+
+        return material->Compile();
+    }
 } // namespace Cesium
