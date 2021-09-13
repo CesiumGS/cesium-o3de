@@ -21,7 +21,7 @@ namespace Cesium
         , m_meshes{}
     {
         AZStd::unordered_map<TextureId, AZ::Data::Instance<AZ::RPI::Image>> textures;
-        m_materials.reserve(loadModel.m_materials.size());
+        m_materials.resize(loadModel.m_materials.size());
         m_meshes.reserve(loadModel.m_meshes.size());
         for (const auto& loadMesh : loadModel.m_meshes)
         {
