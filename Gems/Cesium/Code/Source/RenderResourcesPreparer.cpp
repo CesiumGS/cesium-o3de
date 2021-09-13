@@ -2,8 +2,11 @@
 #include "GltfModelBuilder.h"
 #include "GltfRasterMaterialBuilder.h"
 #include "GltfLoadContext.h"
+#include <Cesium3DTilesSelection/Tile.h>
 #include <CesiumUtility/JsonValue.h>
 #include <Atom/Feature/Mesh/MeshFeatureProcessorInterface.h>
+#include <Atom/RPI.Reflect/Image/StreamingImageAssetCreator.h>
+#include <Atom/RPI.Reflect/Image/ImageMipChainAssetCreator.h>
 #include <AzCore/std/smart_ptr/unique_ptr.h>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -26,7 +29,7 @@ namespace Cesium
 {
     RenderResourcesPreparer::RenderResourcesPreparer(AZ::Render::MeshFeatureProcessorInterface* meshFeatureProcessor)
         : m_meshFeatureProcessor{ meshFeatureProcessor }
-        , m_transform{1.0}
+        , m_transform{ 1.0 }
     {
     }
 
@@ -35,7 +38,7 @@ namespace Cesium
         for (auto& intrusiveModel : m_intrusiveModels)
         {
             // move the handler out before free it. Otherwise, stack overflow
-            auto handler = std::move(intrusiveModel.m_self); 
+            auto handler = std::move(intrusiveModel.m_self);
             handler.Free();
         }
     }
@@ -69,7 +72,7 @@ namespace Cesium
     void* RenderResourcesPreparer::prepareInLoadThread(const CesiumGltf::Model& model, const glm::dmat4& transform)
     {
         // set option for model loaders. Especially RTC
-        GltfModelBuilderOption option{transform};
+        GltfModelBuilderOption option{ transform };
         AZStd::optional<glm::dvec3> rtc = GetRTCFromGltf(model);
         if (rtc)
         {
@@ -100,7 +103,8 @@ namespace Cesium
         return nullptr;
     }
 
-    void RenderResourcesPreparer::free([[maybe_unused]] Cesium3DTilesSelection::Tile& tile, void* pLoadThreadResult, void* pMainThreadResult) noexcept
+    void RenderResourcesPreparer::free(
+        [[maybe_unused]] Cesium3DTilesSelection::Tile& tile, void* pLoadThreadResult, void* pMainThreadResult) noexcept
     {
         if (pLoadThreadResult)
         {
@@ -116,42 +120,128 @@ namespace Cesium
         }
     }
 
-    void* RenderResourcesPreparer::prepareRasterInLoadThread([[maybe_unused]] const CesiumGltf::ImageCesium& image)
+    void* RenderResourcesPreparer::prepareRasterInLoadThread(const CesiumGltf::ImageCesium& image)
     {
+        if (!image.pixelData.empty() && image.width != 0 && image.height != 0)
+        {
+            // image has 4 channels, so we just copy the data over
+            AZ::RHI::ImageDescriptor imageDesc;
+            imageDesc.m_bindFlags = AZ::RHI::ImageBindFlags::ShaderRead;
+            imageDesc.m_dimension = AZ::RHI::ImageDimension::Image2D;
+            imageDesc.m_size = AZ::RHI::Size(image.width, image.height, 1);
+            imageDesc.m_format = AZ::RHI::Format::R8G8B8A8_UNORM;
+
+            AZ::RHI::ImageSubresourceLayout imageSubresourceLayout =
+                AZ::RHI::GetImageSubresourceLayout(imageDesc, AZ::RHI::ImageSubresource{});
+
+            // Create mip chain
+            AZ::RPI::ImageMipChainAssetCreator mipChainCreator;
+            mipChainCreator.Begin(AZ::Uuid::CreateRandom(), 1, 1);
+            mipChainCreator.BeginMip(imageSubresourceLayout);
+            mipChainCreator.AddSubImage(image.pixelData.data(), image.pixelData.size());
+            mipChainCreator.EndMip();
+            AZ::Data::Asset<AZ::RPI::ImageMipChainAsset> mipChainAsset;
+            mipChainCreator.End(mipChainAsset);
+
+            // Create streaming image
+            AZ::RPI::StreamingImageAssetCreator imageCreator;
+            imageCreator.Begin(AZ::Uuid::CreateRandom());
+            imageCreator.SetImageDescriptor(imageDesc);
+            imageCreator.AddMipChainAsset(*mipChainAsset);
+
+            AZ::Data::Asset<AZ::RPI::StreamingImageAsset> imageAsset;
+            imageCreator.End(imageAsset);
+
+            if (imageAsset)
+            {
+                return new LoadRasterOverlay{ std::move(imageAsset) };
+            }
+        }
+
         return nullptr;
     }
 
     void* RenderResourcesPreparer::prepareRasterInMainThread(
-        [[maybe_unused]] const Cesium3DTilesSelection::RasterOverlayTile& rasterTile, [[maybe_unused]] void* pLoadThreadResult)
+        [[maybe_unused]] const Cesium3DTilesSelection::RasterOverlayTile& rasterTile, void* pLoadThreadResult)
     {
+        if (pLoadThreadResult)
+        {
+            AZStd::unique_ptr<LoadRasterOverlay> loadRasterOverlay(reinterpret_cast<LoadRasterOverlay*>(pLoadThreadResult));
+            AZ::Data::Instance<AZ::RPI::StreamingImage> image = AZ::RPI::StreamingImage::FindOrCreate(loadRasterOverlay->m_imageAsset);
+
+            if (image)
+            {
+                return new RasterOverlay{ std::move(image) };
+            }
+        }
+
         return nullptr;
     }
 
     void RenderResourcesPreparer::freeRaster(
         [[maybe_unused]] const Cesium3DTilesSelection::RasterOverlayTile& rasterTile,
-        [[maybe_unused]] void* pLoadThreadResult,
-        [[maybe_unused]] void* pMainThreadResult) noexcept
+        void* pLoadThreadResult,
+        void* pMainThreadResult) noexcept
     {
+        if (pLoadThreadResult)
+        {
+            LoadRasterOverlay* loadRasterOverlay = reinterpret_cast<LoadRasterOverlay*>(pLoadThreadResult);
+            delete loadRasterOverlay;
+        }
+
+        if (pMainThreadResult)
+        {
+            RasterOverlay* rasterOverlay = reinterpret_cast<RasterOverlay*>(pMainThreadResult);
+            delete rasterOverlay;
+        }
     }
 
     void RenderResourcesPreparer::attachRasterInMainThread(
-        [[maybe_unused]] const Cesium3DTilesSelection::Tile& tile,
-        [[maybe_unused]] std::uint32_t overlayTextureCoordinateID,
+        const Cesium3DTilesSelection::Tile& tile,
+        std::int32_t overlayTextureCoordinateID,
         [[maybe_unused]] const Cesium3DTilesSelection::RasterOverlayTile& rasterTile,
-        [[maybe_unused]] void* pMainThreadRendererResources,
-        [[maybe_unused]] const CesiumGeometry::Rectangle& textureCoordinateRectangle,
+        void* mainThreadRasterResources,
         [[maybe_unused]] const glm::dvec2& translation,
         [[maybe_unused]] const glm::dvec2& scale)
     {
+        if (tile.getState() == Cesium3DTilesSelection::Tile::LoadState::Done)
+        {
+            void* tileRenderResource = tile.getRendererResources();
+            if (tileRenderResource && mainThreadRasterResources)
+            {
+                IntrusiveGltfModel* intrusiveGltfModel = reinterpret_cast<IntrusiveGltfModel*>(tileRenderResource);
+                RasterOverlay* rasterOverlay = reinterpret_cast<RasterOverlay*>(mainThreadRasterResources);
+                GltfRasterMaterialBuilder materialBuilder;
+                GltfModel& model = intrusiveGltfModel->m_model;
+                for (auto& material : model.GetMaterials())
+                {
+                    materialBuilder.SetRasterForMaterial(
+                        static_cast<std::uint32_t>(overlayTextureCoordinateID), rasterOverlay->m_image, material.m_material);
+                }
+            }
+        }
     }
 
     void RenderResourcesPreparer::detachRasterInMainThread(
-        [[maybe_unused]] const Cesium3DTilesSelection::Tile& tile,
-        [[maybe_unused]] std::uint32_t overlayTextureCoordinateID,
+        const Cesium3DTilesSelection::Tile& tile,
+        [[maybe_unused]] std::int32_t overlayTextureCoordinateID,
         [[maybe_unused]] const Cesium3DTilesSelection::RasterOverlayTile& rasterTile,
-        [[maybe_unused]] void* pMainThreadRendererResources,
-        [[maybe_unused]] const CesiumGeometry::Rectangle& textureCoordinateRectangle) noexcept
+        void* mainThreadRasterResources) noexcept
     {
+        if (tile.getState() == Cesium3DTilesSelection::Tile::LoadState::Done)
+        {
+            void* tileRenderResource = tile.getRendererResources();
+            if (tileRenderResource && mainThreadRasterResources)
+            {
+                IntrusiveGltfModel* intrusiveGltfModel = reinterpret_cast<IntrusiveGltfModel*>(tileRenderResource);
+                GltfRasterMaterialBuilder materialBuilder;
+                GltfModel& model = intrusiveGltfModel->m_model;
+                for (auto& material : model.GetMaterials())
+                {
+                    materialBuilder.UnsetRasterForMaterial(material.m_material);
+                }
+            }
+        }
     }
 
     AZStd::optional<glm::dvec3> RenderResourcesPreparer::GetRTCFromGltf(const CesiumGltf::Model& model)
@@ -174,7 +264,7 @@ namespace Cesium
             return AZStd::nullopt;
         }
 
-        glm::dvec3 rtc{0.0};
+        glm::dvec3 rtc{ 0.0 };
         rtc.x = array[0].getDoubleOrDefault(0.0);
         rtc.y = array[1].getDoubleOrDefault(0.0);
         rtc.z = array[2].getDoubleOrDefault(0.0);

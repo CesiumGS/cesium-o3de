@@ -32,7 +32,7 @@ namespace Cesium
 
     bool GltfRasterMaterialBuilder::SetRasterForMaterial(
         std::uint32_t textureUv,
-        const AZ::Data::Asset<AZ::RPI::ImageAsset>& raster,
+        const AZ::Data::Instance<AZ::RPI::Image>& raster,
         AZ::Data::Instance<AZ::RPI::Material>& material)
     {
         auto rasterMapIndex = material->FindPropertyIndex(AZ::Name("raster0.textureMap"));

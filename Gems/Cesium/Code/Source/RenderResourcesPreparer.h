@@ -2,7 +2,10 @@
 
 #include "GltfModel.h"
 #include <Cesium3DTilesSelection/IPrepareRendererResources.h>
+#include <Atom/RPI.Public/Image/StreamingImage.h>
+#include <Atom/RPI.Reflect/Image/StreamingImageAsset.h>
 #include <Atom/Utils/StableDynamicArray.h>
+#include <AzCore/Asset/AssetCommon.h>
 #include <AzCore/std/optional.h>
 #include <glm/glm.hpp>
 
@@ -21,6 +24,26 @@ namespace CesiumGltf
 
 namespace Cesium
 {
+    struct LoadRasterOverlay
+    {
+        LoadRasterOverlay(AZ::Data::Asset<AZ::RPI::StreamingImageAsset>&& imageAsset)
+            : m_imageAsset{ std::move(imageAsset) }
+        {
+        }
+
+        AZ::Data::Asset<AZ::RPI::StreamingImageAsset> m_imageAsset;
+    };
+
+    struct RasterOverlay
+    {
+        RasterOverlay(AZ::Data::Instance<AZ::RPI::StreamingImage>&& image)
+            : m_image{ std::move(image) }
+        {
+        }
+
+        AZ::Data::Instance<AZ::RPI::StreamingImage> m_image;
+    };
+
     struct IntrusiveGltfModel
     {
         IntrusiveGltfModel(GltfModel&& model)
@@ -60,19 +83,17 @@ namespace Cesium
 
         void attachRasterInMainThread(
             const Cesium3DTilesSelection::Tile& tile,
-            std::uint32_t overlayTextureCoordinateID,
+            std::int32_t overlayTextureCoordinateID,
             const Cesium3DTilesSelection::RasterOverlayTile& rasterTile,
-            void* pMainThreadRendererResources,
-            const CesiumGeometry::Rectangle& textureCoordinateRectangle,
+            void* mainThreadRasterResources,
             const glm::dvec2& translation,
             const glm::dvec2& scale) override;
 
         void detachRasterInMainThread(
             const Cesium3DTilesSelection::Tile& tile,
-            std::uint32_t overlayTextureCoordinateID,
+            std::int32_t overlayTextureCoordinateID,
             const Cesium3DTilesSelection::RasterOverlayTile& rasterTile,
-            void* pMainThreadRendererResources,
-            const CesiumGeometry::Rectangle& textureCoordinateRectangle) noexcept override;
+            void* mainThreadRasterResources) noexcept override;
 
     private:
         AZStd::optional<glm::dvec3> GetRTCFromGltf(const CesiumGltf::Model& model);
