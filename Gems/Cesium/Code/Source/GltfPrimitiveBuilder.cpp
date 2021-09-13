@@ -32,11 +32,6 @@
 
 namespace Cesium
 {
-    GltfTrianglePrimitiveBuilderOption::GltfTrianglePrimitiveBuilderOption(bool needTangents)
-        : m_needTangents{needTangents}
-    {
-    }
-
     struct GltfTrianglePrimitiveBuilder::CommonAccessorViews final
     {
         CommonAccessorViews(const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive)
@@ -99,7 +94,7 @@ namespace Cesium
     void GltfTrianglePrimitiveBuilder::Create(
         const CesiumGltf::Model& model,
         const CesiumGltf::MeshPrimitive& primitive,
-        const GltfTrianglePrimitiveBuilderOption& option,
+        const GltfLoadMaterial& material,
         GltfLoadPrimitive& result)
     {
         Reset();
@@ -144,7 +139,7 @@ namespace Cesium
         }
 
         // determine loading context
-        DetermineLoadContext(commonAccessorViews, option);
+        DetermineLoadContext(commonAccessorViews, material);
 
         // Create attributes. The order call of the functions is important
         CreatePositionsAttribute(commonAccessorViews);
@@ -240,7 +235,7 @@ namespace Cesium
         result.m_materialId = primitive.material;
     }
 
-    void GltfTrianglePrimitiveBuilder::DetermineLoadContext(const CommonAccessorViews& accessorViews, const GltfTrianglePrimitiveBuilderOption& option)
+    void GltfTrianglePrimitiveBuilder::DetermineLoadContext(const CommonAccessorViews& accessorViews, const GltfLoadMaterial& material)
     {
         // check if we should generate normal
         bool isNormalAccessorValid = accessorViews.m_normals.status() == CesiumGltf::AccessorViewStatus::Valid;
@@ -248,7 +243,7 @@ namespace Cesium
         m_context.m_generateFlatNormal = !isNormalAccessorValid || !hasEnoughNormalVertices;
 
         // check if we should generate tangent
-        if (option.m_needTangents)
+        if (material.m_needTangents)
         {
             bool isTangentAccessorValid = accessorViews.m_tangents.status() == CesiumGltf::AccessorViewStatus::Valid;
             bool hasEnoughTangentVertices = accessorViews.m_tangents.size() == accessorViews.m_positions.size();

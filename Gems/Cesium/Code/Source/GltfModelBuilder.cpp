@@ -171,9 +171,8 @@ namespace Cesium
 
             // load primitive
             GltfLoadPrimitive& loadPrimitive = gltfLoadMesh.m_primitives.emplace_back();
-            GltfTrianglePrimitiveBuilderOption option{ loadMaterial.m_needTangents };
             GltfTrianglePrimitiveBuilder primitiveBuilder;
-            primitiveBuilder.Create(model, primitive, option, loadPrimitive);
+            primitiveBuilder.Create(model, primitive, loadMaterial, loadPrimitive);
         }
     }
 

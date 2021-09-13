@@ -34,13 +34,7 @@ namespace AZ
 namespace Cesium
 {
     struct GltfLoadPrimitive;
-
-    struct GltfTrianglePrimitiveBuilderOption final
-    {
-        GltfTrianglePrimitiveBuilderOption(bool needTangents);
-
-        bool m_needTangents;
-    };
+    struct GltfLoadMaterial;
 
     class GltfTrianglePrimitiveBuilder final
     {
@@ -68,11 +62,11 @@ namespace Cesium
         void Create(
             const CesiumGltf::Model& model,
             const CesiumGltf::MeshPrimitive& primitive,
-            const GltfTrianglePrimitiveBuilderOption& option,
+            const GltfLoadMaterial& material,
             GltfLoadPrimitive& result);
 
     private:
-        void DetermineLoadContext(const CommonAccessorViews& accessorViews, const GltfTrianglePrimitiveBuilderOption& option);
+        void DetermineLoadContext(const CommonAccessorViews& accessorViews, const GltfLoadMaterial& material);
 
         template<typename AccessorType>
         void CopyAccessorToBuffer(
