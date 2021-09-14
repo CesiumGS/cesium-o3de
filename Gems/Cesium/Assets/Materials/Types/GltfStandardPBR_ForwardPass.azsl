@@ -38,12 +38,16 @@ COMMON_OPTIONS_NORMAL()
 COMMON_OPTIONS_CLEAR_COAT()
 COMMON_OPTIONS_OCCLUSION()
 COMMON_OPTIONS_EMISSIVE()
+COMMON_OPTIONS_RASTER(raster0)
+COMMON_OPTIONS_RASTER(raster1)
 // Note COMMON_OPTIONS_PARALLAX is in StandardPBR_Common.azsli because it's needed by all StandardPBR shaders.
 
 // Alpha
 #include "./MaterialInputs/AlphaInput.azsli"
 
 // ---------- Vertex Shader ----------
+
+#define TotalUvCount 4
 
 struct VSInput
 {
@@ -56,6 +60,8 @@ struct VSInput
     // Extended fields (only referenced in this azsl file)...
     float2 m_uv0 : UV0;
     float2 m_uv1 : UV1;
+    float2 m_raster_uv0 : UV2;
+    float2 m_raster_uv1 : UV3;
 };
 
 struct VSOutput
@@ -70,7 +76,7 @@ struct VSOutput
     float3 m_shadowCoords[ViewSrg::MaxCascadeCount] : UV3;
 
     // Extended fields (only referenced in this azsl file)...
-    float2 m_uv[UvSetCount] : UV1;
+    float2 m_uv[TotalUvCount] : UV1;
 };
 
 #include <Atom/Features/Vertex/VertexHelper.azsli>
@@ -85,6 +91,14 @@ VSOutput StandardPbr_ForwardPassVS(VSInput IN)
     OUT.m_uv[0] = mul(MaterialSrg::m_uvMatrix, float3(IN.m_uv0, 1.0)).xy;
     OUT.m_uv[1] = IN.m_uv1;
 
+    if (raster0_o_raster_useRaster) {
+        OUT.m_uv[MaterialSrg::raster0_m_rasterMapUvIndex] = IN.m_raster_uv0 * MaterialSrg::raster0_m_uvScale + MaterialSrg::raster0_m_uvTranslate;
+    }
+
+    if (raster1_o_raster_useRaster) {
+        OUT.m_uv[MaterialSrg::raster1_m_rasterMapUvIndex] = IN.m_raster_uv1 * MaterialSrg::raster1_m_uvScale + MaterialSrg::raster1_m_uvTranslate;
+    }
+
     // Shadow coords will be calculated in the pixel shader in this case
     bool skipShadowCoords = ShouldHandleParallax() && o_parallax_enablePixelDepthOffset;
 
@@ -95,6 +109,19 @@ VSOutput StandardPbr_ForwardPassVS(VSInput IN)
 
 
 // ---------- Pixel Shader ----------
+
+#define BLEND_RASTER(prefix, output) \
+if (prefix##_o_raster_useRaster) { \
+    float3 prefix##_color = GetRasterColorInput(MaterialSrg::prefix##_m_rasterMap, MaterialSrg::m_sampler, vertexUVs[MaterialSrg::prefix##_m_rasterMapUvIndex]); \
+    output = BlendBaseColor(output, prefix##_color, 1.0, prefix##_o_rasterTextureBlendMode, true); \
+}
+
+float3 BlendRasterColor(float3 baseColor, float2 vertexUVs[TotalUvCount]) 
+{
+    BLEND_RASTER(raster0, baseColor)
+    BLEND_RASTER(raster1, baseColor)
+    return baseColor;
+}
 
 PbrLightingOutput ForwardPassPS_Common(VSOutput IN, bool isFrontFace, out float depthNDC)
 {

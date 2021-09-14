@@ -200,6 +200,101 @@
                         "type": "ShaderOption",
                         "id": "raster0_o_raster_useRaster"
                     }
+                },
+                {
+                    "id": "uvTranslate",
+                    "displayName": "Texture UV Translate",
+                    "description": "Translate UV of raster",
+                    "type": "vector2",
+                    "vectorLabels": [ "U", "V" ],
+                    "defaultValue": [ 0.0, 0.0 ],
+                    "connection": {
+                        "type": "float2",
+                        "id": "raster0_m_uvTranslate"
+                    }
+                },
+                {
+                    "id": "uvScale",
+                    "displayName": "Texture UV Scale",
+                    "description": "Scale UV of raster",
+                    "type": "vector2",
+                    "vectorLabels": [ "U", "V" ],
+                    "defaultValue": [ 1.0, 1.0 ],
+                    "connection": {
+                        "type": "float2",
+                        "id": "raster0_m_uvScale"
+                    }
+                }
+            ],
+            "raster1": [
+                {
+                    "id": "textureMap",
+                    "displayName": "Texture",
+                    "description": "Base color texture map",
+                    "type": "Image",
+                    "connection": {
+                        "type": "ShaderInput",
+                        "id": "raster1_m_rasterMap"
+                    }
+                },
+                {
+                    "id": "useTexture",
+                    "displayName": "Use Texture",
+                    "description": "Whether to use the texture.",
+                    "type": "Bool",
+                    "defaultValue": false,
+                    "connection": {
+                        "type": "ShaderOption",
+                        "id": "raster1_o_raster_useRaster"
+                    }
+                },
+                {
+                    "id": "textureMapUv",
+                    "displayName": "UV",
+                    "description": "Base color map UV set",
+                    "type": "Enum",
+                    "enumIsUv": true,
+                    "defaultValue": "Tiled",
+                    "connection": {
+                        "type": "ShaderInput",
+                        "id": "raster1_m_rasterMapUvIndex"
+                    }
+                },
+                {
+                    "id": "textureBlendMode",
+                    "displayName": "Texture Blend Mode",
+                    "description": "Selects the equation to use when combining Color, Factor, and Texture.",
+                    "type": "Enum",
+                    "enumValues": [ "Multiply", "LinearLight", "Lerp", "Overlay" ],
+                    "defaultValue": "Multiply",
+                    "connection": {
+                        "type": "ShaderOption",
+                        "id": "raster1_o_raster_useRaster"
+                    }
+                },
+                {
+                    "id": "uvTranslate",
+                    "displayName": "Texture UV Translate",
+                    "description": "Translate UV of raster",
+                    "type": "vector2",
+                    "vectorLabels": [ "U", "V" ],
+                    "defaultValue": [ 0.0, 0.0 ],
+                    "connection": {
+                        "type": "float2",
+                        "id": "raster1_m_uvTranslate"
+                    }
+                },
+                {
+                    "id": "uvScale",
+                    "displayName": "Texture UV Scale",
+                    "description": "Scale UV of raster",
+                    "type": "vector2",
+                    "vectorLabels": [ "U", "V" ],
+                    "defaultValue": [ 1.0, 1.0 ],
+                    "connection": {
+                        "type": "float2",
+                        "id": "raster1_m_uvScale"
+                    }
                 }
             ],
             "baseColor": [
