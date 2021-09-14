@@ -47,7 +47,7 @@ COMMON_OPTIONS_RASTER(raster1)
 
 // ---------- Vertex Shader ----------
 
-#define TotalUvCount 4
+#define RasterUvSetCount 2
 
 struct VSInput
 {
@@ -76,7 +76,8 @@ struct VSOutput
     float3 m_shadowCoords[ViewSrg::MaxCascadeCount] : UV3;
 
     // Extended fields (only referenced in this azsl file)...
-    float2 m_uv[TotalUvCount] : UV1;
+    float2 m_uv[UvSetCount] : UV1;
+    float2 m_rasterUv[RasterUvSetCount] : UV7;
 };
 
 #include <Atom/Features/Vertex/VertexHelper.azsli>
@@ -92,11 +93,11 @@ VSOutput StandardPbr_ForwardPassVS(VSInput IN)
     OUT.m_uv[1] = IN.m_uv1;
 
     if (raster0_o_raster_useRaster) {
-        OUT.m_uv[MaterialSrg::raster0_m_rasterMapUvIndex] = IN.m_raster_uv0 * MaterialSrg::raster0_m_uvScale + MaterialSrg::raster0_m_uvTranslate;
+        OUT.m_rasterUv[MaterialSrg::raster0_m_rasterMapUvIndex] = IN.m_raster_uv0 * MaterialSrg::raster0_m_uvScale + MaterialSrg::raster0_m_uvTranslate;
     }
 
     if (raster1_o_raster_useRaster) {
-        OUT.m_uv[MaterialSrg::raster1_m_rasterMapUvIndex] = IN.m_raster_uv1 * MaterialSrg::raster1_m_uvScale + MaterialSrg::raster1_m_uvTranslate;
+        OUT.m_rasterUv[MaterialSrg::raster1_m_rasterMapUvIndex] = IN.m_raster_uv1 * MaterialSrg::raster1_m_uvScale + MaterialSrg::raster1_m_uvTranslate;
     }
 
     // Shadow coords will be calculated in the pixel shader in this case
@@ -116,7 +117,7 @@ if (prefix##_o_raster_useRaster) { \
     output = BlendBaseColor(output, prefix##_color, 1.0, prefix##_o_rasterTextureBlendMode, true); \
 }
 
-float3 BlendRasterColor(float3 baseColor, float2 vertexUVs[TotalUvCount]) 
+float3 BlendRasterColor(float3 baseColor, float2 vertexUVs[RasterUvSetCount]) 
 {
     BLEND_RASTER(raster0, baseColor)
     BLEND_RASTER(raster1, baseColor)
@@ -183,7 +184,7 @@ PbrLightingOutput ForwardPassPS_Common(VSOutput IN, bool isFrontFace, out float 
     float3 baseColor = BlendBaseColor(sampledColor, MaterialSrg::m_baseColor.rgb, MaterialSrg::m_baseColorFactor, o_baseColorTextureBlendMode, o_baseColor_useTexture);
 
     // ------- Raster Color -----
-    baseColor = BlendRasterColor(baseColor, IN.m_uv);
+    baseColor = BlendRasterColor(baseColor, IN.m_rasterUv);
     
     if(o_parallax_highlightClipping && displacementIsClipped)
     {

@@ -32,10 +32,10 @@ namespace Cesium
         // add custom attributes to the material, so that primitive builder will pass attributes from gltf primitive to GPU correctly
         result.m_customVertexAttributes.insert_or_assign(
             "_CESIUMOVERLAY_0",
-            GltfShaderVertexAttribute(AZ::RHI::ShaderSemantic("UV2"), AZ::Name("m_raster_uv0"), AZ::RHI::Format::R32G32_FLOAT));
+            GltfShaderVertexAttribute(AZ::RHI::ShaderSemantic("UV", 2), AZ::Name("m_raster_uv0"), AZ::RHI::Format::R32G32_FLOAT));
         result.m_customVertexAttributes.insert_or_assign(
             "_CESIUMOVERLAY_1",
-            GltfShaderVertexAttribute(AZ::RHI::ShaderSemantic("UV3"), AZ::Name("m_raster_uv1"), AZ::RHI::Format::R32G32_FLOAT));
+            GltfShaderVertexAttribute(AZ::RHI::ShaderSemantic("UV", 3), AZ::Name("m_raster_uv1"), AZ::RHI::Format::R32G32_FLOAT));
     }
 
     bool GltfRasterMaterialBuilder::SetRasterForMaterial(
