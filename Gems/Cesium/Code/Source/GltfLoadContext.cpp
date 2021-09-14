@@ -2,6 +2,14 @@
 
 namespace Cesium
 {
+    GltfShaderVertexAttribute::GltfShaderVertexAttribute(
+        const AZ::RHI::ShaderSemantic& shaderSemantic, const AZ::Name& shaderAttributeName, AZ::RHI::Format format)
+        : m_shaderSemantic{ shaderSemantic }
+        , m_shaderAttributeName{ shaderAttributeName }
+        , m_format{ format }
+    {
+    }
+
     GltfLoadTexture::GltfLoadTexture()
         : m_imageAsset{}
     {

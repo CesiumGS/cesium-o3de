@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Atom/RHI.Reflect/ShaderSemantic.h>
+#include <Atom/RHI.Reflect/Format.h>
 #include <Atom/RPI.Reflect/Image/StreamingImageAsset.h>
 #include <Atom/RPI.Reflect/Material/MaterialAsset.h>
 #include <Atom/RPI.Reflect/Model/ModelAsset.h>
@@ -13,6 +15,16 @@ namespace Cesium
 {
     using TextureId = AZStd::string;
     using MaterialId = std::int32_t;
+
+    struct GltfShaderVertexAttribute
+    {
+        GltfShaderVertexAttribute(
+            const AZ::RHI::ShaderSemantic& shaderSemantic, const AZ::Name& shaderAttributeName, AZ::RHI::Format format);
+
+        AZ::RHI::ShaderSemantic m_shaderSemantic;
+        AZ::Name m_shaderAttributeName;
+        AZ::RHI::Format m_format;
+    };
 
     struct GltfLoadTexture final
     {
@@ -34,6 +46,7 @@ namespace Cesium
         bool IsEmpty() const;
 
         AZ::Data::Asset<AZ::RPI::MaterialAsset> m_materialAsset;
+        AZStd::map<AZStd::string, GltfShaderVertexAttribute> m_customVertexAttributes;
         bool m_needTangents;
     };
 
