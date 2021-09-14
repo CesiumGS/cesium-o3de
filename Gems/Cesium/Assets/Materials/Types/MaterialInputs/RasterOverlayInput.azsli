@@ -4,8 +4,7 @@
 #include <Atom/Features/BlendUtility.azsli>
 
 #define COMMON_SRG_INPUTS_RASTER(prefix) \
-float2    prefix##_m_uvTranslate; \
-float2    prefix##_m_uvScale; \
+float4    prefix##_m_uvTranslateScale; \
 uint      prefix##_m_rasterMapUvIndex; \
 Texture2D prefix##_m_rasterMap;
 

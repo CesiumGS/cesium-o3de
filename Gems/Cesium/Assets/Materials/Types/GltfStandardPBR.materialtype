@@ -202,27 +202,15 @@
                     }
                 },
                 {
-                    "id": "uvTranslate",
+                    "id": "uvTranslateScale",
                     "displayName": "Texture UV Translate",
-                    "description": "Translate UV of raster",
-                    "type": "vector2",
-                    "vectorLabels": [ "U", "V" ],
-                    "defaultValue": [ 0.0, 0.0 ],
+                    "description": "translate and scale UV of raster",
+                    "type": "vector4",
+                    "vectorLabels": [ "X", "Y", "Z", "W" ],
+                    "defaultValue": [ 0.0, 0.0, 1.0, 1.0 ],
                     "connection": {
-                        "type": "float2",
-                        "id": "raster0_m_uvTranslate"
-                    }
-                },
-                {
-                    "id": "uvScale",
-                    "displayName": "Texture UV Scale",
-                    "description": "Scale UV of raster",
-                    "type": "vector2",
-                    "vectorLabels": [ "U", "V" ],
-                    "defaultValue": [ 1.0, 1.0 ],
-                    "connection": {
-                        "type": "float2",
-                        "id": "raster0_m_uvScale"
+                        "type": "vector4",
+                        "id": "raster0_m_uvTranslateScale"
                     }
                 }
             ],
@@ -273,27 +261,15 @@
                     }
                 },
                 {
-                    "id": "uvTranslate",
+                    "id": "uvTranslateScale",
                     "displayName": "Texture UV Translate",
-                    "description": "Translate UV of raster",
-                    "type": "vector2",
-                    "vectorLabels": [ "U", "V" ],
-                    "defaultValue": [ 0.0, 0.0 ],
+                    "description": "translate and scale UV of raster",
+                    "type": "vector4",
+                    "vectorLabels": [ "X", "Y", "Z", "W" ],
+                    "defaultValue": [ 0.0, 0.0, 1.0, 1.0 ],
                     "connection": {
-                        "type": "float2",
-                        "id": "raster1_m_uvTranslate"
-                    }
-                },
-                {
-                    "id": "uvScale",
-                    "displayName": "Texture UV Scale",
-                    "description": "Scale UV of raster",
-                    "type": "vector2",
-                    "vectorLabels": [ "U", "V" ],
-                    "defaultValue": [ 1.0, 1.0 ],
-                    "connection": {
-                        "type": "float2",
-                        "id": "raster1_m_uvScale"
+                        "type": "vector4",
+                        "id": "raster1_m_uvTranslateScale"
                     }
                 }
             ],

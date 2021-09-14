@@ -29,7 +29,8 @@ namespace Cesium
     {
         m_pbrMaterialBuilder.Create(model, material, textureCache, result);
 
-        // add custom attributes to the material, so that primitive builder will pass attributes from gltf primitive to GPU correctly
+        // add custom attributes to the material, so that primitive builder will know how to find attributes from gltf primitive to send
+        // them to GPU correctly
         result.m_customVertexAttributes.insert_or_assign(
             "_CESIUMOVERLAY_0",
             GltfShaderVertexAttribute(AZ::RHI::ShaderSemantic("UV", 2), AZ::Name("m_raster_uv0"), AZ::RHI::Format::R32G32_FLOAT));
@@ -39,32 +40,44 @@ namespace Cesium
     }
 
     bool GltfRasterMaterialBuilder::SetRasterForMaterial(
-        std::uint32_t textureUv,
+        std::uint32_t rasterLayer,
         const AZ::Data::Instance<AZ::RPI::Image>& raster,
+        std::uint32_t textureUv,
+        const AZ::Vector4& uvTranslateScale,
         AZ::Data::Instance<AZ::RPI::Material>& material)
     {
-        auto rasterMapIndex = material->FindPropertyIndex(AZ::Name("raster0.textureMap"));
+        AZStd::string prefix = AZStd::string::format("raster%d", rasterLayer);
+
+        auto rasterMapIndex = material->FindPropertyIndex(AZ::Name(prefix + ".textureMap"));
         material->SetPropertyValue(rasterMapIndex, raster);
 
-        auto useRasterMapIndex = material->FindPropertyIndex(AZ::Name("raster0.useTexture"));
+        auto useRasterMapIndex = material->FindPropertyIndex(AZ::Name(prefix + ".useTexture"));
         material->SetPropertyValue(useRasterMapIndex, true);
 
-        auto textureMapUvIndex = material->FindPropertyIndex(AZ::Name("raster0.textureMapUv"));
+        auto textureMapUvIndex = material->FindPropertyIndex(AZ::Name(prefix + ".textureMapUv"));
         material->SetPropertyValue(textureMapUvIndex, textureUv);
+
+        auto uvTranslateScaleIndex = material->FindPropertyIndex(AZ::Name(prefix + ".uvTranslateScale"));
+        material->SetPropertyValue(uvTranslateScaleIndex, uvTranslateScale);
 
         return material->Compile();
     }
 
-    bool GltfRasterMaterialBuilder::UnsetRasterForMaterial(AZ::Data::Instance<AZ::RPI::Material>& material)
+    bool GltfRasterMaterialBuilder::UnsetRasterForMaterial(std::uint32_t rasterLayer, AZ::Data::Instance<AZ::RPI::Material>& material)
     {
-        auto rasterMapIndex = material->FindPropertyIndex(AZ::Name("raster0.textureMap"));
+        AZStd::string prefix = AZStd::string::format("raster%d", rasterLayer);
+
+        auto rasterMapIndex = material->FindPropertyIndex(AZ::Name(prefix + ".textureMap"));
         material->SetPropertyValue(rasterMapIndex, AZ::Data::Asset<AZ::RPI::ImageAsset>());
 
-        auto useRasterMapIndex = material->FindPropertyIndex(AZ::Name("raster0.useTexture"));
+        auto useRasterMapIndex = material->FindPropertyIndex(AZ::Name(prefix + ".useTexture"));
         material->SetPropertyValue(useRasterMapIndex, false);
 
-        auto textureMapUvIndex = material->FindPropertyIndex(AZ::Name("raster0.textureMapUv"));
+        auto textureMapUvIndex = material->FindPropertyIndex(AZ::Name(prefix + ".textureMapUv"));
         material->SetPropertyValue(textureMapUvIndex, static_cast<std::uint32_t>(0));
+
+        auto uvTranslateScaleIndex = material->FindPropertyIndex(AZ::Name(prefix + ".uvTranslateScale"));
+        material->SetPropertyValue(uvTranslateScaleIndex, AZ::Vector4(0.0, 0.0, 1.0, 1.0));
 
         return material->Compile();
     }

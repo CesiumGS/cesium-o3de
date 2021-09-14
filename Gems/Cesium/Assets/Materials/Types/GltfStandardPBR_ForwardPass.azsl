@@ -93,11 +93,11 @@ VSOutput StandardPbr_ForwardPassVS(VSInput IN)
     OUT.m_uv[1] = IN.m_uv1;
 
     if (raster0_o_raster_useRaster) {
-        OUT.m_rasterUv[MaterialSrg::raster0_m_rasterMapUvIndex] = IN.m_raster_uv0 * MaterialSrg::raster0_m_uvScale + MaterialSrg::raster0_m_uvTranslate;
+        OUT.m_rasterUv[MaterialSrg::raster0_m_rasterMapUvIndex] = IN.m_raster_uv0 * MaterialSrg::raster0_m_uvTranslateScale.zw + MaterialSrg::raster0_m_uvTranslateScale.xy;
     }
 
     if (raster1_o_raster_useRaster) {
-        OUT.m_rasterUv[MaterialSrg::raster1_m_rasterMapUvIndex] = IN.m_raster_uv1 * MaterialSrg::raster1_m_uvScale + MaterialSrg::raster1_m_uvTranslate;
+        OUT.m_rasterUv[MaterialSrg::raster1_m_rasterMapUvIndex] = IN.m_raster_uv1 * MaterialSrg::raster1_m_uvTranslateScale.zw + MaterialSrg::raster1_m_uvTranslateScale.xy;
     }
 
     // Shadow coords will be calculated in the pixel shader in this case

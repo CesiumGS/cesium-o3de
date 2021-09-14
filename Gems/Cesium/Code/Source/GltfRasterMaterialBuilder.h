@@ -25,11 +25,13 @@ namespace Cesium
             GltfLoadMaterial& result) override;
 
         bool SetRasterForMaterial(
-            std::uint32_t textureUv,
+            std::uint32_t rasterLayer,
             const AZ::Data::Instance<AZ::RPI::Image>& raster,
+            std::uint32_t textureUv,
+            const AZ::Vector4& uvTranslateScale,
             AZ::Data::Instance<AZ::RPI::Material>& material);
 
-        bool UnsetRasterForMaterial(AZ::Data::Instance<AZ::RPI::Material>& material);
+        bool UnsetRasterForMaterial(std::uint32_t rasterLayer, AZ::Data::Instance<AZ::RPI::Material>& material);
 
     private:
         GltfPBRMaterialBuilder m_pbrMaterialBuilder;

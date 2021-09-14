@@ -201,8 +201,8 @@ namespace Cesium
         std::int32_t overlayTextureCoordinateID,
         [[maybe_unused]] const Cesium3DTilesSelection::RasterOverlayTile& rasterTile,
         void* mainThreadRasterResources,
-        [[maybe_unused]] const glm::dvec2& translation,
-        [[maybe_unused]] const glm::dvec2& scale)
+        const glm::dvec2& translation,
+        const glm::dvec2& scale)
     {
         if (tile.getState() == Cesium3DTilesSelection::Tile::LoadState::Done)
         {
@@ -216,7 +216,11 @@ namespace Cesium
                 for (auto& material : model.GetMaterials())
                 {
                     materialBuilder.SetRasterForMaterial(
-                        static_cast<std::uint32_t>(overlayTextureCoordinateID), rasterOverlay->m_image, material.m_material);
+                        0, rasterOverlay->m_image, static_cast<std::uint32_t>(overlayTextureCoordinateID),
+                        AZ::Vector4(
+                            static_cast<float>(translation.x), static_cast<float>(translation.y), static_cast<float>(scale.x),
+                            static_cast<float>(scale.y)),
+                        material.m_material);
                 }
             }
         }
@@ -238,7 +242,7 @@ namespace Cesium
                 GltfModel& model = intrusiveGltfModel->m_model;
                 for (auto& material : model.GetMaterials())
                 {
-                    materialBuilder.UnsetRasterForMaterial(material.m_material);
+                    materialBuilder.UnsetRasterForMaterial(0, material.m_material);
                 }
             }
         }
