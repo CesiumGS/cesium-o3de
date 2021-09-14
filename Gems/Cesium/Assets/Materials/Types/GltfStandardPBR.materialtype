@@ -5,7 +5,12 @@
         "groups": [
             {
                 "id": "raster0",
-                "displayName": "Raster 0 Color",
+                "displayName": "Raster 0",
+                "description": "Properties for configuring the raster overlay drapped over the surface."
+            },
+            {
+                "id": "raster1",
+                "displayName": "Raster 1",
                 "description": "Properties for configuring the raster overlay drapped over the surface."
             },
             {
@@ -181,9 +186,9 @@
                     "id": "textureMapUv",
                     "displayName": "UV",
                     "description": "Base color map UV set",
-                    "type": "Enum",
+                    "type": "Uint",
                     "enumIsUv": true,
-                    "defaultValue": "Tiled",
+                    "defaultValue": 0,
                     "connection": {
                         "type": "ShaderInput",
                         "id": "raster0_m_rasterMapUvIndex"
@@ -198,18 +203,18 @@
                     "defaultValue": "Multiply",
                     "connection": {
                         "type": "ShaderOption",
-                        "id": "raster0_o_raster_useRaster"
+                        "id": "raster0_o_rasterTextureBlendMode"
                     }
                 },
                 {
                     "id": "uvTranslateScale",
-                    "displayName": "Texture UV Translate",
+                    "displayName": "Texture UV Translate and Scale",
                     "description": "translate and scale UV of raster",
                     "type": "vector4",
                     "vectorLabels": [ "X", "Y", "Z", "W" ],
                     "defaultValue": [ 0.0, 0.0, 1.0, 1.0 ],
                     "connection": {
-                        "type": "vector4",
+                        "type": "ShaderInput",
                         "id": "raster0_m_uvTranslateScale"
                     }
                 }
@@ -240,9 +245,9 @@
                     "id": "textureMapUv",
                     "displayName": "UV",
                     "description": "Base color map UV set",
-                    "type": "Enum",
+                    "type": "Uint",
                     "enumIsUv": true,
-                    "defaultValue": "Tiled",
+                    "defaultValue": 0,
                     "connection": {
                         "type": "ShaderInput",
                         "id": "raster1_m_rasterMapUvIndex"
@@ -257,18 +262,18 @@
                     "defaultValue": "Multiply",
                     "connection": {
                         "type": "ShaderOption",
-                        "id": "raster1_o_raster_useRaster"
+                        "id": "raster1_o_rasterTextureBlendMode"
                     }
                 },
                 {
                     "id": "uvTranslateScale",
-                    "displayName": "Texture UV Translate",
+                    "displayName": "Texture UV Translate and Scale",
                     "description": "translate and scale UV of raster",
                     "type": "vector4",
                     "vectorLabels": [ "X", "Y", "Z", "W" ],
                     "defaultValue": [ 0.0, 0.0, 1.0, 1.0 ],
                     "connection": {
-                        "type": "vector4",
+                        "type": "ShaderInput",
                         "id": "raster1_m_uvTranslateScale"
                     }
                 }
