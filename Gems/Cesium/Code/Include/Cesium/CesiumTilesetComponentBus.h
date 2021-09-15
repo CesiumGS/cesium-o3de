@@ -8,6 +8,7 @@
 #include <AzCore/std/string/string.h>
 #include <cstdint>
 #include <variant>
+#include <memory>
 
 namespace Cesium
 {
