@@ -355,7 +355,7 @@ namespace Cesium
                 CesiumInterface::Get()->GetAssetAccessor(kind),
                 m_renderResourcesPreparer,
                 CesiumAsync::AsyncSystem(CesiumInterface::Get()->GetTaskProcessor()),
-                nullptr,
+                CesiumInterface::Get()->GetCreditSystem(),
                 CesiumInterface::Get()->GetLogger(),
             };
         }
@@ -464,7 +464,7 @@ namespace Cesium
             m_coordinateOrO3DETransformDirty = true;
         }
 
-        bool AddRasterOverlay(std::unique_ptr<Cesium3DTilesSelection::RasterOverlay> rasterOverlay) override
+        bool AddRasterOverlay(std::unique_ptr<Cesium3DTilesSelection::RasterOverlay>& rasterOverlay) override
         {
             if (m_tileset)
             {

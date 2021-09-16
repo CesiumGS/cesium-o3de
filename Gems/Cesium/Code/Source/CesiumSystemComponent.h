@@ -48,6 +48,8 @@ namespace Cesium
 
         const std::shared_ptr<spdlog::logger>& GetLogger() const override;
 
+        const std::shared_ptr<Cesium3DTilesSelection::CreditSystem>& GetCreditSystem() const override;
+
         const CriticalAssetManager& GetCriticalAssetManager() const override;
 
     protected:
@@ -66,6 +68,7 @@ namespace Cesium
         std::shared_ptr<CesiumAsync::IAssetAccessor> m_localFileAssetAccessor;
         std::shared_ptr<CesiumAsync::ITaskProcessor> m_taskProcessor;
         std::shared_ptr<spdlog::logger> m_logger;
+        std::shared_ptr<Cesium3DTilesSelection::CreditSystem> m_creditSystem;
         CriticalAssetManager m_criticalAssetManager;
     };
 

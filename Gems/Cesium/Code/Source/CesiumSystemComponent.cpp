@@ -64,6 +64,9 @@ namespace Cesium
         // initialize task processor
         m_taskProcessor = std::make_shared<TaskProcessor>();
 
+        // initialize credit system
+        m_creditSystem = std::make_shared<Cesium3DTilesSelection::CreditSystem>();
+
         // initialize logger
         m_logger = spdlog::default_logger();
         m_logger->sinks().clear();
@@ -120,6 +123,11 @@ namespace Cesium
     const std::shared_ptr<spdlog::logger>& CesiumSystemComponent::GetLogger() const
     {
         return m_logger;
+    }
+
+    const std::shared_ptr<Cesium3DTilesSelection::CreditSystem>& CesiumSystemComponent::GetCreditSystem() const
+    {
+        return m_creditSystem;
     }
 
     const CriticalAssetManager& CesiumSystemComponent::GetCriticalAssetManager() const

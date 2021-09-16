@@ -184,7 +184,7 @@ namespace Cesium
 
         // create buffer assets for custom attributes
         AZStd::vector<AZ::Data::Asset<AZ::RPI::BufferAsset>> customAttributeBuffers;
-        if (m_customAttributes.empty())
+        if (!m_customAttributes.empty())
         {
             customAttributeBuffers.reserve(m_customAttributes.size());
             for (const auto& customAttribute : m_customAttributes)

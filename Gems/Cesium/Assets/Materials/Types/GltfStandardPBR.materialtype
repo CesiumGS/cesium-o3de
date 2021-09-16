@@ -1218,6 +1218,24 @@
         {
             "type": "UseTexture",
             "args": {
+                "textureProperty": "raster0.textureMap",
+                "useTextureProperty": "raster0.useTexture",
+                "dependentProperties": ["raster0.textureMapUv", "raster0.textureBlendMode"],
+                "shaderOption": "raster0_o_raster_useRaster"
+            }
+        },
+        {
+            "type": "UseTexture",
+            "args": {
+                "textureProperty": "raster1.textureMap",
+                "useTextureProperty": "raster1.useTexture",
+                "dependentProperties": ["raster1.textureMapUv", "raster1.textureBlendMode"],
+                "shaderOption": "raster1_o_raster_useRaster"
+            }
+        },
+        {
+            "type": "UseTexture",
+            "args": {
                 "textureProperty": "baseColor.textureMap",
                 "useTextureProperty": "baseColor.useTexture",
                 "dependentProperties": ["baseColor.textureMapUv", "baseColor.textureBlendMode"],

@@ -15,6 +15,10 @@ namespace Cesium
     public:
         AZ_COMPONENT(CesiumIonRasterOverlayComponent, "{FBE1F24B-7AC2-4F83-A48F-5BE1517EAFD2}", AZ::Component)
 
+        CesiumIonRasterOverlayComponent();
+
+        ~CesiumIonRasterOverlayComponent() noexcept;
+
         static void Reflect(AZ::ReflectContext* context);
 
         void Init() override;

@@ -32,6 +32,14 @@ namespace Cesium
         AZStd::optional<Configuration> m_config;
     };
 
+    CesiumIonRasterOverlayComponent::CesiumIonRasterOverlayComponent()
+    {
+    }
+
+    CesiumIonRasterOverlayComponent::~CesiumIonRasterOverlayComponent() noexcept
+    {
+    }
+
     void CesiumIonRasterOverlayComponent::Reflect(AZ::ReflectContext* context)
     {
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
@@ -79,7 +87,7 @@ namespace Cesium
 
         // add the raster overlay to tileset right away. If it's not successful, we try every frame until it's successful
         bool success = false;
-        RasterOverlayRequestBus::EventResult(success, GetEntityId(), &RasterOverlayRequestBus::Events::AddRasterOverlay, std::move(m_impl->m_rasterOverlay));
+        RasterOverlayRequestBus::EventResult(success, GetEntityId(), &RasterOverlayRequestBus::Events::AddRasterOverlay, m_impl->m_rasterOverlay);
         if (!success)
         {
             AZ::TickBus::Handler::BusConnect();
@@ -89,7 +97,7 @@ namespace Cesium
     void CesiumIonRasterOverlayComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
     {
         bool success = false;
-        RasterOverlayRequestBus::EventResult(success, GetEntityId(), &RasterOverlayRequestBus::Events::AddRasterOverlay, std::move(m_impl->m_rasterOverlay));
+        RasterOverlayRequestBus::EventResult(success, GetEntityId(), &RasterOverlayRequestBus::Events::AddRasterOverlay, m_impl->m_rasterOverlay);
         if (success)
         {
             AZ::TickBus::Handler::BusDisconnect();

@@ -61,6 +61,7 @@ namespace Cesium
         m_transform = rhs.m_transform;
         m_meshFeatureProcessor = rhs.m_meshFeatureProcessor;
         m_meshes = std::move(rhs.m_meshes);
+        m_materials = std::move(rhs.m_materials);
     }
 
     GltfModel& GltfModel::operator=(GltfModel&& rhs) noexcept
@@ -72,6 +73,7 @@ namespace Cesium
             swap(m_transform, rhs.m_transform);
             swap(m_meshFeatureProcessor, rhs.m_meshFeatureProcessor);
             swap(m_meshes, rhs.m_meshes);
+            swap(m_materials, rhs.m_materials);
         }
 
         return *this;
