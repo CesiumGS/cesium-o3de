@@ -176,7 +176,7 @@
                     "displayName": "Use Texture",
                     "description": "Whether to use the texture.",
                     "type": "Bool",
-                    "defaultValue": true
+                    "defaultValue": false
                 },
                 {
                     "id": "textureMapUv",
@@ -231,7 +231,7 @@
                     "displayName": "Use Texture",
                     "description": "Whether to use the texture.",
                     "type": "Bool",
-                    "defaultValue": true
+                    "defaultValue": false
                 },
                 {
                     "id": "textureMapUv",
