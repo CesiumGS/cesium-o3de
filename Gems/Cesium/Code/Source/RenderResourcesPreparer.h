@@ -2,11 +2,14 @@
 
 #include "GltfModel.h"
 #include <Cesium3DTilesSelection/IPrepareRendererResources.h>
+#include <Atom/RPI.Public/Material/Material.h>
 #include <Atom/RPI.Public/Image/StreamingImage.h>
 #include <Atom/RPI.Reflect/Image/StreamingImageAsset.h>
 #include <Atom/Utils/StableDynamicArray.h>
+#include <AzCore/Component/TickBus.h>
 #include <AzCore/Asset/AssetCommon.h>
 #include <AzCore/std/optional.h>
+#include <AzCore/std/containers/vector.h>
 #include <glm/glm.hpp>
 
 namespace AZ
@@ -55,12 +58,14 @@ namespace Cesium
         AZ::StableDynamicArrayHandle<IntrusiveGltfModel> m_self;
     };
 
-    class RenderResourcesPreparer : public Cesium3DTilesSelection::IPrepareRendererResources
+    class RenderResourcesPreparer : public Cesium3DTilesSelection::IPrepareRendererResources, public AZ::TickBus::Handler
     {
     public:
         RenderResourcesPreparer(AZ::Render::MeshFeatureProcessorInterface* meshFeatureProcessor);
 
         ~RenderResourcesPreparer() noexcept;
+
+        void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
 
         void SetTransform(const glm::dmat4& transform);
 
@@ -102,6 +107,7 @@ namespace Cesium
 
         AZ::Render::MeshFeatureProcessorInterface* m_meshFeatureProcessor;
         AZ::StableDynamicArray<IntrusiveGltfModel> m_intrusiveModels;
+        AZStd::vector<AZ::Data::Instance<AZ::RPI::Material>> m_compileMaterialsQueue;
         glm::dmat4 m_transform;
     };
 } // namespace Cesium

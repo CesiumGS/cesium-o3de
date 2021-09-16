@@ -176,11 +176,7 @@
                     "displayName": "Use Texture",
                     "description": "Whether to use the texture.",
                     "type": "Bool",
-                    "defaultValue": false,
-                    "connection": {
-                        "type": "ShaderOption",
-                        "id": "raster0_o_raster_useRaster"
-                    }
+                    "defaultValue": true
                 },
                 {
                     "id": "textureMapUv",
@@ -235,11 +231,7 @@
                     "displayName": "Use Texture",
                     "description": "Whether to use the texture.",
                     "type": "Bool",
-                    "defaultValue": false,
-                    "connection": {
-                        "type": "ShaderOption",
-                        "id": "raster1_o_raster_useRaster"
-                    }
+                    "defaultValue": true
                 },
                 {
                     "id": "textureMapUv",

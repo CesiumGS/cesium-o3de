@@ -8,6 +8,7 @@
 #include <Atom/RPI.Reflect/Image/StreamingImageAssetCreator.h>
 #include <Atom/RPI.Reflect/Image/ImageMipChainAssetCreator.h>
 #include <AzCore/std/smart_ptr/unique_ptr.h>
+#include <AzCore/std/algorithm.h>
 #include <glm/gtc/matrix_transform.hpp>
 
 // Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
@@ -31,16 +32,30 @@ namespace Cesium
         : m_meshFeatureProcessor{ meshFeatureProcessor }
         , m_transform{ 1.0 }
     {
+        AZ::TickBus::Handler::BusConnect();
     }
 
     RenderResourcesPreparer::~RenderResourcesPreparer() noexcept
     {
+        AZ::TickBus::Handler::BusDisconnect();
+
         for (auto& intrusiveModel : m_intrusiveModels)
         {
             // move the handler out before free it. Otherwise, stack overflow
             auto handler = std::move(intrusiveModel.m_self);
             handler.Free();
         }
+    }
+
+    void RenderResourcesPreparer::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
+    {
+        auto it = AZStd::remove_if(
+            m_compileMaterialsQueue.begin(), m_compileMaterialsQueue.end(),
+            [](auto& material)
+            {
+                return !material->NeedsCompile() || material->Compile();
+            });
+        m_compileMaterialsQueue.erase(it, m_compileMaterialsQueue.end());
     }
 
     void RenderResourcesPreparer::SetTransform(const glm::dmat4& transform)
@@ -215,12 +230,16 @@ namespace Cesium
                 GltfModel& model = intrusiveGltfModel->m_model;
                 for (auto& material : model.GetMaterials())
                 {
-                    materialBuilder.SetRasterForMaterial(
+                    bool compile = materialBuilder.SetRasterForMaterial(
                         0, rasterOverlay->m_image, static_cast<std::uint32_t>(overlayTextureCoordinateID),
                         AZ::Vector4(
                             static_cast<float>(translation.x), static_cast<float>(translation.y), static_cast<float>(scale.x),
                             static_cast<float>(scale.y)),
                         material.m_material);
+                    if (!compile)
+                    {
+                        m_compileMaterialsQueue.emplace_back(material.m_material);
+                    }
                 }
             }
         }
@@ -242,7 +261,11 @@ namespace Cesium
                 GltfModel& model = intrusiveGltfModel->m_model;
                 for (auto& material : model.GetMaterials())
                 {
-                    materialBuilder.UnsetRasterForMaterial(0, material.m_material);
+                    bool compile = materialBuilder.UnsetRasterForMaterial(0, material.m_material);
+                    if (!compile)
+                    {
+                        m_compileMaterialsQueue.emplace_back(material.m_material);
+                    }
                 }
             }
         }
