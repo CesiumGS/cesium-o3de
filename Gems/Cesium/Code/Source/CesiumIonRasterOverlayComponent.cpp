@@ -8,9 +8,15 @@
 
 namespace Cesium
 {
-    struct CesiumIonRasterOverlayComponent::Configuration
+    CesiumIonRasterOverlayConfiguration::CesiumIonRasterOverlayConfiguration()
+        : m_maximumCacheBytes{ 16 * 1024 * 1024 }
+        , m_maximumSimultaneousTileLoads{ 20 }
     {
-        Configuration(std::uint32_t ionAssetId, const AZStd::string ionToken)
+    }
+
+    struct CesiumIonRasterOverlayComponent::Source
+    {
+        Source(std::uint32_t ionAssetId, const AZStd::string ionToken)
             : m_ionAssetId{ ionAssetId }
             , m_ionToken{ ionToken }
         {
@@ -23,13 +29,24 @@ namespace Cesium
     struct CesiumIonRasterOverlayComponent::Impl
     {
         Impl()
-            : m_rasterOverlayObserverPtr{nullptr}
+            : m_rasterOverlayObserverPtr{ nullptr }
         {
+        }
+
+        void SetupConfiguration()
+        {
+            if (m_rasterOverlayObserverPtr)
+            {
+                Cesium3DTilesSelection::RasterOverlayOptions& options = m_rasterOverlayObserverPtr->getOptions();
+                options.maximumSimultaneousTileLoads = static_cast<std::int32_t>(m_configuration.m_maximumSimultaneousTileLoads);
+                options.subTileCacheBytes = static_cast<std::int64_t>(m_configuration.m_maximumCacheBytes);
+            }
         }
 
         std::unique_ptr<Cesium3DTilesSelection::RasterOverlay> m_rasterOverlay;
         Cesium3DTilesSelection::RasterOverlay* m_rasterOverlayObserverPtr;
-        AZStd::optional<Configuration> m_config;
+        AZStd::optional<Source> m_source;
+        CesiumIonRasterOverlayConfiguration m_configuration;
     };
 
     CesiumIonRasterOverlayComponent::CesiumIonRasterOverlayComponent()
@@ -55,9 +72,9 @@ namespace Cesium
 
     void CesiumIonRasterOverlayComponent::Activate()
     {
-        if (m_impl->m_config)
+        if (m_impl->m_source)
         {
-            LoadRasterOverlay(m_impl->m_config->m_ionAssetId, m_impl->m_config->m_ionToken);
+            LoadRasterOverlay(m_impl->m_source->m_ionAssetId, m_impl->m_source->m_ionToken);
         }
     }
 
@@ -77,27 +94,41 @@ namespace Cesium
 
     void CesiumIonRasterOverlayComponent::LoadRasterOverlay(std::uint32_t ionAssetID, const AZStd::string& ionToken)
     {
-        // remove any existing raster 
+        // remove any existing raster
         Deactivate();
 
         // construct raster overlay and save configuration for reloading when activate and deactivated
         m_impl->m_rasterOverlay = std::make_unique<Cesium3DTilesSelection::IonRasterOverlay>("ion", ionAssetID, ionToken.c_str());
         m_impl->m_rasterOverlayObserverPtr = m_impl->m_rasterOverlay.get();
-        m_impl->m_config = Configuration{ionAssetID, ionToken};
+        m_impl->m_source = Source{ ionAssetID, ionToken };
+        m_impl->SetupConfiguration();
 
         // add the raster overlay to tileset right away. If it's not successful, we try every frame until it's successful
         bool success = false;
-        RasterOverlayRequestBus::EventResult(success, GetEntityId(), &RasterOverlayRequestBus::Events::AddRasterOverlay, m_impl->m_rasterOverlay);
+        RasterOverlayRequestBus::EventResult(
+            success, GetEntityId(), &RasterOverlayRequestBus::Events::AddRasterOverlay, m_impl->m_rasterOverlay);
         if (!success)
         {
             AZ::TickBus::Handler::BusConnect();
         }
     }
 
+    void CesiumIonRasterOverlayComponent::SetConfiguration(const CesiumIonRasterOverlayConfiguration& configuration)
+    {
+        m_impl->m_configuration = configuration;
+        m_impl->SetupConfiguration();
+    }
+
+    const CesiumIonRasterOverlayConfiguration& CesiumIonRasterOverlayComponent::GetConfiguration() const
+    {
+        return m_impl->m_configuration;
+    }
+
     void CesiumIonRasterOverlayComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
     {
         bool success = false;
-        RasterOverlayRequestBus::EventResult(success, GetEntityId(), &RasterOverlayRequestBus::Events::AddRasterOverlay, m_impl->m_rasterOverlay);
+        RasterOverlayRequestBus::EventResult(
+            success, GetEntityId(), &RasterOverlayRequestBus::Events::AddRasterOverlay, m_impl->m_rasterOverlay);
         if (success)
         {
             AZ::TickBus::Handler::BusDisconnect();

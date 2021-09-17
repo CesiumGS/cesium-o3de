@@ -8,6 +8,14 @@
 
 namespace Cesium
 {
+    struct CesiumIonRasterOverlayConfiguration
+    {
+        CesiumIonRasterOverlayConfiguration();
+
+        std::uint64_t m_maximumCacheBytes;
+        std::uint32_t m_maximumSimultaneousTileLoads;
+    };
+
     class CesiumIonRasterOverlayComponent
         : public AZ::Component
         , public AZ::TickBus::Handler
@@ -29,10 +37,14 @@ namespace Cesium
 
         void LoadRasterOverlay(std::uint32_t ionAssetID, const AZStd::string& ionToken);
 
+        void SetConfiguration(const CesiumIonRasterOverlayConfiguration& configuration);
+
+        const CesiumIonRasterOverlayConfiguration& GetConfiguration() const;
+
     private:
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
 
-        struct Configuration;
+        struct Source;
         struct Impl;
         AZStd::unique_ptr<Impl> m_impl;
     };
