@@ -44,6 +44,8 @@ namespace Cesium
     private:
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
 
+        void LoadRasterOverlayImpl(std::uint32_t ionAssetID, const AZStd::string& ionToken);
+
         struct Source;
         struct Impl;
         AZStd::unique_ptr<Impl> m_impl;

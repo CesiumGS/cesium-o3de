@@ -79,4 +79,6 @@ set(FILES
     Include/Cesium/GeoReferenceCameraFlyController.h
     Source/CesiumIonRasterOverlayComponent.cpp
     Include/Cesium/CesiumIonRasterOverlayComponent.h
+    Source/BingRasterOverlayComponent.cpp
+    Include/Cesium/BingRasterOverlayComponent.h
 )

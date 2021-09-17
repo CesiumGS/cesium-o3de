@@ -40,4 +40,5 @@ set(FILES
     Tests/CesiumTilesetComponentTest.cpp
     Tests/GeoReferenceCameraFlyControllerTest.cpp
     Tests/CesiumIonRasterOverlayComponentTest.cpp
+    Tests/BingRasterOverlayComponentTest.cpp
 )

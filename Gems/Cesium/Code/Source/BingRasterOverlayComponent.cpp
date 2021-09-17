@@ -1,32 +1,37 @@
-#include <Cesium/CesiumIonRasterOverlayComponent.h>
+#include <Cesium/BingRasterOverlayComponent.h>
 #include "RasterOverlayRequestBus.h"
 #include <Cesium3DTilesSelection/RasterOverlay.h>
-#include <Cesium3DTilesSelection/IonRasterOverlay.h>
+#include <Cesium3DTilesSelection/BingMapsRasterOverlay.h>
 #include <AzCore/std/optional.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <memory>
 
 namespace Cesium
 {
-    CesiumIonRasterOverlayConfiguration::CesiumIonRasterOverlayConfiguration()
+    BingRasterOverlayConfiguration::BingRasterOverlayConfiguration()
         : m_maximumCacheBytes{ 16 * 1024 * 1024 }
         , m_maximumSimultaneousTileLoads{ 20 }
     {
     }
 
-    struct CesiumIonRasterOverlayComponent::Source
+
+    struct BingRasterOverlayComponent::Source
     {
-        Source(std::uint32_t ionAssetId, const AZStd::string ionToken)
-            : m_ionAssetId{ ionAssetId }
-            , m_ionToken{ ionToken }
+        Source(const AZStd::string& url, const AZStd::string& key, const AZStd::string& bingMapStyle, const AZStd::string& culture)
+            : m_url{ url }
+            , m_key{ key }
+            , m_bingMapStyle{ bingMapStyle }
+            , m_culture{ culture }
         {
         }
 
-        std::uint32_t m_ionAssetId;
-        AZStd::string m_ionToken;
+        AZStd::string m_url;
+        AZStd::string m_key;
+        AZStd::string m_bingMapStyle;
+        AZStd::string m_culture;
     };
 
-    struct CesiumIonRasterOverlayComponent::Impl
+    struct BingRasterOverlayComponent::Impl
     {
         Impl()
             : m_rasterOverlayObserverPtr{ nullptr }
@@ -46,39 +51,40 @@ namespace Cesium
         std::unique_ptr<Cesium3DTilesSelection::RasterOverlay> m_rasterOverlay;
         Cesium3DTilesSelection::RasterOverlay* m_rasterOverlayObserverPtr;
         AZStd::optional<Source> m_source;
-        CesiumIonRasterOverlayConfiguration m_configuration;
+        BingRasterOverlayConfiguration m_configuration;
     };
 
-    CesiumIonRasterOverlayComponent::CesiumIonRasterOverlayComponent()
+    BingRasterOverlayComponent::BingRasterOverlayComponent()
     {
     }
 
-    CesiumIonRasterOverlayComponent::~CesiumIonRasterOverlayComponent() noexcept
+    BingRasterOverlayComponent::~BingRasterOverlayComponent() noexcept
     {
     }
 
-    void CesiumIonRasterOverlayComponent::Reflect(AZ::ReflectContext* context)
+    void BingRasterOverlayComponent::Reflect(AZ::ReflectContext* context)
     {
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<CesiumIonRasterOverlayComponent, AZ::Component>()->Version(0);
+            serializeContext->Class<BingRasterOverlayComponent, AZ::Component>()->Version(0);
         }
     }
 
-    void CesiumIonRasterOverlayComponent::Init()
+    void BingRasterOverlayComponent::Init()
     {
         m_impl = AZStd::make_unique<Impl>();
     }
 
-    void CesiumIonRasterOverlayComponent::Activate()
+    void BingRasterOverlayComponent::Activate()
     {
         if (m_impl->m_source)
         {
-            LoadRasterOverlayImpl(m_impl->m_source->m_ionAssetId, m_impl->m_source->m_ionToken);
+            LoadRasterOverlayImpl(
+                m_impl->m_source->m_url, m_impl->m_source->m_key, m_impl->m_source->m_bingMapStyle, m_impl->m_source->m_culture);
         }
     }
 
-    void CesiumIonRasterOverlayComponent::Deactivate()
+    void BingRasterOverlayComponent::Deactivate()
     {
         AZ::TickBus::Handler::BusDisconnect();
 
@@ -92,24 +98,25 @@ namespace Cesium
         }
     }
 
-    void CesiumIonRasterOverlayComponent::LoadRasterOverlay(std::uint32_t ionAssetID, const AZStd::string& ionToken)
+    void BingRasterOverlayComponent::LoadRasterOverlay(
+        const AZStd::string& url, const AZStd::string& key, const AZStd::string& bingMapStyle, const AZStd::string& culture)
     {
-        m_impl->m_source = Source{ ionAssetID, ionToken };
-        LoadRasterOverlayImpl(ionAssetID, ionToken);
+        m_impl->m_source = Source{ url, key, bingMapStyle, culture };
+        LoadRasterOverlayImpl(url, key, bingMapStyle, culture);
     }
 
-    void CesiumIonRasterOverlayComponent::SetConfiguration(const CesiumIonRasterOverlayConfiguration& configuration)
+    void BingRasterOverlayComponent::SetConfiguration(const BingRasterOverlayConfiguration& configuration)
     {
         m_impl->m_configuration = configuration;
         m_impl->SetupConfiguration();
     }
 
-    const CesiumIonRasterOverlayConfiguration& CesiumIonRasterOverlayComponent::GetConfiguration() const
+    const BingRasterOverlayConfiguration& BingRasterOverlayComponent::GetConfiguration() const
     {
         return m_impl->m_configuration;
     }
 
-    void CesiumIonRasterOverlayComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
+    void BingRasterOverlayComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
     {
         bool success = false;
         RasterOverlayRequestBus::EventResult(
@@ -120,13 +127,15 @@ namespace Cesium
         }
     }
 
-    void CesiumIonRasterOverlayComponent::LoadRasterOverlayImpl(std::uint32_t ionAssetID, const AZStd::string& ionToken)
+    void BingRasterOverlayComponent::LoadRasterOverlayImpl(
+        const AZStd::string& url, const AZStd::string& key, const AZStd::string& bingMapStyle, const AZStd::string& culture)
     {
         // remove any existing raster
         Deactivate();
 
         // construct raster overlay and save configuration for reloading when activate and deactivated
-        m_impl->m_rasterOverlay = std::make_unique<Cesium3DTilesSelection::IonRasterOverlay>("CesiumIonRasterOverlay", ionAssetID, ionToken.c_str());
+        m_impl->m_rasterOverlay = std::make_unique<Cesium3DTilesSelection::BingMapsRasterOverlay>(
+            "BingRasterOverlay", url.c_str(), key.c_str(), bingMapStyle.c_str(), culture.c_str());
         m_impl->m_rasterOverlayObserverPtr = m_impl->m_rasterOverlay.get();
         m_impl->SetupConfiguration();
 
