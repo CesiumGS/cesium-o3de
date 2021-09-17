@@ -477,7 +477,10 @@ namespace Cesium
 
         void RemoveRasterOverlay(Cesium3DTilesSelection::RasterOverlay* rasterOverlay) override
         {
-            m_tileset->getOverlays().remove(rasterOverlay);
+            if (m_tileset)
+            {
+                m_tileset->getOverlays().remove(rasterOverlay);
+            }
         }
 
         // Resources can be rebuilt from the configurations below
