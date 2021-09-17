@@ -230,12 +230,13 @@ namespace Cesium
                 GltfModel& model = intrusiveGltfModel->m_model;
                 for (auto& material : model.GetMaterials())
                 {
+                    AZ::Vector4 uvTranslateScale{ static_cast<float>(translation.x), static_cast<float>(translation.y),
+                                                  static_cast<float>(scale.x), static_cast<float>(scale.y) };
                     bool compile = materialBuilder.SetRasterForMaterial(
-                        0, rasterOverlay->m_image, static_cast<std::uint32_t>(overlayTextureCoordinateID),
-                        AZ::Vector4(
-                            static_cast<float>(translation.x), static_cast<float>(translation.y), static_cast<float>(scale.x),
-                            static_cast<float>(scale.y)),
+                        0, rasterOverlay->m_image, static_cast<std::uint32_t>(overlayTextureCoordinateID), uvTranslateScale,
                         material.m_material);
+
+                    // it's not guaranteed that the material will be able to compile right away, so we add it to the queue to compile later
                     if (!compile)
                     {
                         m_compileMaterialsQueue.emplace_back(material.m_material);
@@ -262,6 +263,8 @@ namespace Cesium
                 for (auto& material : model.GetMaterials())
                 {
                     bool compile = materialBuilder.UnsetRasterForMaterial(0, material.m_material);
+
+                    // it's not guaranteed that the material will be able to compile right away, so we add it to the queue to compile later
                     if (!compile)
                     {
                         m_compileMaterialsQueue.emplace_back(material.m_material);
