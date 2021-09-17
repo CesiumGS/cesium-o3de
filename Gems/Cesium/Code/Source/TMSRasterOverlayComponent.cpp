@@ -1,36 +1,20 @@
-#include <Cesium/BingRasterOverlayComponent.h>
+#include <Cesium/TMSRasterOverlayComponent.h>
 #include "RasterOverlayRequestBus.h"
 #include <Cesium3DTilesSelection/RasterOverlay.h>
-#include <Cesium3DTilesSelection/BingMapsRasterOverlay.h>
+#include <Cesium3DTilesSelection/TileMapServiceRasterOverlay.h>
 #include <AzCore/std/optional.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <memory>
 
 namespace Cesium
 {
-    BingRasterOverlayConfiguration::BingRasterOverlayConfiguration()
+    TMSRasterOverlayConfiguration::TMSRasterOverlayConfiguration()
         : m_maximumCacheBytes{ 16 * 1024 * 1024 }
         , m_maximumSimultaneousTileLoads{ 20 }
     {
     }
 
-    struct BingRasterOverlayComponent::Source
-    {
-        Source(const AZStd::string& url, const AZStd::string& key, const AZStd::string& bingMapStyle, const AZStd::string& culture)
-            : m_url{ url }
-            , m_key{ key }
-            , m_bingMapStyle{ bingMapStyle }
-            , m_culture{ culture }
-        {
-        }
-
-        AZStd::string m_url;
-        AZStd::string m_key;
-        AZStd::string m_bingMapStyle;
-        AZStd::string m_culture;
-    };
-
-    struct BingRasterOverlayComponent::Impl
+    struct TMSRasterOverlayComponent::Impl
     {
         Impl()
             : m_rasterOverlayObserverPtr{ nullptr }
@@ -49,41 +33,40 @@ namespace Cesium
 
         std::unique_ptr<Cesium3DTilesSelection::RasterOverlay> m_rasterOverlay;
         Cesium3DTilesSelection::RasterOverlay* m_rasterOverlayObserverPtr;
-        AZStd::optional<Source> m_source;
-        BingRasterOverlayConfiguration m_configuration;
+        AZStd::optional<TMSRasterOverlaySource> m_source;
+        TMSRasterOverlayConfiguration m_configuration;
     };
 
-    BingRasterOverlayComponent::BingRasterOverlayComponent()
+    TMSRasterOverlayComponent::TMSRasterOverlayComponent()
     {
     }
 
-    BingRasterOverlayComponent::~BingRasterOverlayComponent() noexcept
+    TMSRasterOverlayComponent::~TMSRasterOverlayComponent() noexcept
     {
     }
 
-    void BingRasterOverlayComponent::Reflect(AZ::ReflectContext* context)
+    void TMSRasterOverlayComponent::Reflect(AZ::ReflectContext* context)
     {
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<BingRasterOverlayComponent, AZ::Component>()->Version(0);
+            serializeContext->Class<TMSRasterOverlayComponent, AZ::Component>()->Version(0);
         }
     }
 
-    void BingRasterOverlayComponent::Init()
+    void TMSRasterOverlayComponent::Init()
     {
         m_impl = AZStd::make_unique<Impl>();
     }
 
-    void BingRasterOverlayComponent::Activate()
+    void TMSRasterOverlayComponent::Activate()
     {
         if (m_impl->m_source)
         {
-            LoadRasterOverlayImpl(
-                m_impl->m_source->m_url, m_impl->m_source->m_key, m_impl->m_source->m_bingMapStyle, m_impl->m_source->m_culture);
+            LoadRasterOverlayImpl(*m_impl->m_source);
         }
     }
 
-    void BingRasterOverlayComponent::Deactivate()
+    void TMSRasterOverlayComponent::Deactivate()
     {
         AZ::TickBus::Handler::BusDisconnect();
 
@@ -97,25 +80,24 @@ namespace Cesium
         }
     }
 
-    void BingRasterOverlayComponent::LoadRasterOverlay(
-        const AZStd::string& url, const AZStd::string& key, const AZStd::string& bingMapStyle, const AZStd::string& culture)
+    void TMSRasterOverlayComponent::LoadRasterOverlay(const TMSRasterOverlaySource& source)
     {
-        m_impl->m_source = Source{ url, key, bingMapStyle, culture };
-        LoadRasterOverlayImpl(url, key, bingMapStyle, culture);
+        m_impl->m_source = source;
+        LoadRasterOverlayImpl(source);
     }
 
-    void BingRasterOverlayComponent::SetConfiguration(const BingRasterOverlayConfiguration& configuration)
+    void TMSRasterOverlayComponent::SetConfiguration(const TMSRasterOverlayConfiguration& configuration)
     {
         m_impl->m_configuration = configuration;
         m_impl->SetupConfiguration();
     }
 
-    const BingRasterOverlayConfiguration& BingRasterOverlayComponent::GetConfiguration() const
+    const TMSRasterOverlayConfiguration& TMSRasterOverlayComponent::GetConfiguration() const
     {
         return m_impl->m_configuration;
     }
 
-    void BingRasterOverlayComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
+    void TMSRasterOverlayComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
     {
         bool success = false;
         RasterOverlayRequestBus::EventResult(
@@ -126,15 +108,28 @@ namespace Cesium
         }
     }
 
-    void BingRasterOverlayComponent::LoadRasterOverlayImpl(
-        const AZStd::string& url, const AZStd::string& key, const AZStd::string& bingMapStyle, const AZStd::string& culture)
+    void TMSRasterOverlayComponent::LoadRasterOverlayImpl(const TMSRasterOverlaySource& source)
     {
         // remove any existing raster
         Deactivate();
 
-        // construct raster overlay and save configuration for reloading when activate and deactivated
-        m_impl->m_rasterOverlay = std::make_unique<Cesium3DTilesSelection::BingMapsRasterOverlay>(
-            "BingRasterOverlay", url.c_str(), key.c_str(), bingMapStyle.c_str(), culture.c_str());
+        // setup TMS option
+        Cesium3DTilesSelection::TileMapServiceRasterOverlayOptions options{};
+        if (source.m_maximumLevel && source.m_minimumLevel && *source.m_maximumLevel > *source.m_minimumLevel)
+        {
+            options.minimumLevel = *source.m_minimumLevel;
+            options.maximumLevel = *source.m_maximumLevel;
+        }
+
+        // setup TMS headers
+        std::vector<CesiumAsync::IAssetAccessor::THeader> headers;
+        for (const auto& header : source.m_headers)
+        {
+            headers.emplace_back(header.first.c_str(), header.second.c_str());
+        }
+
+        m_impl->m_rasterOverlay = std::make_unique<Cesium3DTilesSelection::TileMapServiceRasterOverlay>(
+            "TMSRasterOverlay", source.m_url.c_str(), headers, options);
         m_impl->m_rasterOverlayObserverPtr = m_impl->m_rasterOverlay.get();
         m_impl->SetupConfiguration();
 

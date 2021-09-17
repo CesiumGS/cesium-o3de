@@ -81,4 +81,6 @@ set(FILES
     Include/Cesium/CesiumIonRasterOverlayComponent.h
     Source/BingRasterOverlayComponent.cpp
     Include/Cesium/BingRasterOverlayComponent.h
+    Source/TMSRasterOverlayComponent.cpp
+    Include/Cesium/TMSRasterOverlayComponent.h
 )
