@@ -45,11 +45,17 @@ namespace Cesium
 
         void Deactivate() override;
 
+        const AZStd::optional<TMSRasterOverlaySource>& GetCurrentSource() const;
+
         void LoadRasterOverlay(const TMSRasterOverlaySource& source);
 
         void SetConfiguration(const TMSRasterOverlayConfiguration& configuration);
 
         const TMSRasterOverlayConfiguration& GetConfiguration() const;
+
+        void EnableRasterOverlay(bool enable);
+
+        bool IsEnable() const;
 
     private:
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;

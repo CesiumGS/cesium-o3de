@@ -4,6 +4,7 @@
 #include <AzCore/Component/TickBus.h>
 #include <AzCore/std/string/string.h>
 #include <AzCore/std/smart_ptr/unique_ptr.h>
+#include <AzCore/std/optional.h>
 #include <cstdint>
 
 namespace Cesium
@@ -30,6 +31,21 @@ namespace Cesium
         static constexpr const char* COLLINS_BART = "CollinsBart";
     };
 
+    struct BingRasterOverlaySource
+    {
+        BingRasterOverlaySource(
+            const AZStd::string& url, const AZStd::string& key, const AZStd::string& bingMapStyle, const AZStd::string& culture);
+
+        BingRasterOverlaySource(
+            const AZStd::string& key, const AZStd::string& bingMapStyle = BingMapsStyle::AERIAL, const AZStd::string& culture = "");
+
+        AZStd::string m_url;
+        AZStd::string m_key;
+        AZStd::string m_bingMapStyle;
+        AZStd::string m_culture;
+    };
+
+
     class BingRasterOverlayComponent
         : public AZ::Component
         , public AZ::TickBus::Handler
@@ -49,12 +65,17 @@ namespace Cesium
 
         void Deactivate() override;
 
-        void LoadRasterOverlay(
-            const AZStd::string& url, const AZStd::string& key, const AZStd::string& bingMapStyle, const AZStd::string& culture);
+        const AZStd::optional<BingRasterOverlaySource>& GetCurrentSource() const;
+
+        void LoadRasterOverlay(const BingRasterOverlaySource& source);
 
         void SetConfiguration(const BingRasterOverlayConfiguration& configuration);
 
         const BingRasterOverlayConfiguration& GetConfiguration() const;
+
+        void EnableRasterOverlay(bool enable);
+
+        bool IsEnable() const;
 
     private:
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
@@ -62,7 +83,6 @@ namespace Cesium
         void LoadRasterOverlayImpl(
             const AZStd::string& url, const AZStd::string& key, const AZStd::string& bingMapStyle, const AZStd::string& culture);
 
-        struct Source;
         struct Impl;
         AZStd::unique_ptr<Impl> m_impl;
     };

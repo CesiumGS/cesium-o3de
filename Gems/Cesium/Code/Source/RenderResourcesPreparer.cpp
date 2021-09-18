@@ -3,6 +3,7 @@
 #include "GltfRasterMaterialBuilder.h"
 #include "GltfLoadContext.h"
 #include <Cesium3DTilesSelection/Tile.h>
+#include <Cesium3DTilesSelection/Tileset.h>
 #include <CesiumUtility/JsonValue.h>
 #include <Atom/Feature/Mesh/MeshFeatureProcessorInterface.h>
 #include <Atom/RPI.Reflect/Image/StreamingImageAssetCreator.h>
@@ -214,7 +215,7 @@ namespace Cesium
     void RenderResourcesPreparer::attachRasterInMainThread(
         const Cesium3DTilesSelection::Tile& tile,
         std::int32_t overlayTextureCoordinateID,
-        [[maybe_unused]] const Cesium3DTilesSelection::RasterOverlayTile& rasterTile,
+        const Cesium3DTilesSelection::RasterOverlayTile& rasterTile,
         void* mainThreadRasterResources,
         const glm::dvec2& translation,
         const glm::dvec2& scale)
@@ -224,6 +225,18 @@ namespace Cesium
             void* tileRenderResource = tile.getRendererResources();
             if (tileRenderResource && mainThreadRasterResources)
             {
+                // find the layer of the raster
+                const auto& tileset = tile.getTileset();
+                const auto& rasterOverlays = tileset->getOverlays();
+                const auto& currentRasterOverlay = rasterTile.getOverlay();
+                auto it = AZStd::find_if(
+                    rasterOverlays.begin(), rasterOverlays.end(),
+                    [&currentRasterOverlay](const auto& overlay)
+                    {
+                        return overlay.get() == &currentRasterOverlay;
+                    });
+                std::uint32_t layer = static_cast<std::uint32_t>(it - rasterOverlays.begin());
+
                 IntrusiveGltfModel* intrusiveGltfModel = reinterpret_cast<IntrusiveGltfModel*>(tileRenderResource);
                 RasterOverlay* rasterOverlay = reinterpret_cast<RasterOverlay*>(mainThreadRasterResources);
                 GltfRasterMaterialBuilder materialBuilder;
@@ -233,7 +246,7 @@ namespace Cesium
                     AZ::Vector4 uvTranslateScale{ static_cast<float>(translation.x), static_cast<float>(translation.y),
                                                   static_cast<float>(scale.x), static_cast<float>(scale.y) };
                     bool compile = materialBuilder.SetRasterForMaterial(
-                        0, rasterOverlay->m_image, static_cast<std::uint32_t>(overlayTextureCoordinateID), uvTranslateScale,
+                        layer, rasterOverlay->m_image, static_cast<std::uint32_t>(overlayTextureCoordinateID), uvTranslateScale,
                         material.m_material);
 
                     // it's not guaranteed that the material will be able to compile right away, so we add it to the queue to compile later
@@ -257,12 +270,24 @@ namespace Cesium
             void* tileRenderResource = tile.getRendererResources();
             if (tileRenderResource && mainThreadRasterResources)
             {
+                // find the layer of the raster
+                const auto& tileset = tile.getTileset();
+                const auto& rasterOverlays = tileset->getOverlays();
+                const auto& currentRasterOverlay = rasterTile.getOverlay();
+                auto it = AZStd::find_if(
+                    rasterOverlays.begin(), rasterOverlays.end(),
+                    [&currentRasterOverlay](const auto& overlay)
+                    {
+                        return overlay.get() == &currentRasterOverlay;
+                    });
+                std::uint32_t layer = static_cast<std::uint32_t>(it - rasterOverlays.begin());
+
                 IntrusiveGltfModel* intrusiveGltfModel = reinterpret_cast<IntrusiveGltfModel*>(tileRenderResource);
                 GltfRasterMaterialBuilder materialBuilder;
                 GltfModel& model = intrusiveGltfModel->m_model;
                 for (auto& material : model.GetMaterials())
                 {
-                    bool compile = materialBuilder.UnsetRasterForMaterial(0, material.m_material);
+                    bool compile = materialBuilder.UnsetRasterForMaterial(layer, material.m_material);
 
                     // it's not guaranteed that the material will be able to compile right away, so we add it to the queue to compile later
                     if (!compile)

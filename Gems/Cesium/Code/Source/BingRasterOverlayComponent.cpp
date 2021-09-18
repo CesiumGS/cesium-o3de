@@ -14,26 +14,25 @@ namespace Cesium
     {
     }
 
-    struct BingRasterOverlayComponent::Source
+    BingRasterOverlaySource::BingRasterOverlaySource(
+        const AZStd::string& url, const AZStd::string& key, const AZStd::string& bingMapStyle, const AZStd::string& culture)
+        : m_url{ url }
+        , m_key{ key }
+        , m_bingMapStyle{ bingMapStyle }
+        , m_culture{ culture }
     {
-        Source(const AZStd::string& url, const AZStd::string& key, const AZStd::string& bingMapStyle, const AZStd::string& culture)
-            : m_url{ url }
-            , m_key{ key }
-            , m_bingMapStyle{ bingMapStyle }
-            , m_culture{ culture }
-        {
-        }
+    }
 
-        AZStd::string m_url;
-        AZStd::string m_key;
-        AZStd::string m_bingMapStyle;
-        AZStd::string m_culture;
-    };
+    BingRasterOverlaySource::BingRasterOverlaySource(const AZStd::string& key, const AZStd::string& bingMapStyle, const AZStd::string& culture)
+        : BingRasterOverlaySource{ "https://dev.virtualearth.net", key, bingMapStyle, culture }
+    {
+    }
 
     struct BingRasterOverlayComponent::Impl
     {
         Impl()
             : m_rasterOverlayObserverPtr{ nullptr }
+            , m_enable{ true }
         {
         }
 
@@ -49,8 +48,9 @@ namespace Cesium
 
         std::unique_ptr<Cesium3DTilesSelection::RasterOverlay> m_rasterOverlay;
         Cesium3DTilesSelection::RasterOverlay* m_rasterOverlayObserverPtr;
-        AZStd::optional<Source> m_source;
+        AZStd::optional<BingRasterOverlaySource> m_source;
         BingRasterOverlayConfiguration m_configuration;
+        bool m_enable;
     };
 
     BingRasterOverlayComponent::BingRasterOverlayComponent()
@@ -97,11 +97,15 @@ namespace Cesium
         }
     }
 
-    void BingRasterOverlayComponent::LoadRasterOverlay(
-        const AZStd::string& url, const AZStd::string& key, const AZStd::string& bingMapStyle, const AZStd::string& culture)
+    const AZStd::optional<BingRasterOverlaySource>& BingRasterOverlayComponent::GetCurrentSource() const
     {
-        m_impl->m_source = Source{ url, key, bingMapStyle, culture };
-        LoadRasterOverlayImpl(url, key, bingMapStyle, culture);
+        return m_impl->m_source;
+    }
+
+    void BingRasterOverlayComponent::LoadRasterOverlay(const BingRasterOverlaySource& source)
+    {
+        m_impl->m_source = source;
+        LoadRasterOverlayImpl(source.m_url, source.m_key, source.m_bingMapStyle, source.m_culture);
     }
 
     void BingRasterOverlayComponent::SetConfiguration(const BingRasterOverlayConfiguration& configuration)
@@ -115,20 +119,49 @@ namespace Cesium
         return m_impl->m_configuration;
     }
 
+    void BingRasterOverlayComponent::EnableRasterOverlay(bool enable)
+    {
+        if (m_impl->m_enable != enable)
+        {
+            m_impl->m_enable = enable;
+            if (enable)
+            {
+                Activate();
+            }
+            else
+            {
+                Deactivate();
+            }
+        }
+    }
+
     void BingRasterOverlayComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
     {
-        bool success = false;
-        RasterOverlayRequestBus::EventResult(
-            success, GetEntityId(), &RasterOverlayRequestBus::Events::AddRasterOverlay, m_impl->m_rasterOverlay);
-        if (success)
+        if (m_impl->m_enable)
         {
-            AZ::TickBus::Handler::BusDisconnect();
+            bool success = false;
+            RasterOverlayRequestBus::EventResult(
+                success, GetEntityId(), &RasterOverlayRequestBus::Events::AddRasterOverlay, m_impl->m_rasterOverlay);
+            if (success)
+            {
+                AZ::TickBus::Handler::BusDisconnect();
+            }
         }
+    }
+
+    bool BingRasterOverlayComponent::IsEnable() const
+    {
+        return m_impl->m_enable;
     }
 
     void BingRasterOverlayComponent::LoadRasterOverlayImpl(
         const AZStd::string& url, const AZStd::string& key, const AZStd::string& bingMapStyle, const AZStd::string& culture)
     {
+        if (!m_impl->m_enable)
+        {
+            return;
+        }
+
         // remove any existing raster
         Deactivate();
 

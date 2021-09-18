@@ -18,6 +18,7 @@ namespace Cesium
     {
         Impl()
             : m_rasterOverlayObserverPtr{ nullptr }
+            , m_enable{ true }
         {
         }
 
@@ -35,6 +36,7 @@ namespace Cesium
         Cesium3DTilesSelection::RasterOverlay* m_rasterOverlayObserverPtr;
         AZStd::optional<TMSRasterOverlaySource> m_source;
         TMSRasterOverlayConfiguration m_configuration;
+        bool m_enable;
     };
 
     TMSRasterOverlayComponent::TMSRasterOverlayComponent()
@@ -80,6 +82,11 @@ namespace Cesium
         }
     }
 
+    const AZStd::optional<TMSRasterOverlaySource>& TMSRasterOverlayComponent::GetCurrentSource() const
+    {
+        return m_impl->m_source;
+    }
+
     void TMSRasterOverlayComponent::LoadRasterOverlay(const TMSRasterOverlaySource& source)
     {
         m_impl->m_source = source;
@@ -97,19 +104,48 @@ namespace Cesium
         return m_impl->m_configuration;
     }
 
+    void TMSRasterOverlayComponent::EnableRasterOverlay(bool enable)
+    {
+        if (m_impl->m_enable != enable)
+        {
+            m_impl->m_enable = enable;
+            if (enable)
+            {
+                Activate();
+            }
+            else
+            {
+                Deactivate();
+            }
+        }
+    }
+
+    bool TMSRasterOverlayComponent::IsEnable() const
+    {
+        return m_impl->m_enable;
+    }
+
     void TMSRasterOverlayComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
     {
-        bool success = false;
-        RasterOverlayRequestBus::EventResult(
-            success, GetEntityId(), &RasterOverlayRequestBus::Events::AddRasterOverlay, m_impl->m_rasterOverlay);
-        if (success)
+        if (m_impl->m_enable)
         {
-            AZ::TickBus::Handler::BusDisconnect();
+            bool success = false;
+            RasterOverlayRequestBus::EventResult(
+                success, GetEntityId(), &RasterOverlayRequestBus::Events::AddRasterOverlay, m_impl->m_rasterOverlay);
+            if (success)
+            {
+                AZ::TickBus::Handler::BusDisconnect();
+            }
         }
     }
 
     void TMSRasterOverlayComponent::LoadRasterOverlayImpl(const TMSRasterOverlaySource& source)
     {
+        if (!m_impl->m_enable)
+        {
+            return;
+        }
+
         // remove any existing raster
         Deactivate();
 

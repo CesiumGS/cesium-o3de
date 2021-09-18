@@ -3,6 +3,7 @@
 #include <AzCore/Component/Component.h>
 #include <AzCore/Component/TickBus.h>
 #include <AzCore/std/string/string.h>
+#include <AzCore/std/optional.h>
 #include <AzCore/std/smart_ptr/unique_ptr.h>
 #include <cstdint>
 
@@ -14,6 +15,14 @@ namespace Cesium
 
         std::uint64_t m_maximumCacheBytes;
         std::uint32_t m_maximumSimultaneousTileLoads;
+    };
+
+    struct CesiumIonRasterOverlaySource
+    {
+        CesiumIonRasterOverlaySource(std::uint32_t ionAssetId, const AZStd::string& ionToken);
+
+        std::uint32_t m_ionAssetId;
+        AZStd::string m_ionToken;
     };
 
     class CesiumIonRasterOverlayComponent
@@ -35,18 +44,23 @@ namespace Cesium
 
         void Deactivate() override;
 
-        void LoadRasterOverlay(std::uint32_t ionAssetID, const AZStd::string& ionToken);
+        const AZStd::optional<CesiumIonRasterOverlaySource>& GetCurrentSource() const;
+
+        void LoadRasterOverlay(const CesiumIonRasterOverlaySource& source);
 
         void SetConfiguration(const CesiumIonRasterOverlayConfiguration& configuration);
 
         const CesiumIonRasterOverlayConfiguration& GetConfiguration() const;
+
+        void EnableRasterOverlay(bool enable);
+
+        bool IsEnable() const;
 
     private:
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
 
         void LoadRasterOverlayImpl(std::uint32_t ionAssetID, const AZStd::string& ionToken);
 
-        struct Source;
         struct Impl;
         AZStd::unique_ptr<Impl> m_impl;
     };

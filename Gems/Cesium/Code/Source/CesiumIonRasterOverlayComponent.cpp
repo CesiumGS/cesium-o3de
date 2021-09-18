@@ -14,22 +14,17 @@ namespace Cesium
     {
     }
 
-    struct CesiumIonRasterOverlayComponent::Source
+    CesiumIonRasterOverlaySource::CesiumIonRasterOverlaySource(std::uint32_t ionAssetId, const AZStd::string& ionToken)
+        : m_ionAssetId{ ionAssetId }
+        , m_ionToken{ ionToken }
     {
-        Source(std::uint32_t ionAssetId, const AZStd::string ionToken)
-            : m_ionAssetId{ ionAssetId }
-            , m_ionToken{ ionToken }
-        {
-        }
-
-        std::uint32_t m_ionAssetId;
-        AZStd::string m_ionToken;
-    };
+    }
 
     struct CesiumIonRasterOverlayComponent::Impl
     {
         Impl()
             : m_rasterOverlayObserverPtr{ nullptr }
+            , m_enable{ true }
         {
         }
 
@@ -45,8 +40,9 @@ namespace Cesium
 
         std::unique_ptr<Cesium3DTilesSelection::RasterOverlay> m_rasterOverlay;
         Cesium3DTilesSelection::RasterOverlay* m_rasterOverlayObserverPtr;
-        AZStd::optional<Source> m_source;
+        AZStd::optional<CesiumIonRasterOverlaySource> m_source;
         CesiumIonRasterOverlayConfiguration m_configuration;
+        bool m_enable;
     };
 
     CesiumIonRasterOverlayComponent::CesiumIonRasterOverlayComponent()
@@ -92,10 +88,15 @@ namespace Cesium
         }
     }
 
-    void CesiumIonRasterOverlayComponent::LoadRasterOverlay(std::uint32_t ionAssetID, const AZStd::string& ionToken)
+    const AZStd::optional<CesiumIonRasterOverlaySource>& CesiumIonRasterOverlayComponent::GetCurrentSource() const
     {
-        m_impl->m_source = Source{ ionAssetID, ionToken };
-        LoadRasterOverlayImpl(ionAssetID, ionToken);
+        return m_impl->m_source;
+    }
+
+    void CesiumIonRasterOverlayComponent::LoadRasterOverlay(const CesiumIonRasterOverlaySource& source)
+    {
+        m_impl->m_source = source;
+        LoadRasterOverlayImpl(source.m_ionAssetId, source.m_ionToken);
     }
 
     void CesiumIonRasterOverlayComponent::SetConfiguration(const CesiumIonRasterOverlayConfiguration& configuration)
@@ -109,24 +110,54 @@ namespace Cesium
         return m_impl->m_configuration;
     }
 
+    void CesiumIonRasterOverlayComponent::EnableRasterOverlay(bool enable)
+    {
+        if (m_impl->m_enable != enable)
+        {
+            m_impl->m_enable = enable;
+            if (enable)
+            {
+                Activate();
+            }
+            else
+            {
+                Deactivate();
+            }
+        }
+    }
+
+    bool CesiumIonRasterOverlayComponent::IsEnable() const
+    {
+        return m_impl->m_enable;
+    }
+
     void CesiumIonRasterOverlayComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
     {
-        bool success = false;
-        RasterOverlayRequestBus::EventResult(
-            success, GetEntityId(), &RasterOverlayRequestBus::Events::AddRasterOverlay, m_impl->m_rasterOverlay);
-        if (success)
+        if (m_impl->m_enable)
         {
-            AZ::TickBus::Handler::BusDisconnect();
+            bool success = false;
+            RasterOverlayRequestBus::EventResult(
+                success, GetEntityId(), &RasterOverlayRequestBus::Events::AddRasterOverlay, m_impl->m_rasterOverlay);
+            if (success)
+            {
+                AZ::TickBus::Handler::BusDisconnect();
+            }
         }
     }
 
     void CesiumIonRasterOverlayComponent::LoadRasterOverlayImpl(std::uint32_t ionAssetID, const AZStd::string& ionToken)
     {
+        if (!m_impl->m_enable)
+        {
+            return;
+        }
+
         // remove any existing raster
         Deactivate();
 
         // construct raster overlay and save configuration for reloading when activate and deactivated
-        m_impl->m_rasterOverlay = std::make_unique<Cesium3DTilesSelection::IonRasterOverlay>("CesiumIonRasterOverlay", ionAssetID, ionToken.c_str());
+        m_impl->m_rasterOverlay =
+            std::make_unique<Cesium3DTilesSelection::IonRasterOverlay>("CesiumIonRasterOverlay", ionAssetID, ionToken.c_str());
         m_impl->m_rasterOverlayObserverPtr = m_impl->m_rasterOverlay.get();
         m_impl->SetupConfiguration();
 
