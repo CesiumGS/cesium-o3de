@@ -616,8 +616,8 @@ namespace Cesium
             // if we still cannot generate MikkTSpace, then we generate dummy
             if (!success)
             {
-                m_tangents.resize(m_positions.size(), glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-                m_bitangents.resize(m_positions.size(), glm::vec3(0.0f, 0.0f, 0.0f));
+                m_tangents.resize(m_positions.size(), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+                m_bitangents.resize(m_positions.size(), glm::vec3(0.0f, 1.0f, 0.0f));
             }
 
             return;
@@ -642,8 +642,8 @@ namespace Cesium
         }
 
         // generate dummy if accessor is not valid
-        m_tangents.resize(m_positions.size(), glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-        m_bitangents.resize(m_positions.size(), glm::vec3(0.0f, 0.0f, 0.0f));
+        m_tangents.resize(m_positions.size(), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+        m_bitangents.resize(m_positions.size(), glm::vec3(0.0f, 1.0f, 0.0f));
     }
 
     void GltfTrianglePrimitiveBuilder::CreateCustomAttributes(
