@@ -10,6 +10,7 @@
 #include <AzCore/Asset/AssetCommon.h>
 #include <AzCore/std/optional.h>
 #include <AzCore/std/containers/vector.h>
+#include <AzCore/std/containers/map.h>
 #include <glm/glm.hpp>
 
 namespace AZ
@@ -23,6 +24,11 @@ namespace AZ
 namespace CesiumGltf
 {
     struct Model;
+}
+
+namespace Cesium3DTilesSelection
+{
+    class RasterOverlay;
 }
 
 namespace Cesium
@@ -73,6 +79,10 @@ namespace Cesium
 
         void SetVisible(void* renderResources, bool visible);
 
+        bool AddRasterLayer(const Cesium3DTilesSelection::RasterOverlay* rasterOverlay);
+
+        void RemoveRasterLayer(const Cesium3DTilesSelection::RasterOverlay* rasterOverlay);
+
         void* prepareInLoadThread(const CesiumGltf::Model& model, const glm::dmat4& transform) override;
 
         void* prepareInMainThread(Cesium3DTilesSelection::Tile& tile, void* pLoadThreadResult) override;
@@ -107,7 +117,10 @@ namespace Cesium
 
         AZ::Render::MeshFeatureProcessorInterface* m_meshFeatureProcessor;
         AZ::StableDynamicArray<IntrusiveGltfModel> m_intrusiveModels;
-        AZStd::vector<AZ::Data::Instance<AZ::RPI::Material>> m_compileMaterialsQueue;
         glm::dmat4 m_transform;
+
+        AZStd::vector<AZ::Data::Instance<AZ::RPI::Material>> m_compileMaterialsQueue;
+        AZStd::map<const Cesium3DTilesSelection::RasterOverlay*, std::uint32_t> m_rasterOverlayLayers;
+        AZStd::vector<std::uint32_t> m_freeRasterLayers;
     };
 } // namespace Cesium

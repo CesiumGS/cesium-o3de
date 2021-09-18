@@ -33,6 +33,12 @@ namespace Cesium
         : m_meshFeatureProcessor{ meshFeatureProcessor }
         , m_transform{ 1.0 }
     {
+        m_freeRasterLayers.reserve(GltfRasterMaterialBuilder::MAX_RASTER_LAYERS);
+        for (std::uint32_t i = 0; i < GltfRasterMaterialBuilder::MAX_RASTER_LAYERS; ++i)
+        {
+            m_freeRasterLayers.emplace_back(i);
+        }
+
         AZ::TickBus::Handler::BusConnect();
     }
 
@@ -83,6 +89,34 @@ namespace Cesium
                 intrusiveModel->m_model.SetVisible(visible);
             }
         }
+    }
+
+    bool RenderResourcesPreparer::AddRasterLayer(const Cesium3DTilesSelection::RasterOverlay* rasterOverlay)
+    {
+        if (m_freeRasterLayers.empty())
+        {
+            return false;
+        }
+
+        if (m_rasterOverlayLayers.find(rasterOverlay) == m_rasterOverlayLayers.end())
+        {
+            m_rasterOverlayLayers.insert(AZStd::make_pair(rasterOverlay, m_freeRasterLayers.back()));
+            m_freeRasterLayers.pop_back();
+        }
+
+        return true;
+    }
+
+    void RenderResourcesPreparer::RemoveRasterLayer(const Cesium3DTilesSelection::RasterOverlay* rasterOverlay)
+    {
+        auto layerIt = m_rasterOverlayLayers.find(rasterOverlay);
+        if (layerIt == m_rasterOverlayLayers.end())
+        {
+            return;
+        }
+
+        m_rasterOverlayLayers.erase(layerIt);
+        m_freeRasterLayers.emplace_back(layerIt->second);
     }
 
     void* RenderResourcesPreparer::prepareInLoadThread(const CesiumGltf::Model& model, const glm::dmat4& transform)
@@ -226,16 +260,13 @@ namespace Cesium
             if (tileRenderResource && mainThreadRasterResources)
             {
                 // find the layer of the raster
-                const auto& tileset = tile.getTileset();
-                const auto& rasterOverlays = tileset->getOverlays();
                 const auto& currentRasterOverlay = rasterTile.getOverlay();
-                auto it = AZStd::find_if(
-                    rasterOverlays.begin(), rasterOverlays.end(),
-                    [&currentRasterOverlay](const auto& overlay)
-                    {
-                        return overlay.get() == &currentRasterOverlay;
-                    });
-                std::uint32_t layer = static_cast<std::uint32_t>(it - rasterOverlays.begin());
+                auto layerIt = m_rasterOverlayLayers.find(&currentRasterOverlay);
+                if (layerIt == m_rasterOverlayLayers.end())
+                {
+                    return;
+                }
+                std::uint32_t layer = layerIt->second;
 
                 IntrusiveGltfModel* intrusiveGltfModel = reinterpret_cast<IntrusiveGltfModel*>(tileRenderResource);
                 RasterOverlay* rasterOverlay = reinterpret_cast<RasterOverlay*>(mainThreadRasterResources);
@@ -262,7 +293,7 @@ namespace Cesium
     void RenderResourcesPreparer::detachRasterInMainThread(
         const Cesium3DTilesSelection::Tile& tile,
         [[maybe_unused]] std::int32_t overlayTextureCoordinateID,
-        [[maybe_unused]] const Cesium3DTilesSelection::RasterOverlayTile& rasterTile,
+        const Cesium3DTilesSelection::RasterOverlayTile& rasterTile,
         void* mainThreadRasterResources) noexcept
     {
         if (tile.getState() == Cesium3DTilesSelection::Tile::LoadState::Done)
@@ -271,16 +302,13 @@ namespace Cesium
             if (tileRenderResource && mainThreadRasterResources)
             {
                 // find the layer of the raster
-                const auto& tileset = tile.getTileset();
-                const auto& rasterOverlays = tileset->getOverlays();
                 const auto& currentRasterOverlay = rasterTile.getOverlay();
-                auto it = AZStd::find_if(
-                    rasterOverlays.begin(), rasterOverlays.end(),
-                    [&currentRasterOverlay](const auto& overlay)
-                    {
-                        return overlay.get() == &currentRasterOverlay;
-                    });
-                std::uint32_t layer = static_cast<std::uint32_t>(it - rasterOverlays.begin());
+                auto layerIt = m_rasterOverlayLayers.find(&currentRasterOverlay);
+                if (layerIt == m_rasterOverlayLayers.end())
+                {
+                    return;
+                }
+                std::uint32_t layer = layerIt->second;
 
                 IntrusiveGltfModel* intrusiveGltfModel = reinterpret_cast<IntrusiveGltfModel*>(tileRenderResource);
                 GltfRasterMaterialBuilder materialBuilder;

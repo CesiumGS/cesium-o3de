@@ -33,6 +33,8 @@ namespace Cesium
 
         bool UnsetRasterForMaterial(std::uint32_t rasterLayer, AZ::Data::Instance<AZ::RPI::Material>& material);
 
+        static constexpr std::uint32_t MAX_RASTER_LAYERS = 2;
+
     private:
         GltfPBRMaterialBuilder m_pbrMaterialBuilder;
         AZ::Data::Asset<AZ::RPI::MaterialTypeAsset> m_overrideMaterialTypeAsset;

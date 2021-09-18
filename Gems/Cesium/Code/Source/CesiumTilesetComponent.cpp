@@ -468,8 +468,11 @@ namespace Cesium
         {
             if (m_tileset)
             {
-                m_tileset->getOverlays().add(std::move(rasterOverlay));
-                return true;
+                if (m_renderResourcesPreparer->AddRasterLayer(rasterOverlay.get()))
+                {
+                    m_tileset->getOverlays().add(std::move(rasterOverlay));
+                    return true;
+                }
             }
 
             return false;
@@ -480,6 +483,7 @@ namespace Cesium
             if (m_tileset)
             {
                 m_tileset->getOverlays().remove(rasterOverlay);
+                m_renderResourcesPreparer->RemoveRasterLayer(rasterOverlay);
             }
         }
 
