@@ -59,12 +59,6 @@ namespace Cesium
 
         static void Reflect(AZ::ReflectContext* context);
 
-        void Init() override;
-
-        void Activate() override;
-
-        void Deactivate() override;
-
         const AZStd::optional<BingRasterOverlaySource>& GetCurrentSource() const;
 
         void LoadRasterOverlay(const BingRasterOverlaySource& source);
@@ -78,6 +72,12 @@ namespace Cesium
         bool IsEnable() const;
 
     private:
+        void Init() override;
+
+        void Activate() override;
+
+        void Deactivate() override;
+
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
 
         void LoadRasterOverlayImpl(

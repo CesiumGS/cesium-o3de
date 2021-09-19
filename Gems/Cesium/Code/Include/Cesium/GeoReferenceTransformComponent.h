@@ -15,12 +15,6 @@ namespace Cesium
 
         static void Reflect(AZ::ReflectContext* context);
 
-        void Init() override;
-
-        void Activate() override;
-
-        void Deactivate() override;
-
         void SetECEFCoordOrigin(const glm::dvec3& origin) override;
 
         const glm::dvec3& GetECEFCoordOrigin() const override;
@@ -42,6 +36,12 @@ namespace Cesium
         void BindTransformEnableEventHandler(TransformEnableEvent::Handler& handler) override;
 
     private:
+        void Init() override;
+
+        void Activate() override;
+
+        void Deactivate() override;
+
         CoordinateTransformConfiguration m_config;
         TransformChangeEvent m_transformChangeEvent;
         TransformEnableEvent m_enableEvent;

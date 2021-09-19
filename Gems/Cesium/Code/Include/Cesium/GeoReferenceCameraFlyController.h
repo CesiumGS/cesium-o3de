@@ -26,12 +26,6 @@ namespace Cesium
 
         GeoReferenceCameraFlyController();
 
-        void Init() override;
-
-        void Activate() override;
-
-        void Deactivate() override;
-
         void SetEnable(bool enable) override;
 
         bool IsEnable() const override;
@@ -55,6 +49,12 @@ namespace Cesium
         void BindCameraTransitionFlyEventHandler(CameraTransitionFlyEvent::Handler& handler) override;
 
     private:
+        void Init() override;
+
+        void Activate() override;
+
+        void Deactivate() override;
+
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
 
         void ProcessBeginFlyState();
