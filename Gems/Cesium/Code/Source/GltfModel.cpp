@@ -158,6 +158,7 @@ namespace Cesium
         }
 
         m_meshes.clear();
+        m_materials.clear();
     }
 
     void GltfModel::ConvertMat4ToTransformAndScale(const glm::dmat4& mat4, AZ::Transform& o3deTransform, AZ::Vector3& o3deScale)
