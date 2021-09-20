@@ -3,8 +3,15 @@
 #include "GenericIOManager.h"
 #include <CesiumAsync/AsyncSystem.h>
 #include <CesiumAsync/Future.h>
-#include <AzCore/Jobs/JobManager.h>
-#include <AzCore/Jobs/JobContext.h>
+#include <AzCore/std/parallel/mutex.h>
+#include <AzCore/std/smart_ptr/unique_ptr.h>
+
+namespace AZ
+{
+    class JobManager;
+    class JobContext;
+    class Job;
+}
 
 namespace Cesium
 {
@@ -27,7 +34,11 @@ namespace Cesium
         CesiumAsync::Future<IOContent> GetFileContentAsync(
             const CesiumAsync::AsyncSystem& asyncSystem, IORequestParameter&& request) override;
 
+        void Dispatch() override;
+
     private:
+        AZStd::mutex m_jobMutex;
+        AZStd::vector<AZ::Job*> m_jobQueues;
         AZStd::unique_ptr<AZ::JobManager> m_ioJobManager;
         AZStd::unique_ptr<AZ::JobContext> m_ioJobContext;
     };

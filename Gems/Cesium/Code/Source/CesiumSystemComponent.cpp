@@ -154,6 +154,8 @@ namespace Cesium
 
     void CesiumSystemComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
     {
+        m_httpManager->Dispatch();
+        m_localFileManager->Dispatch();
     }
 
 } // namespace Cesium

@@ -2,6 +2,8 @@
 #include <CesiumAsync/Promise.h>
 #include <AzCore/StringFunc/StringFunc.h>
 #include <AzCore/IO/FileIO.h>
+#include <AzCore/Jobs/JobManager.h>
+#include <AzCore/Jobs/JobContext.h>
 #include <AzCore/Jobs/JobFunction.h>
 
 namespace Cesium
@@ -113,7 +115,12 @@ namespace Cesium
         auto promise = asyncSystem.createPromise<IOContent>();
         AZ::Job* job =
             aznew AZ::JobFunction<std::function<void()>>(RequestHandler{ request, promise }, true, m_ioJobContext.get());
-        job->Start();
+
+        // add job to the queue to be processed later
+        {
+            AZStd::lock_guard guard(m_jobMutex);
+            m_jobQueues.emplace_back(job);
+        }
         return promise.getFuture();
     }
 
@@ -123,8 +130,27 @@ namespace Cesium
         auto promise = asyncSystem.createPromise<IOContent>();
         AZ::Job* job =
             aznew AZ::JobFunction<std::function<void()>>(RequestHandler{ std::move(request), promise }, true, m_ioJobContext.get());
-        job->Start();
+
+        // add job to the queue to be processed later
+        {
+            AZStd::lock_guard guard(m_jobMutex);
+            m_jobQueues.emplace_back(job);
+        }
         return promise.getFuture();
     }
 
+    void LocalFileManager::Dispatch()
+    {
+        AZStd::vector<AZ::Job*> pendingJobs;
+
+        {
+            AZStd::lock_guard guard(m_jobMutex);
+            AZStd::swap(pendingJobs, m_jobQueues);
+        }
+
+        for (auto job : pendingJobs)
+        {
+            job->Start();
+        }
+    }
 } // namespace Cesium
