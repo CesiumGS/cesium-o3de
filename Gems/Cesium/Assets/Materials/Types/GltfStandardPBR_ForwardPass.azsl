@@ -95,13 +95,11 @@ VSOutput StandardPbr_ForwardPassVS(VSInput IN)
     float2 rasterUv[RasterUvSetCount] = { IN.m_raster_uv0, IN.m_raster_uv1 };
 
     if (raster0_o_raster_useRaster) {
-        float2 transformUv = rasterUv[MaterialSrg::raster0_m_rasterMapUvIndex] * MaterialSrg::raster0_m_uvTranslateScale.zw + MaterialSrg::raster0_m_uvTranslateScale.xy; 
-        OUT.m_rasterUv[MaterialSrg::raster0_m_rasterMapUvIndex] = float2(transformUv.x, 1.0 - transformUv.y);
+        OUT.m_rasterUv[MaterialSrg::raster0_m_rasterMapUvIndex] = rasterUv[MaterialSrg::raster0_m_rasterMapUvIndex];
     }
 
     if (raster1_o_raster_useRaster) {
-        float2 transformUv = rasterUv[MaterialSrg::raster1_m_rasterMapUvIndex] * MaterialSrg::raster1_m_uvTranslateScale.zw + MaterialSrg::raster1_m_uvTranslateScale.xy; 
-        OUT.m_rasterUv[MaterialSrg::raster1_m_rasterMapUvIndex] = float2(transformUv.x, 1.0 - transformUv.y);
+        OUT.m_rasterUv[MaterialSrg::raster1_m_rasterMapUvIndex] = rasterUv[MaterialSrg::raster1_m_rasterMapUvIndex];
     }
 
     // Shadow coords will be calculated in the pixel shader in this case
@@ -115,16 +113,18 @@ VSOutput StandardPbr_ForwardPassVS(VSInput IN)
 
 // ---------- Pixel Shader ----------
 
-#define BLEND_RASTER(prefix, output) \
+#define BLEND_RASTER(prefix, output, vertexUvs) \
 if (prefix##_o_raster_useRaster) { \
-    float3 prefix##_color = GetRasterColorInput(MaterialSrg::prefix##_m_rasterMap, MaterialSrg::m_sampler, vertexUVs[MaterialSrg::prefix##_m_rasterMapUvIndex]); \
+    float2 transformUv = vertexUvs[MaterialSrg::prefix##_m_rasterMapUvIndex] * MaterialSrg::prefix##_m_uvTranslateScale.zw + MaterialSrg::prefix##_m_uvTranslateScale.xy; \
+    transformUv.y = 1.0 - transformUv.y; \
+    float3 prefix##_color = GetRasterColorInput(MaterialSrg::prefix##_m_rasterMap, MaterialSrg::m_sampler, transformUv); \
     output = BlendBaseColor(output, prefix##_color, 1.0, prefix##_o_rasterTextureBlendMode, true); \
 }
 
-float3 BlendRasterColor(float3 baseColor, float2 vertexUVs[RasterUvSetCount]) 
+float3 BlendRasterColor(float3 baseColor, float2 vertexUvs[RasterUvSetCount]) 
 {
-    BLEND_RASTER(raster0, baseColor)
-    BLEND_RASTER(raster1, baseColor)
+    BLEND_RASTER(raster0, baseColor, vertexUvs)
+    BLEND_RASTER(raster1, baseColor, vertexUvs)
     return baseColor;
 }
 
