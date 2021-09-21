@@ -49,6 +49,7 @@ namespace Cesium
 
     void HttpAssetAccessor::tick() noexcept
     {
+        m_httpManager->Dispatch();
     }
 
     std::string HttpAssetAccessor::ConvertMethodToString(Aws::Http::HttpMethod method)
