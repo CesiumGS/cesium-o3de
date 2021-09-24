@@ -105,15 +105,15 @@ namespace Cesium
 
         void CreateFlatNormal();
 
-        AZ::Data::Asset<AZ::RPI::BufferAsset> CreateIndicesBufferAsset(
-            const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive);
+        void CopySubregionBuffer(AZStd::vector<std::byte>& buffer, const void* src, const AZ::RHI::BufferViewDescriptor& descriptor);
 
-        AZ::Data::Asset<AZ::RPI::BufferAsset> CreateUnIndexedIndicesBufferAsset();
+        void CopyIndicesToSubregionBuffer(AZStd::vector<std::byte>& buffer, const AZ::RHI::BufferViewDescriptor& descriptor);
+
+        void CopyUnIndexedIndicesToSubregionBuffer(AZStd::vector<std::byte>& buffer, const AZ::RHI::BufferViewDescriptor& descriptor);
 
         void Reset();
 
-        static AZ::Data::Asset<AZ::RPI::BufferAsset> CreateBufferAsset(
-            const void* data, const std::size_t elementCount, AZ::RHI::Format format);
+        static AZ::Data::Asset<AZ::RPI::BufferAsset> CreateBufferAsset(const AZStd::vector<std::byte>& buffer);
 
         static AZ::Aabb CreateAabbFromPositions(const CesiumGltf::AccessorView<glm::vec3>& positionAccessorView);
 

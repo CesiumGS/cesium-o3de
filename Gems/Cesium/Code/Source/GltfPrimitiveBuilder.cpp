@@ -1,5 +1,6 @@
 #include "GltfPrimitiveBuilder.h"
 #include "BitangentAndTangentGenerator.h"
+#include "MathHelper.h"
 
 // Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
 // This only happens with unity build
@@ -154,98 +155,166 @@ namespace Cesium
         CreateTangentsAndBitangentsAttributes(commonAccessorViews);
         CreateCustomAttributes(model, primitive, material);
 
-        // create buffer assets for required vertex attributes
-        auto indicesBuffer = CreateIndicesBufferAsset(model, primitive);
-        auto positionBuffer = CreateBufferAsset(m_positions.data(), m_positions.size(), AZ::RHI::Format::R32G32B32_FLOAT);
-        auto normalBuffer = CreateBufferAsset(m_normals.data(), m_normals.size(), AZ::RHI::Format::R32G32B32_FLOAT);
-        auto tangentBuffer = CreateBufferAsset(m_tangents.data(), m_tangents.size(), AZ::RHI::Format::R32G32B32A32_FLOAT);
-        auto bitangentBuffer = CreateBufferAsset(m_bitangents.data(), m_bitangents.size(), AZ::RHI::Format::R32G32B32_FLOAT);
+        // calculate buffer view descriptor for each attribute and total buffer size to store all of them
+        // in a single buffer
+        auto positionBufferViewDescriptor =
+            AZ::RHI::BufferViewDescriptor::CreateTyped(0, static_cast<std::uint32_t>(m_positions.size()), AZ::RHI::Format::R32G32B32_FLOAT);
+        std::size_t totalBufferSize = m_positions.size() * sizeof(glm::vec3);
 
-        AZ::Data::Asset<AZ::RPI::BufferAsset> uvDummyBuffer;
-        AZStd::array<AZ::Data::Asset<AZ::RPI::BufferAsset>, 2> uvBuffers;
+        std::size_t normalByteOffset = MathHelper::Align(totalBufferSize, sizeof(glm::vec3));
+        auto normalBufferViewDescriptor = AZ::RHI::BufferViewDescriptor::CreateTyped(
+            static_cast<std::uint32_t>(normalByteOffset / sizeof(glm::vec3)), static_cast<std::uint32_t>(m_normals.size()),
+            AZ::RHI::Format::R32G32B32_FLOAT);
+        totalBufferSize = normalByteOffset + m_normals.size() * sizeof(glm::vec3);
+
+        std::size_t bitangentByteOffset = MathHelper::Align(totalBufferSize, sizeof(glm::vec3));
+        auto bitangentBufferViewDescriptor = AZ::RHI::BufferViewDescriptor::CreateTyped(
+            static_cast<std::uint32_t>(bitangentByteOffset / sizeof(glm::vec3)), static_cast<std::uint32_t>(m_bitangents.size()),
+            AZ::RHI::Format::R32G32B32_FLOAT);
+        totalBufferSize = bitangentByteOffset + m_bitangents.size() * sizeof(glm::vec3);
+
+        std::size_t tangentByteOffset = MathHelper::Align(totalBufferSize, sizeof(glm::vec4));
+        auto tangentBufferViewDescriptor = AZ::RHI::BufferViewDescriptor::CreateTyped(
+            static_cast<std::uint32_t>(tangentByteOffset / sizeof(glm::vec4)), static_cast<std::uint32_t>(m_tangents.size()),
+            AZ::RHI::Format::R32G32B32A32_FLOAT);
+        totalBufferSize = tangentByteOffset + m_tangents.size() * sizeof(glm::vec4);
+
+        AZStd::array<AZ::RHI::BufferViewDescriptor, 2> uvBufferViewDescriptors;
+        for (std::size_t i = 0; i < uvBufferViewDescriptors.size(); ++i)
+        {
+            if (!m_uvs[i].m_buffer.empty())
+            {
+                std::size_t formatSize = AZ::RHI::GetFormatSize(m_uvs[i].m_format);
+                std::size_t offset = MathHelper::Align(totalBufferSize, formatSize);
+                uvBufferViewDescriptors[i] = AZ::RHI::BufferViewDescriptor::CreateTyped(
+                    static_cast<std::uint32_t>(offset / formatSize), static_cast<std::uint32_t>(m_uvs[i].m_elementCount),
+                    m_uvs[i].m_format);
+                totalBufferSize = offset + m_uvs[i].m_buffer.size();
+            }
+            else
+            {
+                // since this UVs buffer is empty, we just assign its region to tangent buffer as dummy buffer since we don't
+                // care about its value anyway and tangent offset is also a multiple of R32G32_FLOAT size
+                std::size_t formatSize = AZ::RHI::GetFormatSize(AZ::RHI::Format::R32G32_FLOAT);
+                std::size_t offset = tangentByteOffset;
+                uvBufferViewDescriptors[i] = AZ::RHI::BufferViewDescriptor::CreateTyped(
+                    static_cast<std::uint32_t>(offset / formatSize), static_cast<std::uint32_t>(m_tangents.size()),
+                    AZ::RHI::Format::R32G32_FLOAT);
+            }
+        }
+
+        AZStd::vector<AZ::RHI::BufferViewDescriptor> customAttribBufferViewDescriptors;
+        if (!m_customAttributes.empty())
+        {
+            customAttribBufferViewDescriptors.reserve(m_customAttributes.size());
+            for (const auto& customAttribute : m_customAttributes)
+            {
+                std::size_t formatSize = AZ::RHI::GetFormatSize(customAttribute.m_buffer.m_format);
+                std::size_t offset = MathHelper::Align(totalBufferSize, formatSize);
+                customAttribBufferViewDescriptors.emplace_back(AZ::RHI::BufferViewDescriptor::CreateTyped(
+                    static_cast<std::uint32_t>(offset / formatSize), static_cast<std::uint32_t>(customAttribute.m_buffer.m_elementCount),
+                    customAttribute.m_buffer.m_format));
+                totalBufferSize = offset + customAttribute.m_buffer.m_buffer.size();
+            }
+        }
+
+        AZ::RHI::BufferViewDescriptor indicesBufferViewDescriptor;
+        if (m_context.m_generateUnIndexedMesh || m_indices.empty())
+        {
+            if (m_positions.size() < static_cast<std::size_t>(AZStd::numeric_limits<std::uint16_t>::max()))
+            {
+                std::size_t offset = MathHelper::Align(totalBufferSize, sizeof(std::uint16_t));
+                indicesBufferViewDescriptor = AZ::RHI::BufferViewDescriptor::CreateTyped(
+                    static_cast<std::uint32_t>(offset / sizeof(std::uint16_t)), static_cast<std::uint32_t>(m_positions.size()),
+                    AZ::RHI::Format::R16_UINT);
+                totalBufferSize = offset + m_positions.size() * sizeof(std::uint16_t);
+            }
+            else
+            {
+                std::size_t offset = MathHelper::Align(totalBufferSize, sizeof(std::uint32_t));
+                indicesBufferViewDescriptor = AZ::RHI::BufferViewDescriptor::CreateTyped(
+                    static_cast<std::uint32_t>(offset / sizeof(std::uint32_t)), static_cast<std::uint32_t>(m_positions.size()),
+                    AZ::RHI::Format::R32_UINT);
+                totalBufferSize = offset + m_positions.size() * sizeof(std::uint32_t);
+            }
+        }
+        else
+        {
+            const CesiumGltf::Accessor* accessor = model.getSafe<CesiumGltf::Accessor>(&model.accessors, primitive.indices);
+            if (accessor->componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_BYTE ||
+                accessor->componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_SHORT)
+            {
+                std::size_t offset = MathHelper::Align(totalBufferSize, sizeof(std::uint16_t));
+                indicesBufferViewDescriptor = AZ::RHI::BufferViewDescriptor::CreateTyped(
+                    static_cast<std::uint32_t>(offset / sizeof(std::uint16_t)), static_cast<std::uint32_t>(m_indices.size()),
+                    AZ::RHI::Format::R16_UINT);
+                totalBufferSize = offset + m_indices.size() * sizeof(std::uint16_t);
+            }
+            else if (accessor->componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_INT)
+            {
+                std::size_t offset = MathHelper::Align(totalBufferSize, sizeof(std::uint32_t));
+                indicesBufferViewDescriptor = AZ::RHI::BufferViewDescriptor::CreateTyped(
+                    static_cast<std::uint32_t>(offset / sizeof(std::uint32_t)), static_cast<std::uint32_t>(m_indices.size()),
+                    AZ::RHI::Format::R32_UINT);
+                totalBufferSize = offset + m_indices.size() * sizeof(std::uint32_t);
+            }
+        }
+
+        // populate the raw buffer with attributes data
+        AZStd::vector<std::byte> buffer;
+        buffer.resize_no_construct(totalBufferSize);
+        CopyIndicesToSubregionBuffer(buffer, indicesBufferViewDescriptor);
+        CopySubregionBuffer(buffer, m_positions.data(), positionBufferViewDescriptor);
+        CopySubregionBuffer(buffer, m_normals.data(), normalBufferViewDescriptor);
+        CopySubregionBuffer(buffer, m_bitangents.data(), bitangentBufferViewDescriptor);
+        CopySubregionBuffer(buffer, m_tangents.data(), tangentBufferViewDescriptor);
+
         for (std::size_t i = 0; i < m_uvs.size(); ++i)
         {
             if (!m_uvs[i].m_buffer.empty())
             {
-                uvBuffers[i] = CreateBufferAsset(m_uvs[i].m_buffer.data(), m_uvs[i].m_elementCount, m_uvs[i].m_format);
-            }
-            else
-            {
-                // create only one dummy buffer and shared between uv to save GPU memory
-                if (!uvDummyBuffer)
-                {
-                    AZStd::vector<std::uint8_t> uvs(2 * m_positions.size(), 0);
-                    uvDummyBuffer = CreateBufferAsset(uvs.data(), uvs.size() / 2, AZ::RHI::Format::R8G8_UNORM);
-                }
-
-                uvBuffers[i] = uvDummyBuffer;
+                CopySubregionBuffer(buffer, m_uvs[i].m_buffer.data(), uvBufferViewDescriptors[i]);
             }
         }
 
-        // create buffer assets for custom attributes
-        AZStd::vector<AZ::Data::Asset<AZ::RPI::BufferAsset>> customAttributeBuffers;
-        if (!m_customAttributes.empty())
+        for (std::size_t i = 0; i < m_customAttributes.size(); ++i)
         {
-            customAttributeBuffers.reserve(m_customAttributes.size());
-            for (const auto& customAttribute : m_customAttributes)
+            if (!m_customAttributes[i].m_buffer.m_buffer.empty())
             {
-                customAttributeBuffers.emplace_back(CreateBufferAsset(
-                    customAttribute.m_buffer.m_buffer.data(), customAttribute.m_buffer.m_elementCount, customAttribute.m_buffer.m_format));
+                CopySubregionBuffer(buffer, m_customAttributes[i].m_buffer.m_buffer.data(), customAttribBufferViewDescriptors[i]);
             }
         }
+
+        AZ::Data::Asset<AZ::RPI::BufferAsset> bufferAsset = CreateBufferAsset(buffer);
 
         // create LOD asset
         AZ::RPI::ModelLodAssetCreator lodCreator;
         lodCreator.Begin(AZ::Uuid::CreateRandom());
-        lodCreator.AddLodStreamBuffer(indicesBuffer);
-        lodCreator.AddLodStreamBuffer(positionBuffer);
-        lodCreator.AddLodStreamBuffer(normalBuffer);
-        lodCreator.AddLodStreamBuffer(tangentBuffer);
-        lodCreator.AddLodStreamBuffer(bitangentBuffer);
-
-        for (std::size_t i = 0; i < uvBuffers.size(); ++i)
-        {
-            if (uvBuffers[i])
-            {
-                lodCreator.AddLodStreamBuffer(uvBuffers[i]);
-            }
-        }
-
-        for (const auto& buffer : customAttributeBuffers)
-        {
-            lodCreator.AddLodStreamBuffer(buffer);
-        }
+        lodCreator.AddLodStreamBuffer(bufferAsset);
 
         // create mesh
         lodCreator.BeginMesh();
-        lodCreator.SetMeshIndexBuffer(AZ::RPI::BufferAssetView(indicesBuffer, indicesBuffer->GetBufferViewDescriptor()));
+        lodCreator.SetMeshIndexBuffer(AZ::RPI::BufferAssetView(bufferAsset, indicesBufferViewDescriptor));
         lodCreator.AddMeshStreamBuffer(
-            AZ::RHI::ShaderSemantic("POSITION"), AZ::Name(),
-            AZ::RPI::BufferAssetView(positionBuffer, positionBuffer->GetBufferViewDescriptor()));
+            AZ::RHI::ShaderSemantic("POSITION"), AZ::Name(), AZ::RPI::BufferAssetView(bufferAsset, positionBufferViewDescriptor));
         lodCreator.AddMeshStreamBuffer(
-            AZ::RHI::ShaderSemantic("NORMAL"), AZ::Name(), AZ::RPI::BufferAssetView(normalBuffer, normalBuffer->GetBufferViewDescriptor()));
+            AZ::RHI::ShaderSemantic("NORMAL"), AZ::Name(), AZ::RPI::BufferAssetView(bufferAsset, normalBufferViewDescriptor));
         lodCreator.AddMeshStreamBuffer(
-            AZ::RHI::ShaderSemantic("TANGENT"), AZ::Name(),
-            AZ::RPI::BufferAssetView(tangentBuffer, tangentBuffer->GetBufferViewDescriptor()));
+            AZ::RHI::ShaderSemantic("BITANGENT"), AZ::Name(), AZ::RPI::BufferAssetView(bufferAsset, bitangentBufferViewDescriptor));
         lodCreator.AddMeshStreamBuffer(
-            AZ::RHI::ShaderSemantic("BITANGENT"), AZ::Name(),
-            AZ::RPI::BufferAssetView(bitangentBuffer, bitangentBuffer->GetBufferViewDescriptor()));
+            AZ::RHI::ShaderSemantic("TANGENT"), AZ::Name(), AZ::RPI::BufferAssetView(bufferAsset, tangentBufferViewDescriptor));
 
-        for (std::size_t i = 0; i < uvBuffers.size(); ++i)
+        for (std::size_t i = 0; i < uvBufferViewDescriptors.size(); ++i)
         {
-            if (uvBuffers[i])
-            {
-                lodCreator.AddMeshStreamBuffer(
-                    AZ::RHI::ShaderSemantic("UV", i), AZ::Name(),
-                    AZ::RPI::BufferAssetView(uvBuffers[i], uvBuffers[i]->GetBufferViewDescriptor()));
-            }
+            lodCreator.AddMeshStreamBuffer(
+                AZ::RHI::ShaderSemantic("UV", i), AZ::Name(), AZ::RPI::BufferAssetView(bufferAsset, uvBufferViewDescriptors[i]));
         }
 
         for (std::size_t i = 0; i < m_customAttributes.size(); ++i)
         {
             lodCreator.AddMeshStreamBuffer(
                 m_customAttributes[i].m_shaderAttribute.m_shaderSemantic, m_customAttributes[i].m_shaderAttribute.m_shaderAttributeName,
-                AZ::RPI::BufferAssetView(customAttributeBuffers[i], customAttributeBuffers[i]->GetBufferViewDescriptor()));
+                AZ::RPI::BufferAssetView(bufferAsset, customAttribBufferViewDescriptors[i]));
         }
 
         lodCreator.SetMeshAabb(std::move(aabb));
@@ -340,17 +409,21 @@ namespace Cesium
         }
     }
 
-    AZ::Data::Asset<AZ::RPI::BufferAsset> GltfTrianglePrimitiveBuilder::CreateBufferAsset(
-        const void* data, const std::size_t elementCount, AZ::RHI::Format format)
+    AZ::Data::Asset<AZ::RPI::BufferAsset> GltfTrianglePrimitiveBuilder::CreateBufferAsset(const AZStd::vector<std::byte>& buffer)
     {
-        AZ::RHI::BufferViewDescriptor bufferViewDescriptor = AZ::RHI::BufferViewDescriptor::CreateTyped(0, static_cast<std::uint32_t>(elementCount), format);
+        AZ::RHI::BufferViewDescriptor bufferViewDescriptor;
+        bufferViewDescriptor.m_elementOffset = 0;
+        bufferViewDescriptor.m_elementCount = static_cast<std::uint32_t>(buffer.size());
+        bufferViewDescriptor.m_elementSize = sizeof(std::uint8_t);
+        bufferViewDescriptor.m_elementFormat = AZ::RHI::Format::R8_UINT;
+
         AZ::RHI::BufferDescriptor bufferDescriptor;
         bufferDescriptor.m_bindFlags = AZ::RHI::BufferBindFlags::InputAssembly | AZ::RHI::BufferBindFlags::ShaderRead;
         bufferDescriptor.m_byteCount = bufferViewDescriptor.m_elementCount * bufferViewDescriptor.m_elementSize;
 
         AZ::RPI::BufferAssetCreator creator;
         creator.Begin(AZ::Uuid::CreateRandom());
-        creator.SetBuffer(data, bufferDescriptor.m_byteCount, bufferDescriptor);
+        creator.SetBuffer(buffer.data(), bufferDescriptor.m_byteCount, bufferDescriptor);
         creator.SetBufferViewDescriptor(bufferViewDescriptor);
         creator.SetUseCommonPool(AZ::RPI::CommonBufferPoolType::StaticInputAssembly);
 
@@ -774,72 +847,64 @@ namespace Cesium
         }
     }
 
-    AZ::Data::Asset<AZ::RPI::BufferAsset> GltfTrianglePrimitiveBuilder::CreateIndicesBufferAsset(
-        const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive)
+    void GltfTrianglePrimitiveBuilder::CopySubregionBuffer(AZStd::vector<std::byte>& buffer, const void* src, const AZ::RHI::BufferViewDescriptor& descriptor)
+    {
+        std::size_t offset = descriptor.m_elementOffset * descriptor.m_elementSize; 
+        std::size_t totalBytes = descriptor.m_elementCount * descriptor.m_elementSize;
+        memcpy(buffer.data() + offset, src, totalBytes);
+    }
+
+    void GltfTrianglePrimitiveBuilder::CopyIndicesToSubregionBuffer(
+        AZStd::vector<std::byte>& buffer, const AZ::RHI::BufferViewDescriptor& descriptor)
     {
         if (m_context.m_generateUnIndexedMesh || m_indices.empty())
         {
-            // because o3de requires to have indices, we will create generate an array of incremental indices 
-            return CreateUnIndexedIndicesBufferAsset();
+            // because o3de requires to have indices, we will create generate an array of incremental indices
+            CopyUnIndexedIndicesToSubregionBuffer(buffer, descriptor);
+            return;
         }
 
-        // this accessor should be a valid accessor since we check the validity of the indices before parsing the mesh
-        const CesiumGltf::Accessor* accessor = model.getSafe<CesiumGltf::Accessor>(&model.accessors, primitive.indices);
-        assert(accessor != nullptr);
-        assert(accessor->type == CesiumGltf::AccessorSpec::Type::SCALAR);
-
-        if (accessor->componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_BYTE ||
-            accessor->componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_SHORT)
+        if (descriptor.m_elementFormat == AZ::RHI::Format::R16_UINT)
         {
             // o3de doesn't support uin8_t indices buffer, so we pick the next smallest one which is uint16_t
-            AZStd::vector<std::uint16_t> data(m_indices.size());
-            for (std::size_t i = 0; i < data.size(); ++i)
+            std::size_t offset = descriptor.m_elementOffset * descriptor.m_elementSize;
+            std::uint16_t* indices = reinterpret_cast<std::uint16_t*>(buffer.data() + offset);
+            for (std::size_t i = 0; i < m_indices.size(); ++i)
             {
-                data[i] = static_cast<std::uint16_t>(m_indices[i]);
+                indices[i] = static_cast<std::uint16_t>(m_indices[i]);
             }
-
-            return CreateBufferAsset(data.data(), data.size(), AZ::RHI::Format::R16_UINT);
         }
-        else if (accessor->componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_INT)
+        else if (descriptor.m_elementFormat == AZ::RHI::Format::R32_UINT)
         {
-            AZStd::vector<std::uint32_t> data(m_indices.size());  
-            for (std::size_t i = 0; i < data.size(); ++i)
-            {
-                data[i] = static_cast<std::uint32_t>(m_indices[i]);
-            }
-
-            return CreateBufferAsset(data.data(), data.size(), AZ::RHI::Format::R32_UINT);
+            CopySubregionBuffer(buffer, m_indices.data(), descriptor);
         }
         else
         {
             // this code path should not run since we check the validity of indices accessor at the very beginning
             assert(false);
-            return AZ::Data::Asset<AZ::RPI::BufferAsset>();
         }
     }
 
-    AZ::Data::Asset<AZ::RPI::BufferAsset> GltfTrianglePrimitiveBuilder::CreateUnIndexedIndicesBufferAsset()
+    void GltfTrianglePrimitiveBuilder::CopyUnIndexedIndicesToSubregionBuffer(AZStd::vector<std::byte>& buffer, const AZ::RHI::BufferViewDescriptor& descriptor)
     {
         if (m_positions.size() < static_cast<std::size_t>(AZStd::numeric_limits<std::uint16_t>::max()))
         {
             // o3de doesn't support uint8_t indices, so we pick the next smallest one which is uint16_t
-            AZStd::vector<std::uint16_t> indices(m_positions.size());
-            for (std::size_t i = 0; i < indices.size(); ++i)
+            std::size_t offset = descriptor.m_elementOffset * descriptor.m_elementSize;
+            std::uint16_t* indices = reinterpret_cast<std::uint16_t*>(buffer.data() + offset);
+            for (std::size_t i = 0; i < m_positions.size(); ++i)
             {
                 indices[i] = static_cast<std::uint16_t>(i);
             }
-
-            return CreateBufferAsset(indices.data(), indices.size(), AZ::RHI::Format::R16_UINT);
         }
         else
         {
-            AZStd::vector<std::uint32_t> indices(m_positions.size());
-            for (std::size_t i = 0; i < indices.size(); ++i)
+            std::size_t offset = descriptor.m_elementOffset * descriptor.m_elementSize;
+            std::uint32_t* indices = reinterpret_cast<std::uint32_t*>(buffer.data() + offset);
+            for (std::size_t i = 0; i < m_positions.size(); ++i)
             {
                 indices[i] = static_cast<std::uint32_t>(i);
             }
-
-            return CreateBufferAsset(indices.data(), indices.size(), AZ::RHI::Format::R32_UINT);
         }
     }
 
