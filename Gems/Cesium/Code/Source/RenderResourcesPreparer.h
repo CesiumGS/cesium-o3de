@@ -113,7 +113,7 @@ namespace Cesium
     private:
         AZStd::optional<glm::dvec3> GetRTCFromGltf(const CesiumGltf::Model& model);
 
-        static constexpr char* CESIUM_RTC_CENTER_EXTRA = "RTC_CENTER";
+        static constexpr char CESIUM_RTC_CENTER_EXTRA[] = "RTC_CENTER";
 
         AZ::Render::MeshFeatureProcessorInterface* m_meshFeatureProcessor;
         AZ::StableDynamicArray<IntrusiveGltfModel> m_intrusiveModels;

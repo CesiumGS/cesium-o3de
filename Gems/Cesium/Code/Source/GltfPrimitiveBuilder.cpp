@@ -124,8 +124,9 @@ namespace Cesium
         if (positionAccessor->min.size() == 3 && positionAccessor->max.size() == 3)
         {
             aabb = AZ::Aabb::CreateFromMinMaxValues(
-                positionAccessor->min[0], positionAccessor->min[1], positionAccessor->min[2], positionAccessor->max[0],
-                positionAccessor->max[1], positionAccessor->max[2]);
+                static_cast<float>(positionAccessor->min[0]), static_cast<float>(positionAccessor->min[1]),
+                static_cast<float>(positionAccessor->min[2]), static_cast<float>(positionAccessor->max[0]),
+                static_cast<float>(positionAccessor->max[1]), static_cast<float>(positionAccessor->max[2]));
         }
         else
         {
