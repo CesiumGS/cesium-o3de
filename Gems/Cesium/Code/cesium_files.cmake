@@ -16,6 +16,8 @@ set(FILES
     Source/HttpManager.h
     Source/HttpAssetAccessor.cpp
     Source/HttpAssetAccessor.h
+    Source/TaskProcessor.cpp
+    Source/TaskProcessor.h
     Source/HttpManager.cpp
     Source/HttpManager.h
     Source/LocalFileManager.cpp
