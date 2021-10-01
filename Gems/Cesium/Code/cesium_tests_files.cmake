@@ -1,6 +1,11 @@
 
 set(FILES
     Tests/CesiumTest.cpp
+    Tests/BoundingRegionTest.cpp
+    Tests/OrientedBoundingBoxTest.cpp
+    Tests/BoundingSphereTest.cpp
+    Tests/GeospatialHelperTest.cpp
+    Tests/MathHelperTest.cpp
     Tests/PlatformInfoTest.cpp
     Tests/BitangentAndTangentGeneratorTest.cpp
     Tests/LoggerSinkTest.cpp
@@ -11,16 +16,24 @@ set(FILES
     Tests/HttpAssetAccessorTest.cpp
     Tests/GenericAssetAccessorTest.cpp
     Tests/TaskProcessorTest.cpp
+    Tests/InterpolatorTest.cpp
+    Tests/GeoReferenceInterpolatorTest.cpp
+    Tests/LinearInterpolatorTest.cpp
     Tests/RenderResourcesPreparerTest.cpp
     Tests/CesiumSystemComponentBusTest.cpp
     Tests/GltfModelComponentBusTest.cpp
     Tests/CesiumTilesetComponentBusTest.cpp
+    Tests/CoordinateTransformComponentBusTest.cpp
+    Tests/GeoReferenceCameraFlyControllerBusTest.cpp
     Tests/GltfLoadContextTest.cpp
     Tests/GltfPrimitiveBuilderTest.cpp
     Tests/GltfMaterialBuilderTest.cpp
     Tests/GltfModelBuilderTest.cpp
     Tests/GltfModelTest.cpp
+    Tests/WorldCompositionTest.cpp
+    Tests/GeoReferenceTransformComponentTest.cpp
     Tests/CesiumSystemComponentTest.cpp
     Tests/GltfModelComponentTest.cpp
     Tests/CesiumTilesetComponentTest.cpp
+    Tests/GeoReferenceCameraFlyControllerTest.cpp
 )

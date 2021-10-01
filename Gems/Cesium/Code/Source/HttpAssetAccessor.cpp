@@ -2,6 +2,7 @@
 #include "PlatformInfo.h"
 #include <cassert>
 #include <string>
+#include <zlib.h>
 
 namespace Cesium
 {
@@ -110,7 +111,65 @@ namespace Cesium
         std::uint16_t statusCode = static_cast<std::uint16_t>(response.GetResponseCode());
         std::string contentType = response.GetContentType().c_str();
         CesiumAsync::HttpHeaders headers = ConvertToCesiumHeaders(response.GetHeaders());
+
+        // try to decompress gzip if there are any
+        IOContent responseContent = HttpManager::GetResponseBodyContent(response);
+        auto contentEncoding = headers.find(CONTENT_ENCODING_HEADER_KEY);
+        if (contentEncoding != headers.end())
+        {
+            if (contentEncoding->second.find("gzip") != std::string::npos)
+            {
+                return std::make_unique<HttpAssetResponse>(
+                    statusCode, std::move(contentType), std::move(headers), DecodeGzip(responseContent));
+            }
+        }
+
         return std::make_unique<HttpAssetResponse>(
-            statusCode, std::move(contentType), std::move(headers), HttpManager::GetResponseBodyContent(response));
+            statusCode, std::move(contentType), std::move(headers), std::move(responseContent));
+    }
+
+    IOContent HttpAssetAccessor::DecodeGzip(IOContent& content)
+    {
+        z_stream zs; // z_stream is zlib's control structure
+        memset(&zs, 0, sizeof(zs));
+
+        if (inflateInit2(&zs, MAX_WBITS + 16) != Z_OK)
+        {
+            return std::move(content);
+        }
+
+        zs.next_in = reinterpret_cast<Bytef*>(content.data());
+        zs.avail_in = static_cast<uInt>(content.size());
+
+        int ret;
+        char outbuffer[32768];
+        IOContent output;
+
+        // get the decompressed bytes blockwise using repeated calls to inflate
+        do
+        {
+            zs.next_out = reinterpret_cast<Bytef*>(outbuffer);
+            zs.avail_out = sizeof(outbuffer);
+
+            ret = inflate(&zs, 0);
+
+            if (output.size() < zs.total_out)
+            {
+                std::size_t decompressSoFar = output.size();
+                std::size_t addSize = zs.total_out - output.size();
+                output.resize(output.size() + addSize);
+                std::memcpy(output.data() + decompressSoFar, outbuffer, addSize);
+            }
+
+        } while (ret == Z_OK);
+
+        inflateEnd(&zs);
+
+        if (ret != Z_STREAM_END)
+        {
+            return std::move(content);
+        }
+
+        return output;
     }
 } // namespace Cesium

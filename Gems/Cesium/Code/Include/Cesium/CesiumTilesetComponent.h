@@ -5,6 +5,8 @@
 #include <AzCore/Component/Component.h>
 #include <AzCore/Component/EntityId.h>
 #include <AzCore/Component/TickBus.h>
+#include <AzCore/Component/EntityBus.h>
+#include <AzCore/Component/TransformBus.h>
 #include <AzCore/std/smart_ptr/unique_ptr.h>
 
 namespace Cesium
@@ -12,7 +14,9 @@ namespace Cesium
     class CesiumTilesetComponent
         : public AZ::Component
         , public AZ::TickBus::Handler
+        , public AZ::EntityBus::Handler
         , public CesiumTilesetRequestBus::Handler
+        , private AZ::TransformNotificationBus::Handler
     {
     public:
         AZ_COMPONENT(CesiumTilesetComponent, "{56948418-6C82-4DF2-9A8D-C292C22FCBDF}", AZ::Component)
@@ -31,6 +35,10 @@ namespace Cesium
 
         const CesiumTilesetConfiguration& GetConfiguration() const override;
 
+        void SetCoordinateTransform(const AZ::EntityId& coordinateTransformEntityId) override;
+
+        TilesetBoundingVolume GetBoundingVolumeInECEF() const override;
+
         void AddCamera(const AZ::EntityId& cameraEntityId, const AzFramework::ViewportId& viewportId) override;
 
         void RemoveCamera(const AZ::EntityId& cameraEntityId) override;
@@ -44,7 +52,15 @@ namespace Cesium
     private:
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
 
+        void OnTransformChanged(const AZ::Transform& local, const AZ::Transform& world) override;
+
         class CameraConfigurations;
+        struct BoundingVolumeConverter;
+        struct BoundingVolumeTransform;
+        struct EntityWrapper;
+        struct LocalFileSource;
+        struct UrlSource;
+        struct CesiumIonSource;
         struct Impl;
         AZStd::unique_ptr<Impl> m_impl;
     };

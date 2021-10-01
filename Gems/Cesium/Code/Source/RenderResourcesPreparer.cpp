@@ -1,9 +1,10 @@
 #include "RenderResourcesPreparer.h"
 #include "GltfModelBuilder.h"
-#include "GltfModel.h"
 #include "GltfLoadContext.h"
+#include <CesiumUtility/JsonValue.h>
 #include <Atom/Feature/Mesh/MeshFeatureProcessorInterface.h>
 #include <AzCore/std/smart_ptr/unique_ptr.h>
+#include <glm/gtc/matrix_transform.hpp>
 
 // Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
 // This only happens with unity build
@@ -24,14 +25,59 @@ namespace Cesium
 {
     RenderResourcesPreparer::RenderResourcesPreparer(AZ::Render::MeshFeatureProcessorInterface* meshFeatureProcessor)
         : m_meshFeatureProcessor{ meshFeatureProcessor }
+        , m_transform{1.0}
     {
+    }
+
+    RenderResourcesPreparer::~RenderResourcesPreparer() noexcept
+    {
+        for (auto& intrusiveModel : m_intrusiveModels)
+        {
+            // move the handler out before free it. Otherwise, stack overflow
+            auto handler = std::move(intrusiveModel.m_self); 
+            handler.Free();
+        }
+    }
+
+    void RenderResourcesPreparer::SetTransform(const glm::dmat4& transform)
+    {
+        m_transform = transform;
+        for (auto& intrusiveModel : m_intrusiveModels)
+        {
+            intrusiveModel.m_model.SetTransform(transform);
+        }
+    }
+
+    const glm::dmat4& RenderResourcesPreparer::GetTransform() const
+    {
+        return m_transform;
+    }
+
+    void RenderResourcesPreparer::SetVisible(void* renderResources, bool visible)
+    {
+        if (renderResources)
+        {
+            IntrusiveGltfModel* intrusiveModel = reinterpret_cast<IntrusiveGltfModel*>(renderResources);
+            if (intrusiveModel->m_model.IsVisible() != visible)
+            {
+                intrusiveModel->m_model.SetVisible(visible);
+            }
+        }
     }
 
     void* RenderResourcesPreparer::prepareInLoadThread(const CesiumGltf::Model& model, const glm::dmat4& transform)
     {
+        // set option for model loaders. Especially RTC
+        GltfModelBuilderOption option{transform};
+        AZStd::optional<glm::dvec3> rtc = GetRTCFromGltf(model);
+        if (rtc)
+        {
+            option.m_transform = glm::translate(transform, rtc.value());
+        }
+
+        // build model
         AZStd::unique_ptr<GltfLoadModel> loadModel = AZStd::make_unique<GltfLoadModel>();
         GltfModelBuilder builder;
-        GltfModelBuilderOption option{transform};
         builder.Create(model, option, *loadModel);
         return loadModel.release();
     }
@@ -42,9 +88,12 @@ namespace Cesium
         {
             // we destroy loadModel after main thread is done
             AZStd::unique_ptr<GltfLoadModel> loadModel{ reinterpret_cast<GltfLoadModel*>(pLoadThreadResult) };
-            AZStd::unique_ptr<GltfModel> model = AZStd::make_unique<GltfModel>(m_meshFeatureProcessor, *loadModel);
-            model->SetVisible(false);
-            return model.release();
+            auto handle = m_intrusiveModels.emplace(GltfModel(m_meshFeatureProcessor, *loadModel));
+            IntrusiveGltfModel& intrusiveModel = *handle;
+            intrusiveModel.m_self = std::move(handle);
+            intrusiveModel.m_model.SetTransform(m_transform);
+            intrusiveModel.m_model.SetVisible(false);
+            return &intrusiveModel;
         }
 
         return nullptr;
@@ -60,8 +109,9 @@ namespace Cesium
 
         if (pMainThreadResult)
         {
-            GltfModel* model = reinterpret_cast<GltfModel*>(pMainThreadResult);
-            delete model;
+            IntrusiveGltfModel* intrusiveModel = reinterpret_cast<IntrusiveGltfModel*>(pMainThreadResult);
+            auto handler = std::move(intrusiveModel->m_self); // move the handler out before free it. Otherwise, stack overflow
+            handler.Free();
         }
     }
 
@@ -101,5 +151,32 @@ namespace Cesium
         [[maybe_unused]] void* pMainThreadRendererResources,
         [[maybe_unused]] const CesiumGeometry::Rectangle& textureCoordinateRectangle) noexcept
     {
+    }
+
+    AZStd::optional<glm::dvec3> RenderResourcesPreparer::GetRTCFromGltf(const CesiumGltf::Model& model)
+    {
+        const CesiumUtility::JsonValue& extras = model.extras;
+        const CesiumUtility::JsonValue* rtcObj = extras.getValuePtrForKey(CESIUM_RTC_CENTER_EXTRA);
+        if (!rtcObj)
+        {
+            return AZStd::nullopt;
+        }
+
+        if (!rtcObj->isArray())
+        {
+            return AZStd::nullopt;
+        }
+
+        const auto& array = rtcObj->getArray();
+        if (array.size() != 3)
+        {
+            return AZStd::nullopt;
+        }
+
+        glm::dvec3 rtc{0.0};
+        rtc.x = array[0].getDoubleOrDefault(0.0);
+        rtc.y = array[1].getDoubleOrDefault(0.0);
+        rtc.z = array[2].getDoubleOrDefault(0.0);
+        return rtc;
     }
 } // namespace Cesium

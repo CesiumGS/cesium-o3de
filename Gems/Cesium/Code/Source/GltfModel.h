@@ -26,6 +26,14 @@ namespace Cesium
     public:
         GltfModel(AZ::Render::MeshFeatureProcessorInterface* meshFeatureProcessor, const GltfLoadModel& loadModel);
 
+        GltfModel(const GltfModel&) = delete;
+
+        GltfModel(GltfModel&&) noexcept;
+
+        GltfModel& operator=(const GltfModel&) = delete;
+
+        GltfModel& operator=(GltfModel&&) noexcept;
+
         ~GltfModel() noexcept;
 
         bool IsVisible() const;

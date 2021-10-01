@@ -3,17 +3,17 @@
 #include "GltfModelBuilder.h"
 #include "GltfLoadContext.h"
 #include "CesiumSystemComponentBus.h"
+#include "MathHelper.h"
 #include <Atom/Feature/Mesh/MeshFeatureProcessorInterface.h>
 #include <Atom/RPI.Public/Scene.h>
 #include <AzCore/Component/NonUniformScaleBus.h>
 #include <AzCore/Serialization/SerializeContext.h>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/quaternion.hpp>
 
 namespace Cesium
 {
     struct GltfModelComponent::Impl
     {
+        AZStd::string m_filePath;
         AZStd::unique_ptr<GltfModel> m_gltfModel;
         AZ::NonUniformScaleChangedEvent::Handler m_nonUniformScaleChangedHandler;
     };
@@ -32,6 +32,13 @@ namespace Cesium
 
     void GltfModelComponent::LoadModel(const AZStd::string& filePath)
     {
+        if (filePath.empty())
+        {
+            return;
+        }
+
+        m_impl->m_filePath = filePath;
+
         // Load model
         GltfModelBuilder builder;
         GltfModelBuilderOption option{ glm::dmat4(1.0) };
@@ -63,6 +70,7 @@ namespace Cesium
 
     void GltfModelComponent::Activate()
     {
+        LoadModel(m_impl->m_filePath);
         GltfModelRequestBus::Handler::BusConnect(GetEntityId());
         AZ::TransformNotificationBus::Handler::BusConnect(GetEntityId());
         AZ::NonUniformScaleRequestBus::Event(
@@ -73,6 +81,8 @@ namespace Cesium
     {
         GltfModelRequestBus::Handler::BusDisconnect();
         AZ::TransformNotificationBus::Handler::BusDisconnect();
+        m_impl->m_nonUniformScaleChangedHandler.Disconnect();
+        m_impl->m_gltfModel.reset();
     }
 
     void GltfModelComponent::OnTransformChanged([[maybe_unused]] const AZ::Transform& local, const AZ::Transform& world)
@@ -89,20 +99,7 @@ namespace Cesium
             return;
         }
 
-        const AZ::Vector3& o3deTranslation = world.GetTranslation();
-        const AZ::Quaternion& o3deRotation = world.GetRotation();
-        AZ::Vector3 newScale = world.GetUniformScale() * nonUniformScale;
-        glm::dvec3 translation{ static_cast<double>(o3deTranslation.GetX()), static_cast<double>(o3deTranslation.GetY()),
-                                static_cast<double>(o3deTranslation.GetZ()) };
-        glm::dquat rotation{ static_cast<double>(o3deRotation.GetW()), static_cast<double>(o3deRotation.GetX()),
-                             static_cast<double>(o3deRotation.GetY()), static_cast<double>(o3deRotation.GetZ()) };
-        glm::dmat4 newTransform = glm::translate(glm::dmat4(1.0), translation);
-        newTransform *= glm::dmat4(rotation);
-        newTransform = glm::scale(
-            newTransform,
-            glm::dvec3(static_cast<double>(newScale.GetX()), static_cast<double>(newScale.GetY()), static_cast<double>(newScale.GetZ())));
-
-        m_impl->m_gltfModel->SetTransform(newTransform);
+        m_impl->m_gltfModel->SetTransform(MathHelper::ConvertTransformAndScaleToDMat4(world, nonUniformScale));
     }
 
     void GltfModelComponent::SetNonUniformScale(const AZ::Vector3& scale)

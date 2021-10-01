@@ -1,6 +1,8 @@
 
 set(FILES
     Source/CesiumModuleInterface.h
+    Source/MathHelper.cpp
+    Source/MathHelper.h
     Source/PlatformInfo.cpp
     Source/PlatformInfo.h
     Source/BitangentAndTangentGenerator.cpp
@@ -37,6 +39,24 @@ set(FILES
     Source/GltfModel.h
     Source/CesiumSystemComponent.cpp
     Source/CesiumSystemComponent.h
+    Source/Interpolator.cpp
+    Source/Interpolator.h
+    Source/GeoReferenceInterpolator.cpp
+    Source/GeoReferenceInterpolator.h
+    Source/LinearInterpolator.cpp
+    Source/LinearInterpolator.h
+    Source/GeospatialHelper.cpp
+    Include/Cesium/GeospatialHelper.h
+    Source/WorldComposition.cpp
+    Include/Cesium/WorldComposition.h
+    Source/BoundingRegion.cpp
+    Include/Cesium/BoundingRegion.h
+    Source/OrientedBoundingBox.cpp
+    Include/Cesium/OrientedBoundingBox.h
+    Source/BoundingSphere.cpp
+    Include/Cesium/BoundingSphere.h
+    Source/CoordinateTransformComponentBus.cpp
+    Include/Cesium/CoordinateTransformComponentBus.h
     Source/CesiumTilesetComponentBus.cpp
     Include/Cesium/CesiumTilesetComponentBus.h
     Source/CesiumTilesetComponent.cpp
@@ -45,4 +65,10 @@ set(FILES
     Include/Cesium/GltfModelComponentBus.h
     Source/GltfModelComponent.cpp
     Include/Cesium/GltfModelComponent.h
+    Source/GeoReferenceTransformComponent.cpp
+    Include/Cesium/GeoReferenceTransformComponent.h
+    Source/GeoReferenceCameraFlyControllerBus.cpp
+    Include/Cesium/GeoReferenceCameraFlyControllerBus.h
+    Source/GeoReferenceCameraFlyController.cpp
+    Include/Cesium/GeoReferenceCameraFlyController.h
 )
