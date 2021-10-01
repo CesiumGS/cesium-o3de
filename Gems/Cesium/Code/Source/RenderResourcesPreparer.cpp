@@ -2,9 +2,6 @@
 #include "GltfModelBuilder.h"
 #include "GltfRasterMaterialBuilder.h"
 #include "GltfLoadContext.h"
-#include <Cesium3DTilesSelection/Tile.h>
-#include <Cesium3DTilesSelection/Tileset.h>
-#include <CesiumUtility/JsonValue.h>
 #include <Atom/Feature/Mesh/MeshFeatureProcessorInterface.h>
 #include <Atom/RPI.Reflect/Image/StreamingImageAssetCreator.h>
 #include <Atom/RPI.Reflect/Image/ImageMipChainAssetCreator.h>
@@ -20,7 +17,10 @@
 #undef OPAQUE
 #endif
 
+#include <Cesium3DTilesSelection/Tile.h>
+#include <Cesium3DTilesSelection/Tileset.h>
 #include <CesiumGltf/Model.h>
+#include <CesiumUtility/JsonValue.h>
 
 #ifdef AZ_COMPILER_MSVC
 #pragma pop_macro("OPAQUE")

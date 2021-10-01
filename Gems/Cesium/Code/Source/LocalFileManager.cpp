@@ -2,6 +2,8 @@
 #include <CesiumAsync/Promise.h>
 #include <AzCore/StringFunc/StringFunc.h>
 #include <AzCore/IO/FileIO.h>
+#include <AzCore/Jobs/JobManager.h>
+#include <AzCore/Jobs/JobContext.h>
 #include <AzCore/Jobs/JobFunction.h>
 
 namespace Cesium
@@ -126,5 +128,4 @@ namespace Cesium
         job->Start();
         return promise.getFuture();
     }
-
 } // namespace Cesium

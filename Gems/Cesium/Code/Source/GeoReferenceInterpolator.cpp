@@ -139,10 +139,10 @@ namespace Cesium
         double dx = glm::abs(glm::dot(diff, glm::dvec3(cameraTransform[0])));
         double dy = glm::abs(glm::dot(diff, glm::dvec3(cameraTransform[2])));
         double tanTheta = glm::tan(0.5 * cameraConfiguration.m_fovRadians);
-        double near = cameraConfiguration.m_nearClipDistance;
-        double top = near * tanTheta;
-        double right = cameraConfiguration.m_frustumWidth / cameraConfiguration.m_frustumHeight * top;
-        return glm::min(glm::max(dx * near / right, dy * near / top) * 0.2, 1000000.0);
+        double camNear = cameraConfiguration.m_nearClipDistance;
+        double camTop = camNear * tanTheta;
+        double right = cameraConfiguration.m_frustumWidth / cameraConfiguration.m_frustumHeight * camTop;
+        return glm::min(glm::max(dx * camNear / right, dy * camNear / camTop) * 0.2, 1000000.0);
     }
 
     glm::dvec3 GeoReferenceInterpolator::CalculatePitchRollHead(const glm::dvec3& position, const glm::dvec3& direction)

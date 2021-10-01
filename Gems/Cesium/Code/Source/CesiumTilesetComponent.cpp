@@ -4,10 +4,6 @@
 #include "RasterOverlayRequestBus.h"
 #include "CesiumSystemComponentBus.h"
 #include "MathHelper.h"
-#include <Cesium3DTilesSelection/Tileset.h>
-#include <Cesium3DTilesSelection/TilesetExternals.h>
-#include <Cesium3DTilesSelection/RasterOverlay.h>
-#include <Cesium3DTilesSelection/ViewState.h>
 #include <Atom/Feature/Mesh/MeshFeatureProcessorInterface.h>
 #include <Atom/RPI.Public/ViewportContext.h>
 #include <Atom/RPI.Public/ViewportContextBus.h>
@@ -24,6 +20,23 @@
 #include <glm/gtc/matrix_inverse.hpp>
 #include <vector>
 #include <variant>
+
+// Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
+// This only happens with unity build
+#include <AzCore/PlatformDef.h>
+#ifdef AZ_COMPILER_MSVC
+#pragma push_macro("OPAQUE")
+#undef OPAQUE
+#endif
+
+#include <Cesium3DTilesSelection/Tileset.h>
+#include <Cesium3DTilesSelection/TilesetExternals.h>
+#include <Cesium3DTilesSelection/RasterOverlay.h>
+#include <Cesium3DTilesSelection/ViewState.h>
+
+#ifdef AZ_COMPILER_MSVC
+#pragma pop_macro("OPAQUE")
+#endif
 
 namespace Cesium
 {

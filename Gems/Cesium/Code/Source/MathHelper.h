@@ -18,5 +18,7 @@ namespace Cesium
         static glm::dvec4 ToDVec4(const AZ::Vector4& vec);
 
         static bool IsIdentityMatrix(const glm::dmat4& mat);
+
+        static std::size_t Align(std::size_t location, std::size_t align);
     };
 } // namespace Cesium

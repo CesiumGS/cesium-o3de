@@ -5,9 +5,15 @@
 #include <CesiumAsync/Future.h>
 #include <CesiumAsync/HttpHeaders.h>
 #include <aws/core/http/HttpResponse.h>
-#include <AzCore/Jobs/JobManager.h>
-#include <AzCore/Jobs/JobContext.h>
 #include <AzCore/std/string/string.h>
+#include <AzCore/std/smart_ptr/unique_ptr.h>
+
+namespace AZ
+{
+    class JobManager;
+    class JobContext;
+    class Job;
+}
 
 namespace Aws
 {

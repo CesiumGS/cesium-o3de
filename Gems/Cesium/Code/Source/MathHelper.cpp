@@ -72,4 +72,10 @@ namespace Cesium
 
         return true;
     }
+
+    std::size_t MathHelper::Align(std::size_t location, std::size_t align)
+    {
+        assert(((0 != align) && !(align & (align - 1))) && "non-power of 2 alignment");
+        return ((location + (align - 1)) & ~(align - 1));
+    }
 } // namespace Cesium

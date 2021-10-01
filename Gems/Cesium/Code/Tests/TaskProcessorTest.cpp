@@ -56,7 +56,7 @@ TEST_F(TaskProcessorTest, StartJobInAnotherThread)
     for (auto& promise : promises)
     {
         processor.startTask(
-            [&promise, this]()
+            [&promise]()
             {
                 promise.set_value(AZStd::this_thread::get_id());
             });

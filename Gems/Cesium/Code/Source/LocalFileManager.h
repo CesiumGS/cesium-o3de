@@ -3,8 +3,15 @@
 #include "GenericIOManager.h"
 #include <CesiumAsync/AsyncSystem.h>
 #include <CesiumAsync/Future.h>
-#include <AzCore/Jobs/JobManager.h>
-#include <AzCore/Jobs/JobContext.h>
+#include <AzCore/std/parallel/mutex.h>
+#include <AzCore/std/smart_ptr/unique_ptr.h>
+
+namespace AZ
+{
+    class JobManager;
+    class JobContext;
+    class Job;
+}
 
 namespace Cesium
 {
