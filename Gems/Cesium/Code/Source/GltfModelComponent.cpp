@@ -1,6 +1,7 @@
 #include <Cesium/GltfModelComponent.h>
 #include "GltfModel.h"
 #include "GltfModelBuilder.h"
+#include "GltfPBRMaterialBuilder.h"
 #include "GltfLoadContext.h"
 #include "CesiumSystemComponentBus.h"
 #include "MathHelper.h"
@@ -40,7 +41,7 @@ namespace Cesium
         m_impl->m_filePath = filePath;
 
         // Load model
-        GltfModelBuilder builder;
+        GltfModelBuilder builder(AZStd::make_unique<GltfPBRMaterialBuilder>());
         GltfModelBuilderOption option{ glm::dmat4(1.0) };
         GltfLoadModel loadModel;
         builder.Create(CesiumInterface::Get()->GetIOManager(IOKind::LocalFile), filePath, option, loadModel);

@@ -18,8 +18,10 @@ namespace Cesium
         void Shutdown();
 
         AZ::Data::Asset<AZ::RPI::MaterialTypeAsset> m_standardPbrMaterialType;
+        AZ::Data::Asset<AZ::RPI::MaterialTypeAsset> m_rasterMaterialType;
 
     private:
         static constexpr const char* const STANDARD_PBR_MAT_TYPE = "Materials/Types/StandardPBR.azmaterialtype";
+        static constexpr const char* const RASTER_MAT_TYPE = "Materials/Types/GltfStandardPBR.azmaterialtype";
     };
 } // namespace Cesium

@@ -2,8 +2,15 @@
 
 #include "GltfModel.h"
 #include <Cesium3DTilesSelection/IPrepareRendererResources.h>
+#include <Atom/RPI.Public/Material/Material.h>
+#include <Atom/RPI.Public/Image/StreamingImage.h>
+#include <Atom/RPI.Reflect/Image/StreamingImageAsset.h>
 #include <Atom/Utils/StableDynamicArray.h>
+#include <AzCore/Component/TickBus.h>
+#include <AzCore/Asset/AssetCommon.h>
 #include <AzCore/std/optional.h>
+#include <AzCore/std/containers/vector.h>
+#include <AzCore/std/containers/map.h>
 #include <glm/glm.hpp>
 
 namespace AZ
@@ -19,8 +26,33 @@ namespace CesiumGltf
     struct Model;
 }
 
+namespace Cesium3DTilesSelection
+{
+    class RasterOverlay;
+}
+
 namespace Cesium
 {
+    struct LoadRasterOverlay
+    {
+        LoadRasterOverlay(AZ::Data::Asset<AZ::RPI::StreamingImageAsset>&& imageAsset)
+            : m_imageAsset{ std::move(imageAsset) }
+        {
+        }
+
+        AZ::Data::Asset<AZ::RPI::StreamingImageAsset> m_imageAsset;
+    };
+
+    struct RasterOverlay
+    {
+        RasterOverlay(AZ::Data::Instance<AZ::RPI::StreamingImage>&& image)
+            : m_image{ std::move(image) }
+        {
+        }
+
+        AZ::Data::Instance<AZ::RPI::StreamingImage> m_image;
+    };
+
     struct IntrusiveGltfModel
     {
         IntrusiveGltfModel(GltfModel&& model)
@@ -32,18 +64,24 @@ namespace Cesium
         AZ::StableDynamicArrayHandle<IntrusiveGltfModel> m_self;
     };
 
-    class RenderResourcesPreparer : public Cesium3DTilesSelection::IPrepareRendererResources
+    class RenderResourcesPreparer : public Cesium3DTilesSelection::IPrepareRendererResources, public AZ::TickBus::Handler
     {
     public:
         RenderResourcesPreparer(AZ::Render::MeshFeatureProcessorInterface* meshFeatureProcessor);
 
         ~RenderResourcesPreparer() noexcept;
 
+        void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
+
         void SetTransform(const glm::dmat4& transform);
 
         const glm::dmat4& GetTransform() const;
 
         void SetVisible(void* renderResources, bool visible);
+
+        bool AddRasterLayer(const Cesium3DTilesSelection::RasterOverlay* rasterOverlay);
+
+        void RemoveRasterLayer(const Cesium3DTilesSelection::RasterOverlay* rasterOverlay);
 
         void* prepareInLoadThread(const CesiumGltf::Model& model, const glm::dmat4& transform) override;
 
@@ -60,19 +98,17 @@ namespace Cesium
 
         void attachRasterInMainThread(
             const Cesium3DTilesSelection::Tile& tile,
-            std::uint32_t overlayTextureCoordinateID,
+            std::int32_t overlayTextureCoordinateID,
             const Cesium3DTilesSelection::RasterOverlayTile& rasterTile,
-            void* pMainThreadRendererResources,
-            const CesiumGeometry::Rectangle& textureCoordinateRectangle,
+            void* mainThreadRasterResources,
             const glm::dvec2& translation,
             const glm::dvec2& scale) override;
 
         void detachRasterInMainThread(
             const Cesium3DTilesSelection::Tile& tile,
-            std::uint32_t overlayTextureCoordinateID,
+            std::int32_t overlayTextureCoordinateID,
             const Cesium3DTilesSelection::RasterOverlayTile& rasterTile,
-            void* pMainThreadRendererResources,
-            const CesiumGeometry::Rectangle& textureCoordinateRectangle) noexcept override;
+            void* mainThreadRasterResources) noexcept override;
 
     private:
         AZStd::optional<glm::dvec3> GetRTCFromGltf(const CesiumGltf::Model& model);
@@ -82,5 +118,9 @@ namespace Cesium
         AZ::Render::MeshFeatureProcessorInterface* m_meshFeatureProcessor;
         AZ::StableDynamicArray<IntrusiveGltfModel> m_intrusiveModels;
         glm::dmat4 m_transform;
+
+        AZStd::vector<AZ::Data::Instance<AZ::RPI::Material>> m_compileMaterialsQueue;
+        AZStd::map<const Cesium3DTilesSelection::RasterOverlay*, std::uint32_t> m_rasterOverlayLayers;
+        AZStd::vector<std::uint32_t> m_freeRasterLayers;
     };
 } // namespace Cesium

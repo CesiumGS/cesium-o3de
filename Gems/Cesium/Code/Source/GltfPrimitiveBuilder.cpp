@@ -1,6 +1,5 @@
 #include "GltfPrimitiveBuilder.h"
 #include "BitangentAndTangentGenerator.h"
-#include "GltfLoadContext.h"
 
 // Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
 // This only happens with unity build
@@ -32,11 +31,6 @@
 
 namespace Cesium
 {
-    GltfTrianglePrimitiveBuilderOption::GltfTrianglePrimitiveBuilderOption(bool needTangents)
-        : m_needTangents{needTangents}
-    {
-    }
-
     struct GltfTrianglePrimitiveBuilder::CommonAccessorViews final
     {
         CommonAccessorViews(const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive)
@@ -89,17 +83,24 @@ namespace Cesium
     {
     }
 
-    GltfTrianglePrimitiveBuilder::GPUBuffer::GPUBuffer()
+    GltfTrianglePrimitiveBuilder::VertexRawBuffer::VertexRawBuffer()
         : m_buffer{}
         , m_format{ AZ::RHI::Format::Unknown }
         , m_elementCount{ 0 }
     {
     }
 
+    GltfTrianglePrimitiveBuilder::VertexCustomAttribute::VertexCustomAttribute(
+        const GltfShaderVertexAttribute& shaderAttribute, VertexRawBuffer&& buffer)
+        : m_shaderAttribute{shaderAttribute}
+        , m_buffer{std::move(buffer)}
+    {
+    }
+
     void GltfTrianglePrimitiveBuilder::Create(
         const CesiumGltf::Model& model,
         const CesiumGltf::MeshPrimitive& primitive,
-        const GltfTrianglePrimitiveBuilderOption& option,
+        const GltfLoadMaterial& material,
         GltfLoadPrimitive& result)
     {
         Reset();
@@ -144,15 +145,16 @@ namespace Cesium
         }
 
         // determine loading context
-        DetermineLoadContext(commonAccessorViews, option);
+        DetermineLoadContext(commonAccessorViews, material);
 
         // Create attributes. The order call of the functions is important
         CreatePositionsAttribute(commonAccessorViews);
         CreateNormalsAttribute(commonAccessorViews);
         CreateUVsAttributes(commonAccessorViews, model, primitive);
         CreateTangentsAndBitangentsAttributes(commonAccessorViews);
+        CreateCustomAttributes(model, primitive, material);
 
-        // create buffer assets
+        // create buffer assets for required vertex attributes
         auto indicesBuffer = CreateIndicesBufferAsset(model, primitive);
         auto positionBuffer = CreateBufferAsset(m_positions.data(), m_positions.size(), AZ::RHI::Format::R32G32B32_FLOAT);
         auto normalBuffer = CreateBufferAsset(m_normals.data(), m_normals.size(), AZ::RHI::Format::R32G32B32_FLOAT);
@@ -180,6 +182,18 @@ namespace Cesium
             }
         }
 
+        // create buffer assets for custom attributes
+        AZStd::vector<AZ::Data::Asset<AZ::RPI::BufferAsset>> customAttributeBuffers;
+        if (!m_customAttributes.empty())
+        {
+            customAttributeBuffers.reserve(m_customAttributes.size());
+            for (const auto& customAttribute : m_customAttributes)
+            {
+                customAttributeBuffers.emplace_back(CreateBufferAsset(
+                    customAttribute.m_buffer.m_buffer.data(), customAttribute.m_buffer.m_elementCount, customAttribute.m_buffer.m_format));
+            }
+        }
+
         // create LOD asset
         AZ::RPI::ModelLodAssetCreator lodCreator;
         lodCreator.Begin(AZ::Uuid::CreateRandom());
@@ -195,6 +209,11 @@ namespace Cesium
             {
                 lodCreator.AddLodStreamBuffer(uvBuffers[i]);
             }
+        }
+
+        for (const auto& buffer : customAttributeBuffers)
+        {
+            lodCreator.AddLodStreamBuffer(buffer);
         }
 
         // create mesh
@@ -222,6 +241,13 @@ namespace Cesium
             }
         }
 
+        for (std::size_t i = 0; i < m_customAttributes.size(); ++i)
+        {
+            lodCreator.AddMeshStreamBuffer(
+                m_customAttributes[i].m_shaderAttribute.m_shaderSemantic, m_customAttributes[i].m_shaderAttribute.m_shaderAttributeName,
+                AZ::RPI::BufferAssetView(customAttributeBuffers[i], customAttributeBuffers[i]->GetBufferViewDescriptor()));
+        }
+
         lodCreator.SetMeshAabb(std::move(aabb));
         lodCreator.EndMesh();
 
@@ -240,7 +266,7 @@ namespace Cesium
         result.m_materialId = primitive.material;
     }
 
-    void GltfTrianglePrimitiveBuilder::DetermineLoadContext(const CommonAccessorViews& accessorViews, const GltfTrianglePrimitiveBuilderOption& option)
+    void GltfTrianglePrimitiveBuilder::DetermineLoadContext(const CommonAccessorViews& accessorViews, const GltfLoadMaterial& material)
     {
         // check if we should generate normal
         bool isNormalAccessorValid = accessorViews.m_normals.status() == CesiumGltf::AccessorViewStatus::Valid;
@@ -248,7 +274,7 @@ namespace Cesium
         m_context.m_generateFlatNormal = !isNormalAccessorValid || !hasEnoughNormalVertices;
 
         // check if we should generate tangent
-        if (option.m_needTangents)
+        if (material.m_needTangents)
         {
             bool isTangentAccessorValid = accessorViews.m_tangents.status() == CesiumGltf::AccessorViewStatus::Valid;
             bool hasEnoughTangentVertices = accessorViews.m_tangents.size() == accessorViews.m_positions.size();
@@ -590,8 +616,8 @@ namespace Cesium
             // if we still cannot generate MikkTSpace, then we generate dummy
             if (!success)
             {
-                m_tangents.resize(m_positions.size(), glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-                m_bitangents.resize(m_positions.size(), glm::vec3(0.0f, 0.0f, 0.0f));
+                m_tangents.resize(m_positions.size(), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+                m_bitangents.resize(m_positions.size(), glm::vec3(0.0f, 1.0f, 0.0f));
             }
 
             return;
@@ -616,8 +642,112 @@ namespace Cesium
         }
 
         // generate dummy if accessor is not valid
-        m_tangents.resize(m_positions.size(), glm::vec4(0.0f, 0.0f, 0.0f, 1.0f));
-        m_bitangents.resize(m_positions.size(), glm::vec3(0.0f, 0.0f, 0.0f));
+        m_tangents.resize(m_positions.size(), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+        m_bitangents.resize(m_positions.size(), glm::vec3(0.0f, 1.0f, 0.0f));
+    }
+
+    void GltfTrianglePrimitiveBuilder::CreateCustomAttributes(
+        const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive, const GltfLoadMaterial& material)
+    {
+        m_customAttributes.reserve(material.m_customVertexAttributes.size());
+        for (const auto& customAttribute : material.m_customVertexAttributes)
+        {
+            auto accessorIt = primitive.attributes.find(customAttribute.first.c_str());
+            if (accessorIt == primitive.attributes.end())
+            {
+                continue;
+            }
+
+            const CesiumGltf::Accessor* accessor = model.getSafe<CesiumGltf::Accessor>(&model.accessors, accessorIt->second);
+            if (!accessor)
+            {
+                continue;
+            }
+
+            if (!DoesRHIVertexFormatSupported(*accessor, customAttribute.second.m_format))
+            {
+                continue;
+            }
+
+            switch (accessor->componentType)
+            {
+            case CesiumGltf::AccessorSpec::ComponentType::BYTE:
+                CreateCustomAttribute<std::int8_t>(model, *accessor, customAttribute.second);
+                break;
+            case CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_BYTE:
+                CreateCustomAttribute<std::uint8_t>(model, *accessor, customAttribute.second);
+                break;
+            case CesiumGltf::AccessorSpec::ComponentType::SHORT:
+                CreateCustomAttribute<std::int16_t>(model, *accessor, customAttribute.second);
+                break;
+            case CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_SHORT:
+                CreateCustomAttribute<std::uint16_t>(model, *accessor, customAttribute.second);
+                break;
+            case CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_INT:
+                CreateCustomAttribute<std::uint32_t>(model, *accessor, customAttribute.second);
+                break;
+            case CesiumGltf::AccessorSpec::ComponentType::FLOAT:
+                CreateCustomAttribute<float>(model, *accessor, customAttribute.second);
+                break;
+            default:
+                break;
+            }
+        }
+    }
+
+    template<typename ComponentType>
+    void GltfTrianglePrimitiveBuilder::CreateCustomAttribute(
+        const CesiumGltf::Model& model, const CesiumGltf::Accessor& accessor, const GltfShaderVertexAttribute& customShaderAttribute)
+    {
+        switch (accessor.type)
+        {
+        case CesiumGltf::AccessorSpec::Type::SCALAR:
+            {
+                CesiumGltf::AccessorView<ComponentType> accessorView{ model, accessor };
+                VertexRawBuffer vertexBuffer;
+                vertexBuffer.m_elementCount = static_cast<std::size_t>(accessorView.size());
+                vertexBuffer.m_format = customShaderAttribute.m_format;
+                CopyAccessorToBuffer(accessorView, vertexBuffer.m_buffer);
+
+                m_customAttributes.emplace_back(customShaderAttribute, std::move(vertexBuffer));
+            }
+            break;
+        case CesiumGltf::AccessorSpec::Type::VEC2:
+            {
+                CesiumGltf::AccessorView<glm::vec<2, ComponentType, glm::defaultp>> accessorView{ model, accessor };
+                VertexRawBuffer vertexBuffer;
+                vertexBuffer.m_elementCount = static_cast<std::size_t>(accessorView.size());
+                vertexBuffer.m_format = customShaderAttribute.m_format;
+                CopyAccessorToBuffer(accessorView, vertexBuffer.m_buffer);
+
+                m_customAttributes.emplace_back(customShaderAttribute, std::move(vertexBuffer));
+            }
+            break;
+        case CesiumGltf::AccessorSpec::Type::VEC3:
+            {
+                CesiumGltf::AccessorView<glm::vec<3, ComponentType, glm::defaultp>> accessorView{ model, accessor };
+                VertexRawBuffer vertexBuffer;
+                vertexBuffer.m_elementCount = static_cast<std::size_t>(accessorView.size());
+                vertexBuffer.m_format = customShaderAttribute.m_format;
+                CopyAccessorToBuffer(accessorView, vertexBuffer.m_buffer);
+
+                m_customAttributes.emplace_back(customShaderAttribute, std::move(vertexBuffer));
+            }
+            break;
+        case CesiumGltf::AccessorSpec::Type::VEC4:
+            {
+                CesiumGltf::AccessorView<glm::vec<4, ComponentType, glm::defaultp>> accessorView{ model, accessor };
+                VertexRawBuffer vertexBuffer;
+                vertexBuffer.m_elementCount = static_cast<std::size_t>(accessorView.size());
+                vertexBuffer.m_format = customShaderAttribute.m_format;
+                CopyAccessorToBuffer(accessorView, vertexBuffer.m_buffer);
+
+                m_customAttributes.emplace_back(customShaderAttribute, std::move(vertexBuffer));
+            }
+            break;
+        default:
+            break;
+        }
     }
 
     void GltfTrianglePrimitiveBuilder::CreateFlatNormal()
@@ -727,6 +857,8 @@ namespace Cesium
             m_uvs[i].m_elementCount = 0;
             m_uvs[i].m_format = AZ::RHI::Format::Unknown;
         }
+
+        m_customAttributes.clear();
     }
 
     AZ::Aabb GltfTrianglePrimitiveBuilder::CreateAabbFromPositions(const CesiumGltf::AccessorView<glm::vec3>& positionAccessorView)
@@ -739,5 +871,132 @@ namespace Cesium
         }
 
         return aabb;
+    }
+
+    bool GltfTrianglePrimitiveBuilder::DoesRHIVertexFormatSupported(const CesiumGltf::Accessor& accessor, AZ::RHI::Format format)
+    {
+        switch (format)
+        {
+        // type VEC4
+        case AZ::RHI::Format::R32G32B32A32_FLOAT:
+            return accessor.componentType == CesiumGltf::AccessorSpec::ComponentType::FLOAT &&
+                accessor.type == CesiumGltf::AccessorSpec::Type::VEC4 && !accessor.normalized;
+        case AZ::RHI::Format::R32G32B32A32_UINT:
+            return accessor.componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_INT &&
+                accessor.type == CesiumGltf::AccessorSpec::Type::VEC4 && !accessor.normalized;
+
+        case AZ::RHI::Format::R16G16B16A16_UINT:
+            return accessor.componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_SHORT &&
+                accessor.type == CesiumGltf::AccessorSpec::Type::VEC4 && !accessor.normalized;
+        case AZ::RHI::Format::R16G16B16A16_SINT:
+            return accessor.componentType == CesiumGltf::AccessorSpec::ComponentType::SHORT &&
+                accessor.type == CesiumGltf::AccessorSpec::Type::VEC4 && !accessor.normalized;
+
+        case AZ::RHI::Format::R8G8B8A8_UINT:
+            return accessor.componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_BYTE &&
+                accessor.type == CesiumGltf::AccessorSpec::Type::VEC4 && !accessor.normalized;
+        case AZ::RHI::Format::R8G8B8A8_SINT:
+            return accessor.componentType == CesiumGltf::AccessorSpec::ComponentType::BYTE &&
+                accessor.type == CesiumGltf::AccessorSpec::Type::VEC4 && !accessor.normalized;
+
+        case AZ::RHI::Format::R16G16B16A16_UNORM:
+            return accessor.componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_SHORT &&
+                accessor.type == CesiumGltf::AccessorSpec::Type::VEC4 && accessor.normalized;
+        case AZ::RHI::Format::R16G16B16A16_SNORM:
+            return accessor.componentType == CesiumGltf::AccessorSpec::ComponentType::SHORT &&
+                accessor.type == CesiumGltf::AccessorSpec::Type::VEC4 && accessor.normalized;
+
+        case AZ::RHI::Format::R8G8B8A8_UNORM:
+            return accessor.componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_BYTE &&
+                accessor.type == CesiumGltf::AccessorSpec::Type::VEC4 && accessor.normalized;
+        case AZ::RHI::Format::R8G8B8A8_SNORM:
+            return accessor.componentType == CesiumGltf::AccessorSpec::ComponentType::BYTE &&
+                accessor.type == CesiumGltf::AccessorSpec::Type::VEC4 && accessor.normalized;
+
+        // type VEC3
+        case AZ::RHI::Format::R32G32B32_FLOAT:
+            return accessor.componentType == CesiumGltf::AccessorSpec::ComponentType::FLOAT &&
+                accessor.type == CesiumGltf::AccessorSpec::Type::VEC3 && !accessor.normalized;
+        case AZ::RHI::Format::R32G32B32_UINT:
+            return accessor.componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_INT &&
+                accessor.type == CesiumGltf::AccessorSpec::Type::VEC3 && !accessor.normalized;
+
+        // type VEC2
+        case AZ::RHI::Format::R32G32_FLOAT:
+            return accessor.componentType == CesiumGltf::AccessorSpec::ComponentType::FLOAT &&
+                accessor.type == CesiumGltf::AccessorSpec::Type::VEC2 && !accessor.normalized;
+        case AZ::RHI::Format::R32G32_UINT:
+            return accessor.componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_INT &&
+                accessor.type == CesiumGltf::AccessorSpec::Type::VEC2 && !accessor.normalized;
+
+        case AZ::RHI::Format::R16G16_UINT:
+            return accessor.componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_SHORT &&
+                accessor.type == CesiumGltf::AccessorSpec::Type::VEC2 && !accessor.normalized;
+        case AZ::RHI::Format::R16G16_SINT:
+            return accessor.componentType == CesiumGltf::AccessorSpec::ComponentType::SHORT &&
+                accessor.type == CesiumGltf::AccessorSpec::Type::VEC2 && !accessor.normalized;
+
+        case AZ::RHI::Format::R8G8_UINT:
+            return accessor.componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_BYTE &&
+                accessor.type == CesiumGltf::AccessorSpec::Type::VEC2 && !accessor.normalized;
+        case AZ::RHI::Format::R8G8_SINT:
+            return accessor.componentType == CesiumGltf::AccessorSpec::ComponentType::BYTE &&
+                accessor.type == CesiumGltf::AccessorSpec::Type::VEC2 && !accessor.normalized;
+
+        case AZ::RHI::Format::R16G16_UNORM:
+            return accessor.componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_SHORT &&
+                accessor.type == CesiumGltf::AccessorSpec::Type::VEC2 && accessor.normalized;
+        case AZ::RHI::Format::R16G16_SNORM:
+            return accessor.componentType == CesiumGltf::AccessorSpec::ComponentType::SHORT &&
+                accessor.type == CesiumGltf::AccessorSpec::Type::VEC2 && accessor.normalized;
+
+        case AZ::RHI::Format::R8G8_UNORM:
+            return accessor.componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_BYTE &&
+                accessor.type == CesiumGltf::AccessorSpec::Type::VEC2 && accessor.normalized;
+        case AZ::RHI::Format::R8G8_SNORM:
+            return accessor.componentType == CesiumGltf::AccessorSpec::ComponentType::BYTE &&
+                accessor.type == CesiumGltf::AccessorSpec::Type::VEC2 && accessor.normalized;
+
+        // Type SCALAR
+        case AZ::RHI::Format::R32_FLOAT:
+            return accessor.componentType == CesiumGltf::AccessorSpec::ComponentType::FLOAT &&
+                accessor.type == CesiumGltf::AccessorSpec::Type::SCALAR && !accessor.normalized;
+        case AZ::RHI::Format::R32_UINT:
+            return accessor.componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_INT &&
+                accessor.type == CesiumGltf::AccessorSpec::Type::SCALAR && !accessor.normalized;
+
+        case AZ::RHI::Format::R16_UINT:
+            return accessor.componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_SHORT &&
+                accessor.type == CesiumGltf::AccessorSpec::Type::SCALAR && !accessor.normalized;
+        case AZ::RHI::Format::R16_SINT:
+            return accessor.componentType == CesiumGltf::AccessorSpec::ComponentType::SHORT &&
+                accessor.type == CesiumGltf::AccessorSpec::Type::SCALAR && !accessor.normalized;
+
+        case AZ::RHI::Format::R8_UINT:
+            return accessor.componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_BYTE &&
+                accessor.type == CesiumGltf::AccessorSpec::Type::SCALAR && !accessor.normalized;
+        case AZ::RHI::Format::R8_SINT:
+            return accessor.componentType == CesiumGltf::AccessorSpec::ComponentType::BYTE &&
+                accessor.type == CesiumGltf::AccessorSpec::Type::SCALAR && !accessor.normalized;
+
+        case AZ::RHI::Format::R16_UNORM:
+            return accessor.componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_SHORT &&
+                accessor.type == CesiumGltf::AccessorSpec::Type::SCALAR && accessor.normalized;
+        case AZ::RHI::Format::R16_SNORM:
+            return accessor.componentType == CesiumGltf::AccessorSpec::ComponentType::SHORT &&
+                accessor.type == CesiumGltf::AccessorSpec::Type::SCALAR && accessor.normalized;
+
+        case AZ::RHI::Format::R8_UNORM:
+            return accessor.componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_BYTE &&
+                accessor.type == CesiumGltf::AccessorSpec::Type::SCALAR && accessor.normalized;
+        case AZ::RHI::Format::R8_SNORM:
+            return accessor.componentType == CesiumGltf::AccessorSpec::ComponentType::BYTE &&
+                accessor.type == CesiumGltf::AccessorSpec::Type::SCALAR && accessor.normalized;
+
+        default:
+            break;
+        }
+
+        return false;
     }
 } // namespace Cesium

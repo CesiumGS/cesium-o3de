@@ -7,15 +7,10 @@
 
 namespace Cesium
 {
-    GltfModel::GltfMesh::GltfMesh()
+    GltfMesh::GltfMesh()
         : m_primitiveHandles{}
         , m_transform{glm::dmat4(1.0)}
-    {
-    }
-
-    GltfModel::GltfMesh::GltfMesh(AZStd::vector<PrimitiveHandle>&& primitiveHandles, const glm::dmat4& transform)
-        : m_primitiveHandles{std::move(primitiveHandles)}
-        , m_transform{transform}
+        , m_materialIndices{}
     {
     }
 
@@ -26,7 +21,7 @@ namespace Cesium
         , m_meshes{}
     {
         AZStd::unordered_map<TextureId, AZ::Data::Instance<AZ::RPI::Image>> textures;
-        AZStd::vector<AZ::Data::Instance<AZ::RPI::Material>> materials(loadModel.m_materials.size());
+        m_materials.resize(loadModel.m_materials.size());
         m_meshes.reserve(loadModel.m_meshes.size());
         for (const auto& loadMesh : loadModel.m_meshes)
         {
@@ -37,22 +32,25 @@ namespace Cesium
             GltfMesh& gltfMesh = m_meshes.emplace_back();
             gltfMesh.m_transform = loadMesh.m_transform;
             gltfMesh.m_primitiveHandles.reserve(loadMesh.m_primitives.size());
+            gltfMesh.m_materialIndices.reserve(loadMesh.m_primitives.size());
             for (std::size_t i = 0; i < loadMesh.m_primitives.size(); ++i)
             {
                 const GltfLoadPrimitive& loadPrimitive = loadMesh.m_primitives[i];
-                if (!materials[loadPrimitive.m_materialId])
+                if (!m_materials[loadPrimitive.m_materialId].m_material)
                 {
                     // Create material instance
                     const GltfLoadMaterial& loadMaterial = loadModel.m_materials[loadPrimitive.m_materialId];
                     const AZ::Data::Asset<AZ::RPI::MaterialAsset>& materialAsset = loadMaterial.m_materialAsset;
                     AZ::Data::Instance<AZ::RPI::Material> materialInstance = AZ::RPI::Material::Create(materialAsset);
-                    materials[loadPrimitive.m_materialId] = std::move(materialInstance);
+                    m_materials[loadPrimitive.m_materialId].m_material = std::move(materialInstance);
                 }
 
                 auto primitiveHandle = m_meshFeatureProcessor->AcquireMesh(
-                    AZ::Render::MeshHandleDescriptor{ loadPrimitive.m_modelAsset, false, false, {} }, materials[loadPrimitive.m_materialId]);
+                    AZ::Render::MeshHandleDescriptor{ loadPrimitive.m_modelAsset, false, false, {} }, m_materials[loadPrimitive.m_materialId].m_material);
                 m_meshFeatureProcessor->SetTransform(primitiveHandle, o3deTransform, o3deScale);
+
                 gltfMesh.m_primitiveHandles.emplace_back(std::move(primitiveHandle));
+                gltfMesh.m_materialIndices.emplace_back(loadPrimitive.m_materialId);
             }
         }
     }
@@ -63,6 +61,7 @@ namespace Cesium
         m_transform = rhs.m_transform;
         m_meshFeatureProcessor = rhs.m_meshFeatureProcessor;
         m_meshes = std::move(rhs.m_meshes);
+        m_materials = std::move(rhs.m_materials);
     }
 
     GltfModel& GltfModel::operator=(GltfModel&& rhs) noexcept
@@ -74,6 +73,7 @@ namespace Cesium
             swap(m_transform, rhs.m_transform);
             swap(m_meshFeatureProcessor, rhs.m_meshFeatureProcessor);
             swap(m_meshes, rhs.m_meshes);
+            swap(m_materials, rhs.m_materials);
         }
 
         return *this;
@@ -82,6 +82,26 @@ namespace Cesium
     GltfModel::~GltfModel() noexcept
     {
         Destroy();
+    }
+
+    const AZStd::vector<GltfMesh>& GltfModel::GetMeshes() const
+    {
+        return m_meshes;
+    }
+
+    AZStd::vector<GltfMesh>& GltfModel::GetMeshes()
+    {
+        return m_meshes;
+    }
+
+    const AZStd::vector<GltfMaterial>& GltfModel::GetMaterials() const
+    {
+        return m_materials;
+    }
+
+    AZStd::vector<GltfMaterial>& GltfModel::GetMaterials()
+    {
+        return m_materials;
     }
 
     bool GltfModel::IsVisible() const
@@ -138,6 +158,7 @@ namespace Cesium
         }
 
         m_meshes.clear();
+        m_materials.clear();
     }
 
     void GltfModel::ConvertMat4ToTransformAndScale(const glm::dmat4& mat4, AZ::Transform& o3deTransform, AZ::Vector3& o3deScale)

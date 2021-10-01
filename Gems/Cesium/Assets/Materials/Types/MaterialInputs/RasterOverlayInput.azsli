@@ -1,0 +1,19 @@
+#pragma once
+
+#include <Atom/Features/ColorManagement/TransformColor.azsli>
+#include <Atom/Features/BlendUtility.azsli>
+
+#define COMMON_SRG_INPUTS_RASTER(prefix) \
+float4    prefix##_m_uvTranslateScale; \
+uint      prefix##_m_rasterMapUvIndex; \
+Texture2D prefix##_m_rasterMap;
+
+#define COMMON_OPTIONS_RASTER(prefix) \
+option bool prefix##_o_raster_useRaster; \
+option TextureBlendMode prefix##_o_rasterTextureBlendMode = TextureBlendMode::Multiply;
+
+float3 GetRasterColorInput(Texture2D map, sampler mapSampler, float2 uv)
+{
+    float3 sampledAbledo = map.Sample(mapSampler, uv).rgb;
+    return TransformColor(sampledAbledo, ColorSpaceId::LinearSRGB, ColorSpaceId::ACEScg);
+}

@@ -25,9 +25,12 @@ set(FILES
     Tests/CesiumTilesetComponentBusTest.cpp
     Tests/CoordinateTransformComponentBusTest.cpp
     Tests/GeoReferenceCameraFlyControllerBusTest.cpp
+    Tests/RasterOverlayRequestBusTest.cpp
     Tests/GltfLoadContextTest.cpp
     Tests/GltfPrimitiveBuilderTest.cpp
     Tests/GltfMaterialBuilderTest.cpp
+    Tests/GltfPBRMaterialBuilderTest.cpp
+    Tests/GltfRasterMaterialBuilderTest.cpp
     Tests/GltfModelBuilderTest.cpp
     Tests/GltfModelTest.cpp
     Tests/WorldCompositionTest.cpp
@@ -36,4 +39,7 @@ set(FILES
     Tests/GltfModelComponentTest.cpp
     Tests/CesiumTilesetComponentTest.cpp
     Tests/GeoReferenceCameraFlyControllerTest.cpp
+    Tests/CesiumIonRasterOverlayComponentTest.cpp
+    Tests/BingRasterOverlayComponentTest.cpp
+    Tests/TMSRasterOverlayComponentTest.cpp
 )

@@ -5,6 +5,9 @@
 #include <Cesium/GltfModelComponent.h>
 #include <Cesium/GeoReferenceCameraFlyController.h>
 #include <Cesium/GeoReferenceTransformComponent.h>
+#include <Cesium/CesiumIonRasterOverlayComponent.h>
+#include <Cesium/BingRasterOverlayComponent.h>
+#include <Cesium/TMSRasterOverlayComponent.h>
 #include <CesiumSystemComponent.h>
 
 namespace Cesium
@@ -25,7 +28,8 @@ namespace Cesium
                 m_descriptors.end(),
                 { CesiumSystemComponent::CreateDescriptor(), CesiumTilesetComponent::CreateDescriptor(),
                   GltfModelComponent::CreateDescriptor(), GeoReferenceTransformComponent::CreateDescriptor(),
-                  GeoReferenceCameraFlyController::CreateDescriptor() });
+                  GeoReferenceCameraFlyController::CreateDescriptor(), CesiumIonRasterOverlayComponent::CreateDescriptor(),
+                  BingRasterOverlayComponent::CreateDescriptor(), TMSRasterOverlayComponent::CreateDescriptor() });
         }
 
         /**

@@ -25,12 +25,6 @@ namespace Cesium
 
         CesiumTilesetComponent();
 
-        void Init() override;
-
-        void Activate() override;
-
-        void Deactivate() override;
-
         void SetConfiguration(const CesiumTilesetConfiguration& configration) override;
 
         const CesiumTilesetConfiguration& GetConfiguration() const override;
@@ -50,6 +44,12 @@ namespace Cesium
         void LoadTilesetFromCesiumIon(std::uint32_t cesiumIonAssetId, const AZStd::string& cesiumIonAssetToken) override;
 
     private:
+        void Init() override;
+
+        void Activate() override;
+
+        void Deactivate() override;
+
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
 
         void OnTransformChanged(const AZ::Transform& local, const AZ::Transform& world) override;

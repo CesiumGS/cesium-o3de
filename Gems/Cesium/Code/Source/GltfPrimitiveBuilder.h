@@ -1,5 +1,6 @@
 #pragma once
 
+#include "GltfLoadContext.h"
 #include <Atom/RHI.Reflect/Format.h>
 #include <AzCore/std/containers/vector.h>
 #include <AzCore/std/containers/array.h>
@@ -8,6 +9,7 @@
 namespace CesiumGltf
 {
     struct Model;
+    struct Accessor;
     struct MeshPrimitive;
 
     template<typename AccessorType>
@@ -33,15 +35,6 @@ namespace AZ
 
 namespace Cesium
 {
-    struct GltfLoadPrimitive;
-
-    struct GltfTrianglePrimitiveBuilderOption final
-    {
-        GltfTrianglePrimitiveBuilderOption(bool needTangents);
-
-        bool m_needTangents;
-    };
-
     class GltfTrianglePrimitiveBuilder final
     {
         struct CommonAccessorViews;
@@ -55,31 +48,39 @@ namespace Cesium
             bool m_generateUnIndexedMesh;
         };
 
-        struct GPUBuffer final
+        struct VertexRawBuffer final
         {
-            GPUBuffer();
+            VertexRawBuffer();
 
             AZStd::vector<std::byte> m_buffer;
             AZ::RHI::Format m_format;
             std::size_t m_elementCount;
         };
 
+        struct VertexCustomAttribute final
+        {
+            VertexCustomAttribute(const GltfShaderVertexAttribute& shaderAttribute, VertexRawBuffer&& buffer);
+
+            GltfShaderVertexAttribute m_shaderAttribute;
+            VertexRawBuffer m_buffer;
+        };
+
     public:
         void Create(
             const CesiumGltf::Model& model,
             const CesiumGltf::MeshPrimitive& primitive,
-            const GltfTrianglePrimitiveBuilderOption& option,
+            const GltfLoadMaterial& material,
             GltfLoadPrimitive& result);
 
     private:
-        void DetermineLoadContext(const CommonAccessorViews& accessorViews, const GltfTrianglePrimitiveBuilderOption& option);
+        void DetermineLoadContext(const CommonAccessorViews& accessorViews, const GltfLoadMaterial& material);
 
         template<typename AccessorType>
         void CopyAccessorToBuffer(
             const CesiumGltf::AccessorView<AccessorType>& attributeAccessorView, AZStd::vector<AccessorType>& attributes);
 
         template<typename AccessorType>
-        void CopyAccessorToBuffer(const CesiumGltf::AccessorView<AccessorType>& commonAccessorViews, AZStd::vector<std::byte>& buffer);
+        void CopyAccessorToBuffer(const CesiumGltf::AccessorView<AccessorType>& accessorView, AZStd::vector<std::byte>& buffer);
 
         bool CreateIndices(const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive);
 
@@ -95,6 +96,13 @@ namespace Cesium
 
         void CreateTangentsAndBitangentsAttributes(const CommonAccessorViews& commonAccessorViews);
 
+        void CreateCustomAttributes(
+            const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive, const GltfLoadMaterial& material);
+
+        template<typename ComponentType>
+        void CreateCustomAttribute(
+            const CesiumGltf::Model& model, const CesiumGltf::Accessor& accessor, const GltfShaderVertexAttribute& customShaderAttribute);
+
         void CreateFlatNormal();
 
         AZ::Data::Asset<AZ::RPI::BufferAsset> CreateIndicesBufferAsset(
@@ -109,13 +117,16 @@ namespace Cesium
 
         static AZ::Aabb CreateAabbFromPositions(const CesiumGltf::AccessorView<glm::vec3>& positionAccessorView);
 
+        static bool DoesRHIVertexFormatSupported(const CesiumGltf::Accessor& accessor, AZ::RHI::Format format);
+
         LoadContext m_context;
         AZStd::vector<std::uint32_t> m_indices;
         AZStd::vector<glm::vec3> m_positions;
         AZStd::vector<glm::vec3> m_normals;
         AZStd::vector<glm::vec4> m_tangents;
         AZStd::vector<glm::vec3> m_bitangents;
-        AZStd::array<GPUBuffer, 2> m_uvs;
+        AZStd::array<VertexRawBuffer, 2> m_uvs;
+        AZStd::vector<VertexCustomAttribute> m_customAttributes;
     };
 } // namespace Cesium
 

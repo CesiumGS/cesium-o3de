@@ -1,10 +1,12 @@
 #include <Cesium/CesiumTilesetComponent.h>
 #include <Cesium/CoordinateTransformComponentBus.h>
 #include "RenderResourcesPreparer.h"
+#include "RasterOverlayRequestBus.h"
 #include "CesiumSystemComponentBus.h"
 #include "MathHelper.h"
 #include <Cesium3DTilesSelection/Tileset.h>
 #include <Cesium3DTilesSelection/TilesetExternals.h>
+#include <Cesium3DTilesSelection/RasterOverlay.h>
 #include <Cesium3DTilesSelection/ViewState.h>
 #include <Atom/Feature/Mesh/MeshFeatureProcessorInterface.h>
 #include <Atom/RPI.Public/ViewportContext.h>
@@ -299,7 +301,7 @@ namespace Cesium
         AZStd::string cesiumIonAssetToken;
     };
 
-    struct CesiumTilesetComponent::Impl
+    struct CesiumTilesetComponent::Impl : public RasterOverlayRequestBus::Handler
     {
         using TilesetSourceConfiguration = std::variant<std::monostate, LocalFileSource, UrlSource, CesiumIonSource>;
 
@@ -337,13 +339,23 @@ namespace Cesium
                 });
         }
 
+        void ConnectRasterOverlayBus()
+        {
+            RasterOverlayRequestBus::Handler::BusConnect(m_selfEntity);
+        }
+
+        void DisconnectRasterOverlayBus()
+        {
+            RasterOverlayRequestBus::Handler::BusDisconnect();
+        }
+
         Cesium3DTilesSelection::TilesetExternals CreateTilesetExternal(IOKind kind)
         {
             return Cesium3DTilesSelection::TilesetExternals{
                 CesiumInterface::Get()->GetAssetAccessor(kind),
                 m_renderResourcesPreparer,
                 CesiumAsync::AsyncSystem(CesiumInterface::Get()->GetTaskProcessor()),
-                nullptr,
+                CesiumInterface::Get()->GetCreditSystem(),
                 CesiumInterface::Get()->GetLogger(),
             };
         }
@@ -452,6 +464,29 @@ namespace Cesium
             m_coordinateOrO3DETransformDirty = true;
         }
 
+        bool AddRasterOverlay(std::unique_ptr<Cesium3DTilesSelection::RasterOverlay>& rasterOverlay) override
+        {
+            if (m_tileset)
+            {
+                if (m_renderResourcesPreparer->AddRasterLayer(rasterOverlay.get()))
+                {
+                    m_tileset->getOverlays().add(std::move(rasterOverlay));
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        void RemoveRasterOverlay(Cesium3DTilesSelection::RasterOverlay* rasterOverlay) override
+        {
+            if (m_tileset)
+            {
+                m_tileset->getOverlays().remove(rasterOverlay);
+                m_renderResourcesPreparer->RemoveRasterLayer(rasterOverlay);
+            }
+        }
+
         // Resources can be rebuilt from the configurations below
         std::shared_ptr<RenderResourcesPreparer> m_renderResourcesPreparer;
         AZStd::unique_ptr<Cesium3DTilesSelection::Tileset> m_tileset;
@@ -518,6 +553,7 @@ namespace Cesium
         // set cesium transform to convert from Cesium Coord to O3DE
         m_impl->ConnectCoordinateTransformEntityEvents();
 
+        m_impl->ConnectRasterOverlayBus();
         AZ::TickBus::Handler::BusConnect();
         CesiumTilesetRequestBus::Handler::BusConnect(GetEntityId());
         AZ::TransformNotificationBus::Handler::BusConnect(GetEntityId());
@@ -530,6 +566,7 @@ namespace Cesium
         // We remove any unneccessary resources but keep the configurations objects (e.g CameraConfigurations, TilesetSourceConfiguration,
         // etc). The reason is to keep the component as lightweight as possible when being deactivated. Those deleted resources can be
         // rebuilt again using the configuration objects.
+        m_impl->DisconnectRasterOverlayBus();
         AZ::TickBus::Handler::BusDisconnect();
         CesiumTilesetRequestBus::Handler::BusDisconnect();
         AZ::TransformNotificationBus::Handler::BusDisconnect();

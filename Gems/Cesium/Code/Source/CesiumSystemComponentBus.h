@@ -4,6 +4,7 @@
 #include "GenericIOManager.h"
 #include <CesiumAsync/IAssetAccessor.h>
 #include <CesiumAsync/ITaskProcessor.h>
+#include <Cesium3DTilesSelection/CreditSystem.h>
 #include <AzCore/EBus/EBus.h>
 #include <AzCore/Interface/Interface.h>
 #include <spdlog/logger.h>
@@ -33,6 +34,8 @@ namespace Cesium
         virtual const std::shared_ptr<CesiumAsync::ITaskProcessor>& GetTaskProcessor() const = 0;
 
         virtual const std::shared_ptr<spdlog::logger>& GetLogger() const = 0;
+
+        virtual const std::shared_ptr<Cesium3DTilesSelection::CreditSystem>& GetCreditSystem() const = 0;
 
         virtual const CriticalAssetManager& GetCriticalAssetManager() const = 0;
     };

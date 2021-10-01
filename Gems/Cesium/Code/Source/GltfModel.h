@@ -9,20 +9,26 @@ namespace Cesium
 {
     struct GltfLoadModel;
 
+    struct GltfMaterial
+    {
+        GltfMaterial() = default;
+
+        AZ::Data::Instance<AZ::RPI::Material> m_material;
+    };
+
+    struct GltfMesh
+    {
+        using PrimitiveHandle = AZ::Render::MeshFeatureProcessorInterface::MeshHandle;
+
+        GltfMesh();
+
+        AZStd::vector<PrimitiveHandle> m_primitiveHandles;
+        AZStd::vector<std::int32_t> m_materialIndices;
+        glm::dmat4 m_transform;
+    };
+
     class GltfModel
     {
-        struct GltfMesh
-        {
-            using PrimitiveHandle = AZ::Render::MeshFeatureProcessorInterface::MeshHandle;
-
-            GltfMesh();
-
-            GltfMesh(AZStd::vector<PrimitiveHandle>&& primitiveHandles, const glm::dmat4& transform);
-
-            AZStd::vector<PrimitiveHandle> m_primitiveHandles;
-            glm::dmat4 m_transform;
-        };
-
     public:
         GltfModel(AZ::Render::MeshFeatureProcessorInterface* meshFeatureProcessor, const GltfLoadModel& loadModel);
 
@@ -35,6 +41,14 @@ namespace Cesium
         GltfModel& operator=(GltfModel&&) noexcept;
 
         ~GltfModel() noexcept;
+
+        const AZStd::vector<GltfMesh>& GetMeshes() const;
+
+        AZStd::vector<GltfMesh>& GetMeshes();
+
+        const AZStd::vector<GltfMaterial>& GetMaterials() const;
+
+        AZStd::vector<GltfMaterial>& GetMaterials();
 
         bool IsVisible() const;
 
@@ -53,6 +67,7 @@ namespace Cesium
         glm::dmat4 m_transform;
         AZ::Render::MeshFeatureProcessorInterface* m_meshFeatureProcessor;
         AZStd::vector<GltfMesh> m_meshes;
+        AZStd::vector<GltfMaterial> m_materials;
     };
 }
 

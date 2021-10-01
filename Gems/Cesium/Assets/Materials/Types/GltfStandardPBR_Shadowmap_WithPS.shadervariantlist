@@ -1,0 +1,71 @@
+{
+    "Shader": "./GltfStandardPBR_Shadowmap_WithPS.shader",
+    "Variants": [
+        {
+            "StableId": 1,
+            "Options": {
+                "o_opacity_mode": "OpacityMode::Cutout",
+                "o_opacity_source": "OpacitySource::Split",
+                "o_parallax_algorithm": "ParallaxAlgorithm::Basic",
+                "o_parallax_enablePixelDepthOffset": "false",
+                "o_parallax_feature_enabled": "false",
+                "o_parallax_quality": "ParallaxQuality::Low"
+            }
+        },
+        {
+            "StableId": 2,
+            "Options": {
+                "o_opacity_mode": "OpacityMode::Blended",
+                "o_opacity_source": "OpacitySource::Split",
+                "o_parallax_algorithm": "ParallaxAlgorithm::Basic",
+                "o_parallax_enablePixelDepthOffset": "false",
+                "o_parallax_feature_enabled": "false",
+                "o_parallax_quality": "ParallaxQuality::Low"
+            }
+        },
+        {
+            "StableId": 3,
+            "Options": {
+                "o_opacity_mode": "OpacityMode::Opaque",
+                "o_opacity_source": "OpacitySource::Packed",
+                "o_parallax_algorithm": "ParallaxAlgorithm::POM",
+                "o_parallax_enablePixelDepthOffset": "false",
+                "o_parallax_feature_enabled": "true",
+                "o_parallax_quality": "ParallaxQuality::High"
+            }
+        },
+        {
+            "StableId": 4,
+            "Options": {
+                "o_opacity_mode": "OpacityMode::Cutout",
+                "o_opacity_source": "OpacitySource::Packed",
+                "o_parallax_algorithm": "ParallaxAlgorithm::Basic",
+                "o_parallax_enablePixelDepthOffset": "false",
+                "o_parallax_feature_enabled": "false",
+                "o_parallax_quality": "ParallaxQuality::Low"
+            }
+        },
+        {
+            "StableId": 5,
+            "Options": {
+                "o_opacity_mode": "OpacityMode::Blended",
+                "o_opacity_source": "OpacitySource::Packed",
+                "o_parallax_algorithm": "ParallaxAlgorithm::Basic",
+                "o_parallax_enablePixelDepthOffset": "false",
+                "o_parallax_feature_enabled": "false",
+                "o_parallax_quality": "ParallaxQuality::Low"
+            }
+        },
+        {
+            "StableId": 6,
+            "Options": {
+                "o_opacity_mode": "OpacityMode::Opaque",
+                "o_opacity_source": "OpacitySource::Packed",
+                "o_parallax_algorithm": "ParallaxAlgorithm::POM",
+                "o_parallax_enablePixelDepthOffset": "true",
+                "o_parallax_feature_enabled": "true",
+                "o_parallax_quality": "ParallaxQuality::High"
+            }
+        }
+    ]
+}
