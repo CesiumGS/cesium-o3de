@@ -46,6 +46,7 @@ ly_add_target(
             Gem::Atom_Feature_Common.Static
     COMPILE_DEFINITIONS
         PUBLIC
+            SPDLOG_COMPILED_LIB
             LIBASYNC_STATIC
 )
 

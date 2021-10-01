@@ -3,16 +3,24 @@ set(FILES
     Tests/CesiumTest.cpp
     Tests/PlatformInfoTest.cpp
     Tests/BitangentAndTangentGeneratorTest.cpp
+    Tests/LoggerSinkTest.cpp
     Tests/GenericIOManagerTest.cpp
     Tests/HttpManagerTest.cpp
     Tests/LocalFileManagerTest.cpp
+    Tests/CriticalAssetManagerTest.cpp
     Tests/HttpAssetAccessorTest.cpp
+    Tests/GenericAssetAccessorTest.cpp
     Tests/TaskProcessorTest.cpp
+    Tests/RenderResourcesPreparerTest.cpp
+    Tests/CesiumSystemComponentBusTest.cpp
+    Tests/GltfModelComponentBusTest.cpp
+    Tests/CesiumTilesetComponentBusTest.cpp
     Tests/GltfLoadContextTest.cpp
     Tests/GltfPrimitiveBuilderTest.cpp
     Tests/GltfMaterialBuilderTest.cpp
     Tests/GltfModelBuilderTest.cpp
     Tests/GltfModelTest.cpp
-    Tests/GltfModelComponentBusTest.cpp
+    Tests/CesiumSystemComponentTest.cpp
     Tests/GltfModelComponentTest.cpp
+    Tests/CesiumTilesetComponentTest.cpp
 )

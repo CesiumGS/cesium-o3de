@@ -1,19 +1,12 @@
-// Majority of this code below is based on the implementation of the Http Manager class in the O3DE HttpRequestor Gem.
-// Some minor modifications are made to expose Aws::Http::HttpResponse object instead of just the response body like the Gem.
-// Also instead of returning the callback, the new manager returns CesiumAsync::Future for ease of use.
 #pragma once
 
+#include "GenericIOManager.h"
 #include <CesiumAsync/AsyncSystem.h>
-#include <CesiumAsync/Promise.h>
 #include <CesiumAsync/Future.h>
 #include <CesiumAsync/HttpHeaders.h>
 #include <aws/core/http/HttpResponse.h>
-#include <AzCore/std/containers/queue.h>
-#include <AzCore/std/parallel/mutex.h>
-#include <AzCore/std/parallel/atomic.h>
-#include <AzCore/std/parallel/thread.h>
-#include <AzCore/std/parallel/condition_variable.h>
-#include <AzCore/std/functional.h>
+#include <AzCore/Jobs/JobManager.h>
+#include <AzCore/Jobs/JobContext.h>
 #include <AzCore/std/string/string.h>
 
 namespace Cesium
@@ -56,19 +49,10 @@ namespace Cesium
         std::shared_ptr<Aws::Http::HttpResponse> m_response;
     };
 
-    class HttpManager final
+    class HttpManager final : public GenericIOManager
     {
-        struct HttpRequest
-        {
-            HttpRequest(HttpRequestParameter&& parameter, const CesiumAsync::Promise<HttpResult>& promise)
-                : m_parameter{ std::move(parameter) }
-                , m_promise{ promise }
-            {
-            }
-
-            HttpRequestParameter m_parameter;
-            CesiumAsync::Promise<HttpResult> m_promise;
-        };
+        struct RequestHandler;
+        struct GenericIORequestHandler;
 
     public:
         HttpManager();
@@ -78,19 +62,22 @@ namespace Cesium
         CesiumAsync::Future<HttpResult> AddRequest(
             const CesiumAsync::AsyncSystem& asyncSystem, HttpRequestParameter&& httpRequestParameter);
 
+        AZStd::string GetParentPath(const AZStd::string& path) override;
+
+        IOContent GetFileContent(const IORequestParameter& request) override;
+
+        IOContent GetFileContent(IORequestParameter&& request) override;
+
+        CesiumAsync::Future<IOContent> GetFileContentAsync(
+            const CesiumAsync::AsyncSystem& asyncSystem, const IORequestParameter& request) override;
+
+        CesiumAsync::Future<IOContent> GetFileContentAsync(
+            const CesiumAsync::AsyncSystem& asyncSystem, IORequestParameter&& request) override;
+
+        static IOContent GetResponseBodyContent(Aws::Http::HttpResponse& response);
+
     private:
-        void ThreadFunction();
-
-        void HandleRequestBatch();
-
-        void HandleRequest(HttpRequest& httpRequest);
-
-        static constexpr const char* const LOGGING_NAME = "Http-Manager";
-
-        AZStd::queue<HttpRequest> m_requestsToHandle;
-        AZStd::mutex m_requestMutex;
-        AZStd::condition_variable m_requestConditionVar;
-        AZStd::atomic<bool> m_runThread;
-        AZStd::thread m_thread;
+        AZStd::unique_ptr<AZ::JobManager> m_ioJobManager;
+        AZStd::unique_ptr<AZ::JobContext> m_ioJobContext;
     };
 }

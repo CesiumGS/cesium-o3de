@@ -1,6 +1,7 @@
 
 #include <AzCore/Memory/SystemAllocator.h>
 #include <AzCore/Module/Module.h>
+#include <Cesium/CesiumTilesetComponent.h>
 #include <Cesium/GltfModelComponent.h>
 #include <CesiumSystemComponent.h>
 
@@ -19,7 +20,9 @@ namespace Cesium
             // This will associate the AzTypeInfo information for the components with the the SerializeContext, BehaviorContext and
             // EditContext. This happens through the [MyComponent]::Reflect() function.
             m_descriptors.insert(
-                m_descriptors.end(), { CesiumSystemComponent::CreateDescriptor(), GltfModelComponent::CreateDescriptor() });
+                m_descriptors.end(),
+                { CesiumSystemComponent::CreateDescriptor(), CesiumTilesetComponent::CreateDescriptor(),
+                  GltfModelComponent::CreateDescriptor() });
         }
 
         /**

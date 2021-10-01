@@ -1,9 +1,16 @@
-
-#include <CesiumSystemComponent.h>
-
+#include "CesiumSystemComponent.h"
+#include "LoggerSink.h"
+#include "HttpAssetAccessor.h"
+#include "GenericAssetAccessor.h"
+#include "TaskProcessor.h"
+#include "LocalFileManager.h"
+#include "HttpManager.h"
+#include <Cesium3DTilesSelection/registerAllTileContentTypes.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/EditContext.h>
 #include <AzCore/Serialization/EditContextConstants.inl>
+#include <AzCore/std/smart_ptr/make_shared.h>
+#include <AzCore/std/smart_ptr/shared_ptr.h>
 
 namespace Cesium
 {
@@ -46,6 +53,25 @@ namespace Cesium
 
     CesiumSystemComponent::CesiumSystemComponent()
     {
+        // initialize IO managers
+        m_httpManager = AZStd::make_unique<HttpManager>();
+        m_localFileManager = AZStd::make_unique<LocalFileManager>();
+
+        // initialize asset accessors
+        m_httpAssetAccessor = std::make_shared<HttpAssetAccessor>(m_httpManager.get());
+        m_localFileAssetAccessor = std::make_shared<GenericAssetAccessor>(m_localFileManager.get(), "");
+
+        // initialize task processor
+        m_taskProcessor = std::make_shared<TaskProcessor>();
+
+        // initialize logger
+        m_logger = spdlog::default_logger();
+        m_logger->sinks().clear();
+        m_logger->sinks().push_back(std::make_shared<LoggerSink>());
+
+        // initialize Cesium Native
+        Cesium3DTilesSelection::registerAllTileContentTypes();
+
         if (CesiumInterface::Get() == nullptr)
         {
             CesiumInterface::Register(this);
@@ -58,6 +84,47 @@ namespace Cesium
         {
             CesiumInterface::Unregister(this);
         }
+    }
+
+    GenericIOManager& CesiumSystemComponent::GetIOManager(IOKind kind)
+    {
+        switch (kind)
+        {
+        case Cesium::IOKind::LocalFile:
+            return *m_localFileManager;
+        case Cesium::IOKind::Http:
+            return *m_httpManager;
+        default:
+            return *m_httpManager;
+        }
+    }
+
+    const std::shared_ptr<CesiumAsync::IAssetAccessor>& CesiumSystemComponent::GetAssetAccessor(IOKind kind) const
+    {
+        switch (kind)
+        {
+        case Cesium::IOKind::LocalFile:
+            return m_localFileAssetAccessor;
+        case Cesium::IOKind::Http:
+            return m_httpAssetAccessor;
+        default:
+            return m_httpAssetAccessor;
+        }
+    }
+
+    const std::shared_ptr<CesiumAsync::ITaskProcessor>& CesiumSystemComponent::GetTaskProcessor() const
+    {
+        return m_taskProcessor;
+    }
+
+    const std::shared_ptr<spdlog::logger>& CesiumSystemComponent::GetLogger() const
+    {
+        return m_logger;
+    }
+
+    const CriticalAssetManager& CesiumSystemComponent::GetCriticalAssetManager() const
+    {
+        return m_criticalAssetManager;
     }
 
     void CesiumSystemComponent::Init()
@@ -74,6 +141,7 @@ namespace Cesium
     {
         AZ::TickBus::Handler::BusDisconnect();
         CesiumRequestBus::Handler::BusDisconnect();
+        m_criticalAssetManager.Shutdown();
     }
 
     void CesiumSystemComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)

@@ -1,15 +1,17 @@
 #pragma once
 
+#include "HttpManager.h"
 #include <CesiumAsync/AsyncSystem.h>
+#include <CesiumAsync/Future.h>
 #include <CesiumAsync/IAssetAccessor.h>
 #include <CesiumAsync/IAssetResponse.h>
-#include <CesiumAsync/Future.h>
 #include <AzCore/std/smart_ptr/shared_ptr.h>
 #include <aws/core/http/HttpTypes.h>
 #include <cstdint>
+#include <map>
 #include <memory>
 #include <string>
-#include <map>
+#include <vector>
 
 namespace Aws
 {
@@ -17,17 +19,18 @@ namespace Aws
     {
         class HttpRequest;
         class HttpResponse;
-    }
-}
+    } // namespace Http
+} // namespace Aws
 
-namespace Cesium {
+namespace Cesium
+{
     class HttpManager;
 
     class HttpAssetResponse final : public CesiumAsync::IAssetResponse
     {
     public:
         HttpAssetResponse(
-            std::uint16_t statusCode, std::string&& contentType, CesiumAsync::HttpHeaders&& headers, std::string&& responseData)
+            std::uint16_t statusCode, std::string&& contentType, CesiumAsync::HttpHeaders&& headers, IOContent&& responseData)
             : m_statusCode{ statusCode }
             , m_contentType{ std::move(contentType) }
             , m_headers{ std::move(headers) }
@@ -52,14 +55,14 @@ namespace Cesium {
 
         gsl::span<const std::byte> data() const override
         {
-            return gsl::span<const std::byte>(reinterpret_cast<const std::byte*>(m_responseData.c_str()), m_responseData.size());
+            return gsl::span<const std::byte>(m_responseData.data(), m_responseData.size());
         }
 
     private:
         std::uint16_t m_statusCode;
         std::string m_contentType;
         CesiumAsync::HttpHeaders m_headers;
-        std::string m_responseData;
+        IOContent m_responseData;
     };
 
     class HttpAssetRequest final : public CesiumAsync::IAssetRequest
@@ -101,37 +104,37 @@ namespace Cesium {
         std::unique_ptr<HttpAssetResponse> m_response;
     };
 
-    class HttpAssetAccessor final : public CesiumAsync::IAssetAccessor {
+    class HttpAssetAccessor final : public CesiumAsync::IAssetAccessor
+    {
     public:
-        HttpAssetAccessor(const AZStd::shared_ptr<HttpManager>& httpManager);
+        HttpAssetAccessor(HttpManager* httpManager);
 
         CesiumAsync::Future<std::shared_ptr<CesiumAsync::IAssetRequest>> requestAsset(
-              const CesiumAsync::AsyncSystem& asyncSystem,
-              const std::string& url,
-              const std::vector<THeader>& headers = {}) override;
+            const CesiumAsync::AsyncSystem& asyncSystem, const std::string& url, const std::vector<THeader>& headers = {}) override;
 
         CesiumAsync::Future<std::shared_ptr<CesiumAsync::IAssetRequest>> post(
-              const CesiumAsync::AsyncSystem& asyncSystem,
-              const std::string& url,
-              const std::vector<THeader>& headers = std::vector<THeader>(),
-              const gsl::span<const std::byte>& contentPayload = {}) override;
+            const CesiumAsync::AsyncSystem& asyncSystem,
+            const std::string& url,
+            const std::vector<THeader>& headers = std::vector<THeader>(),
+            const gsl::span<const std::byte>& contentPayload = {}) override;
 
         void tick() noexcept override;
 
     private:
         static std::string ConvertMethodToString(Aws::Http::HttpMethod method);
 
-        static CesiumAsync::HttpHeaders ConvertToCesiumHeaders(const std::vector<THeader> &headers);
+        static CesiumAsync::HttpHeaders ConvertToCesiumHeaders(const std::vector<THeader>& headers);
 
-        static CesiumAsync::HttpHeaders ConvertToCesiumHeaders(const Aws::Http::HeaderValueCollection &headers);
+        static CesiumAsync::HttpHeaders ConvertToCesiumHeaders(const Aws::Http::HeaderValueCollection& headers);
 
-        static std::shared_ptr<HttpAssetRequest> CreateO3DEAssetRequest(const Aws::Http::HttpRequest& request, const Aws::Http::HttpResponse& response);
+        static std::shared_ptr<HttpAssetRequest> CreateO3DEAssetRequest(
+            const Aws::Http::HttpRequest& request, Aws::Http::HttpResponse& response);
 
-        static std::unique_ptr<HttpAssetResponse> CreateO3DEAssetResponse(const Aws::Http::HttpResponse& response);
+        static std::unique_ptr<HttpAssetResponse> CreateO3DEAssetResponse(Aws::Http::HttpResponse& response);
 
         static constexpr const char* const USER_AGENT_HEADER_KEY = "User-Agent";
 
         std::string m_userAgentHeaderValue;
-        AZStd::shared_ptr<HttpManager> m_httpManager;
+        HttpManager* m_httpManager;
     };
-}
+} // namespace Cesium

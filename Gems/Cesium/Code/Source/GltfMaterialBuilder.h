@@ -69,7 +69,5 @@ namespace Cesium
 
         AZ::Data::Asset<AZ::RPI::StreamingImageAsset> Create2DImage(
             const std::byte* pixelData, std::size_t bytesPerImage, std::uint32_t width, std::uint32_t height, AZ::RHI::Format format);
-
-        static constexpr const char* const STANDARD_PBR_MAT_TYPE = "Materials/Types/StandardPBR.azmaterialtype";
     };
 } // namespace Cesium

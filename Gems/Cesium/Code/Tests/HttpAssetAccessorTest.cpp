@@ -1,20 +1,34 @@
 #include <HttpAssetAccessor.h>
 #include <HttpManager.h>
 #include <CesiumAsync/AsyncSystem.h>
-#include <AzCore/std/smart_ptr/make_shared.h>
+#include <AzCore/Memory/PoolAllocator.h>
 #include <AzCore/UnitTest/TestTypes.h>
 
 class HttpAssetAccessorTest : public UnitTest::AllocatorsTestFixture
 {
+public:
+    void SetUp() override
+    {
+        UnitTest::AllocatorsTestFixture::SetUp();
+        AZ::AllocatorInstance<AZ::PoolAllocator>::Create();
+        AZ::AllocatorInstance<AZ::ThreadPoolAllocator>::Create();
+    }
+
+    void TearDown() override
+    {
+        AZ::AllocatorInstance<AZ::ThreadPoolAllocator>::Destroy();
+        AZ::AllocatorInstance<AZ::PoolAllocator>::Destroy();
+        UnitTest::AllocatorsTestFixture::TearDown();
+    }
 };
 
 TEST_F(HttpAssetAccessorTest, TestRequestAsset)
 {
     // we don't care about worker thread in this test
     CesiumAsync::AsyncSystem asyncSystem{ nullptr };
-    AZStd::shared_ptr<Cesium::HttpManager> httpManager = AZStd::make_shared<Cesium::HttpManager>();
-    Cesium::HttpAssetAccessor accessor(httpManager);
+    Cesium::HttpManager httpManager;
 
+    Cesium::HttpAssetAccessor accessor(&httpManager);
     auto completedRequest = accessor.requestAsset(asyncSystem, "https://httpbin.org/ip").wait();
     ASSERT_NE(completedRequest, nullptr);
     ASSERT_EQ(completedRequest->response()->statusCode(), 200);
@@ -25,9 +39,9 @@ TEST_F(HttpAssetAccessorTest, TestPost)
 {
     // we don't care about worker thread in this test
     CesiumAsync::AsyncSystem asyncSystem{ nullptr };
-    AZStd::shared_ptr<Cesium::HttpManager> httpManager = AZStd::make_shared<Cesium::HttpManager>();
-    Cesium::HttpAssetAccessor accessor(httpManager);
+    Cesium::HttpManager httpManager;
 
+    Cesium::HttpAssetAccessor accessor(&httpManager);
     auto completedRequest = accessor.post(asyncSystem, "https://httpbin.org/post").wait();
     ASSERT_NE(completedRequest, nullptr);
     ASSERT_EQ(completedRequest->response()->statusCode(), 200);
