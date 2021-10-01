@@ -1,5 +1,5 @@
-#include "HttpAssetAccessor.h"
-#include "HttpManager.h"
+#include <HttpAssetAccessor.h>
+#include <HttpManager.h>
 #include <CesiumAsync/AsyncSystem.h>
 #include <AzCore/std/smart_ptr/make_shared.h>
 #include <AzCore/UnitTest/TestTypes.h>
