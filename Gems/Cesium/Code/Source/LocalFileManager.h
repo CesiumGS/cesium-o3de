@@ -34,11 +34,7 @@ namespace Cesium
         CesiumAsync::Future<IOContent> GetFileContentAsync(
             const CesiumAsync::AsyncSystem& asyncSystem, IORequestParameter&& request) override;
 
-        void Dispatch() override;
-
     private:
-        AZStd::mutex m_jobMutex;
-        AZStd::vector<AZ::Job*> m_jobQueues;
         AZStd::unique_ptr<AZ::JobManager> m_ioJobManager;
         AZStd::unique_ptr<AZ::JobContext> m_ioJobContext;
     };

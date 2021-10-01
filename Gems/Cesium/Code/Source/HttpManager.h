@@ -7,7 +7,6 @@
 #include <aws/core/http/HttpResponse.h>
 #include <AzCore/std/string/string.h>
 #include <AzCore/std/smart_ptr/unique_ptr.h>
-#include <AzCore/std/parallel/mutex.h>
 
 namespace AZ
 {
@@ -89,13 +88,9 @@ namespace Cesium
         CesiumAsync::Future<IOContent> GetFileContentAsync(
             const CesiumAsync::AsyncSystem& asyncSystem, IORequestParameter&& request) override;
 
-        void Dispatch() override;
-
         static IOContent GetResponseBodyContent(Aws::Http::HttpResponse& response);
 
     private:
-        AZStd::mutex m_jobMutex;
-        AZStd::vector<AZ::Job*> m_jobQueues;
         AZStd::unique_ptr<AZ::JobManager> m_ioJobManager;
         AZStd::unique_ptr<AZ::JobContext> m_ioJobContext;
         std::shared_ptr<Aws::Http::HttpClient> m_awsHttpClient;

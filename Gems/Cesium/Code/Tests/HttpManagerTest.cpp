@@ -28,9 +28,6 @@ TEST_F(HttpManagerTest, AddValidRequest)
 
     Cesium::HttpRequestParameter parameter("https://httpbin.org/ip", Aws::Http::HttpMethod::HTTP_GET);
     auto completedRequestFuture = httpManager.AddRequest(asyncSystem, std::move(parameter));
-
-    httpManager.Dispatch();
-
     auto completedRequest = completedRequestFuture.wait();
 
     ASSERT_EQ(completedRequest.m_response->GetResponseCode(), Aws::Http::HttpResponseCode::OK);
@@ -67,8 +64,6 @@ TEST_F(HttpManagerTest, GetFileContentAsync)
 
     Cesium::IORequestParameter parameter{ "", "https://httpbin.org/ip" };
     auto contentFuture = httpManager.GetFileContentAsync(asyncSystem, parameter);
-
-    httpManager.Dispatch();
     auto content = contentFuture.wait();
 
     ASSERT_FALSE(content.empty());

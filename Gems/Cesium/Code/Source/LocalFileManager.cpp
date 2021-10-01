@@ -115,12 +115,7 @@ namespace Cesium
         auto promise = asyncSystem.createPromise<IOContent>();
         AZ::Job* job =
             aznew AZ::JobFunction<std::function<void()>>(RequestHandler{ request, promise }, true, m_ioJobContext.get());
-
-        // add job to the queue to be processed later
-        {
-            AZStd::lock_guard guard(m_jobMutex);
-            m_jobQueues.emplace_back(job);
-        }
+        job->Start();
         return promise.getFuture();
     }
 
@@ -130,27 +125,7 @@ namespace Cesium
         auto promise = asyncSystem.createPromise<IOContent>();
         AZ::Job* job =
             aznew AZ::JobFunction<std::function<void()>>(RequestHandler{ std::move(request), promise }, true, m_ioJobContext.get());
-
-        // add job to the queue to be processed later
-        {
-            AZStd::lock_guard guard(m_jobMutex);
-            m_jobQueues.emplace_back(job);
-        }
+        job->Start();
         return promise.getFuture();
-    }
-
-    void LocalFileManager::Dispatch()
-    {
-        AZStd::vector<AZ::Job*> pendingJobs;
-
-        {
-            AZStd::lock_guard guard(m_jobMutex);
-            AZStd::swap(pendingJobs, m_jobQueues);
-        }
-
-        for (auto job : pendingJobs)
-        {
-            job->Start();
-        }
     }
 } // namespace Cesium

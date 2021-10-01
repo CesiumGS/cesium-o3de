@@ -56,7 +56,6 @@ namespace Cesium
 
     void GenericAssetAccessor::tick() noexcept
     {
-        m_ioManager->Dispatch();
     }
 
     CesiumAsync::HttpHeaders GenericAssetAccessor::ConvertToCesiumHeaders(const std::vector<THeader>& headers)

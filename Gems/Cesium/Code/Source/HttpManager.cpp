@@ -137,12 +137,7 @@ namespace Cesium
         auto promise = asyncSystem.createPromise<HttpResult>();
         AZ::Job* job = aznew AZ::JobFunction<std::function<void()>>(
             RequestHandler{ m_awsHttpClient, std::move(httpRequestParameter), promise }, true, m_ioJobContext.get());
-
-        // add job to the queue to be processed later
-        {
-            AZStd::lock_guard guard(m_jobMutex);
-            m_jobQueues.emplace_back(job);
-        }
+        job->Start();
 
         return promise.getFuture();
     }
@@ -190,12 +185,8 @@ namespace Cesium
         auto promise = asyncSystem.createPromise<IOContent>();
         AZ::Job* job = aznew AZ::JobFunction<std::function<void()>>(
             GenericIORequestHandler{ m_awsHttpClient, request, promise }, true, m_ioJobContext.get());
+        job->Start();
 
-        // add job to the queue to be processed later
-        {
-            AZStd::lock_guard guard(m_jobMutex);
-            m_jobQueues.emplace_back(job);
-        }
         return promise.getFuture();
     }
 
@@ -205,28 +196,9 @@ namespace Cesium
         auto promise = asyncSystem.createPromise<IOContent>();
         AZ::Job* job = aznew AZ::JobFunction<std::function<void()>>(
             GenericIORequestHandler{ m_awsHttpClient, std::move(request), promise }, true, m_ioJobContext.get());
+        job->Start();
 
-        // add job to the queue to be processed later
-        {
-            AZStd::lock_guard guard(m_jobMutex);
-            m_jobQueues.emplace_back(job);
-        }
         return promise.getFuture();
-    }
-
-    void HttpManager::Dispatch()
-    {
-        AZStd::vector<AZ::Job*> pendingJobs;
-
-        {
-            AZStd::lock_guard guard(m_jobMutex);
-            AZStd::swap(pendingJobs, m_jobQueues);
-        }
-
-        for (auto job : pendingJobs)
-        {
-            job->Start();
-        }
     }
 
     IOContent HttpManager::GetResponseBodyContent(Aws::Http::HttpResponse& response)

@@ -32,7 +32,5 @@ namespace Cesium
 
         virtual CesiumAsync::Future<IOContent> GetFileContentAsync(
             const CesiumAsync::AsyncSystem& asyncSystem, IORequestParameter&& request) = 0;
-
-        virtual void Dispatch() = 0;
     };
 }

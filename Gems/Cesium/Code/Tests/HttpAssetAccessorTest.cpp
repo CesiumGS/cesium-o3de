@@ -30,8 +30,6 @@ TEST_F(HttpAssetAccessorTest, TestRequestAsset)
 
     Cesium::HttpAssetAccessor accessor(&httpManager);
     auto completedRequestFuture = accessor.requestAsset(asyncSystem, "https://httpbin.org/ip");
-
-    httpManager.Dispatch();
     auto completedRequest = completedRequestFuture.wait();
 
     ASSERT_NE(completedRequest, nullptr);
@@ -47,8 +45,6 @@ TEST_F(HttpAssetAccessorTest, TestPost)
 
     Cesium::HttpAssetAccessor accessor(&httpManager);
     auto completedRequestFuture = accessor.post(asyncSystem, "https://httpbin.org/post");
-
-    httpManager.Dispatch();
     auto completedRequest = completedRequestFuture.wait();
 
     ASSERT_NE(completedRequest, nullptr);
