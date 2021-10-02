@@ -204,7 +204,9 @@ namespace Cesium
 
             if (imageAsset)
             {
-                return new LoadRasterOverlay{ std::move(imageAsset) };
+                auto rasterOverlay = new RasterOverlay();
+                rasterOverlay->m_imageAsset = std::move(imageAsset);
+                return rasterOverlay;
             }
         }
 
@@ -216,13 +218,9 @@ namespace Cesium
     {
         if (pLoadThreadResult)
         {
-            AZStd::unique_ptr<LoadRasterOverlay> loadRasterOverlay(reinterpret_cast<LoadRasterOverlay*>(pLoadThreadResult));
-            AZ::Data::Instance<AZ::RPI::StreamingImage> image = AZ::RPI::StreamingImage::FindOrCreate(loadRasterOverlay->m_imageAsset);
-
-            if (image)
-            {
-                return new RasterOverlay{ std::move(image) };
-            }
+            auto rasterOverlay = reinterpret_cast<RasterOverlay*>(pLoadThreadResult);
+            rasterOverlay->m_image = AZ::RPI::StreamingImage::FindOrCreate(rasterOverlay->m_imageAsset);
+            return rasterOverlay;
         }
 
         return nullptr;
@@ -235,8 +233,8 @@ namespace Cesium
     {
         if (pLoadThreadResult)
         {
-            LoadRasterOverlay* loadRasterOverlay = reinterpret_cast<LoadRasterOverlay*>(pLoadThreadResult);
-            delete loadRasterOverlay;
+            RasterOverlay* rasterOverlay = reinterpret_cast<RasterOverlay*>(pLoadThreadResult);
+            delete rasterOverlay;
         }
 
         if (pMainThreadResult)
@@ -276,14 +274,33 @@ namespace Cesium
                 {
                     AZ::Vector4 uvTranslateScale{ static_cast<float>(translation.x), static_cast<float>(translation.y),
                                                   static_cast<float>(scale.x), static_cast<float>(scale.y) };
-                    bool compile = materialBuilder.SetRasterForMaterial(
-                        layer, rasterOverlay->m_image, static_cast<std::uint32_t>(overlayTextureCoordinateID), uvTranslateScale,
-                        material.m_material);
 
-                    // it's not guaranteed that the material will be able to compile right away, so we add it to the queue to compile later
-                    if (!compile)
+                    // Just update material with raster if the current material can compile, so material can be updated right away
+                    // in the next frame. Otherwise, we create the new material with the attached raster, so that the primitive is
+                    // updated with the new material in the next frame. If we only update the material and not create new material
+                    // the terrain can be rendered with old material if that material is still compiling and flickering can happen
+                    bool canCompile = material.m_material->CanCompile(); 
+                    if (canCompile)
                     {
-                        m_compileMaterialsQueue.emplace_back(material.m_material);
+                        canCompile = materialBuilder.SetRasterForMaterial(
+                            layer, rasterOverlay->m_image, static_cast<std::uint32_t>(overlayTextureCoordinateID), uvTranslateScale,
+                            material.m_material);
+                    }
+
+                    if (!canCompile)
+                    {
+                        auto materialAsset = materialBuilder.CreateRasterMaterial(
+                            layer, rasterOverlay->m_imageAsset, static_cast<std::uint32_t>(overlayTextureCoordinateID), uvTranslateScale,
+                            material.m_material->GetAsset());
+                        material.m_material = AZ::RPI::Material::FindOrCreate(materialAsset);
+                    }
+                }
+
+                for (auto& mesh : model.GetMeshes())
+                {
+                    for (auto& primitive : mesh.m_primitives)
+                    {
+                        model.UpdateMaterialForPrimitive(primitive);
                     }
                 }
             }

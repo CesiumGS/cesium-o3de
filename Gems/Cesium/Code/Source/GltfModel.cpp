@@ -7,10 +7,13 @@
 
 namespace Cesium
 {
+    GltfPrimitive::GltfPrimitive()
+        : m_materialIndex{-1}
+    {
+    }
+
     GltfMesh::GltfMesh()
-        : m_primitiveHandles{}
-        , m_transform{glm::dmat4(1.0)}
-        , m_materialIndices{}
+        : m_transform{ glm::dmat4(1.0) }
     {
     }
 
@@ -31,12 +34,11 @@ namespace Cesium
 
             GltfMesh& gltfMesh = m_meshes.emplace_back();
             gltfMesh.m_transform = loadMesh.m_transform;
-            gltfMesh.m_primitiveHandles.reserve(loadMesh.m_primitives.size());
-            gltfMesh.m_materialIndices.reserve(loadMesh.m_primitives.size());
+            gltfMesh.m_primitives.reserve(loadMesh.m_primitives.size());
             for (std::size_t i = 0; i < loadMesh.m_primitives.size(); ++i)
             {
                 const GltfLoadPrimitive& loadPrimitive = loadMesh.m_primitives[i];
-                if (!m_materials[loadPrimitive.m_materialId].m_material)
+                if (!m_materials.empty() && loadPrimitive.m_materialId >= 0 && !m_materials[loadPrimitive.m_materialId].m_material)
                 {
                     // Create material instance
                     const GltfLoadMaterial& loadMaterial = loadModel.m_materials[loadPrimitive.m_materialId];
@@ -45,12 +47,16 @@ namespace Cesium
                     m_materials[loadPrimitive.m_materialId].m_material = std::move(materialInstance);
                 }
 
-                auto primitiveHandle = m_meshFeatureProcessor->AcquireMesh(
-                    AZ::Render::MeshHandleDescriptor{ loadPrimitive.m_modelAsset, false, false, {} }, m_materials[loadPrimitive.m_materialId].m_material);
-                m_meshFeatureProcessor->SetTransform(primitiveHandle, o3deTransform, o3deScale);
+                auto meshHandle = m_meshFeatureProcessor->AcquireMesh(
+                    AZ::Render::MeshHandleDescriptor{ loadPrimitive.m_modelAsset, false, false, {} },
+                    m_materials[loadPrimitive.m_materialId].m_material);
+                m_meshFeatureProcessor->SetTransform(meshHandle, o3deTransform, o3deScale);
 
-                gltfMesh.m_primitiveHandles.emplace_back(std::move(primitiveHandle));
-                gltfMesh.m_materialIndices.emplace_back(loadPrimitive.m_materialId);
+                GltfPrimitive primitive;
+                primitive.m_meshHandle = std::move(meshHandle);
+                primitive.m_materialIndex = loadPrimitive.m_materialId;
+
+                gltfMesh.m_primitives.emplace_back(std::move(primitive));
             }
         }
     }
@@ -104,6 +110,14 @@ namespace Cesium
         return m_materials;
     }
 
+    void GltfModel::UpdateMaterialForPrimitive(GltfPrimitive& primitive)
+    {
+        if (primitive.m_materialIndex >= 0)
+        {
+            m_meshFeatureProcessor->SetMaterialAssignmentMap(primitive.m_meshHandle, m_materials[primitive.m_materialIndex].m_material);
+        }
+    }
+
     bool GltfModel::IsVisible() const
     {
         return m_visible;
@@ -114,9 +128,9 @@ namespace Cesium
        m_visible = visible;
         for (auto& mesh : m_meshes)
         {
-            for (auto& primitiveHandle : mesh.m_primitiveHandles)
+            for (auto& primitive : mesh.m_primitives)
             {
-                m_meshFeatureProcessor->SetVisible(primitiveHandle, m_visible);
+                m_meshFeatureProcessor->SetVisible(primitive.m_meshHandle, m_visible);
             }
         }
     }
@@ -130,9 +144,9 @@ namespace Cesium
             AZ::Transform o3deTransform;
             AZ::Vector3 o3deScale;
             ConvertMat4ToTransformAndScale(newTransform, o3deTransform, o3deScale);
-            for (auto& primitiveHandle : mesh.m_primitiveHandles)
+            for (auto& primitive : mesh.m_primitives)
             {
-                m_meshFeatureProcessor->SetTransform(primitiveHandle, o3deTransform, o3deScale);
+                m_meshFeatureProcessor->SetTransform(primitive.m_meshHandle, o3deTransform, o3deScale);
             }
         }
     }
@@ -151,9 +165,9 @@ namespace Cesium
 
         for (auto& mesh : m_meshes)
         {
-            for (auto& primitiveHandle : mesh.m_primitiveHandles)
+            for (auto& primitive : mesh.m_primitives)
             {
-                m_meshFeatureProcessor->ReleaseMesh(primitiveHandle);
+                m_meshFeatureProcessor->ReleaseMesh(primitive.m_meshHandle);
             }
         }
 

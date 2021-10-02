@@ -33,24 +33,10 @@ namespace Cesium3DTilesSelection
 
 namespace Cesium
 {
-    struct LoadRasterOverlay
-    {
-        LoadRasterOverlay(AZ::Data::Asset<AZ::RPI::StreamingImageAsset>&& imageAsset)
-            : m_imageAsset{ std::move(imageAsset) }
-        {
-        }
-
-        AZ::Data::Asset<AZ::RPI::StreamingImageAsset> m_imageAsset;
-    };
-
     struct RasterOverlay
     {
-        RasterOverlay(AZ::Data::Instance<AZ::RPI::StreamingImage>&& image)
-            : m_image{ std::move(image) }
-        {
-        }
-
         AZ::Data::Instance<AZ::RPI::StreamingImage> m_image;
+        AZ::Data::Asset<AZ::RPI::StreamingImageAsset> m_imageAsset;
     };
 
     struct IntrusiveGltfModel

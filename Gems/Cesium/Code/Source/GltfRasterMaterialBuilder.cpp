@@ -1,6 +1,7 @@
 #include "GltfRasterMaterialBuilder.h"
 #include "CesiumSystemComponentBus.h"
 #include "CriticalAssetManager.h"
+#include <Atom/RPI.Reflect/Material/MaterialAssetCreator.h>
 
 namespace Cesium
 {
@@ -37,6 +38,28 @@ namespace Cesium
         result.m_customVertexAttributes.insert_or_assign(
             "_CESIUMOVERLAY_1",
             GltfShaderVertexAttribute(AZ::RHI::ShaderSemantic("UV", 3), AZ::Name("m_raster_uv1"), AZ::RHI::Format::R32G32_FLOAT));
+    }
+
+    AZ::Data::Asset<AZ::RPI::MaterialAsset> GltfRasterMaterialBuilder::CreateRasterMaterial(
+        std::uint32_t rasterLayer,
+        const AZ::Data::Asset<AZ::RPI::ImageAsset>& raster,
+        std::uint32_t textureUv,
+        const AZ::Vector4& uvTranslateScale,
+        const AZ::Data::Asset<AZ::RPI::MaterialAsset>& parent)
+    {
+        AZStd::string prefix = AZStd::string::format("raster%d", rasterLayer);
+
+        AZ::RPI::MaterialAssetCreator materialCreator;
+        materialCreator.Begin(AZ::Uuid::CreateRandom(), *parent);
+        materialCreator.SetPropertyValue(AZ::Name(prefix + ".textureMap"), raster);
+        materialCreator.SetPropertyValue(AZ::Name(prefix + ".useTexture"), true);
+        materialCreator.SetPropertyValue(AZ::Name(prefix + ".textureMapUv"), textureUv);
+        materialCreator.SetPropertyValue(AZ::Name(prefix + ".uvTranslateScale"), uvTranslateScale);
+
+        AZ::Data::Asset<AZ::RPI::MaterialAsset> materialAsset;
+        materialCreator.End(materialAsset);
+
+        return materialAsset;
     }
 
     bool GltfRasterMaterialBuilder::SetRasterForMaterial(
