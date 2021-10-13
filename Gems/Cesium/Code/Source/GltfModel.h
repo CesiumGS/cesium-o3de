@@ -16,14 +16,19 @@ namespace Cesium
         AZ::Data::Instance<AZ::RPI::Material> m_material;
     };
 
+    struct GltfPrimitive
+    {
+        GltfPrimitive();
+
+        AZ::Render::MeshFeatureProcessorInterface::MeshHandle m_meshHandle;
+        std::int32_t m_materialIndex;
+    };
+
     struct GltfMesh
     {
-        using PrimitiveHandle = AZ::Render::MeshFeatureProcessorInterface::MeshHandle;
-
         GltfMesh();
 
-        AZStd::vector<PrimitiveHandle> m_primitiveHandles;
-        AZStd::vector<std::int32_t> m_materialIndices;
+        AZStd::vector<GltfPrimitive> m_primitives;
         glm::dmat4 m_transform;
     };
 
@@ -49,6 +54,8 @@ namespace Cesium
         const AZStd::vector<GltfMaterial>& GetMaterials() const;
 
         AZStd::vector<GltfMaterial>& GetMaterials();
+
+        void UpdateMaterialForPrimitive(GltfPrimitive& primitive);
 
         bool IsVisible() const;
 
