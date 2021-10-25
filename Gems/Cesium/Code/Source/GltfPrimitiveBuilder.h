@@ -82,7 +82,7 @@ namespace Cesium
         template<typename AccessorType>
         void CopyAccessorToBuffer(const CesiumGltf::AccessorView<AccessorType>& accessorView, AZStd::vector<std::byte>& buffer);
 
-        bool CreateIndices(const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive);
+        bool CreateIndices(const CommonAccessorViews& accessorViews, const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive);
 
         template<typename IndexType>
         bool CreateIndices(const CesiumGltf::MeshPrimitive& primitive, const CesiumGltf::AccessorView<IndexType>& indicesAccessorView);
@@ -106,10 +106,6 @@ namespace Cesium
         void CreateFlatNormal();
 
         void CopySubregionBuffer(AZStd::vector<std::byte>& buffer, const void* src, const AZ::RHI::BufferViewDescriptor& descriptor);
-
-        void CopyIndicesToSubregionBuffer(AZStd::vector<std::byte>& buffer, const AZ::RHI::BufferViewDescriptor& descriptor);
-
-        void CopyUnIndexedIndicesToSubregionBuffer(AZStd::vector<std::byte>& buffer, const AZ::RHI::BufferViewDescriptor& descriptor);
 
         void Reset();
 
