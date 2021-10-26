@@ -6,25 +6,29 @@
 #include <AzFramework/Viewport/ViewportId.h>
 #include <AzCore/Component/ComponentBus.h>
 #include <AzCore/std/string/string.h>
+#include <AzCore/Memory/SystemAllocator.h>
 #include <cstdint>
 #include <variant>
-#include <memory>
 
 namespace Cesium
 {
     using TilesetBoundingVolume = std::variant<std::monostate, BoundingSphere, OrientedBoundingBox, BoundingRegion>;
 
-    struct CesiumTilesetConfiguration
+    struct CesiumTilesetConfiguration : public AZ::ComponentConfig
     {
+        AZ_RTTI(Cesium::CesiumTilesetConfiguration, "{13578DDF-7A60-4851-821C-A5238F222611}", AZ::ComponentConfig);
+        AZ_CLASS_ALLOCATOR(CesiumTilesetConfiguration, AZ::SystemAllocator, 0);
+        static void Reflect(AZ::ReflectContext* context);
+
         CesiumTilesetConfiguration()
-            : m_maximumScreenSpaceError{16.0}
-            , m_maximumCacheBytes{512 * 1024 * 1024}
-            , m_maximumSimultaneousTileLoads{20}
-            , m_loadingDescendantLimit{20}
-            , m_preloadAncestors{true}
-            , m_preloadSiblings{true}
-            , m_forbidHole{false}
-            , m_stopUpdate{false}
+            : m_maximumScreenSpaceError{ 16.0 }
+            , m_maximumCacheBytes{ 512 * 1024 * 1024 }
+            , m_maximumSimultaneousTileLoads{ 20 }
+            , m_loadingDescendantLimit{ 20 }
+            , m_preloadAncestors{ true }
+            , m_preloadSiblings{ true }
+            , m_forbidHole{ false }
+            , m_stopUpdate{ false }
         {
         }
 

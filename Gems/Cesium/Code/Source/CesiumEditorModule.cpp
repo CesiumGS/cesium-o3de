@@ -1,6 +1,7 @@
 
 #include <CesiumModuleInterface.h>
 #include <CesiumEditorSystemComponent.h>
+#include <Cesium/CesiumTilesetEditorComponent.h>
 
 namespace Cesium
 {
@@ -18,7 +19,7 @@ namespace Cesium
             // This will associate the AzTypeInfo information for the components with the the SerializeContext, BehaviorContext and EditContext.
             // This happens through the [MyComponent]::Reflect() function.
             m_descriptors.insert(m_descriptors.end(), {
-                CesiumEditorSystemComponent::CreateDescriptor(),
+                CesiumEditorSystemComponent::CreateDescriptor(), CesiumTilesetEditorComponent::CreateDescriptor()
             });
         }
 
