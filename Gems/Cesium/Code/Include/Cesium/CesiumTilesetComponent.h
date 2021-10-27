@@ -33,10 +33,6 @@ namespace Cesium
 
         TilesetBoundingVolume GetBoundingVolumeInECEF() const override;
 
-        void AddCamera(const AZ::EntityId& cameraEntityId, const AzFramework::ViewportId& viewportId) override;
-
-        void RemoveCamera(const AZ::EntityId& cameraEntityId) override;
-
         void LoadTilesetFromLocalFile(const AZStd::string& path) override;
 
         void LoadTilesetFromUrl(const AZStd::string& url) override;

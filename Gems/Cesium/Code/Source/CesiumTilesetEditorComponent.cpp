@@ -10,8 +10,9 @@ namespace Cesium
 
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<CesiumTilesetEditorComponent, AZ::Component>()->Version(0)->Field(
-                "tilesetConfiguration", &CesiumTilesetEditorComponent::m_tilesetConfiguration);
+            serializeContext->Class<CesiumTilesetEditorComponent, AZ::Component>()
+                ->Version(0)
+                ->Field("tilesetConfiguration", &CesiumTilesetEditorComponent::m_tilesetConfiguration);
 
             AZ::EditContext* editContext = serializeContext->GetEditContext();
             if (editContext)
@@ -25,8 +26,9 @@ namespace Cesium
                         ->Attribute(AZ::Edit::Attributes::ViewportIcon, "Editor/Icons/Components/Cesium_logo_only.svg")
                         ->Attribute(AZ::Edit::Attributes::AppearsInAddComponentMenu, AZ_CRC("Game", 0x232b318c))
                         ->Attribute(AZ::Edit::Attributes::AutoExpand, true)
-                    ->DataElement(AZ::Edit::UIHandlers::Default, &CesiumTilesetEditorComponent::m_tilesetConfiguration, "Configuration", "")
-                        ->Attribute(AZ::Edit::Attributes::Visibility, AZ::Edit::PropertyVisibility::ShowChildrenOnly);
+                    ->DataElement(AZ::Edit::UIHandlers::Default, &CesiumTilesetEditorComponent::m_tilesetConfiguration, "CesiumTilesetConfiguration", "")
+                        ->Attribute(AZ::Edit::Attributes::Visibility, AZ::Edit::PropertyVisibility::ShowChildrenOnly)
+                    ;
 
                 editContext->Class<CesiumTilesetConfiguration>("CesiumTilesetConfiguration", "")
                     ->ClassElement(AZ::Edit::ClassElements::EditorData, "")

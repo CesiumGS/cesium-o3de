@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Cesium/CesiumTilesetComponentBus.h>
+#include <AzCore/std/string/string.h>
 #include <AzToolsFramework/ToolsComponents/EditorComponentBase.h>
 #include <AzToolsFramework/ToolsComponents/EditorVisibilityBus.h>
 #include <AzFramework/Entity/EntityDebugDisplayBus.h>

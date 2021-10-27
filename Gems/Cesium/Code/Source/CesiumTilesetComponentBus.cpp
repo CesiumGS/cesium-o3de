@@ -7,7 +7,7 @@ namespace Cesium
     {
         if (auto serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<CesiumTilesetConfiguration, AZ::ComponentConfig>()
+            serializeContext->Class<CesiumTilesetConfiguration>()
                 ->Version(0)
                 ->Field("maximumScreenSpaceError", &CesiumTilesetConfiguration::m_maximumScreenSpaceError)
                 ->Field("maximumCacheBytes", &CesiumTilesetConfiguration::m_maximumCacheBytes)

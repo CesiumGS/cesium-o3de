@@ -16,10 +16,10 @@
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/std/algorithm.h>
 #include <AzCore/std/containers/vector.h>
+#include <AzCore/std/containers/variant.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 #include <vector>
-#include <variant>
 
 // Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
 // This only happens with unity build
@@ -42,12 +42,6 @@ namespace Cesium
 {
     class CesiumTilesetComponent::CameraConfigurations
     {
-        struct CameraConfig
-        {
-            AZ::EntityId m_cameraEntityId;
-            AzFramework::ViewportId m_viewportId;
-        };
-
     public:
         CameraConfigurations()
             : m_transform{ 1.0 }
@@ -64,78 +58,36 @@ namespace Cesium
             return m_transform;
         }
 
-        void AddCameraEntity(const AZ::EntityId& cameraEntityId, const AzFramework::ViewportId& viewportId)
-        {
-            auto it = AZStd::find_if(
-                m_cameraConfigs.begin(), m_cameraConfigs.end(),
-                [&cameraEntityId](const CameraConfig& pair)
-                {
-                    return pair.m_cameraEntityId == cameraEntityId;
-                });
-
-            if (it == m_cameraConfigs.end())
-            {
-                m_cameraConfigs.emplace_back(CameraConfig{ cameraEntityId, viewportId });
-            }
-        }
-
-        void RemoveCameraEntity(const AZ::EntityId& cameraEntityId)
-        {
-            auto it = AZStd::remove_if(
-                m_cameraConfigs.begin(), m_cameraConfigs.end(),
-                [&cameraEntityId](const CameraConfig& pair)
-                {
-                    return pair.m_cameraEntityId == cameraEntityId;
-                });
-            m_cameraConfigs.erase(it, m_cameraConfigs.end());
-        }
-
         const std::vector<Cesium3DTilesSelection::ViewState>& UpdateAndGetViewStates()
         {
             m_viewStates.clear();
-            if (m_cameraConfigs.empty())
-            {
-                return m_viewStates;
-            }
-
             auto viewportManager = AZ::Interface<AZ::RPI::ViewportContextRequestsInterface>::Get();
             if (!viewportManager)
             {
                 return m_viewStates;
             }
 
-            m_viewStates.reserve(m_cameraConfigs.size());
-            for (std::size_t i = 0; i < m_cameraConfigs.size(); ++i)
-            {
-                AZ::RPI::ViewportContextPtr viewportContext = viewportManager->GetViewportContextById(m_cameraConfigs[i].m_viewportId);
-                if (!viewportContext)
+            viewportManager->EnumerateViewportContexts(
+                [this](AZ::RPI::ViewportContextPtr viewportContextPtr) mutable
                 {
-                    continue;
-                }
+                    AzFramework::WindowSize windowSize = viewportContextPtr->GetViewportSize();
+                    if (windowSize.m_width == 0 || windowSize.m_height == 0)
+                    {
+                        return;
+                    }
 
-                AzFramework::WindowSize windowSize = viewportContext->GetViewportSize();
-                if (windowSize.m_width == 0 || windowSize.m_height == 0)
-                {
-                    continue;
-                }
-
-                glm::dvec2 viewportSize{ windowSize.m_width, windowSize.m_height };
-                m_viewStates.emplace_back(GetViewState(m_cameraConfigs[i].m_cameraEntityId, viewportSize, m_transform));
-            }
+                    m_viewStates.emplace_back(GetViewState(viewportContextPtr, m_transform));
+                });
 
             return m_viewStates;
         }
 
     private:
         static Cesium3DTilesSelection::ViewState GetViewState(
-            const AZ::EntityId& cameraEntityId, const glm::dvec2& viewportSize, const glm::dmat4& transform)
+            const AZ::RPI::ViewportContextPtr& viewportContextPtr, const glm::dmat4& transform)
         {
             // Get o3de camera configuration
-            AZ::RPI::ViewPtr view = nullptr;
-            Camera::Configuration o3deCameraConfiguration;
-            Camera::CameraRequestBus::EventResult(
-                o3deCameraConfiguration, cameraEntityId, &Camera::CameraRequestBus::Events::GetCameraConfiguration);
-            AZ::RPI::ViewProviderBus::EventResult(view, cameraEntityId, &AZ::RPI::ViewProvider::GetView);
+            AZ::RPI::ViewPtr view = viewportContextPtr->GetDefaultView();
             AZ::Transform o3deCameraTransform = view->GetCameraTransform();
             AZ::Vector3 o3deCameraFwd = o3deCameraTransform.GetBasis(1);
             AZ::Vector3 o3deCameraUp = o3deCameraTransform.GetBasis(2);
@@ -149,14 +101,16 @@ namespace Cesium
             direction = glm::normalize(direction);
             up = glm::normalize(up);
 
+            const auto& projectMatrix = view->GetViewToClipMatrix();
+            AzFramework::WindowSize windowSize = viewportContextPtr->GetViewportSize();
+            glm::dvec2 viewportSize{ windowSize.m_width, windowSize.m_height };
             double aspect = viewportSize.x / viewportSize.y;
-            double verticalFov = o3deCameraConfiguration.m_fovRadians;
+            double verticalFov = 2.0 * glm::atan(1.0 / projectMatrix.GetElement(1, 1));
             double horizontalFov = 2.0 * glm::atan(glm::tan(verticalFov * 0.5) * aspect);
             return Cesium3DTilesSelection::ViewState::create(position, direction, up, viewportSize, horizontalFov, verticalFov);
         }
 
         glm::dmat4 m_transform;
-        AZStd::vector<CameraConfig> m_cameraConfigs;
         std::vector<Cesium3DTilesSelection::ViewState> m_viewStates;
     };
 
@@ -316,7 +270,7 @@ namespace Cesium
 
     struct CesiumTilesetComponent::Impl : public RasterOverlayRequestBus::Handler
     {
-        using TilesetSourceConfiguration = std::variant<std::monostate, LocalFileSource, UrlSource, CesiumIonSource>;
+        using TilesetSourceConfiguration = AZStd::variant<std::monostate, LocalFileSource, UrlSource, CesiumIonSource>;
 
         Impl(const AZ::EntityId& selfEntity)
             : m_selfEntity{ selfEntity }
@@ -543,15 +497,15 @@ namespace Cesium
         m_impl->m_renderResourcesPreparer = std::make_shared<RenderResourcesPreparer>(meshFeatureProcessor);
 
         // load tileset from source if it exists
-        if (auto localFile = std::get_if<LocalFileSource>(&m_impl->m_tilesetSource))
+        if (auto localFile = AZStd::get_if<LocalFileSource>(&m_impl->m_tilesetSource))
         {
             m_impl->LoadTilesetFromLocalFile(localFile->m_filePath);
         }
-        else if (auto url = std::get_if<UrlSource>(&m_impl->m_tilesetSource))
+        else if (auto url = AZStd::get_if<UrlSource>(&m_impl->m_tilesetSource))
         {
             m_impl->LoadTilesetFromUrl(url->m_url);
         }
-        else if (auto cesiumIon = std::get_if<CesiumIonSource>(&m_impl->m_tilesetSource))
+        else if (auto cesiumIon = AZStd::get_if<CesiumIonSource>(&m_impl->m_tilesetSource))
         {
             m_impl->LoadTilesetFromCesiumIon(cesiumIon->cesiumIonAssetId, cesiumIon->cesiumIonAssetToken);
         }
@@ -625,13 +579,13 @@ namespace Cesium
     {
         if (!m_impl->m_tileset)
         {
-            return std::monostate{};
+            return AZStd::monostate{};
         }
 
         const auto rootTile = m_impl->m_tileset->getRootTile();
         if (!rootTile)
         {
-            return std::monostate{};
+            return AZStd::monostate{};
         }
 
         if (MathHelper::IsIdentityMatrix(m_impl->m_O3DETransform))
@@ -684,16 +638,6 @@ namespace Cesium
                 }
             }
         }
-    }
-
-    void CesiumTilesetComponent::AddCamera(const AZ::EntityId& cameraEntityId, const AzFramework::ViewportId& viewportId)
-    {
-        m_impl->m_cameraConfigurations.AddCameraEntity(cameraEntityId, viewportId);
-    }
-
-    void CesiumTilesetComponent::RemoveCamera(const AZ::EntityId& cameraEntityId)
-    {
-        m_impl->m_cameraConfigurations.RemoveCameraEntity(cameraEntityId);
     }
 
     void CesiumTilesetComponent::LoadTilesetFromLocalFile(const AZStd::string& path)
