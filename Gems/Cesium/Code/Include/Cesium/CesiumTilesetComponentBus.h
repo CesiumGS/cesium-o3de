@@ -17,7 +17,7 @@ namespace Cesium
 
     struct CesiumTilesetConfiguration final
     {
-        AZ_RTTI(Cesium::CesiumTilesetConfiguration, "{13578DDF-7A60-4851-821C-A5238F222611}");
+        AZ_RTTI(CesiumTilesetConfiguration, "{13578DDF-7A60-4851-821C-A5238F222611}");
         AZ_CLASS_ALLOCATOR(CesiumTilesetConfiguration, AZ::SystemAllocator, 0);
 
         static void Reflect(AZ::ReflectContext* context);
@@ -44,6 +44,72 @@ namespace Cesium
         bool m_stopUpdate;
     };
 
+    struct TilesetLocalFileSource final
+    {
+        AZ_RTTI(TilesetLocalFileSource, "{80F811DB-AD4D-4BAD-AB08-F63765DC6D1E}");
+        AZ_CLASS_ALLOCATOR(TilesetLocalFileSource, AZ::SystemAllocator, 0);
+
+        static void Reflect(AZ::ReflectContext* context);
+
+        AZStd::string m_filePath;
+    };
+
+    struct TilesetUrlSource final
+    {
+        AZ_RTTI(TilesetUrlSource, "{03E43702-DAB4-48A7-B71B-6EC012418134}");
+        AZ_CLASS_ALLOCATOR(TilesetUrlSource, AZ::SystemAllocator, 0);
+
+        static void Reflect(AZ::ReflectContext* context);
+
+        AZStd::string m_url;
+    };
+
+    struct TilesetCesiumIonSource final
+    {
+        AZ_RTTI(TilesetCesiumIonSource, "{16423510-6EDE-4F45-8C6E-C8C965D70B66}");
+        AZ_CLASS_ALLOCATOR(TilesetCesiumIonSource, AZ::SystemAllocator, 0);
+
+        static void Reflect(AZ::ReflectContext* context);
+
+        std::uint32_t m_cesiumIonAssetId;
+        AZStd::string m_cesiumIonAssetToken;
+    };
+
+    enum class TilesetSourceType
+    {
+        None,
+        LocalFile,
+        Url,
+        CesiumIon
+    };
+
+    struct TilesetSource final
+    {
+        AZ_RTTI(TilesetSource, "{AA390F90-E695-4753-8F7C-D7E5AE9BE830}");
+        AZ_CLASS_ALLOCATOR(TilesetSource, AZ::SystemAllocator, 0);
+
+        static void Reflect(AZ::ReflectContext* context);
+
+        TilesetSource()
+            : m_type{TilesetSourceType::None}
+            , m_localFile{}
+            , m_url{}
+            , m_cesiumIon{}
+        {
+        }
+
+        bool IsLocalFile();
+
+        bool IsUrl();
+
+        bool IsCesiumIon();
+
+        TilesetSourceType m_type;
+        TilesetLocalFileSource m_localFile;
+        TilesetUrlSource m_url;
+        TilesetCesiumIonSource m_cesiumIon;
+    };
+
     class CesiumTilesetRequest : public AZ::ComponentBus
     {
     public:
@@ -55,11 +121,7 @@ namespace Cesium
 
         virtual TilesetBoundingVolume GetBoundingVolumeInECEF() const = 0;
 
-        virtual void LoadTilesetFromLocalFile(const AZStd::string& path) = 0;
-
-        virtual void LoadTilesetFromUrl(const AZStd::string& url) = 0;
-
-        virtual void LoadTilesetFromCesiumIon(std::uint32_t cesiumIonAssetId, const AZStd::string& cesiumIonAssetToken) = 0;
+        virtual void LoadTileset(const TilesetSource& source) = 0;
     };
 
     using CesiumTilesetRequestBus = AZ::EBus<CesiumTilesetRequest>;

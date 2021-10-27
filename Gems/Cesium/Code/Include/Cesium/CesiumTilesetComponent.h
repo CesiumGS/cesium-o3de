@@ -33,11 +33,7 @@ namespace Cesium
 
         TilesetBoundingVolume GetBoundingVolumeInECEF() const override;
 
-        void LoadTilesetFromLocalFile(const AZStd::string& path) override;
-
-        void LoadTilesetFromUrl(const AZStd::string& url) override;
-
-        void LoadTilesetFromCesiumIon(std::uint32_t cesiumIonAssetId, const AZStd::string& cesiumIonAssetToken) override;
+        void LoadTileset(const TilesetSource& source) override;
 
     private:
         void Init() override;

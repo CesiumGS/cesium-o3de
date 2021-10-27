@@ -252,26 +252,8 @@ namespace Cesium
         glm::dmat4 m_transform;
     };
 
-    struct CesiumTilesetComponent::LocalFileSource
-    {
-        AZStd::string m_filePath;
-    };
-
-    struct CesiumTilesetComponent::UrlSource
-    {
-        AZStd::string m_url;
-    };
-
-    struct CesiumTilesetComponent::CesiumIonSource
-    {
-        std::uint32_t cesiumIonAssetId;
-        AZStd::string cesiumIonAssetToken;
-    };
-
     struct CesiumTilesetComponent::Impl : public RasterOverlayRequestBus::Handler
     {
-        using TilesetSourceConfiguration = AZStd::variant<std::monostate, LocalFileSource, UrlSource, CesiumIonSource>;
-
         Impl(const AZ::EntityId& selfEntity)
             : m_selfEntity{ selfEntity }
             , m_O3DETransform{ 1.0 }
@@ -327,24 +309,42 @@ namespace Cesium
             };
         }
 
-        void LoadTilesetFromLocalFile(const AZStd::string& path)
+        void LoadTileset()
+        {
+            switch (m_tilesetSource.m_type)
+            {
+            case TilesetSourceType::LocalFile:
+                LoadTilesetFromLocalFile(m_tilesetSource.m_localFile);
+                break;
+            case TilesetSourceType::Url:
+                LoadTilesetFromUrl(m_tilesetSource.m_url);
+                break;
+            case TilesetSourceType::CesiumIon:
+                LoadTilesetFromCesiumIon(m_tilesetSource.m_cesiumIon);
+                break;
+            default:
+                break;
+            }
+        }
+
+        void LoadTilesetFromLocalFile(const TilesetLocalFileSource& source)
         {
             Cesium3DTilesSelection::TilesetExternals externals = CreateTilesetExternal(IOKind::LocalFile);
-            m_tileset = AZStd::make_unique<Cesium3DTilesSelection::Tileset>(externals, path.c_str());
+            m_tileset = AZStd::make_unique<Cesium3DTilesSelection::Tileset>(externals, source.m_filePath.c_str());
             m_coordinateOrO3DETransformDirty = true; // new tileset needs to be applied to the existing transform
         }
 
-        void LoadTilesetFromUrl(const AZStd::string& url)
+        void LoadTilesetFromUrl(const TilesetUrlSource& source)
         {
             Cesium3DTilesSelection::TilesetExternals externals = CreateTilesetExternal(IOKind::Http);
-            m_tileset = AZStd::make_unique<Cesium3DTilesSelection::Tileset>(externals, url.c_str());
+            m_tileset = AZStd::make_unique<Cesium3DTilesSelection::Tileset>(externals, source.m_url.c_str());
             m_coordinateOrO3DETransformDirty = true; // new tileset needs to be applied to the existing transform
         }
 
-        void LoadTilesetFromCesiumIon(std::uint32_t cesiumIonAssetId, const AZStd::string& cesiumIonAssetToken)
+        void LoadTilesetFromCesiumIon(const TilesetCesiumIonSource& source)
         {
             Cesium3DTilesSelection::TilesetExternals externals = CreateTilesetExternal(IOKind::Http);
-            m_tileset = AZStd::make_unique<Cesium3DTilesSelection::Tileset>(externals, cesiumIonAssetId, cesiumIonAssetToken.c_str());
+            m_tileset = AZStd::make_unique<Cesium3DTilesSelection::Tileset>(externals, source.m_cesiumIonAssetId, source.m_cesiumIonAssetToken.c_str());
             m_coordinateOrO3DETransformDirty = true; // new tileset needs to be applied to the existing transform
         }
 
@@ -468,7 +468,7 @@ namespace Cesium
         AZ::EntityId m_selfEntity;
         CameraConfigurations m_cameraConfigurations;
         CesiumTilesetConfiguration m_tilesetConfiguration;
-        TilesetSourceConfiguration m_tilesetSource;
+        TilesetSource m_tilesetSource;
         EntityWrapper m_coordinateTransformEntity;
     };
 
@@ -497,18 +497,7 @@ namespace Cesium
         m_impl->m_renderResourcesPreparer = std::make_shared<RenderResourcesPreparer>(meshFeatureProcessor);
 
         // load tileset from source if it exists
-        if (auto localFile = AZStd::get_if<LocalFileSource>(&m_impl->m_tilesetSource))
-        {
-            m_impl->LoadTilesetFromLocalFile(localFile->m_filePath);
-        }
-        else if (auto url = AZStd::get_if<UrlSource>(&m_impl->m_tilesetSource))
-        {
-            m_impl->LoadTilesetFromUrl(url->m_url);
-        }
-        else if (auto cesiumIon = AZStd::get_if<CesiumIonSource>(&m_impl->m_tilesetSource))
-        {
-            m_impl->LoadTilesetFromCesiumIon(cesiumIon->cesiumIonAssetId, cesiumIon->cesiumIonAssetToken);
-        }
+        m_impl->LoadTileset();
 
         // Set the O3DE transform first before any transformation from Cesium coord to O3DE coordinate
         AZ::Transform worldTransform;
@@ -599,6 +588,12 @@ namespace Cesium
             rootTile->getBoundingVolume());
     }
 
+    void CesiumTilesetComponent::LoadTileset(const TilesetSource& source)
+    {
+        m_impl->m_tilesetSource = source;
+        m_impl->LoadTileset();
+    }
+
     void CesiumTilesetComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
     {
         if (m_impl->m_tilesetConfiguration.m_stopUpdate)
@@ -638,24 +633,6 @@ namespace Cesium
                 }
             }
         }
-    }
-
-    void CesiumTilesetComponent::LoadTilesetFromLocalFile(const AZStd::string& path)
-    {
-        m_impl->LoadTilesetFromLocalFile(path);
-        m_impl->m_tilesetSource = LocalFileSource{ path };
-    }
-
-    void CesiumTilesetComponent::LoadTilesetFromUrl(const AZStd::string& url)
-    {
-        m_impl->LoadTilesetFromUrl(url);
-        m_impl->m_tilesetSource = UrlSource{ url };
-    }
-
-    void CesiumTilesetComponent::LoadTilesetFromCesiumIon(std::uint32_t cesiumIonAssetId, const AZStd::string& cesiumIonAssetToken)
-    {
-        m_impl->LoadTilesetFromCesiumIon(cesiumIonAssetId, cesiumIonAssetToken);
-        m_impl->m_tilesetSource = CesiumIonSource{ cesiumIonAssetId, cesiumIonAssetToken };
     }
 
     void CesiumTilesetComponent::OnTransformChanged([[maybe_unused]] const AZ::Transform& local, const AZ::Transform& world)

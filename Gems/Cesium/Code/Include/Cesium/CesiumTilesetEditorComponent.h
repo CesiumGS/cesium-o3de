@@ -29,5 +29,6 @@ namespace Cesium
         void Deactivate() override;
 
         CesiumTilesetConfiguration m_tilesetConfiguration;
+        TilesetSource m_tilesetSource;
     };
 } // namespace Cesium
