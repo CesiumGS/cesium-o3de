@@ -3,7 +3,6 @@
 #include <Cesium/BoundingSphere.h>
 #include <Cesium/OrientedBoundingBox.h>
 #include <Cesium/BoundingRegion.h>
-#include <AzFramework/Viewport/ViewportId.h>
 #include <AzCore/Component/ComponentBus.h>
 #include <AzCore/std/string/string.h>
 #include <AzCore/std/containers/variant.h>

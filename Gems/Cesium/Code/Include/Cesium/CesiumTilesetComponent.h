@@ -35,13 +35,15 @@ namespace Cesium
 
         void LoadTileset(const TilesetSource& source) override;
 
-    private:
         void Init() override;
 
         void Activate() override;
 
         void Deactivate() override;
 
+        using AZ::Component::SetEntity;
+
+    private:
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
 
         void OnTransformChanged(const AZ::Transform& local, const AZ::Transform& world) override;
@@ -50,9 +52,6 @@ namespace Cesium
         struct BoundingVolumeConverter;
         struct BoundingVolumeTransform;
         struct EntityWrapper;
-        struct LocalFileSource;
-        struct UrlSource;
-        struct CesiumIonSource;
         struct Impl;
         AZStd::unique_ptr<Impl> m_impl;
     };

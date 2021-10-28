@@ -1,9 +1,14 @@
 #include <Cesium/CesiumTilesetEditorComponent.h>
+#include <Cesium/CesiumTilesetComponent.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/EditContext.h>
 
 namespace Cesium
 {
+    CesiumTilesetEditorComponent::CesiumTilesetEditorComponent()
+    {
+    }
+
     void CesiumTilesetEditorComponent::Reflect(AZ::ReflectContext* context)
     {
         CesiumTilesetConfiguration::Reflect(context);
@@ -30,8 +35,10 @@ namespace Cesium
                         ->Attribute(AZ::Edit::Attributes::AutoExpand, true)
                     ->DataElement(AZ::Edit::UIHandlers::Default, &CesiumTilesetEditorComponent::m_tilesetSource, "", "")
                         ->Attribute(AZ::Edit::Attributes::Visibility, AZ::Edit::PropertyVisibility::ShowChildrenOnly)
+                        ->Attribute(AZ::Edit::Attributes::ChangeNotify, &CesiumTilesetEditorComponent::OnTilesetSourceChanged)
                     ->DataElement(AZ::Edit::UIHandlers::Default, &CesiumTilesetEditorComponent::m_tilesetConfiguration, "", "")
                         ->Attribute(AZ::Edit::Attributes::Visibility, AZ::Edit::PropertyVisibility::ShowChildrenOnly)
+                        ->Attribute(AZ::Edit::Attributes::ChangeNotify, &CesiumTilesetEditorComponent::OnTilesetConfigurationChanged);
                     ;
 
                 editContext->Class<TilesetSource>("TilesetSource", "")
@@ -106,13 +113,34 @@ namespace Cesium
 
     void CesiumTilesetEditorComponent::Init()
     {
+        AzToolsFramework::Components::EditorComponentBase::Init();
+        m_tilesetComponent = AZStd::make_unique<CesiumTilesetComponent>();
+        m_tilesetComponent->Init();
+        m_tilesetComponent->SetEntity(GetEntity());
+        m_tilesetComponent->SetConfiguration(m_tilesetConfiguration);
+        m_tilesetComponent->LoadTileset(m_tilesetSource);
     }
 
     void CesiumTilesetEditorComponent::Activate()
     {
+        m_tilesetComponent->Activate();
     }
 
     void CesiumTilesetEditorComponent::Deactivate()
     {
+        m_tilesetComponent->Deactivate();
+        m_tilesetComponent->SetEntity(nullptr);
+    }
+
+    AZ::u32 CesiumTilesetEditorComponent::OnTilesetSourceChanged()
+    {
+        m_tilesetComponent->SetConfiguration(m_tilesetConfiguration);
+        return AZ::Edit::PropertyRefreshLevels::None;
+    }
+
+    AZ::u32 CesiumTilesetEditorComponent::OnTilesetConfigurationChanged()
+    {
+        m_tilesetComponent->LoadTileset(m_tilesetSource);
+        return AZ::Edit::PropertyRefreshLevels::None;
     }
 } // namespace Cesium
