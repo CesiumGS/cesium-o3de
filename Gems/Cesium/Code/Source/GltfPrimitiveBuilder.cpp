@@ -140,9 +140,8 @@ namespace Cesium
             return;
         }
 
-        // if indices is empty, so the mesh is non-indexed mesh. We should expect positions size
-        // is a multiple of 3
-        if (m_indices.empty() && (commonAccessorViews.m_positions.size() % 3 == 0))
+        // We should expect indices size is a multiple of 3
+        if (m_indices.size() % 3 != 0)
         {
             return;
         }
@@ -156,6 +155,12 @@ namespace Cesium
         CreateUVsAttributes(commonAccessorViews, model, primitive);
         CreateTangentsAndBitangentsAttributes(commonAccessorViews);
         CreateCustomAttributes(model, primitive, material);
+
+        // after retrieving all the attributes, we reindex the indices if it's un-indexed mesh
+        if (m_context.m_generateUnIndexedMesh)
+        {
+            std::iota(m_indices.begin(), m_indices.end(), 0);
+        }
 
         // calculate buffer view descriptor for each attribute and total buffer size to store all of them
         // in a single buffer

@@ -134,13 +134,13 @@ namespace Cesium
 
     AZ::u32 CesiumTilesetEditorComponent::OnTilesetSourceChanged()
     {
-        m_tilesetComponent->SetConfiguration(m_tilesetConfiguration);
+        m_tilesetComponent->LoadTileset(m_tilesetSource);
         return AZ::Edit::PropertyRefreshLevels::None;
     }
 
     AZ::u32 CesiumTilesetEditorComponent::OnTilesetConfigurationChanged()
     {
-        m_tilesetComponent->LoadTileset(m_tilesetSource);
+        m_tilesetComponent->SetConfiguration(m_tilesetConfiguration);
         return AZ::Edit::PropertyRefreshLevels::None;
     }
 } // namespace Cesium
