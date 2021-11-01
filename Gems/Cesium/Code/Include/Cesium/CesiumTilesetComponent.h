@@ -24,9 +24,9 @@ namespace Cesium
 
         CesiumTilesetComponent();
 
-        void SetConfiguration(const CesiumTilesetConfiguration& configration) override;
+        void SetConfiguration(const TilesetConfiguration& configration) override;
 
-        const CesiumTilesetConfiguration& GetConfiguration() const override;
+        const TilesetConfiguration& GetConfiguration() const override;
 
         void SetCoordinateTransform(const AZ::EntityId& coordinateTransformEntityId) override;
 
@@ -51,7 +51,7 @@ namespace Cesium
         struct Impl;
 
         AZStd::unique_ptr<Impl> m_impl;
-        CesiumTilesetConfiguration m_tilesetConfiguration;
+        TilesetConfiguration m_tilesetConfiguration;
         TilesetSource m_tilesetSource;
         AZ::EntityId m_coordinateTransformEntityId;
     };

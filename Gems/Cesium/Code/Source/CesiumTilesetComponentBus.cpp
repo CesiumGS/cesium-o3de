@@ -3,19 +3,19 @@
 
 namespace Cesium
 {
-    void CesiumTilesetConfiguration::Reflect(AZ::ReflectContext* context)
+    void TilesetConfiguration::Reflect(AZ::ReflectContext* context)
     {
         if (auto serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<CesiumTilesetConfiguration>()
+            serializeContext->Class<TilesetConfiguration>()
                 ->Version(0)
-                ->Field("maximumScreenSpaceError", &CesiumTilesetConfiguration::m_maximumScreenSpaceError)
-                ->Field("maximumCacheBytes", &CesiumTilesetConfiguration::m_maximumCacheBytes)
-                ->Field("maximumSimultaneousTileLoads", &CesiumTilesetConfiguration::m_maximumSimultaneousTileLoads)
-                ->Field("loadingDescendantLimit", &CesiumTilesetConfiguration::m_loadingDescendantLimit)
-                ->Field("preloadAncestors", &CesiumTilesetConfiguration::m_preloadAncestors)
-                ->Field("preloadSiblings", &CesiumTilesetConfiguration::m_preloadSiblings)
-                ->Field("forbidHole", &CesiumTilesetConfiguration::m_forbidHole)
+                ->Field("maximumScreenSpaceError", &TilesetConfiguration::m_maximumScreenSpaceError)
+                ->Field("maximumCacheBytes", &TilesetConfiguration::m_maximumCacheBytes)
+                ->Field("maximumSimultaneousTileLoads", &TilesetConfiguration::m_maximumSimultaneousTileLoads)
+                ->Field("loadingDescendantLimit", &TilesetConfiguration::m_loadingDescendantLimit)
+                ->Field("preloadAncestors", &TilesetConfiguration::m_preloadAncestors)
+                ->Field("preloadSiblings", &TilesetConfiguration::m_preloadSiblings)
+                ->Field("forbidHole", &TilesetConfiguration::m_forbidHole)
                 ;
         }
     }

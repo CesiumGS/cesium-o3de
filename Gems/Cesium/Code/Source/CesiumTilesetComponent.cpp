@@ -441,7 +441,7 @@ namespace Cesium
             m_configFlags = m_configFlags & ~ConfigurationDirtyFlags::TransformChange;
         }
 
-        void FlushTilesetConfigurationChange(const CesiumTilesetConfiguration &tilesetConfiguration)
+        void FlushTilesetConfigurationChange(const TilesetConfiguration &tilesetConfiguration)
         {
             if ((m_configFlags & ConfigurationDirtyFlags::TilesetConfigChange) != ConfigurationDirtyFlags::TilesetConfigChange)
             {
@@ -510,13 +510,13 @@ namespace Cesium
         CesiumTilesetRequestBus::Handler::BusDisconnect();
     }
 
-    void CesiumTilesetComponent::SetConfiguration(const CesiumTilesetConfiguration& configration)
+    void CesiumTilesetComponent::SetConfiguration(const TilesetConfiguration& configration)
     {
         m_tilesetConfiguration = configration;
         m_impl->m_configFlags |= Impl::ConfigurationDirtyFlags::TilesetConfigChange;
     }
 
-    const CesiumTilesetConfiguration& CesiumTilesetComponent::GetConfiguration() const
+    const TilesetConfiguration& CesiumTilesetComponent::GetConfiguration() const
     {
         return m_tilesetConfiguration;
     }

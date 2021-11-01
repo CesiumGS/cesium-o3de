@@ -36,7 +36,7 @@ namespace Cesium
         AZ::u32 OnTilesetConfigurationChanged();
 
         AZStd::unique_ptr<CesiumTilesetComponent> m_tilesetComponent;
-        CesiumTilesetConfiguration m_tilesetConfiguration;
+        TilesetConfiguration m_tilesetConfiguration;
         TilesetSource m_tilesetSource;
     };
 } // namespace Cesium

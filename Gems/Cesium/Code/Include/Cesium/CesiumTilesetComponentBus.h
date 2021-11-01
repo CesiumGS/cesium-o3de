@@ -14,14 +14,14 @@ namespace Cesium
 {
     using TilesetBoundingVolume = AZStd::variant<AZStd::monostate, BoundingSphere, OrientedBoundingBox, BoundingRegion>;
 
-    struct CesiumTilesetConfiguration final
+    struct TilesetConfiguration final
     {
-        AZ_RTTI(CesiumTilesetConfiguration, "{13578DDF-7A60-4851-821C-A5238F222611}");
-        AZ_CLASS_ALLOCATOR(CesiumTilesetConfiguration, AZ::SystemAllocator, 0);
+        AZ_RTTI(TilesetConfiguration, "{13578DDF-7A60-4851-821C-A5238F222611}");
+        AZ_CLASS_ALLOCATOR(TilesetConfiguration, AZ::SystemAllocator, 0);
 
         static void Reflect(AZ::ReflectContext* context);
 
-        CesiumTilesetConfiguration()
+        TilesetConfiguration()
             : m_maximumScreenSpaceError{ 16.0 }
             , m_maximumCacheBytes{ 512 * 1024 * 1024 }
             , m_maximumSimultaneousTileLoads{ 20 }
@@ -110,9 +110,9 @@ namespace Cesium
     class CesiumTilesetRequest : public AZ::ComponentBus
     {
     public:
-        virtual void SetConfiguration(const CesiumTilesetConfiguration& configration) = 0;
+        virtual void SetConfiguration(const TilesetConfiguration& configration) = 0;
 
-        virtual const CesiumTilesetConfiguration& GetConfiguration() const = 0;
+        virtual const TilesetConfiguration& GetConfiguration() const = 0;
 
         virtual void SetCoordinateTransform(const AZ::EntityId& cesiumTransformEntityId) = 0;
 

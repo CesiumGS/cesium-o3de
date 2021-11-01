@@ -11,7 +11,7 @@ namespace Cesium
 
     void CesiumTilesetEditorComponent::Reflect(AZ::ReflectContext* context)
     {
-        CesiumTilesetConfiguration::Reflect(context);
+        TilesetConfiguration::Reflect(context);
         TilesetSource::Reflect(context);
 
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
@@ -78,17 +78,17 @@ namespace Cesium
                     ->DataElement(AZ::Edit::UIHandlers::Default, &TilesetCesiumIonSource::m_cesiumIonAssetToken, "Asset Token", "")
                     ;
 
-                editContext->Class<CesiumTilesetConfiguration>("CesiumTilesetConfiguration", "")
+                editContext->Class<TilesetConfiguration>("TilesetConfiguration", "")
                     ->ClassElement(AZ::Edit::ClassElements::EditorData, "")
                     ->ClassElement(AZ::Edit::ClassElements::Group, "Configuration")
                         ->Attribute(AZ::Edit::Attributes::AutoExpand, true)
-                        ->DataElement(AZ::Edit::UIHandlers::Default, &CesiumTilesetConfiguration::m_maximumScreenSpaceError, "Maximum Screen Space Error", "")
-                        ->DataElement(AZ::Edit::UIHandlers::Default, &CesiumTilesetConfiguration::m_maximumCacheBytes, "Maximum Cache Size", "")
-                        ->DataElement(AZ::Edit::UIHandlers::Default, &CesiumTilesetConfiguration::m_maximumSimultaneousTileLoads, "Maximum Simultaneous Tile Loads", "")
-                        ->DataElement(AZ::Edit::UIHandlers::Default, &CesiumTilesetConfiguration::m_loadingDescendantLimit, "Loading Descendant Limit", "")
-                        ->DataElement(AZ::Edit::UIHandlers::CheckBox, &CesiumTilesetConfiguration::m_preloadAncestors, "Preload Ancestors", "")
-                        ->DataElement(AZ::Edit::UIHandlers::CheckBox, &CesiumTilesetConfiguration::m_preloadSiblings, "Preload Siblings", "")
-                        ->DataElement(AZ::Edit::UIHandlers::CheckBox, &CesiumTilesetConfiguration::m_forbidHole, "Forbid Hole", "")
+                        ->DataElement(AZ::Edit::UIHandlers::Default, &TilesetConfiguration::m_maximumScreenSpaceError, "Maximum Screen Space Error", "")
+                        ->DataElement(AZ::Edit::UIHandlers::Default, &TilesetConfiguration::m_maximumCacheBytes, "Maximum Cache Size", "")
+                        ->DataElement(AZ::Edit::UIHandlers::Default, &TilesetConfiguration::m_maximumSimultaneousTileLoads, "Maximum Simultaneous Tile Loads", "")
+                        ->DataElement(AZ::Edit::UIHandlers::Default, &TilesetConfiguration::m_loadingDescendantLimit, "Loading Descendant Limit", "")
+                        ->DataElement(AZ::Edit::UIHandlers::CheckBox, &TilesetConfiguration::m_preloadAncestors, "Preload Ancestors", "")
+                        ->DataElement(AZ::Edit::UIHandlers::CheckBox, &TilesetConfiguration::m_preloadSiblings, "Preload Siblings", "")
+                        ->DataElement(AZ::Edit::UIHandlers::CheckBox, &TilesetConfiguration::m_forbidHole, "Forbid Hole", "")
                     ;
             }
         }
