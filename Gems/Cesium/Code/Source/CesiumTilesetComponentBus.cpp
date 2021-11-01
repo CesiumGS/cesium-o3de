@@ -16,7 +16,7 @@ namespace Cesium
                 ->Field("preloadAncestors", &CesiumTilesetConfiguration::m_preloadAncestors)
                 ->Field("preloadSiblings", &CesiumTilesetConfiguration::m_preloadSiblings)
                 ->Field("forbidHole", &CesiumTilesetConfiguration::m_forbidHole)
-                ->Field("stopUpdate", &CesiumTilesetConfiguration::m_stopUpdate);
+                ;
         }
     }
     void TilesetLocalFileSource::Reflect(AZ::ReflectContext* context)

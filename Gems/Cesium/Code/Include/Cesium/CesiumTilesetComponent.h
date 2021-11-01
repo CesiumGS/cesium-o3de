@@ -16,7 +16,6 @@ namespace Cesium
         , public AZ::TickBus::Handler
         , public AZ::EntityBus::Handler
         , public CesiumTilesetRequestBus::Handler
-        , private AZ::TransformNotificationBus::Handler
     {
     public:
         AZ_COMPONENT(CesiumTilesetComponent, "{56948418-6C82-4DF2-9A8D-C292C22FCBDF}", AZ::Component)
@@ -46,13 +45,14 @@ namespace Cesium
     private:
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
 
-        void OnTransformChanged(const AZ::Transform& local, const AZ::Transform& world) override;
-
         class CameraConfigurations;
         struct BoundingVolumeConverter;
         struct BoundingVolumeTransform;
-        struct EntityWrapper;
         struct Impl;
+
         AZStd::unique_ptr<Impl> m_impl;
+        CesiumTilesetConfiguration m_tilesetConfiguration;
+        TilesetSource m_tilesetSource;
+        AZ::EntityId m_coordinateTransformEntityId;
     };
 } // namespace Cesium

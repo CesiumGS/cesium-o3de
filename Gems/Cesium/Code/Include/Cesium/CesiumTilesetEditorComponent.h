@@ -14,7 +14,6 @@ namespace Cesium
 
     class CesiumTilesetEditorComponent
         : public AzToolsFramework::Components::EditorComponentBase
-        , private AzFramework::EntityDebugDisplayEventBus::Handler
     {
     public:
         AZ_EDITOR_COMPONENT(CesiumTilesetEditorComponent, "{25978273-7635-415C-ABFE-8364A65B68FC}");
@@ -24,8 +23,6 @@ namespace Cesium
         static void Reflect(AZ::ReflectContext* context);
 
         void BuildGameEntity(AZ::Entity* gameEntity) override;
-
-        void DisplayEntityViewport(const AzFramework::ViewportInfo& viewportInfo, AzFramework::DebugDisplayRequests& debugDisplay) override;
 
     private:
         void Init() override;

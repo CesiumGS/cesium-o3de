@@ -87,13 +87,8 @@ namespace Cesium
                         ->DataElement(AZ::Edit::UIHandlers::Default, &CesiumTilesetConfiguration::m_maximumSimultaneousTileLoads, "Maximum Simultaneous Tile Loads", "")
                         ->DataElement(AZ::Edit::UIHandlers::Default, &CesiumTilesetConfiguration::m_loadingDescendantLimit, "Loading Descendant Limit", "")
                         ->DataElement(AZ::Edit::UIHandlers::CheckBox, &CesiumTilesetConfiguration::m_preloadAncestors, "Preload Ancestors", "")
-                            ->Attribute(AZ::Edit::Attributes::ChangeNotify, AZ::Edit::PropertyRefreshLevels::ValuesOnly)
                         ->DataElement(AZ::Edit::UIHandlers::CheckBox, &CesiumTilesetConfiguration::m_preloadSiblings, "Preload Siblings", "")
-                            ->Attribute(AZ::Edit::Attributes::ChangeNotify, AZ::Edit::PropertyRefreshLevels::ValuesOnly)
                         ->DataElement(AZ::Edit::UIHandlers::CheckBox, &CesiumTilesetConfiguration::m_forbidHole, "Forbid Hole", "")
-                            ->Attribute(AZ::Edit::Attributes::ChangeNotify, AZ::Edit::PropertyRefreshLevels::ValuesOnly)
-                        ->DataElement(AZ::Edit::UIHandlers::CheckBox, &CesiumTilesetConfiguration::m_stopUpdate, "Stop Update", "")
-                            ->Attribute(AZ::Edit::Attributes::ChangeNotify, AZ::Edit::PropertyRefreshLevels::ValuesOnly)
                     ;
             }
         }
@@ -101,29 +96,27 @@ namespace Cesium
 
     void CesiumTilesetEditorComponent::BuildGameEntity(AZ::Entity* gameEntity)
     {
-        (void)(gameEntity);
-    }
-
-    void CesiumTilesetEditorComponent::DisplayEntityViewport(
-        const AzFramework::ViewportInfo& viewportInfo, AzFramework::DebugDisplayRequests& debugDisplay)
-    {
-        (void)(viewportInfo);
-        (void)(debugDisplay);
+        auto tilesetComponent = gameEntity->CreateComponent<CesiumTilesetComponent>();
+        tilesetComponent->SetEntity(gameEntity);
+        tilesetComponent->Init();
+        tilesetComponent->Activate();
+        tilesetComponent->SetConfiguration(m_tilesetConfiguration);
+        tilesetComponent->LoadTileset(m_tilesetSource);
     }
 
     void CesiumTilesetEditorComponent::Init()
     {
         AzToolsFramework::Components::EditorComponentBase::Init();
-        m_tilesetComponent = AZStd::make_unique<CesiumTilesetComponent>();
-        m_tilesetComponent->Init();
-        m_tilesetComponent->SetEntity(GetEntity());
-        m_tilesetComponent->SetConfiguration(m_tilesetConfiguration);
-        m_tilesetComponent->LoadTileset(m_tilesetSource);
     }
 
     void CesiumTilesetEditorComponent::Activate()
     {
+        m_tilesetComponent = AZStd::make_unique<CesiumTilesetComponent>();
+        m_tilesetComponent->SetEntity(GetEntity());
+        m_tilesetComponent->Init();
         m_tilesetComponent->Activate();
+        m_tilesetComponent->SetConfiguration(m_tilesetConfiguration);
+        m_tilesetComponent->LoadTileset(m_tilesetSource);
     }
 
     void CesiumTilesetEditorComponent::Deactivate()
