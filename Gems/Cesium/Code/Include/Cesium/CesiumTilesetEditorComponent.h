@@ -5,8 +5,6 @@
 #include <AzCore/std/string/string.h>
 #include <AzCore/std/smart_ptr/unique_ptr.h>
 #include <AzToolsFramework/ToolsComponents/EditorComponentBase.h>
-#include <AzToolsFramework/ToolsComponents/EditorVisibilityBus.h>
-#include <AzFramework/Entity/EntityDebugDisplayBus.h>
 
 namespace Cesium
 {
