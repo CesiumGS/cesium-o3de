@@ -1,6 +1,7 @@
 
 set(FILES
     Tests/CesiumTest.cpp
+    Tests/MathReflectTest.cpp
     Tests/BoundingRegionTest.cpp
     Tests/OrientedBoundingBoxTest.cpp
     Tests/BoundingSphereTest.cpp

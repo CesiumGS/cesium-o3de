@@ -2,6 +2,7 @@
 #include <CesiumModuleInterface.h>
 #include <CesiumEditorSystemComponent.h>
 #include <Cesium/CesiumTilesetEditorComponent.h>
+#include <Cesium/GeoReferenceTransformEditorComponent.h>
 
 namespace Cesium
 {
@@ -18,9 +19,10 @@ namespace Cesium
             // Add ALL components descriptors associated with this gem to m_descriptors.
             // This will associate the AzTypeInfo information for the components with the the SerializeContext, BehaviorContext and EditContext.
             // This happens through the [MyComponent]::Reflect() function.
-            m_descriptors.insert(m_descriptors.end(), {
-                CesiumEditorSystemComponent::CreateDescriptor(), CesiumTilesetEditorComponent::CreateDescriptor()
-            });
+            m_descriptors.insert(
+                m_descriptors.end(),
+                { CesiumEditorSystemComponent::CreateDescriptor(), CesiumTilesetEditorComponent::CreateDescriptor(),
+                  GeoReferenceTransformEditorComponent::CreateDescriptor() });
         }
 
         /**
