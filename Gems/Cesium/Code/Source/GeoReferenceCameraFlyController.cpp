@@ -225,14 +225,14 @@ namespace Cesium
 
     void GeoReferenceCameraFlyController::ProcessBeginFlyState()
     {
-        assert(m_ecefPositionInterpolator != AZStd::nullopt);
+        assert(m_ecefPositionInterpolator != nullptr);
         glm::dvec3 ecefCurrentPosition = m_ecefPositionInterpolator->GetCurrentPosition();
         TransitionToFlyState(CameraFlyState::MidFly, ecefCurrentPosition);
     }
 
     void GeoReferenceCameraFlyController::ProcessMidFlyState(float deltaTime)
     {
-        assert(m_ecefPositionInterpolator != AZStd::nullopt);
+        assert(m_ecefPositionInterpolator != nullptr);
         m_ecefPositionInterpolator->Update(deltaTime);
         glm::dvec3 ecefCurrentPosition = m_ecefPositionInterpolator->GetCurrentPosition();
         glm::dquat ecefOrientation = m_ecefPositionInterpolator->GetCurrentOrientation();
@@ -447,7 +447,7 @@ namespace Cesium
         // stop mid fly
         if (m_cameraFlyState != CameraFlyState::NoFly)
         {
-            assert(m_ecefPositionInterpolator != AZStd::nullopt);
+            assert(m_ecefPositionInterpolator != nullptr);
             glm::dvec3 ecefCurrentPosition = m_ecefPositionInterpolator->GetCurrentPosition();
             TransitionToFlyState(CameraFlyState::NoFly, ecefCurrentPosition);
             m_ecefPositionInterpolator = nullptr;

@@ -29,6 +29,7 @@
 #include <AzCore/std/limits.h>
 #include <cassert>
 #include <cstdint>
+#include <numeric>
 
 namespace Cesium
 {
@@ -134,14 +135,13 @@ namespace Cesium
         }
 
         // set indices
-        if (!CreateIndices(model, primitive))
+        if (!CreateIndices(commonAccessorViews, model, primitive))
         {
             return;
         }
 
-        // if indices is empty, so the mesh is non-indexed mesh. We should expect positions size
-        // is a multiple of 3
-        if (m_indices.empty() && (commonAccessorViews.m_positions.size() % 3 == 0))
+        // We should expect indices size is a multiple of 3
+        if (m_indices.size() % 3 != 0)
         {
             return;
         }
@@ -155,6 +155,12 @@ namespace Cesium
         CreateUVsAttributes(commonAccessorViews, model, primitive);
         CreateTangentsAndBitangentsAttributes(commonAccessorViews);
         CreateCustomAttributes(model, primitive, material);
+
+        // after retrieving all the attributes, we reindex the indices if it's un-indexed mesh
+        if (m_context.m_generateUnIndexedMesh)
+        {
+            std::iota(m_indices.begin(), m_indices.end(), 0);
+        }
 
         // calculate buffer view descriptor for each attribute and total buffer size to store all of them
         // in a single buffer
@@ -219,52 +225,16 @@ namespace Cesium
             }
         }
 
-        AZ::RHI::BufferViewDescriptor indicesBufferViewDescriptor;
-        if (m_context.m_generateUnIndexedMesh || m_indices.empty())
-        {
-            if (m_positions.size() < static_cast<std::size_t>(AZStd::numeric_limits<std::uint16_t>::max()))
-            {
-                std::size_t offset = MathHelper::Align(totalBufferSize, sizeof(std::uint16_t));
-                indicesBufferViewDescriptor = AZ::RHI::BufferViewDescriptor::CreateTyped(
-                    static_cast<std::uint32_t>(offset / sizeof(std::uint16_t)), static_cast<std::uint32_t>(m_positions.size()),
-                    AZ::RHI::Format::R16_UINT);
-                totalBufferSize = offset + m_positions.size() * sizeof(std::uint16_t);
-            }
-            else
-            {
-                std::size_t offset = MathHelper::Align(totalBufferSize, sizeof(std::uint32_t));
-                indicesBufferViewDescriptor = AZ::RHI::BufferViewDescriptor::CreateTyped(
-                    static_cast<std::uint32_t>(offset / sizeof(std::uint32_t)), static_cast<std::uint32_t>(m_positions.size()),
-                    AZ::RHI::Format::R32_UINT);
-                totalBufferSize = offset + m_positions.size() * sizeof(std::uint32_t);
-            }
-        }
-        else
-        {
-            const CesiumGltf::Accessor* accessor = model.getSafe<CesiumGltf::Accessor>(&model.accessors, primitive.indices);
-            if (accessor->componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_BYTE ||
-                accessor->componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_SHORT)
-            {
-                std::size_t offset = MathHelper::Align(totalBufferSize, sizeof(std::uint16_t));
-                indicesBufferViewDescriptor = AZ::RHI::BufferViewDescriptor::CreateTyped(
-                    static_cast<std::uint32_t>(offset / sizeof(std::uint16_t)), static_cast<std::uint32_t>(m_indices.size()),
-                    AZ::RHI::Format::R16_UINT);
-                totalBufferSize = offset + m_indices.size() * sizeof(std::uint16_t);
-            }
-            else if (accessor->componentType == CesiumGltf::AccessorSpec::ComponentType::UNSIGNED_INT)
-            {
-                std::size_t offset = MathHelper::Align(totalBufferSize, sizeof(std::uint32_t));
-                indicesBufferViewDescriptor = AZ::RHI::BufferViewDescriptor::CreateTyped(
-                    static_cast<std::uint32_t>(offset / sizeof(std::uint32_t)), static_cast<std::uint32_t>(m_indices.size()),
-                    AZ::RHI::Format::R32_UINT);
-                totalBufferSize = offset + m_indices.size() * sizeof(std::uint32_t);
-            }
-        }
+        std::size_t offset = MathHelper::Align(totalBufferSize, sizeof(std::uint32_t));
+        auto indicesBufferViewDescriptor = AZ::RHI::BufferViewDescriptor::CreateTyped(
+            static_cast<std::uint32_t>(offset / sizeof(std::uint32_t)), static_cast<std::uint32_t>(m_indices.size()),
+            AZ::RHI::Format::R32_UINT);
+        totalBufferSize = offset + m_indices.size() * sizeof(std::uint32_t);
 
         // populate the raw buffer with attributes data
         AZStd::vector<std::byte> buffer;
         buffer.resize_no_construct(totalBufferSize);
-        CopyIndicesToSubregionBuffer(buffer, indicesBufferViewDescriptor);
+        CopySubregionBuffer(buffer, m_indices.data(), indicesBufferViewDescriptor);
         CopySubregionBuffer(buffer, m_positions.data(), positionBufferViewDescriptor);
         CopySubregionBuffer(buffer, m_normals.data(), normalBufferViewDescriptor);
         CopySubregionBuffer(buffer, m_bitangents.data(), bitangentBufferViewDescriptor);
@@ -363,7 +333,7 @@ namespace Cesium
     void GltfTrianglePrimitiveBuilder::CopyAccessorToBuffer(
         const CesiumGltf::AccessorView<AccessorType>& attributeAccessorView, AZStd::vector<AccessorType>& attributes)
     {
-        if (m_context.m_generateUnIndexedMesh && m_indices.size() > 0)
+        if (m_context.m_generateUnIndexedMesh)
         {
             // mesh has indices
             attributes.resize(m_indices.size());
@@ -375,8 +345,6 @@ namespace Cesium
         }
         else
         {
-            // if m_generateUnIndexedMesh is true but mesh has no indices, that means mesh is already un-indexed. Copy accessor over
-            // if m_generateUnIndexedMesh is false, copy accessor over
             attributes.resize(static_cast<std::size_t>(attributeAccessorView.size()));
             for (std::int64_t i = 0; i < attributeAccessorView.size(); ++i)
             {
@@ -389,7 +357,7 @@ namespace Cesium
     void GltfTrianglePrimitiveBuilder::CopyAccessorToBuffer(
         const CesiumGltf::AccessorView<AccessorType>& accessorView, AZStd::vector<std::byte>& buffer)
     {
-        if (m_context.m_generateUnIndexedMesh && m_indices.size() > 0)
+        if (m_context.m_generateUnIndexedMesh)
         {
             buffer.resize(m_indices.size() * sizeof(AccessorType));
             AccessorType* value = reinterpret_cast<AccessorType*>(buffer.data());
@@ -434,12 +402,13 @@ namespace Cesium
         return bufferAsset;
     }
 
-    bool GltfTrianglePrimitiveBuilder::CreateIndices(const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive)
+    bool GltfTrianglePrimitiveBuilder::CreateIndices(const CommonAccessorViews& accessorViews, const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive)
     {
         const CesiumGltf::Accessor* indicesAccessor = model.getSafe<CesiumGltf::Accessor>(&model.accessors, primitive.indices);
         if (!indicesAccessor)
         {
-            // it's optional to have no indices
+            m_indices.resize(static_cast<std::size_t>(accessorViews.m_positions.size()));
+            std::iota(m_indices.begin(), m_indices.end(), 0);
             return true;
         }
 
@@ -853,60 +822,6 @@ namespace Cesium
         std::size_t offset = descriptor.m_elementOffset * descriptor.m_elementSize; 
         std::size_t totalBytes = descriptor.m_elementCount * descriptor.m_elementSize;
         memcpy(buffer.data() + offset, src, totalBytes);
-    }
-
-    void GltfTrianglePrimitiveBuilder::CopyIndicesToSubregionBuffer(
-        AZStd::vector<std::byte>& buffer, const AZ::RHI::BufferViewDescriptor& descriptor)
-    {
-        if (m_context.m_generateUnIndexedMesh || m_indices.empty())
-        {
-            // because o3de requires to have indices, we will create generate an array of incremental indices
-            CopyUnIndexedIndicesToSubregionBuffer(buffer, descriptor);
-            return;
-        }
-
-        if (descriptor.m_elementFormat == AZ::RHI::Format::R16_UINT)
-        {
-            // o3de doesn't support uin8_t indices buffer, so we pick the next smallest one which is uint16_t
-            std::size_t offset = descriptor.m_elementOffset * descriptor.m_elementSize;
-            std::uint16_t* indices = reinterpret_cast<std::uint16_t*>(buffer.data() + offset);
-            for (std::size_t i = 0; i < m_indices.size(); ++i)
-            {
-                indices[i] = static_cast<std::uint16_t>(m_indices[i]);
-            }
-        }
-        else if (descriptor.m_elementFormat == AZ::RHI::Format::R32_UINT)
-        {
-            CopySubregionBuffer(buffer, m_indices.data(), descriptor);
-        }
-        else
-        {
-            // this code path should not run since we check the validity of indices accessor at the very beginning
-            assert(false);
-        }
-    }
-
-    void GltfTrianglePrimitiveBuilder::CopyUnIndexedIndicesToSubregionBuffer(AZStd::vector<std::byte>& buffer, const AZ::RHI::BufferViewDescriptor& descriptor)
-    {
-        if (m_positions.size() < static_cast<std::size_t>(AZStd::numeric_limits<std::uint16_t>::max()))
-        {
-            // o3de doesn't support uint8_t indices, so we pick the next smallest one which is uint16_t
-            std::size_t offset = descriptor.m_elementOffset * descriptor.m_elementSize;
-            std::uint16_t* indices = reinterpret_cast<std::uint16_t*>(buffer.data() + offset);
-            for (std::size_t i = 0; i < m_positions.size(); ++i)
-            {
-                indices[i] = static_cast<std::uint16_t>(i);
-            }
-        }
-        else
-        {
-            std::size_t offset = descriptor.m_elementOffset * descriptor.m_elementSize;
-            std::uint32_t* indices = reinterpret_cast<std::uint32_t*>(buffer.data() + offset);
-            for (std::size_t i = 0; i < m_positions.size(); ++i)
-            {
-                indices[i] = static_cast<std::uint32_t>(i);
-            }
-        }
     }
 
     void GltfTrianglePrimitiveBuilder::Reset()

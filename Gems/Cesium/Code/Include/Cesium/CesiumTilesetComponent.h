@@ -16,7 +16,6 @@ namespace Cesium
         , public AZ::TickBus::Handler
         , public AZ::EntityBus::Handler
         , public CesiumTilesetRequestBus::Handler
-        , private AZ::TransformNotificationBus::Handler
     {
     public:
         AZ_COMPONENT(CesiumTilesetComponent, "{56948418-6C82-4DF2-9A8D-C292C22FCBDF}", AZ::Component)
@@ -25,43 +24,35 @@ namespace Cesium
 
         CesiumTilesetComponent();
 
-        void SetConfiguration(const CesiumTilesetConfiguration& configration) override;
+        void SetConfiguration(const TilesetConfiguration& configration) override;
 
-        const CesiumTilesetConfiguration& GetConfiguration() const override;
+        const TilesetConfiguration& GetConfiguration() const override;
 
         void SetCoordinateTransform(const AZ::EntityId& coordinateTransformEntityId) override;
 
         TilesetBoundingVolume GetBoundingVolumeInECEF() const override;
 
-        void AddCamera(const AZ::EntityId& cameraEntityId, const AzFramework::ViewportId& viewportId) override;
+        void LoadTileset(const TilesetSource& source) override;
 
-        void RemoveCamera(const AZ::EntityId& cameraEntityId) override;
-
-        void LoadTilesetFromLocalFile(const AZStd::string& path) override;
-
-        void LoadTilesetFromUrl(const AZStd::string& url) override;
-
-        void LoadTilesetFromCesiumIon(std::uint32_t cesiumIonAssetId, const AZStd::string& cesiumIonAssetToken) override;
-
-    private:
         void Init() override;
 
         void Activate() override;
 
         void Deactivate() override;
 
-        void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
+        using AZ::Component::SetEntity;
 
-        void OnTransformChanged(const AZ::Transform& local, const AZ::Transform& world) override;
+    private:
+        void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
 
         class CameraConfigurations;
         struct BoundingVolumeConverter;
         struct BoundingVolumeTransform;
-        struct EntityWrapper;
-        struct LocalFileSource;
-        struct UrlSource;
-        struct CesiumIonSource;
         struct Impl;
+
         AZStd::unique_ptr<Impl> m_impl;
+        TilesetConfiguration m_tilesetConfiguration;
+        TilesetSource m_tilesetSource;
+        AZ::EntityId m_coordinateTransformEntityId;
     };
 } // namespace Cesium
