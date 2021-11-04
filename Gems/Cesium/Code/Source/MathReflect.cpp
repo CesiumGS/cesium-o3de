@@ -1,5 +1,6 @@
 #include <Cesium/MathReflect.h>
 #include <AzCore/RTTI/ReflectContext.h>
+#include <AzCore/Serialization/Json/RegistrationContext.h>
 
 namespace Cesium
 {
@@ -9,6 +10,12 @@ namespace Cesium
         if (serializeContext)
         {
             serializeContext->Class<glm::dvec3>()->Serializer<GlmVecSerializer<glm::dvec3>>();
+        }
+
+        AZ::JsonRegistrationContext* jsonRegistrationContext = azrtti_cast<AZ::JsonRegistrationContext*>(context);
+        if (jsonRegistrationContext)
+        {
+            jsonRegistrationContext->Serializer<GlmVecJsonSerializer<glm::dvec3>>()->HandlesType<glm::dvec3>();
         }
     }
 } // namespace Cesium
