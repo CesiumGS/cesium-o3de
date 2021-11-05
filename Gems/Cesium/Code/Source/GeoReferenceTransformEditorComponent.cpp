@@ -32,6 +32,7 @@ namespace Cesium
                         ->Attribute(AZ::Edit::Attributes::AutoExpand, true)
                     ->DataElement(AZ::Edit::UIHandlers::Default, &GeoReferenceTransformEditorComponent::m_origin, "Origin", "")
                         ->Attribute(AZ::Edit::Attributes::Decimals, 15)
+                        ->Attribute(AZ::Edit::Attributes::Suffix, "m")
                         ->Attribute(AZ::Edit::Attributes::ChangeNotify, &GeoReferenceTransformEditorComponent::OnOriginChanged)
                     ;
             }
