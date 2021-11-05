@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Cesium/Cartographic.h>
 #include <Cesium/CoordinateTransformComponentBus.h>
 #include <AzToolsFramework/ToolsComponents/EditorComponentBase.h>
 #include <AzCore/std/smart_ptr/unique_ptr.h>
@@ -10,6 +11,12 @@ namespace Cesium
 
     class GeoReferenceTransformEditorComponent : public AzToolsFramework::Components::EditorComponentBase
     {
+        enum class OriginType
+        {
+            Cartesian,
+            Cartographic
+        };
+
     public:
         AZ_EDITOR_COMPONENT(GeoReferenceTransformEditorComponent, "{FAA94692-4A4E-45AD-8225-EF8BE81CB949}");
 
@@ -26,9 +33,17 @@ namespace Cesium
 
         void Deactivate() override;
 
-        void OnOriginChanged();
+        void OnOriginAsCartesianChanged();
+
+        void OnOriginAsCartographicChanged();
+
+        bool UseOriginAsCartesian();
+
+        bool UseOriginAsCartographic();
 
         AZStd::unique_ptr<GeoReferenceTransformComponent> m_georeferenceComponent;
-        glm::dvec3 m_origin{0.0};
+        OriginType m_originType;
+        glm::dvec3 m_originAsCartesian{0.0};
+        Cartographic m_originAsCartographic{};
     };
 } // namespace Cesium

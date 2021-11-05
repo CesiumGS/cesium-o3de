@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Cesium/Cartographic.h>
+#include <AzCore/std/optional.h>
 #include <glm/glm.hpp>
 
 namespace Cesium
@@ -7,7 +9,9 @@ namespace Cesium
     class GeospatialHelper
     {
     public:
-        static glm::dvec3 CartographicToECEFCartesian(double longitude, double latitude, double height);
+        static glm::dvec3 CartographicToECEFCartesian(const Cartographic& cartographic);
+
+        static AZStd::optional<Cartographic> ECEFCartesianToCartographic(const glm::dvec3& ecefPosition);
 
         static glm::dvec3 GeodeticSurfaceNormal(const glm::dvec3& ecefPosition);
 

@@ -51,6 +51,8 @@ set(FILES
     Source/LinearInterpolator.h
     Source/RasterOverlayRequestBus.cpp
     Source/RasterOverlayRequestBus.h
+    Source/Cartographic.cpp
+    Include/Cesium/Cartographic.h
     Source/MathReflect.cpp
     Include/Cesium/MathReflect.h
     Source/GeospatialHelper.cpp
