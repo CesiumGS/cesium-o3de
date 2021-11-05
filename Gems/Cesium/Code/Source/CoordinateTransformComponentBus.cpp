@@ -10,7 +10,7 @@ namespace Cesium
         {
             serializeContext->Class<CoordinateTransformConfiguration>()
                 ->Version(0)
-                ->Field("maximumScreenSpaceError", &CoordinateTransformConfiguration::m_origin)
+                ->Field("origin", &CoordinateTransformConfiguration::m_origin)
                 ;
         }
     }

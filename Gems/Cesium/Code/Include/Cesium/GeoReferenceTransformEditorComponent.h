@@ -1,10 +1,13 @@
 #pragma once
 
-#include <AzToolsFramework/ToolsComponents/EditorComponentBase.h>
 #include <Cesium/CoordinateTransformComponentBus.h>
+#include <AzToolsFramework/ToolsComponents/EditorComponentBase.h>
+#include <AzCore/std/smart_ptr/unique_ptr.h>
 
 namespace Cesium
 {
+    class GeoReferenceTransformComponent;
+
     class GeoReferenceTransformEditorComponent : public AzToolsFramework::Components::EditorComponentBase
     {
     public:
@@ -23,6 +26,9 @@ namespace Cesium
 
         void Deactivate() override;
 
-        CoordinateTransformConfiguration m_transformConfig;
+        void OnOriginChanged();
+
+        AZStd::unique_ptr<GeoReferenceTransformComponent> m_georeferenceComponent;
+        glm::dvec3 m_origin{0.0};
     };
 } // namespace Cesium

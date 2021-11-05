@@ -9,7 +9,9 @@ namespace Cesium
     {
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<GeoReferenceTransformComponent, AZ::Component>()->Version(0);
+            serializeContext->Class<GeoReferenceTransformComponent, AZ::Component>()->Version(0)->
+                Field("coordinateTransformConfiguration", &GeoReferenceTransformComponent::m_config)
+                ;
         }
     }
 
@@ -19,15 +21,13 @@ namespace Cesium
 
     void GeoReferenceTransformComponent::Activate()
     {
+        m_config.m_O3DEToECEF = CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(m_config.m_origin);
+        m_config.m_ECEFToO3DE = glm::affineInverse(m_config.m_O3DEToECEF);
         CoordinateTransformRequestBus::Handler::BusConnect(GetEntityId());
-        m_enable = true;
-        m_enableEvent.Signal(m_enable, m_config);
     }
 
     void GeoReferenceTransformComponent::Deactivate()
     {
-        m_enable = false;
-        m_enableEvent.Signal(m_enable, m_config);
         CoordinateTransformRequestBus::Handler::BusDisconnect();
     }
 
@@ -69,18 +69,8 @@ namespace Cesium
         return m_config;
     }
 
-    bool GeoReferenceTransformComponent::IsEnable() const
-    {
-        return m_enable;
-    }
-
     void GeoReferenceTransformComponent::BindTransformChangeEventHandler(TransformChangeEvent::Handler& handler)
     {
         handler.Connect(m_transformChangeEvent);
-    }
-
-    void GeoReferenceTransformComponent::BindTransformEnableEventHandler(TransformEnableEvent::Handler& handler)
-    {
-        handler.Connect(m_enableEvent);
     }
 } // namespace Cesium

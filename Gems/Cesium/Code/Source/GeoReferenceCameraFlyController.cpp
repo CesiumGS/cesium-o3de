@@ -136,11 +136,11 @@ namespace Cesium
         CoordinateTransformRequestBus::Event(
             m_coordinateTransformEntityId, &CoordinateTransformRequestBus::Events::BindTransformChangeEventHandler,
             m_cesiumTransformChangeHandler);
-        CoordinateTransformRequestBus::Event(
-            m_coordinateTransformEntityId, &CoordinateTransformRequestBus::Events::BindTransformEnableEventHandler,
-            m_cesiumTransformEnableHandler);
-        CoordinateTransformRequestBus::EventResult(
-            m_coordinateTransformEntityEnable, m_coordinateTransformEntityId, &CoordinateTransformRequestBus::Events::IsEnable);
+        //CoordinateTransformRequestBus::Event(
+        //    m_coordinateTransformEntityId, &CoordinateTransformRequestBus::Events::BindTransformEnableEventHandler,
+        //    m_cesiumTransformEnableHandler);
+        //CoordinateTransformRequestBus::EventResult(
+        //    m_coordinateTransformEntityEnable, m_coordinateTransformEntityId, &CoordinateTransformRequestBus::Events::IsEnable);
     }
 
     void GeoReferenceCameraFlyController::FlyToECEFLocation(const glm::dvec3& location, const glm::dvec3& direction)

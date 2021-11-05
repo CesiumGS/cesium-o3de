@@ -46,11 +46,7 @@ namespace Cesium
 
         virtual const CoordinateTransformConfiguration& GetConfiguration() const = 0;
 
-        virtual bool IsEnable() const = 0;
-
         virtual void BindTransformChangeEventHandler(TransformChangeEvent::Handler& handler) = 0;
-
-        virtual void BindTransformEnableEventHandler(TransformEnableEvent::Handler& handler) = 0;
     };
 
     using CoordinateTransformRequestBus = AZ::EBus<CoordinateTransformRequest>;

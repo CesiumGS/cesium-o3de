@@ -53,7 +53,7 @@ namespace Cesium
             }
             outText += "]";
 
-            return static_cast<size_t>(out.Write(outText.size(), outText.data()));
+            return static_cast<std::size_t>(out.Write(outText.size(), outText.data()));
         }
 
         std::size_t TextToData(
@@ -92,7 +92,7 @@ namespace Cesium
             }
 
             VecType* instance = reinterpret_cast<VecType*>(classPtr);
-            stream.Read(sizeof(VecType), reinterpret_cast<void*>(&instance));
+            stream.Read(sizeof(VecType), glm::value_ptr(*instance));
             return true;
         }
 
