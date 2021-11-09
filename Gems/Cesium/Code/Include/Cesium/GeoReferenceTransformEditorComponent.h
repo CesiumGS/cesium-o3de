@@ -17,6 +17,22 @@ namespace Cesium
             Cartographic
         };
 
+        struct DegreeCartographic final
+        {
+            AZ_RTTI(DegreeCartographic, "{477784B5-7A3D-4721-88CD-99A147BABFB0}");
+            AZ_CLASS_ALLOCATOR(DegreeCartographic, AZ::SystemAllocator, 0);
+
+            static void Reflect(AZ::ReflectContext* context);
+
+            DegreeCartographic();
+
+            DegreeCartographic(double longitude, double latitude, double height);
+
+            double m_longitude;
+            double m_latitude;
+            double m_height;
+        };
+
     public:
         AZ_EDITOR_COMPONENT(GeoReferenceTransformEditorComponent, "{FAA94692-4A4E-45AD-8225-EF8BE81CB949}");
 
@@ -44,6 +60,6 @@ namespace Cesium
         AZStd::unique_ptr<GeoReferenceTransformComponent> m_georeferenceComponent;
         OriginType m_originType;
         glm::dvec3 m_originAsCartesian{0.0};
-        Cartographic m_originAsCartographic{};
+        DegreeCartographic m_originAsCartographic{};
     };
 } // namespace Cesium

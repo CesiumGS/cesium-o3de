@@ -6,6 +6,32 @@
 
 namespace Cesium
 {
+    void GeoReferenceTransformEditorComponent::DegreeCartographic::Reflect(AZ::ReflectContext* context)
+    {
+        if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
+        {
+            serializeContext->Class<DegreeCartographic>()
+                ->Version(0)
+                ->Field("longitude", &DegreeCartographic::m_longitude)
+                ->Field("latitude", &DegreeCartographic::m_latitude)
+                ->Field("height", &DegreeCartographic::m_height);
+        }
+    }
+
+    GeoReferenceTransformEditorComponent::DegreeCartographic::DegreeCartographic()
+        : m_longitude{0.0}
+        , m_latitude{0.0}
+        , m_height{0.0}
+    {
+    }
+
+    GeoReferenceTransformEditorComponent::DegreeCartographic::DegreeCartographic(double longitude, double latitude, double height)
+        : m_longitude{longitude}
+        , m_latitude{latitude}
+        , m_height{height}
+    {
+    }
+
     GeoReferenceTransformEditorComponent::GeoReferenceTransformEditorComponent()
     {
     }
@@ -13,7 +39,7 @@ namespace Cesium
     void GeoReferenceTransformEditorComponent::Reflect(AZ::ReflectContext* context)
     {
         CoordinateTransformConfiguration::Reflect(context);
-        Cartographic::Reflect(context);
+        DegreeCartographic::Reflect(context);
 
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
@@ -51,14 +77,17 @@ namespace Cesium
                             ->Attribute(AZ::Edit::Attributes::ChangeNotify, &GeoReferenceTransformEditorComponent::OnOriginAsCartographicChanged)
                     ;
 
-                editContext->Class<Cartographic>("Cartographic", "")
+                editContext->Class<DegreeCartographic>("Cartographic", "")
                     ->ClassElement(AZ::Edit::ClassElements::EditorData, "")
                         ->Attribute(AZ::Edit::Attributes::AutoExpand, true)
-                    ->DataElement(AZ::Edit::UIHandlers::Default, &Cartographic::m_longitude, "Longitude", "")
-                        ->Attribute(AZ::Edit::Attributes::Suffix, "rad")
-                    ->DataElement(AZ::Edit::UIHandlers::Default, &Cartographic::m_latitude, "Latitude", "")
-                        ->Attribute(AZ::Edit::Attributes::Suffix, "rad")
-                    ->DataElement(AZ::Edit::UIHandlers::Default, &Cartographic::m_height, "Height", "")
+                    ->DataElement(AZ::Edit::UIHandlers::Default, &DegreeCartographic::m_longitude, "Longitude", "")
+                        ->Attribute(AZ::Edit::Attributes::Decimals, 15)
+                        ->Attribute(AZ::Edit::Attributes::Suffix, "deg")
+                    ->DataElement(AZ::Edit::UIHandlers::Default, &DegreeCartographic::m_latitude, "Latitude", "")
+                        ->Attribute(AZ::Edit::Attributes::Decimals, 15)
+                        ->Attribute(AZ::Edit::Attributes::Suffix, "deg")
+                    ->DataElement(AZ::Edit::UIHandlers::Default, &DegreeCartographic::m_height, "Height", "")
+                        ->Attribute(AZ::Edit::Attributes::Decimals, 15)
                         ->Attribute(AZ::Edit::Attributes::Suffix, "m")
                     ;
             }
@@ -110,13 +139,25 @@ namespace Cesium
     void GeoReferenceTransformEditorComponent::OnOriginAsCartesianChanged()
     {
         auto maybeCartographic = GeospatialHelper::ECEFCartesianToCartographic(m_originAsCartesian);
-        m_originAsCartographic = maybeCartographic.value_or(Cartographic{});
+        if (maybeCartographic)
+        {
+            m_originAsCartographic.m_longitude = glm::degrees(maybeCartographic->m_longitude);
+            m_originAsCartographic.m_latitude = glm::degrees(maybeCartographic->m_latitude);
+            m_originAsCartographic.m_height = maybeCartographic->m_height;
+        }
+        else
+        {
+            m_originAsCartographic = DegreeCartographic{};
+        }
+
         m_georeferenceComponent->SetECEFCoordOrigin(m_originAsCartesian);
     }
 
     void GeoReferenceTransformEditorComponent::OnOriginAsCartographicChanged()
     {
-        m_originAsCartesian = GeospatialHelper::CartographicToECEFCartesian(m_originAsCartographic);
+        Cartographic radCartographic{ glm::radians(m_originAsCartographic.m_longitude), glm::radians(m_originAsCartographic.m_latitude),
+                                      m_originAsCartographic.m_height };
+        m_originAsCartesian = GeospatialHelper::CartographicToECEFCartesian(radCartographic);
         m_georeferenceComponent->SetECEFCoordOrigin(m_originAsCartesian);
     }
 

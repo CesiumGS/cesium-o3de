@@ -3,6 +3,7 @@
 #include <CesiumEditorSystemComponent.h>
 #include <Cesium/CesiumTilesetEditorComponent.h>
 #include <Cesium/GeoReferenceTransformEditorComponent.h>
+#include <Cesium/GeoReferenceCameraFlyControllerEditor.h>
 
 namespace Cesium
 {
@@ -22,7 +23,7 @@ namespace Cesium
             m_descriptors.insert(
                 m_descriptors.end(),
                 { CesiumEditorSystemComponent::CreateDescriptor(), CesiumTilesetEditorComponent::CreateDescriptor(),
-                  GeoReferenceTransformEditorComponent::CreateDescriptor() });
+                  GeoReferenceTransformEditorComponent::CreateDescriptor(), GeoReferenceCameraControllerEditor::CreateDescriptor() });
         }
 
         /**
