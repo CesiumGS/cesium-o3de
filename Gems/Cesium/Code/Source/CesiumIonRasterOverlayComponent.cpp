@@ -80,8 +80,8 @@ namespace Cesium
 
         if (m_impl->m_rasterOverlayObserverPtr)
         {
-            RasterOverlayRequestBus::Event(
-                GetEntityId(), &RasterOverlayRequestBus::Events::RemoveRasterOverlay, m_impl->m_rasterOverlayObserverPtr);
+            RasterOverlayContainerRequestBus::Event(
+                GetEntityId(), &RasterOverlayContainerRequestBus::Events::RemoveRasterOverlay, m_impl->m_rasterOverlayObserverPtr);
 
             m_impl->m_rasterOverlayObserverPtr = nullptr;
             m_impl->m_rasterOverlay = nullptr;
@@ -136,8 +136,8 @@ namespace Cesium
         if (m_impl->m_enable)
         {
             bool success = false;
-            RasterOverlayRequestBus::EventResult(
-                success, GetEntityId(), &RasterOverlayRequestBus::Events::AddRasterOverlay, m_impl->m_rasterOverlay);
+            RasterOverlayContainerRequestBus::EventResult(
+                success, GetEntityId(), &RasterOverlayContainerRequestBus::Events::AddRasterOverlay, m_impl->m_rasterOverlay);
             if (success)
             {
                 AZ::TickBus::Handler::BusDisconnect();
@@ -163,8 +163,8 @@ namespace Cesium
 
         // add the raster overlay to tileset right away. If it's not successful, we try every frame until it's successful
         bool success = false;
-        RasterOverlayRequestBus::EventResult(
-            success, GetEntityId(), &RasterOverlayRequestBus::Events::AddRasterOverlay, m_impl->m_rasterOverlay);
+        RasterOverlayContainerRequestBus::EventResult(
+            success, GetEntityId(), &RasterOverlayContainerRequestBus::Events::AddRasterOverlay, m_impl->m_rasterOverlay);
         if (!success)
         {
             AZ::TickBus::Handler::BusConnect();

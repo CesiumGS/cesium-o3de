@@ -2,6 +2,8 @@
 set(FILES
     Source/CesiumEditorSystemComponent.cpp
     Source/CesiumEditorSystemComponent.h
+    Source/BingRasterOverlayEditorComponent.cpp
+    Include/Cesium/BingRasterOverlayEditorComponent.h
     Source/GeoReferenceCameraFlyControllerEditor.cpp
     Include/Cesium/GeoReferenceCameraFlyControllerEditor.h
     Source/MathDataWidget.cpp

@@ -1,19 +1,15 @@
 #pragma once
 
-#include <Cesium/GeoReferenceCameraFlyController.h>
+#include <Cesium/BingRasterOverlayComponent.h>
 #include <AzToolsFramework/ToolsComponents/EditorComponentBase.h>
-#include <AzCore/Component/EntityId.h>
-#include <glm/glm.hpp>
 #include <AzCore/std/smart_ptr/unique_ptr.h>
 
 namespace Cesium
 {
-    class GeoReferenceCameraControllerEditor : public AzToolsFramework::Components::EditorComponentBase
+    class BingRasterOverlayEditorComponent : public AzToolsFramework::Components::EditorComponentBase
     {
     public:
-        AZ_EDITOR_COMPONENT(GeoReferenceCameraControllerEditor, "{2BE32EA3-A610-448B-82A8-82D58A8456C7}");
-
-        GeoReferenceCameraControllerEditor();
+        AZ_EDITOR_COMPONENT(BingRasterOverlayEditorComponent, "{5A905495-0638-4553-82B2-533E323EE19E}");
 
         static void Reflect(AZ::ReflectContext* context);
 
@@ -25,6 +21,8 @@ namespace Cesium
 
         static void GetDependentServices(AZ::ComponentDescriptor::DependencyArrayType& dependent);
 
+        BingRasterOverlayEditorComponent();
+
         void BuildGameEntity(AZ::Entity* gameEntity) override;
 
     private:
@@ -34,9 +32,12 @@ namespace Cesium
 
         void Deactivate() override;
 
-        double m_mouseSensitivity{ 40.0 };
-        double m_panningSpeed{ 5.0 };
-        double m_movementSpeed{ 5.0 };
-        AZ::EntityId m_coordinateTransformEntityId;
+        AZ::u32 OnSourceChanged();
+
+        AZ::u32 OnConfigurationChanged();
+
+        AZStd::unique_ptr<BingRasterOverlayComponent> m_rasterOverlayComponent;
+        BingRasterOverlayConfiguration m_configuration;
+        BingRasterOverlaySource m_source;
     };
 }

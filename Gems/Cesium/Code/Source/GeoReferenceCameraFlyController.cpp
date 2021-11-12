@@ -25,6 +25,26 @@ namespace Cesium
         }
     }
 
+    void GeoReferenceCameraFlyController::GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided)
+    {
+        provided.push_back(AZ_CRC_CE("GeoReferenceCameraFlyControllerService"));
+    }
+
+    void GeoReferenceCameraFlyController::GetIncompatibleServices(AZ::ComponentDescriptor::DependencyArrayType& incompatible)
+    {
+        incompatible.push_back(AZ_CRC_CE("GeoReferenceCameraFlyControllerService"));
+    }
+
+    void GeoReferenceCameraFlyController::GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required)
+    {
+        required.push_back(AZ_CRC("TransformService", 0x8ee22c50));
+    }
+
+    void GeoReferenceCameraFlyController::GetDependentServices(AZ::ComponentDescriptor::DependencyArrayType& dependent)
+    {
+        dependent.push_back(AZ_CRC("TransformService", 0x8ee22c50));
+    }
+
     GeoReferenceCameraFlyController::GeoReferenceCameraFlyController()
         : m_prevCameraFlyState{ CameraFlyState::NoFly }
         , m_cameraFlyState{ CameraFlyState::NoFly }

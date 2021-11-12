@@ -15,6 +15,24 @@ namespace Cesium
         }
     }
 
+    void GeoReferenceTransformComponent::GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided)
+    {
+        provided.push_back(AZ_CRC_CE("GeoReferenceTransformService"));
+    }
+
+    void GeoReferenceTransformComponent::GetIncompatibleServices(AZ::ComponentDescriptor::DependencyArrayType& incompatible)
+    {
+        incompatible.push_back(AZ_CRC_CE("GeoReferenceTransformService"));
+    }
+
+    void GeoReferenceTransformComponent::GetRequiredServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& required)
+    {
+    }
+
+    void GeoReferenceTransformComponent::GetDependentServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& dependent)
+    {
+    }
+
     void GeoReferenceTransformComponent::Init()
     {
     }

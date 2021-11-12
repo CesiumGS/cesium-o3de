@@ -94,6 +94,24 @@ namespace Cesium
         }
     }
 
+    void GeoReferenceTransformEditorComponent::GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided)
+    {
+        provided.push_back(AZ_CRC_CE("GeoReferenceTransformEditorService"));
+    }
+
+    void GeoReferenceTransformEditorComponent::GetIncompatibleServices(AZ::ComponentDescriptor::DependencyArrayType& incompatible)
+    {
+        incompatible.push_back(AZ_CRC_CE("GeoReferenceTransformEditorService"));
+    }
+
+    void GeoReferenceTransformEditorComponent::GetRequiredServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& required)
+    {
+    }
+
+    void GeoReferenceTransformEditorComponent::GetDependentServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& dependent)
+    {
+    }
+
     void GeoReferenceTransformEditorComponent::BuildGameEntity(AZ::Entity* gameEntity)
     {
         auto georeferenceComponent = gameEntity->CreateComponent<GeoReferenceTransformComponent>();

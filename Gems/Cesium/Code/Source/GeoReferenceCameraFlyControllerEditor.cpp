@@ -42,6 +42,26 @@ namespace Cesium
         }
     }
 
+    void GeoReferenceCameraControllerEditor::GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided)
+    {
+        provided.push_back(AZ_CRC_CE("GeoReferenceCameraFlyControllerEditorService"));
+    }
+
+    void GeoReferenceCameraControllerEditor::GetIncompatibleServices(AZ::ComponentDescriptor::DependencyArrayType& incompatible)
+    {
+        incompatible.push_back(AZ_CRC_CE("GeoReferenceCameraFlyControllerEditorService"));
+    }
+
+    void GeoReferenceCameraControllerEditor::GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required)
+    {
+        required.push_back(AZ_CRC("TransformService", 0x8ee22c50));
+    }
+
+    void GeoReferenceCameraControllerEditor::GetDependentServices(AZ::ComponentDescriptor::DependencyArrayType& dependent)
+    {
+        dependent.push_back(AZ_CRC("TransformService", 0x8ee22c50));
+    }
+
     void GeoReferenceCameraControllerEditor::BuildGameEntity(AZ::Entity* gameEntity)
     {
         auto controller = gameEntity->CreateComponent<GeoReferenceCameraFlyController>();

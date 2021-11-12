@@ -98,6 +98,26 @@ namespace Cesium
         }
     }
 
+    void CesiumTilesetEditorComponent::GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided)
+    {
+        provided.push_back(AZ_CRC_CE("3DTilesEditorService"));
+    }
+
+    void CesiumTilesetEditorComponent::GetIncompatibleServices(AZ::ComponentDescriptor::DependencyArrayType& incompatible)
+    {
+        incompatible.push_back(AZ_CRC_CE("3DTilesEditorService"));
+    }
+
+    void CesiumTilesetEditorComponent::GetRequiredServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& required)
+    {
+    }
+
+    void CesiumTilesetEditorComponent::GetDependentServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& dependent)
+    {
+        dependent.push_back(AZ_CRC("TransformService", 0x8ee22c50));
+        dependent.push_back(AZ_CRC_CE("NonUniformScaleService"));
+    }
+
     void CesiumTilesetEditorComponent::BuildGameEntity(AZ::Entity* gameEntity)
     {
         auto tilesetComponent = gameEntity->CreateComponent<CesiumTilesetComponent>();

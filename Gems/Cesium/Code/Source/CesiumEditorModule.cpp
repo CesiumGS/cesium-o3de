@@ -4,6 +4,7 @@
 #include <Cesium/CesiumTilesetEditorComponent.h>
 #include <Cesium/GeoReferenceTransformEditorComponent.h>
 #include <Cesium/GeoReferenceCameraFlyControllerEditor.h>
+#include <Cesium/BingRasterOverlayEditorComponent.h>
 
 namespace Cesium
 {
@@ -23,7 +24,8 @@ namespace Cesium
             m_descriptors.insert(
                 m_descriptors.end(),
                 { CesiumEditorSystemComponent::CreateDescriptor(), CesiumTilesetEditorComponent::CreateDescriptor(),
-                  GeoReferenceTransformEditorComponent::CreateDescriptor(), GeoReferenceCameraControllerEditor::CreateDescriptor() });
+                  GeoReferenceTransformEditorComponent::CreateDescriptor(), GeoReferenceCameraControllerEditor::CreateDescriptor(),
+                  BingRasterOverlayEditorComponent::CreateDescriptor() });
         }
 
         /**

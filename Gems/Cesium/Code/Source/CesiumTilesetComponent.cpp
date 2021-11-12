@@ -184,7 +184,7 @@ namespace Cesium
     };
 
     struct CesiumTilesetComponent::Impl
-        : public RasterOverlayRequestBus::Handler
+        : public RasterOverlayContainerRequestBus::Handler
         , private AZ::TransformNotificationBus::Handler
         , private AZ::EntityBus::Handler
     {
@@ -222,7 +222,7 @@ namespace Cesium
             LoadTileset(tilesetSource);
 
             // Set the O3DE transform first before any transformation from Cesium coord to O3DE coordinate
-            AZ::Transform worldTransform;
+            AZ::Transform worldTransform = AZ::Transform::CreateIdentity();
             AZ::TransformBus::EventResult(worldTransform, m_selfEntity, &AZ::TransformBus::Events::GetWorldTM);
             AZ::Vector3 worldScale = AZ::Vector3::CreateOne();
             AZ::NonUniformScaleRequestBus::EventResult(worldScale, m_selfEntity, &AZ::NonUniformScaleRequestBus::Events::GetScale);
@@ -235,14 +235,15 @@ namespace Cesium
             // set cesium transform to convert from Cesium Coord to O3DE
             ConnectCoordinateTransformEntityEvents(coordinateTransformEntityId);
 
-            RasterOverlayRequestBus::Handler::BusConnect(m_selfEntity);
+            RasterOverlayContainerRequestBus::Handler::BusConnect(m_selfEntity);
         }
 
         ~Impl() noexcept
         {
-            RasterOverlayRequestBus::Handler::BusDisconnect();
+            RasterOverlayContainerRequestBus::Handler::BusDisconnect();
             AZ::TransformNotificationBus::Handler::BusDisconnect();
             m_nonUniformScaleChangedHandler.Disconnect();
+            m_tilesetUnloadedEvent.Signal();
             m_tileset.reset();
             m_renderResourcesPreparer.reset();
             DisconnectCoordinateTransformEntityEvents();
@@ -251,6 +252,11 @@ namespace Cesium
 
         void LoadTileset(const TilesetSource& tilesetSource)
         {
+            if (tilesetSource.m_type != TilesetSourceType::None)
+            {
+                m_tilesetUnloadedEvent.Signal();
+            }
+
             switch (tilesetSource.m_type)
             {
             case TilesetSourceType::LocalFile:
@@ -265,17 +271,19 @@ namespace Cesium
             default:
                 break;
             }
+
+            if (tilesetSource.m_type != TilesetSourceType::None)
+            {
+                m_tilesetLoadedEvent.Signal();
+            }
         }
 
         Cesium3DTilesSelection::TilesetExternals CreateTilesetExternal(IOKind kind)
         {
             // create render resources preparer if not exist
-            if (!m_renderResourcesPreparer)
-            {
-                AZ::Render::MeshFeatureProcessorInterface* meshFeatureProcessor =
-                    AZ::RPI::Scene::GetFeatureProcessorForEntity<AZ::Render::MeshFeatureProcessorInterface>(m_selfEntity);
-                m_renderResourcesPreparer = std::make_shared<RenderResourcesPreparer>(meshFeatureProcessor);
-            }
+            AZ::Render::MeshFeatureProcessorInterface* meshFeatureProcessor =
+                AZ::RPI::Scene::GetFeatureProcessorForEntity<AZ::Render::MeshFeatureProcessorInterface>(m_selfEntity);
+            m_renderResourcesPreparer = std::make_shared<RenderResourcesPreparer>(meshFeatureProcessor);
 
             return Cesium3DTilesSelection::TilesetExternals{
                 CesiumInterface::Get()->GetAssetAccessor(kind),
@@ -399,6 +407,16 @@ namespace Cesium
             }
         }
 
+        void BindContainerLoadedEvent(RasterOverlayContainerLoadedEvent::Handler& handler) override
+        {
+            handler.Connect(m_tilesetLoadedEvent);
+        }
+
+        void BindContainerUnloadedEvent(RasterOverlayContainerUnloadedEvent::Handler& handler) override
+        {
+            handler.Connect(m_tilesetUnloadedEvent);
+        }
+
         void FlushTilesetSourceChange(const TilesetSource &source)
         {
             if ((m_configFlags & ConfigurationDirtyFlags::SourceChange) != ConfigurationDirtyFlags::SourceChange)
@@ -464,6 +482,8 @@ namespace Cesium
         CameraConfigurations m_cameraConfigurations;
         std::shared_ptr<RenderResourcesPreparer> m_renderResourcesPreparer;
         AZStd::unique_ptr<Cesium3DTilesSelection::Tileset> m_tileset;
+        RasterOverlayContainerLoadedEvent m_tilesetLoadedEvent;
+        RasterOverlayContainerLoadedEvent m_tilesetUnloadedEvent;
         TransformChangeEvent::Handler m_cesiumTransformChangeHandler;
         AZ::NonUniformScaleChangedEvent::Handler m_nonUniformScaleChangedHandler;
         CoordinateTransformConfiguration m_coordinateTransformConfig;
@@ -481,6 +501,26 @@ namespace Cesium
                 ->Field("TilesetSource", &CesiumTilesetComponent::m_tilesetSource)
                 ->Field("CoordinateTransformEntityId", &CesiumTilesetComponent::m_coordinateTransformEntityId);
         }
+    }
+
+    void CesiumTilesetComponent::GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided)
+    {
+        provided.push_back(AZ_CRC_CE("3DTilesService"));
+    }
+
+    void CesiumTilesetComponent::GetIncompatibleServices(AZ::ComponentDescriptor::DependencyArrayType& incompatible)
+    {
+        incompatible.push_back(AZ_CRC_CE("3DTilesService"));
+    }
+
+    void CesiumTilesetComponent::GetRequiredServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& required)
+    {
+    }
+
+    void CesiumTilesetComponent::GetDependentServices(AZ::ComponentDescriptor::DependencyArrayType& dependent)
+    {
+        dependent.push_back(AZ_CRC("TransformService", 0x8ee22c50));
+        dependent.push_back(AZ_CRC_CE("NonUniformScaleService"));
     }
 
     CesiumTilesetComponent::CesiumTilesetComponent()
