@@ -1,67 +1,46 @@
 #pragma once
 
-#include <AzCore/Component/Component.h>
-#include <AzCore/Component/TickBus.h>
+#include <Cesium/RasterOverlayComponent.h>
 #include <AzCore/std/string/string.h>
-#include <AzCore/std/optional.h>
-#include <AzCore/std/smart_ptr/unique_ptr.h>
 #include <cstdint>
 
 namespace Cesium
 {
-    struct CesiumIonRasterOverlayConfiguration
+    struct CesiumIonRasterOverlaySource final
     {
-        CesiumIonRasterOverlayConfiguration();
+        AZ_RTTI(CesiumIonRasterOverlaySource, "{052B64CD-ED19-4ECC-AE78-721F4E90D629}");
+        AZ_CLASS_ALLOCATOR(CesiumIonRasterOverlaySource, AZ::SystemAllocator, 0);
 
-        std::uint64_t m_maximumCacheBytes;
-        std::uint32_t m_maximumSimultaneousTileLoads;
-    };
+        static void Reflect(AZ::ReflectContext* context);
 
-    struct CesiumIonRasterOverlaySource
-    {
+        CesiumIonRasterOverlaySource();
+
         CesiumIonRasterOverlaySource(std::uint32_t ionAssetId, const AZStd::string& ionToken);
 
         std::uint32_t m_ionAssetId;
         AZStd::string m_ionToken;
     };
 
-    class CesiumIonRasterOverlayComponent
-        : public AZ::Component
-        , public AZ::TickBus::Handler
+    class CesiumIonRasterOverlayComponent : public RasterOverlayComponent
     {
     public:
-        AZ_COMPONENT(CesiumIonRasterOverlayComponent, "{FBE1F24B-7AC2-4F83-A48F-5BE1517EAFD2}", AZ::Component)
-
-        CesiumIonRasterOverlayComponent();
-
-        ~CesiumIonRasterOverlayComponent() noexcept;
+        AZ_COMPONENT(CesiumIonRasterOverlayComponent, "{FBE1F24B-7AC2-4F83-A48F-5BE1517EAFD2}", RasterOverlayComponent)
 
         static void Reflect(AZ::ReflectContext* context);
 
-        const AZStd::optional<CesiumIonRasterOverlaySource>& GetCurrentSource() const;
+        static void GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided);
+
+        static void GetIncompatibleServices(AZ::ComponentDescriptor::DependencyArrayType& incompatible);
+
+        static void GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required);
+
+        static void GetDependentServices(AZ::ComponentDescriptor::DependencyArrayType& dependent);
 
         void LoadRasterOverlay(const CesiumIonRasterOverlaySource& source);
 
-        void SetConfiguration(const CesiumIonRasterOverlayConfiguration& configuration);
-
-        const CesiumIonRasterOverlayConfiguration& GetConfiguration() const;
-
-        void EnableRasterOverlay(bool enable);
-
-        bool IsEnable() const;
-
     private:
-        void Init() override;
+        std::unique_ptr<Cesium3DTilesSelection::RasterOverlay> LoadRasterOverlayImpl() override;
 
-        void Activate() override;
-
-        void Deactivate() override;
-
-        void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
-
-        void LoadRasterOverlayImpl(std::uint32_t ionAssetID, const AZStd::string& ionToken);
-
-        struct Impl;
-        AZStd::unique_ptr<Impl> m_impl;
+        CesiumIonRasterOverlaySource m_source;
     };
 } // namespace Cesium

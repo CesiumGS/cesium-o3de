@@ -1,15 +1,15 @@
 #pragma once
 
-#include <Cesium/BingRasterOverlayComponent.h>
+#include <Cesium/CesiumIonRasterOverlayComponent.h>
 #include <AzToolsFramework/ToolsComponents/EditorComponentBase.h>
 #include <AzCore/std/smart_ptr/unique_ptr.h>
 
 namespace Cesium
 {
-    class BingRasterOverlayEditorComponent : public AzToolsFramework::Components::EditorComponentBase
+    class CesiumIonRasterOverlayEditorComponent : public AzToolsFramework::Components::EditorComponentBase
     {
     public:
-        AZ_EDITOR_COMPONENT(BingRasterOverlayEditorComponent, "{5A905495-0638-4553-82B2-533E323EE19E}");
+        AZ_EDITOR_COMPONENT(CesiumIonRasterOverlayEditorComponent, "{A3B79E96-DAE3-4587-9CD8-C652167BD7B6}");
 
         static void Reflect(AZ::ReflectContext* context);
 
@@ -21,7 +21,7 @@ namespace Cesium
 
         static void GetDependentServices(AZ::ComponentDescriptor::DependencyArrayType& dependent);
 
-        BingRasterOverlayEditorComponent();
+        CesiumIonRasterOverlayEditorComponent();
 
         void BuildGameEntity(AZ::Entity* gameEntity) override;
 
@@ -36,8 +36,8 @@ namespace Cesium
 
         AZ::u32 OnConfigurationChanged();
 
-        AZStd::unique_ptr<BingRasterOverlayComponent> m_rasterOverlayComponent;
+        AZStd::unique_ptr<CesiumIonRasterOverlayComponent> m_rasterOverlayComponent;
         RasterOverlayConfiguration m_configuration;
-        BingRasterOverlaySource m_source;
+        CesiumIonRasterOverlaySource m_source;
     };
 }

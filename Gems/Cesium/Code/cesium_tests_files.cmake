@@ -41,6 +41,7 @@ set(FILES
     Tests/GltfModelComponentTest.cpp
     Tests/CesiumTilesetComponentTest.cpp
     Tests/GeoReferenceCameraFlyControllerTest.cpp
+    Tests/RasterOverlayComponentTest.cpp
     Tests/CesiumIonRasterOverlayComponentTest.cpp
     Tests/BingRasterOverlayComponentTest.cpp
     Tests/TMSRasterOverlayComponentTest.cpp

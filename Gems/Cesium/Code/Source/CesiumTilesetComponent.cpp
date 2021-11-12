@@ -493,6 +493,9 @@ namespace Cesium
 
     void CesiumTilesetComponent::Reflect(AZ::ReflectContext* context)
     {
+        TilesetConfiguration::Reflect(context);
+        TilesetSource::Reflect(context);
+
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
             serializeContext->Class<CesiumTilesetComponent, AZ::Component>()

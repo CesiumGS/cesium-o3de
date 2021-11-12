@@ -11,9 +11,6 @@ namespace Cesium
 
     void CesiumTilesetEditorComponent::Reflect(AZ::ReflectContext* context)
     {
-        TilesetConfiguration::Reflect(context);
-        TilesetSource::Reflect(context);
-
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
             serializeContext->Class<CesiumTilesetEditorComponent, AZ::Component>()

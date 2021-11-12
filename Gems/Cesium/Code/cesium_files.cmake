@@ -81,6 +81,8 @@ set(FILES
     Include/Cesium/GeoReferenceCameraFlyControllerBus.h
     Source/GeoReferenceCameraFlyController.cpp
     Include/Cesium/GeoReferenceCameraFlyController.h
+    Source/RasterOverlayComponent.cpp
+    Include/Cesium/RasterOverlayComponent.h
     Source/CesiumIonRasterOverlayComponent.cpp
     Include/Cesium/CesiumIonRasterOverlayComponent.h
     Source/BingRasterOverlayComponent.cpp

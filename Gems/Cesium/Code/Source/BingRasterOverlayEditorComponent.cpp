@@ -55,10 +55,10 @@ namespace Cesium
                         ->Attribute(AZ::Edit::Attributes::ChangeNotify, AZ::Edit::PropertyRefreshLevels::EntireTree)
                     ;
 
-                editContext->Class<BingRasterOverlayConfiguration>("Configuration", "")
+                editContext->Class<RasterOverlayConfiguration>("Configuration", "")
                     ->ClassElement(AZ::Edit::ClassElements::EditorData, "")
-                    ->DataElement(AZ::Edit::UIHandlers::Default, &BingRasterOverlayConfiguration::m_maximumCacheBytes, "Maximum Cache Size", "")
-                    ->DataElement(AZ::Edit::UIHandlers::Default, &BingRasterOverlayConfiguration::m_maximumSimultaneousTileLoads, "Maximum Simultaneous TileLoads", "")
+                    ->DataElement(AZ::Edit::UIHandlers::Default, &RasterOverlayConfiguration::m_maximumCacheBytes, "Maximum Cache Size", "")
+                    ->DataElement(AZ::Edit::UIHandlers::Default, &RasterOverlayConfiguration::m_maximumSimultaneousTileLoads, "Maximum Simultaneous TileLoads", "")
                     ;
             }
         }

@@ -1,30 +1,10 @@
 #include <Cesium/BingRasterOverlayComponent.h>
-#include "RasterOverlayRequestBus.h"
 #include <Cesium3DTilesSelection/RasterOverlay.h>
 #include <Cesium3DTilesSelection/BingMapsRasterOverlay.h>
-#include <AzCore/std/optional.h>
 #include <AzCore/Serialization/SerializeContext.h>
-#include <memory>
 
 namespace Cesium
 {
-    void BingRasterOverlayConfiguration::Reflect(AZ::ReflectContext* context)
-    {
-        if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
-        {
-            serializeContext->Class<BingRasterOverlayConfiguration>()
-                ->Version(0)
-                ->Field("maximumCacheBytes", &BingRasterOverlayConfiguration::m_maximumCacheBytes)
-                ->Field("maximumSimultaneousTileLoads", &BingRasterOverlayConfiguration::m_maximumSimultaneousTileLoads);
-        }
-    }
-
-    BingRasterOverlayConfiguration::BingRasterOverlayConfiguration()
-        : m_maximumCacheBytes{ 16 * 1024 * 1024 }
-        , m_maximumSimultaneousTileLoads{ 20 }
-    {
-    }
-
     void BingRasterOverlaySource::Reflect(AZ::ReflectContext* context)
     {
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
@@ -58,46 +38,14 @@ namespace Cesium
     {
     }
 
-    struct BingRasterOverlayComponent::Impl
-    {
-        Impl()
-            : m_rasterOverlayObserverPtr{ nullptr }
-        {
-        }
-
-        void SetupConfiguration(const BingRasterOverlayConfiguration& configuration)
-        {
-            if (m_rasterOverlayObserverPtr)
-            {
-                Cesium3DTilesSelection::RasterOverlayOptions& options = m_rasterOverlayObserverPtr->getOptions();
-                options.maximumSimultaneousTileLoads = static_cast<std::int32_t>(configuration.m_maximumSimultaneousTileLoads);
-                options.subTileCacheBytes = static_cast<std::int64_t>(configuration.m_maximumCacheBytes);
-            }
-        }
-
-        RasterOverlayContainerLoadedEvent::Handler m_rasterOverlayContainerLoadedHandler;
-        RasterOverlayContainerUnloadedEvent::Handler m_rasterOverlayContainerUnloadedHandler;
-        Cesium3DTilesSelection::RasterOverlay* m_rasterOverlayObserverPtr;
-    };
-
-    BingRasterOverlayComponent::BingRasterOverlayComponent()
-    {
-    }
-
-    BingRasterOverlayComponent::~BingRasterOverlayComponent() noexcept
-    {
-    }
-
     void BingRasterOverlayComponent::Reflect(AZ::ReflectContext* context)
     {
         BingRasterOverlaySource::Reflect(context);
-        BingRasterOverlayConfiguration::Reflect(context);
 
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<BingRasterOverlayComponent, AZ::Component>()->Version(0)
+            serializeContext->Class<BingRasterOverlayComponent, RasterOverlayComponent>()->Version(0)
                 ->Field("source", &BingRasterOverlayComponent::m_source)
-                ->Field("configuration", &BingRasterOverlayComponent::m_configuration)
                 ;
         }
     }
@@ -121,83 +69,20 @@ namespace Cesium
         dependent.push_back(AZ_CRC_CE("3DTilesService"));
     }
 
-    void BingRasterOverlayComponent::Init()
-    {
-        m_impl = AZStd::make_unique<Impl>();
-    }
-
-    void BingRasterOverlayComponent::Activate()
-    {
-        m_impl->m_rasterOverlayContainerLoadedHandler = RasterOverlayContainerLoadedEvent::Handler(
-            [this]()
-            {
-                LoadRasterOverlayImpl(m_source.m_url, m_source.m_key, BingMapsStyleToString(m_source.m_bingMapStyle), m_source.m_culture);
-            });
-
-        m_impl->m_rasterOverlayContainerUnloadedHandler = RasterOverlayContainerUnloadedEvent::Handler(
-            [this]()
-            {
-                m_impl->m_rasterOverlayObserverPtr = nullptr;
-            });
-
-        RasterOverlayContainerRequestBus::Event(
-            GetEntityId(), &RasterOverlayContainerRequestBus::Events::BindContainerLoadedEvent, m_impl->m_rasterOverlayContainerLoadedHandler);
-        RasterOverlayContainerRequestBus::Event(
-            GetEntityId(), &RasterOverlayContainerRequestBus::Events::BindContainerUnloadedEvent, m_impl->m_rasterOverlayContainerUnloadedHandler);
-
-        LoadRasterOverlayImpl(m_source.m_url, m_source.m_key, BingMapsStyleToString(m_source.m_bingMapStyle), m_source.m_culture);
-    }
-
-    void BingRasterOverlayComponent::Deactivate()
-    {
-        if (m_impl->m_rasterOverlayObserverPtr)
-        {
-            RasterOverlayContainerRequestBus::Event(
-                GetEntityId(), &RasterOverlayContainerRequestBus::Events::RemoveRasterOverlay, m_impl->m_rasterOverlayObserverPtr);
-
-            m_impl->m_rasterOverlayObserverPtr = nullptr;
-        }
-    }
-
-    void BingRasterOverlayComponent::SetConfiguration(const BingRasterOverlayConfiguration& configuration)
-    {
-        m_configuration = configuration;
-        m_impl->SetupConfiguration(m_configuration);
-    }
-
-    const BingRasterOverlayConfiguration& BingRasterOverlayComponent::GetConfiguration() const
-    {
-        return m_configuration;
-    }
-
     void BingRasterOverlayComponent::LoadRasterOverlay(const BingRasterOverlaySource& source)
     {
         m_source = source;
-        LoadRasterOverlayImpl(source.m_url, source.m_key, BingMapsStyleToString(source.m_bingMapStyle), source.m_culture);
+        RasterOverlayComponent::LoadRasterOverlay();
     }
 
-    void BingRasterOverlayComponent::LoadRasterOverlayImpl(
-        const AZStd::string& url, const AZStd::string& key, const AZStd::string& bingMapStyle, const AZStd::string& culture)
+    std::unique_ptr<Cesium3DTilesSelection::RasterOverlay> BingRasterOverlayComponent::LoadRasterOverlayImpl()
     {
-        // remove any existing raster
-        Deactivate();
-
-        // construct raster overlay and save configuration for reloading when activate and deactivated
-        std::unique_ptr<Cesium3DTilesSelection::RasterOverlay> rasterOverlay = std::make_unique<Cesium3DTilesSelection::BingMapsRasterOverlay>(
-            "BingRasterOverlay", url.c_str(), key.c_str(), bingMapStyle.c_str(), culture.c_str());
-        m_impl->m_rasterOverlayObserverPtr = rasterOverlay.get();
-        m_impl->SetupConfiguration(m_configuration);
-
-        bool success = false;
-        RasterOverlayContainerRequestBus::EventResult(
-            success, GetEntityId(), &RasterOverlayContainerRequestBus::Events::AddRasterOverlay, rasterOverlay);
-        if (!success)
-        {
-            m_impl->m_rasterOverlayObserverPtr = nullptr;
-        }
+        return std::make_unique<Cesium3DTilesSelection::BingMapsRasterOverlay>(
+            "BingRasterOverlay", m_source.m_url.c_str(), m_source.m_key.c_str(), BingMapsStyleToString(m_source.m_bingMapStyle),
+            m_source.m_culture.c_str());
     }
 
-    AZStd::string BingRasterOverlayComponent::BingMapsStyleToString(BingMapsStyle style)
+    std::string BingRasterOverlayComponent::BingMapsStyleToString(BingMapsStyle style)
     {
         switch (style)
         {
