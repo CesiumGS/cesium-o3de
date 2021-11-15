@@ -9,10 +9,7 @@
 #include <Atom/RPI.Public/ViewportContextBus.h>
 #include <Atom/RPI.Public/Scene.h>
 #include <Atom/RPI.Public/Base.h>
-#include <Atom/RPI.Public/ViewProviderBus.h>
 #include <Atom/RPI.Public/View.h>
-#include <AzFramework/Components/CameraBus.h>
-#include <AzCore/Component/Entity.h>
 #include <AzCore/Component/NonUniformScaleBus.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/std/algorithm.h>
