@@ -1,40 +1,40 @@
-#include <Cesium/CesiumIonRasterOverlayEditorComponent.h>
+#include <Cesium/TMSRasterOverlayEditorComponent.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/EditContext.h>
 
 namespace Cesium
 {
-    CesiumIonRasterOverlayEditorComponent::CesiumIonRasterOverlayEditorComponent()
+    TMSRasterOverlayEditorComponent::TMSRasterOverlayEditorComponent()
     {
     }
 
-    void CesiumIonRasterOverlayEditorComponent::Reflect(AZ::ReflectContext* context)
+    void TMSRasterOverlayEditorComponent::Reflect(AZ::ReflectContext* context)
     {
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<CesiumIonRasterOverlayEditorComponent, AZ::Component>()->Version(0)
-                ->Field("configuration", &CesiumIonRasterOverlayEditorComponent::m_configuration)
-                ->Field("source", &CesiumIonRasterOverlayEditorComponent::m_source)
+            serializeContext->Class<TMSRasterOverlayEditorComponent, AZ::Component>()->Version(0)
+                ->Field("configuration", &TMSRasterOverlayEditorComponent::m_configuration)
+                ->Field("source", &TMSRasterOverlayEditorComponent::m_source)
                 ;
 
             AZ::EditContext* editContext = serializeContext->GetEditContext();
             if (editContext)
             {
                 editContext
-                    ->Class<CesiumIonRasterOverlayEditorComponent>(
-                        "Cesium Ion Raster Overlay", "The raster component is used to drap imagery on 3D Tiles")
+                    ->Class<TMSRasterOverlayEditorComponent>(
+                        "Tile Map Service Raster Overlay", "The raster component is used to drap imagery on 3D Tiles")
                     ->ClassElement(AZ::Edit::ClassElements::EditorData, "")
                         ->Attribute(AZ::Edit::Attributes::Category, "Cesium")
                         ->Attribute(AZ::Edit::Attributes::Icon, "Editor/Icons/Components/Cesium_logo_only.svg")
                         ->Attribute(AZ::Edit::Attributes::ViewportIcon, "Editor/Icons/Components/Cesium_logo_only.svg")
                         ->Attribute(AZ::Edit::Attributes::AppearsInAddComponentMenu, AZ_CRC("Game", 0x232b318c))
                         ->Attribute(AZ::Edit::Attributes::AutoExpand, true)
-                    ->DataElement(AZ::Edit::UIHandlers::Default, &CesiumIonRasterOverlayEditorComponent::m_configuration, "", "")
+                    ->DataElement(AZ::Edit::UIHandlers::Default, &TMSRasterOverlayEditorComponent::m_configuration, "", "")
                         ->Attribute(AZ::Edit::Attributes::Visibility, AZ::Edit::PropertyVisibility::ShowChildrenOnly)
-                        ->Attribute(AZ::Edit::Attributes::ChangeNotify, &CesiumIonRasterOverlayEditorComponent::OnConfigurationChanged)
-                    ->DataElement(AZ::Edit::UIHandlers::Default, &CesiumIonRasterOverlayEditorComponent::m_source, "", "")
+                        ->Attribute(AZ::Edit::Attributes::ChangeNotify, &TMSRasterOverlayEditorComponent::OnConfigurationChanged)
+                    ->DataElement(AZ::Edit::UIHandlers::Default, &TMSRasterOverlayEditorComponent::m_source, "", "")
                         ->Attribute(AZ::Edit::Attributes::Visibility, AZ::Edit::PropertyVisibility::ShowChildrenOnly)
-                        ->Attribute(AZ::Edit::Attributes::ChangeNotify, &CesiumIonRasterOverlayEditorComponent::OnSourceChanged)
+                        ->Attribute(AZ::Edit::Attributes::ChangeNotify, &TMSRasterOverlayEditorComponent::OnSourceChanged)
                     ;
 
                 editContext->Class<RasterOverlayConfiguration>("Configuration", "")
@@ -44,38 +44,41 @@ namespace Cesium
                         ->DataElement(AZ::Edit::UIHandlers::Default, &RasterOverlayConfiguration::m_maximumSimultaneousTileLoads, "Maximum Simultaneous TileLoads", "")
                     ;
 
-                editContext->Class<CesiumIonRasterOverlaySource>("Source", "")
+                editContext->Class<TMSRasterOverlaySource>("Source", "")
                     ->ClassElement(AZ::Edit::ClassElements::EditorData, "")
                     ->ClassElement(AZ::Edit::ClassElements::Group, "Source")
-                        ->DataElement(AZ::Edit::UIHandlers::Default, &CesiumIonRasterOverlaySource::m_ionAssetId, "Ion Asset Id", "")
-                        ->DataElement(AZ::Edit::UIHandlers::Default, &CesiumIonRasterOverlaySource::m_ionToken, "Ion Asset Token", "")
+                        ->DataElement(AZ::Edit::UIHandlers::Default, &TMSRasterOverlaySource::m_url, "Url", "")
+                        ->DataElement(AZ::Edit::UIHandlers::Default, &TMSRasterOverlaySource::m_fileExtension, "File Extension", "")
+                        ->DataElement(AZ::Edit::UIHandlers::Default, &TMSRasterOverlaySource::m_headers, "Request Headers", "")
+                        ->DataElement(AZ::Edit::UIHandlers::Default, &TMSRasterOverlaySource::m_minimumLevel, "Minimum Level", "")
+                        ->DataElement(AZ::Edit::UIHandlers::Default, &TMSRasterOverlaySource::m_maximumLevel, "Maximum Level", "")
                     ;
             }
         }
     }
 
-    void CesiumIonRasterOverlayEditorComponent::GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided)
+    void TMSRasterOverlayEditorComponent::GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided)
     {
-        provided.push_back(AZ_CRC_CE("CesiumIonRasterOverlayEditorSerivce"));
+        provided.push_back(AZ_CRC_CE("TMSRasterOverlayEditorSerivce"));
     }
 
-    void CesiumIonRasterOverlayEditorComponent::GetIncompatibleServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& incompatible)
+    void TMSRasterOverlayEditorComponent::GetIncompatibleServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& incompatible)
     {
     }
 
-    void CesiumIonRasterOverlayEditorComponent::GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required)
+    void TMSRasterOverlayEditorComponent::GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required)
     {
         required.push_back(AZ_CRC_CE("3DTilesEditorService"));
     }
 
-    void CesiumIonRasterOverlayEditorComponent::GetDependentServices(AZ::ComponentDescriptor::DependencyArrayType& dependent)
+    void TMSRasterOverlayEditorComponent::GetDependentServices(AZ::ComponentDescriptor::DependencyArrayType& dependent)
     {
         dependent.push_back(AZ_CRC_CE("3DTilesEditorService"));
     }
 
-    void CesiumIonRasterOverlayEditorComponent::BuildGameEntity(AZ::Entity* gameEntity)
+    void TMSRasterOverlayEditorComponent::BuildGameEntity(AZ::Entity* gameEntity)
     {
-        auto rasterOverlayComponent = gameEntity->CreateComponent<CesiumIonRasterOverlayComponent>();
+        auto rasterOverlayComponent = gameEntity->CreateComponent<TMSRasterOverlayComponent>();
         rasterOverlayComponent->SetEntity(gameEntity);
         rasterOverlayComponent->Init();
         rasterOverlayComponent->Activate();
@@ -83,16 +86,16 @@ namespace Cesium
         rasterOverlayComponent->LoadRasterOverlay(m_source);
     }
 
-    void CesiumIonRasterOverlayEditorComponent::Init()
+    void TMSRasterOverlayEditorComponent::Init()
     {
         AzToolsFramework::Components::EditorComponentBase::Init();
         if (!m_rasterOverlayComponent)
         {
-            m_rasterOverlayComponent = AZStd::make_unique<CesiumIonRasterOverlayComponent>();
+            m_rasterOverlayComponent = AZStd::make_unique<TMSRasterOverlayComponent>();
         }
     }
 
-    void CesiumIonRasterOverlayEditorComponent::Activate()
+    void TMSRasterOverlayEditorComponent::Activate()
     {
         m_rasterOverlayComponent->SetEntity(GetEntity());
         m_rasterOverlayComponent->Init();
@@ -101,19 +104,19 @@ namespace Cesium
         m_rasterOverlayComponent->LoadRasterOverlay(m_source);
     }
 
-    void CesiumIonRasterOverlayEditorComponent::Deactivate()
+    void TMSRasterOverlayEditorComponent::Deactivate()
     {
         m_rasterOverlayComponent->Deactivate();
         m_rasterOverlayComponent->SetEntity(nullptr);
     }
 
-    AZ::u32 CesiumIonRasterOverlayEditorComponent::OnSourceChanged()
+    AZ::u32 TMSRasterOverlayEditorComponent::OnSourceChanged()
     {
         m_rasterOverlayComponent->LoadRasterOverlay(m_source);
         return AZ::Edit::PropertyRefreshLevels::None;
     }
 
-    AZ::u32 CesiumIonRasterOverlayEditorComponent::OnConfigurationChanged()
+    AZ::u32 TMSRasterOverlayEditorComponent::OnConfigurationChanged()
     {
         m_rasterOverlayComponent->SetConfiguration(m_configuration);
         return AZ::Edit::PropertyRefreshLevels::None;
