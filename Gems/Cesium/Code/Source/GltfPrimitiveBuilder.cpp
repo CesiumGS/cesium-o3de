@@ -1,6 +1,8 @@
 #include "GltfPrimitiveBuilder.h"
 #include "BitangentAndTangentGenerator.h"
 #include "MathHelper.h"
+#include "CesiumSystemComponentBus.h"
+#include "CriticalAssetManager.h"
 
 // Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
 // This only happens with unity build
@@ -78,7 +80,7 @@ namespace Cesium
         CesiumGltf::AccessorView<glm::vec4> m_tangents;
     };
 
-     GltfTrianglePrimitiveBuilder::LoadContext::LoadContext()
+    GltfTrianglePrimitiveBuilder::LoadContext::LoadContext()
         : m_generateFlatNormal{ false }
         , m_generateTangent{ false }
         , m_generateUnIndexedMesh{ false }
@@ -94,8 +96,8 @@ namespace Cesium
 
     GltfTrianglePrimitiveBuilder::VertexCustomAttribute::VertexCustomAttribute(
         const GltfShaderVertexAttribute& shaderAttribute, VertexRawBuffer&& buffer)
-        : m_shaderAttribute{shaderAttribute}
-        , m_buffer{std::move(buffer)}
+        : m_shaderAttribute{ shaderAttribute }
+        , m_buffer{ std::move(buffer) }
     {
     }
 
@@ -259,8 +261,9 @@ namespace Cesium
         AZ::Data::Asset<AZ::RPI::BufferAsset> bufferAsset = CreateBufferAsset(buffer);
 
         // create LOD asset
+        AZ::Data::AssetId lodAssetId = CesiumInterface::Get()->GetCriticalAssetManager().GenerateRandomAssetId();
         AZ::RPI::ModelLodAssetCreator lodCreator;
-        lodCreator.Begin(AZ::Uuid::CreateRandom());
+        lodCreator.Begin(lodAssetId);
         lodCreator.AddLodStreamBuffer(bufferAsset);
 
         // create mesh
@@ -295,8 +298,10 @@ namespace Cesium
         lodCreator.End(lodAsset);
 
         // create model asset
+        AZ::Data::AssetId modelAssetId = CesiumInterface::Get()->GetCriticalAssetManager().GenerateRandomAssetId();
+
         AZ::RPI::ModelAssetCreator modelCreator;
-        modelCreator.Begin(AZ::Uuid::CreateRandom());
+        modelCreator.Begin(modelAssetId);
         modelCreator.AddLodAsset(std::move(lodAsset));
 
         AZ::Data::Asset<AZ::RPI::ModelAsset> modelAsset;
@@ -390,8 +395,10 @@ namespace Cesium
         bufferDescriptor.m_bindFlags = AZ::RHI::BufferBindFlags::InputAssembly | AZ::RHI::BufferBindFlags::ShaderRead;
         bufferDescriptor.m_byteCount = bufferViewDescriptor.m_elementCount * bufferViewDescriptor.m_elementSize;
 
+        AZ::Data::AssetId bufferAssetId = CesiumInterface::Get()->GetCriticalAssetManager().GenerateRandomAssetId();
+
         AZ::RPI::BufferAssetCreator creator;
-        creator.Begin(AZ::Uuid::CreateRandom());
+        creator.Begin(bufferAssetId);
         creator.SetBuffer(buffer.data(), bufferDescriptor.m_byteCount, bufferDescriptor);
         creator.SetBufferViewDescriptor(bufferViewDescriptor);
         creator.SetUseCommonPool(AZ::RPI::CommonBufferPoolType::StaticInputAssembly);
@@ -402,7 +409,8 @@ namespace Cesium
         return bufferAsset;
     }
 
-    bool GltfTrianglePrimitiveBuilder::CreateIndices(const CommonAccessorViews& accessorViews, const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive)
+    bool GltfTrianglePrimitiveBuilder::CreateIndices(
+        const CommonAccessorViews& accessorViews, const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive)
     {
         const CesiumGltf::Accessor* indicesAccessor = model.getSafe<CesiumGltf::Accessor>(&model.accessors, primitive.indices);
         if (!indicesAccessor)
@@ -817,9 +825,10 @@ namespace Cesium
         }
     }
 
-    void GltfTrianglePrimitiveBuilder::CopySubregionBuffer(AZStd::vector<std::byte>& buffer, const void* src, const AZ::RHI::BufferViewDescriptor& descriptor)
+    void GltfTrianglePrimitiveBuilder::CopySubregionBuffer(
+        AZStd::vector<std::byte>& buffer, const void* src, const AZ::RHI::BufferViewDescriptor& descriptor)
     {
-        std::size_t offset = descriptor.m_elementOffset * descriptor.m_elementSize; 
+        std::size_t offset = descriptor.m_elementOffset * descriptor.m_elementSize;
         std::size_t totalBytes = descriptor.m_elementCount * descriptor.m_elementSize;
         memcpy(buffer.data() + offset, src, totalBytes);
     }
