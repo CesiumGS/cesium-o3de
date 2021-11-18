@@ -5,12 +5,14 @@
 #include <AzCore/RTTI/RTTI.h>
 #include <AzCore/Memory/SystemAllocator.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <cstddef>
 
 namespace AZ
 {
     AZ_TYPE_INFO_SPECIALIZE(glm::dvec3, "{1E2EB371-18B6-4B35-B974-81E0E8CCF2A3}");
+    AZ_TYPE_INFO_SPECIALIZE(glm::dquat, "{B4A0CC9A-FE9B-4777-8F94-C14C1540A3C5}");
 }
 
 namespace Cesium
@@ -62,7 +64,7 @@ namespace Cesium
             AZ::IO::GenericStream& stream,
             [[maybe_unused]] bool isDataBigEndian) override
         {
-            VecType instance{ 0 };
+            VecType instance{};
             std::size_t begin = 1;
             std::size_t end = 1;
             typename VecType::length_type i = 0;
@@ -181,5 +183,19 @@ namespace Cesium
         {
             return OperationFlags::InitializeNewInstance;
         }
+    };
+
+    class GlmDVec3JsonSerializer : public GlmVecJsonSerializer<glm::dvec3>
+    {
+    public:
+        AZ_RTTI(GlmDVec3JsonSerializer, "{9BCD6B7B-845D-4073-B20C-1C822861A1AA}", GlmVecJsonSerializer<glm::dvec3>);
+        AZ_CLASS_ALLOCATOR(GlmDVec3JsonSerializer, AZ::SystemAllocator, 0);
+    };
+
+    class GlmDQuatJsonSerializer : public GlmVecJsonSerializer<glm::dquat>
+    {
+    public:
+        AZ_RTTI(GlmDQuatJsonSerializer, "{CDCD546F-EEFE-44AD-B525-2E00C8E2FC52}", GlmVecJsonSerializer<glm::dquat>);
+        AZ_CLASS_ALLOCATOR(GlmDQuatJsonSerializer, AZ::SystemAllocator, 0);
     };
 } // namespace Cesium

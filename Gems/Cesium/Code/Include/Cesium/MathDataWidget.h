@@ -3,6 +3,7 @@
 #include <Cesium/MathReflect.h>
 #include <AzToolsFramework/UI/PropertyEditor/PropertyVectorCtrl.hxx>
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 namespace Cesium
 {
@@ -53,7 +54,9 @@ namespace Cesium
 
         QWidget* CreateGUI(QWidget* pParent) override
         {
-            return m_common.ConstructGUI(pParent);
+            AzQtComponents::VectorInput* GUI = m_common.ConstructGUI(pParent); 
+            GUI->setDecimals(15);
+            return GUI;
         }
 
         void ConsumeAttribute(AzQtComponents::VectorInput* GUI, AZ::u32 attrib, AzToolsFramework::PropertyAttributeReader* attrValue, const char* debugName) override
@@ -103,6 +106,23 @@ namespace Cesium
         AZ::u32 GetHandlerName(void) const override
         {
             return AZ_CRC("CesiumDoubleVector3");
+        }
+    };
+
+    class DQuatPropertyHandler
+        : public DoubleVectorPropertyHandlerBase<glm::dquat>
+    {
+    public:
+        AZ_CLASS_ALLOCATOR(DQuatPropertyHandler, AZ::SystemAllocator, 0);
+
+        DQuatPropertyHandler()
+            : DoubleVectorPropertyHandlerBase(4)
+        {
+        };
+
+        AZ::u32 GetHandlerName(void) const override
+        {
+            return AZ_CRC("CesiumDoubleQuaternion");
         }
     };
 }

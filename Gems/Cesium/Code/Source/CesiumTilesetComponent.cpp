@@ -12,6 +12,7 @@
 #include <Atom/RPI.Public/View.h>
 #include <AzCore/Component/NonUniformScaleBus.h>
 #include <AzCore/Serialization/SerializeContext.h>
+#include <AzCore/RTTI/BehaviorContext.h>
 #include <AzCore/std/algorithm.h>
 #include <AzCore/std/containers/vector.h>
 #include <AzCore/std/containers/variant.h>
@@ -492,6 +493,10 @@ namespace Cesium
     {
         TilesetConfiguration::Reflect(context);
         TilesetSource::Reflect(context);
+        BehaviorContextTilesetBoundingVolumeHelper::Reflect(context);
+        BoundingRegion::Reflect(context);
+        BoundingSphere::Reflect(context);
+        OrientedBoundingBox::Reflect(context);
 
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
@@ -500,6 +505,18 @@ namespace Cesium
                 ->Field("TilesetConfiguration", &CesiumTilesetComponent::m_tilesetConfiguration)
                 ->Field("TilesetSource", &CesiumTilesetComponent::m_tilesetSource)
                 ->Field("CoordinateTransformEntityId", &CesiumTilesetComponent::m_coordinateTransformEntityId);
+        }
+
+        if (AZ::BehaviorContext* behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
+        {
+            behaviorContext->EBus<CesiumTilesetRequestBus>("CesiumTilesetRequestBus")
+                ->Attribute(AZ::Script::Attributes::Category, "Cesium/3DTiles")
+                ->Event("SetConfiguration", &CesiumTilesetRequestBus::Events::SetConfiguration)
+                ->Event("GetConfiguration", &CesiumTilesetRequestBus::Events::GetConfiguration)
+                ->Event("SetCoordinateTransform", &CesiumTilesetRequestBus::Events::SetCoordinateTransform)
+                ->Event("GetBoundingVolumeInECEF", &CesiumTilesetRequestBus::Events::GetBoundingVolumeInECEF)
+                ->Event("LoadTileset", &CesiumTilesetRequestBus::Events::LoadTileset)
+                ;
         }
     }
 
