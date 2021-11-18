@@ -1,39 +1,40 @@
 #include "LoggerSink.h"
-#include <AzCore/Console/ILogger.h>
+#include <AzCore/Debug/Trace.h>
 #include <AzCore/std/parallel/scoped_lock.h>
 
 namespace Cesium
 {
-    void LoggerSink::sink_it_(const spdlog::details::log_msg& msg)
+    void LoggerSink::sink_it_([[maybe_unused]] const spdlog::details::log_msg& msg)
     {
+#ifdef AZ_ENABLE_TRACING
         switch (msg.level)
         {
         case SPDLOG_LEVEL_TRACE:
-            AZLOG_TRACE(FormatMessage(msg).c_str());
+            AZ_TracePrintf("Cesium", FormatMessage(msg).c_str());
             break;
         case SPDLOG_LEVEL_DEBUG:
-            AZLOG_DEBUG(FormatMessage(msg).c_str());
+            AZ_TracePrintf("Cesium", FormatMessage(msg).c_str());
             break;
         case SPDLOG_LEVEL_INFO:
-            AZLOG_INFO(FormatMessage(msg).c_str());
+            AZ_TracePrintf("Cesium", FormatMessage(msg).c_str());
             break;
         case SPDLOG_LEVEL_WARN:
-            AZLOG_WARN(FormatMessage(msg).c_str());
+            AZ_Warning("Cesium", false, FormatMessage(msg).c_str());
             break;
         case SPDLOG_LEVEL_ERROR:
-            AZLOG_ERROR(FormatMessage(msg).c_str());
+            AZ_Error("Cesium", false, FormatMessage(msg).c_str());
             break;
         case SPDLOG_LEVEL_CRITICAL:
-            AZLOG_FATAL(FormatMessage(msg).c_str());
+            AZ_Error("Cesium", false, FormatMessage(msg).c_str());
             break;
         default:
-            AZLOG_INFO(FormatMessage(msg).c_str());
+            AZ_TracePrintf("Cesium", FormatMessage(msg).c_str());
         }
+#endif // AZ_ENABLE_TRACING
     }
 
     void LoggerSink::flush_()
     {
-        AZLOG_FLUSH();
     }
 
     std::string LoggerSink::FormatMessage(const spdlog::details::log_msg& msg)

@@ -44,7 +44,7 @@ namespace Cesium
 
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<BingRasterOverlayComponent, RasterOverlayComponent>()->Version(0)
+            serializeContext->Class<BingRasterOverlayComponent, AZ::Component, RasterOverlayComponent>()->Version(0)
                 ->Field("source", &BingRasterOverlayComponent::m_source)
                 ;
         }
