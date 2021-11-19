@@ -1,89 +1,71 @@
 #pragma once
 
-#include <AzCore/Component/Component.h>
-#include <AzCore/Component/TickBus.h>
+#include <Cesium/RasterOverlayComponent.h>
 #include <AzCore/std/string/string.h>
-#include <AzCore/std/smart_ptr/unique_ptr.h>
-#include <AzCore/std/optional.h>
 #include <cstdint>
+#include <string>
+#include <memory>
 
 namespace Cesium
 {
-    struct BingRasterOverlayConfiguration
+    enum class BingMapsStyle
     {
-        BingRasterOverlayConfiguration();
-
-        std::uint64_t m_maximumCacheBytes;
-        std::uint32_t m_maximumSimultaneousTileLoads;
+        Aerial,
+        AerialWithLabels,
+        AerialWithLabelsOnDemand,
+        Road,
+        RoadOnDemand,
+        CanvasDark,
+        CanvasLight,
+        CanvasGray,
+        OrdnanceSurvey,
+        CollinsBart
     };
 
-    struct BingMapsStyle final
+    struct BingRasterOverlaySource final
     {
-        static constexpr const char* AERIAL = "Aerial";
-        static constexpr const char* AERIAL_WITH_LABELS = "AerialWithLabels";
-        static constexpr const char* AERIAL_WITH_LABELS_ON_DEMAND = "AerialWithLabelsOnDemand";
-        static constexpr const char* ROAD = "Road";
-        static constexpr const char* ROAD_ON_DEMAND = "RoadOnDemand";
-        static constexpr const char* CANVAS_DARK = "CanvasDark";
-        static constexpr const char* CANVAS_LIGHT = "CanvasLight";
-        static constexpr const char* CANVAS_GRAY = "CanvasGray";
-        static constexpr const char* ORDNANCE_SURVEY = "OrdnanceSurvey";
-        static constexpr const char* COLLINS_BART = "CollinsBart";
-    };
-
-    struct BingRasterOverlaySource
-    {
-        BingRasterOverlaySource(
-            const AZStd::string& url, const AZStd::string& key, const AZStd::string& bingMapStyle, const AZStd::string& culture);
-
-        BingRasterOverlaySource(
-            const AZStd::string& key, const AZStd::string& bingMapStyle = BingMapsStyle::AERIAL, const AZStd::string& culture = "");
-
-        AZStd::string m_url;
-        AZStd::string m_key;
-        AZStd::string m_bingMapStyle;
-        AZStd::string m_culture;
-    };
-
-
-    class BingRasterOverlayComponent
-        : public AZ::Component
-        , public AZ::TickBus::Handler
-    {
-    public:
-        AZ_COMPONENT(BingRasterOverlayComponent, "{EFF4DE55-D240-4824-8E9A-4255C4713984}", AZ::Component)
-
-        BingRasterOverlayComponent();
-
-        ~BingRasterOverlayComponent() noexcept;
+        AZ_RTTI(BingRasterOverlaySource, "{D4B30641-8873-431D-AF30-C4B45083A334}");
+        AZ_CLASS_ALLOCATOR(BingRasterOverlaySource, AZ::SystemAllocator, 0);
 
         static void Reflect(AZ::ReflectContext* context);
 
-        const AZStd::optional<BingRasterOverlaySource>& GetCurrentSource() const;
+        BingRasterOverlaySource();
+
+        BingRasterOverlaySource(
+            const AZStd::string& url, const AZStd::string& key, BingMapsStyle bingMapStyle, const AZStd::string& culture);
+
+        BingRasterOverlaySource(
+            const AZStd::string& key, BingMapsStyle bingMapStyle = BingMapsStyle::Aerial, const AZStd::string& culture = "");
+
+        AZStd::string m_url;
+        AZStd::string m_key;
+        BingMapsStyle m_bingMapStyle;
+        AZStd::string m_culture;
+    };
+
+    class BingRasterOverlayComponent final
+        : public RasterOverlayComponent
+    {
+    public:
+        AZ_COMPONENT(BingRasterOverlayComponent, "{EFF4DE55-D240-4824-8E9A-4255C4713984}", RasterOverlayComponent)
+
+        static void Reflect(AZ::ReflectContext* context);
+
+        static void GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided);
+
+        static void GetIncompatibleServices(AZ::ComponentDescriptor::DependencyArrayType& incompatible);
+
+        static void GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required);
+
+        static void GetDependentServices(AZ::ComponentDescriptor::DependencyArrayType& dependent);
 
         void LoadRasterOverlay(const BingRasterOverlaySource& source);
 
-        void SetConfiguration(const BingRasterOverlayConfiguration& configuration);
-
-        const BingRasterOverlayConfiguration& GetConfiguration() const;
-
-        void EnableRasterOverlay(bool enable);
-
-        bool IsEnable() const;
-
     private:
-        void Init() override;
+        std::unique_ptr<Cesium3DTilesSelection::RasterOverlay> LoadRasterOverlayImpl() override;
 
-        void Activate() override;
+        static std::string BingMapsStyleToString(BingMapsStyle style);
 
-        void Deactivate() override;
-
-        void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
-
-        void LoadRasterOverlayImpl(
-            const AZStd::string& url, const AZStd::string& key, const AZStd::string& bingMapStyle, const AZStd::string& culture);
-
-        struct Impl;
-        AZStd::unique_ptr<Impl> m_impl;
+        BingRasterOverlaySource m_source;
     };
 } // namespace Cesium

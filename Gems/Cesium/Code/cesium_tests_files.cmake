@@ -1,6 +1,8 @@
 
 set(FILES
     Tests/CesiumTest.cpp
+    Tests/MathReflectTest.cpp
+    Tests/CartographicTest.cpp
     Tests/BoundingRegionTest.cpp
     Tests/OrientedBoundingBoxTest.cpp
     Tests/BoundingSphereTest.cpp
@@ -39,6 +41,7 @@ set(FILES
     Tests/GltfModelComponentTest.cpp
     Tests/CesiumTilesetComponentTest.cpp
     Tests/GeoReferenceCameraFlyControllerTest.cpp
+    Tests/RasterOverlayComponentTest.cpp
     Tests/CesiumIonRasterOverlayComponentTest.cpp
     Tests/BingRasterOverlayComponentTest.cpp
     Tests/TMSRasterOverlayComponentTest.cpp

@@ -2,6 +2,11 @@
 #include <CesiumModuleInterface.h>
 #include <CesiumEditorSystemComponent.h>
 #include <Cesium/CesiumTilesetEditorComponent.h>
+#include <Cesium/GeoReferenceTransformEditorComponent.h>
+#include <Cesium/GeoReferenceCameraFlyControllerEditor.h>
+#include <Cesium/BingRasterOverlayEditorComponent.h>
+#include <Cesium/CesiumIonRasterOverlayEditorComponent.h>
+#include <Cesium/TMSRasterOverlayEditorComponent.h>
 
 namespace Cesium
 {
@@ -16,11 +21,14 @@ namespace Cesium
         {
             // Push results of [MyComponent]::CreateDescriptor() into m_descriptors here.
             // Add ALL components descriptors associated with this gem to m_descriptors.
-            // This will associate the AzTypeInfo information for the components with the the SerializeContext, BehaviorContext and EditContext.
-            // This happens through the [MyComponent]::Reflect() function.
-            m_descriptors.insert(m_descriptors.end(), {
-                CesiumEditorSystemComponent::CreateDescriptor(), CesiumTilesetEditorComponent::CreateDescriptor()
-            });
+            // This will associate the AzTypeInfo information for the components with the the SerializeContext, BehaviorContext and
+            // EditContext. This happens through the [MyComponent]::Reflect() function.
+            m_descriptors.insert(
+                m_descriptors.end(),
+                { CesiumEditorSystemComponent::CreateDescriptor(), CesiumTilesetEditorComponent::CreateDescriptor(),
+                  GeoReferenceTransformEditorComponent::CreateDescriptor(), GeoReferenceCameraControllerEditor::CreateDescriptor(),
+                  BingRasterOverlayEditorComponent::CreateDescriptor(), CesiumIonRasterOverlayEditorComponent::CreateDescriptor(),
+                  TMSRasterOverlayEditorComponent::CreateDescriptor() });
         }
 
         /**

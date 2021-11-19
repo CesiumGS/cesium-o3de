@@ -1,6 +1,7 @@
 
 #include <AzCore/Serialization/SerializeContext.h>
 #include <CesiumEditorSystemComponent.h>
+#include <Cesium/MathDataWidget.h>
 
 namespace Cesium
 {
@@ -41,12 +42,14 @@ namespace Cesium
 
     void CesiumEditorSystemComponent::Activate()
     {
+        MathDataWidgetHandlers::Register();
         CesiumSystemComponent::Activate();
         AzToolsFramework::EditorEvents::Bus::Handler::BusConnect();
     }
 
     void CesiumEditorSystemComponent::Deactivate()
     {
+        MathDataWidgetHandlers::Unregister();
         AzToolsFramework::EditorEvents::Bus::Handler::BusDisconnect();
         CesiumSystemComponent::Deactivate();
     }

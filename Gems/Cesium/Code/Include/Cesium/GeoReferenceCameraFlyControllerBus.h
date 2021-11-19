@@ -19,10 +19,6 @@ namespace Cesium
     class GeoReferenceCameraFlyControllerRequest : public AZ::ComponentBus
     {
     public:
-        virtual void SetEnable(bool enable) = 0;
-
-        virtual bool IsEnable() const = 0;
-
         virtual void SetMouseSensitivity(double mouseSensitivity) = 0;
 
         virtual double GetMouseSensitivity() const = 0;

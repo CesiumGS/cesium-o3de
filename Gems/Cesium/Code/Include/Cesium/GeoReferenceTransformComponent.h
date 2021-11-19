@@ -15,6 +15,14 @@ namespace Cesium
 
         static void Reflect(AZ::ReflectContext* context);
 
+        static void GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided);
+
+        static void GetIncompatibleServices(AZ::ComponentDescriptor::DependencyArrayType& incompatible);
+
+        static void GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required);
+
+        static void GetDependentServices(AZ::ComponentDescriptor::DependencyArrayType& dependent);
+
         void SetECEFCoordOrigin(const glm::dvec3& origin) override;
 
         const glm::dvec3& GetECEFCoordOrigin() const override;
@@ -29,22 +37,18 @@ namespace Cesium
 
         const CoordinateTransformConfiguration& GetConfiguration() const override;
 
-        bool IsEnable() const override;
-
         void BindTransformChangeEventHandler(TransformChangeEvent::Handler& handler) override;
 
-        void BindTransformEnableEventHandler(TransformEnableEvent::Handler& handler) override;
-
-    private:
         void Init() override;
 
         void Activate() override;
 
         void Deactivate() override;
 
+        using AZ::Component::SetEntity;
+
+    private:
         CoordinateTransformConfiguration m_config;
         TransformChangeEvent m_transformChangeEvent;
-        TransformEnableEvent m_enableEvent;
-        bool m_enable;
     };
 } // namespace Cesium

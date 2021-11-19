@@ -6,8 +6,13 @@
 
 namespace Cesium
 {
-    struct CoordinateTransformConfiguration
+    struct CoordinateTransformConfiguration final
     {
+        AZ_RTTI(CoordinateTransformConfiguration, "{9269426C-63F2-43D4-BAD6-28D73E6308B3}");
+        AZ_CLASS_ALLOCATOR(CoordinateTransformConfiguration, AZ::SystemAllocator, 0);
+
+        static void Reflect(AZ::ReflectContext* context);
+
         CoordinateTransformConfiguration()
             : m_origin{0.0}
             , m_O3DEToECEF{1.0}
@@ -41,11 +46,7 @@ namespace Cesium
 
         virtual const CoordinateTransformConfiguration& GetConfiguration() const = 0;
 
-        virtual bool IsEnable() const = 0;
-
         virtual void BindTransformChangeEventHandler(TransformChangeEvent::Handler& handler) = 0;
-
-        virtual void BindTransformEnableEventHandler(TransformEnableEvent::Handler& handler) = 0;
     };
 
     using CoordinateTransformRequestBus = AZ::EBus<CoordinateTransformRequest>;

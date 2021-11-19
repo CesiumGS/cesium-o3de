@@ -51,6 +51,10 @@ set(FILES
     Source/LinearInterpolator.h
     Source/RasterOverlayRequestBus.cpp
     Source/RasterOverlayRequestBus.h
+    Source/Cartographic.cpp
+    Include/Cesium/Cartographic.h
+    Source/MathReflect.cpp
+    Include/Cesium/MathReflect.h
     Source/GeospatialHelper.cpp
     Include/Cesium/GeospatialHelper.h
     Source/WorldComposition.cpp
@@ -77,6 +81,8 @@ set(FILES
     Include/Cesium/GeoReferenceCameraFlyControllerBus.h
     Source/GeoReferenceCameraFlyController.cpp
     Include/Cesium/GeoReferenceCameraFlyController.h
+    Source/RasterOverlayComponent.cpp
+    Include/Cesium/RasterOverlayComponent.h
     Source/CesiumIonRasterOverlayComponent.cpp
     Include/Cesium/CesiumIonRasterOverlayComponent.h
     Source/BingRasterOverlayComponent.cpp

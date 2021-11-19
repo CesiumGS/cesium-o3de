@@ -16,8 +16,33 @@ namespace Cesium
     {
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<GeoReferenceCameraFlyController, AZ::Component>()->Version(0);
+            serializeContext->Class<GeoReferenceCameraFlyController, AZ::Component>()->Version(0)->
+                Field("mouseSensitivity", &GeoReferenceCameraFlyController::m_mouseSensitivity)->
+                Field("movementSpeed", &GeoReferenceCameraFlyController::m_movementSpeed)->
+                Field("panningSpeed", &GeoReferenceCameraFlyController::m_panningSpeed)->
+                Field("coordinateTransformEntityId", &GeoReferenceCameraFlyController::m_coordinateTransformEntityId)
+                ;
         }
+    }
+
+    void GeoReferenceCameraFlyController::GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided)
+    {
+        provided.push_back(AZ_CRC_CE("GeoReferenceCameraFlyControllerService"));
+    }
+
+    void GeoReferenceCameraFlyController::GetIncompatibleServices(AZ::ComponentDescriptor::DependencyArrayType& incompatible)
+    {
+        incompatible.push_back(AZ_CRC_CE("GeoReferenceCameraFlyControllerService"));
+    }
+
+    void GeoReferenceCameraFlyController::GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required)
+    {
+        required.push_back(AZ_CRC("TransformService", 0x8ee22c50));
+    }
+
+    void GeoReferenceCameraFlyController::GetDependentServices(AZ::ComponentDescriptor::DependencyArrayType& dependent)
+    {
+        dependent.push_back(AZ_CRC("TransformService", 0x8ee22c50));
     }
 
     GeoReferenceCameraFlyController::GeoReferenceCameraFlyController()
@@ -31,23 +56,12 @@ namespace Cesium
         , m_cameraMovement{}
         , m_cameraRotateUpdate{ false }
         , m_cameraMoveUpdate{ false }
-        , m_cameraEnable{ true }
-        , m_coordinateTransformEntityEnable{ false }
     {
         m_cesiumTransformChangeHandler = TransformChangeEvent::Handler(
             [this]([[maybe_unused]] const CoordinateTransformConfiguration& configuration) mutable
             {
                 ResetCameraMovement();
                 AZ::TransformBus::Event(GetEntityId(), &AZ::TransformBus::Events::SetWorldTranslation, AZ::Vector3::CreateZero());
-            });
-
-        m_cesiumTransformEnableHandler = TransformEnableEvent::Handler(
-            [this](bool enable, [[maybe_unused]] const CoordinateTransformConfiguration& configuration) mutable
-            {
-                StopFly();
-                ResetCameraMovement();
-                AZ::TransformBus::Event(GetEntityId(), &AZ::TransformBus::Events::SetWorldTranslation, AZ::Vector3::CreateZero());
-                m_coordinateTransformEntityEnable = enable;
             });
     }
 
@@ -58,34 +72,20 @@ namespace Cesium
     void GeoReferenceCameraFlyController::Activate()
     {
         GeoReferenceCameraFlyControllerRequestBus::Handler::BusConnect(GetEntityId());
-        EnableCamera();
+        AZ::TickBus::Handler::BusConnect();
+        AZ::EntityBus::Handler::BusConnect(m_coordinateTransformEntityId);
+        AzFramework::InputChannelEventListener::Connect();
     }
 
     void GeoReferenceCameraFlyController::Deactivate()
     {
         GeoReferenceCameraFlyControllerRequestBus::Handler::BusDisconnect();
-        DisableCamera();
-    }
+        AZ::TickBus::Handler::BusDisconnect();
+        AZ::EntityBus::Handler::BusDisconnect();
+        AzFramework::InputChannelEventListener::Disconnect();
 
-    void GeoReferenceCameraFlyController::SetEnable(bool enable)
-    {
-        if (m_cameraEnable != enable)
-        {
-            m_cameraEnable = enable;
-            if (m_cameraEnable)
-            {
-                EnableCamera();
-            }
-            else
-            {
-                DisableCamera();
-            }
-        }
-    }
-
-    bool GeoReferenceCameraFlyController::IsEnable() const
-    {
-        return m_cameraEnable;
+        StopFly();
+        ResetCameraMovement();
     }
 
     void GeoReferenceCameraFlyController::SetMouseSensitivity(double mouseSensitivity)
@@ -120,36 +120,40 @@ namespace Cesium
 
     void GeoReferenceCameraFlyController::SetCoordinateTransform(const AZ::EntityId& coordinateTransformEntityId)
     {
-        // stop any fly first
+        // stop any fly and camera movement first
         StopFly();
+        ResetCameraMovement();
 
         // disconnect any events from the current coordinate transform entity
-        m_coordinateTransformEntityEnable = false;
         m_cesiumTransformChangeHandler.Disconnect();
-        m_cesiumTransformEnableHandler.Disconnect();
-
-        // place the camera at the origin
-        ResetCameraMovement();
-        AZ::TransformBus::Event(GetEntityId(), &AZ::TransformBus::Events::SetWorldTranslation, AZ::Vector3::CreateZero());
+        AZ::EntityBus::Handler::BusDisconnect();
 
         m_coordinateTransformEntityId = coordinateTransformEntityId;
+        AZ::EntityBus::Handler::BusConnect(m_coordinateTransformEntityId);
+    }
+
+    void GeoReferenceCameraFlyController::OnEntityActivated([[maybe_unused]] const AZ::EntityId& coordinateTransformEntityId)
+    {
+        // place the camera at the origin
+        AZ::TransformBus::Event(GetEntityId(), &AZ::TransformBus::Events::SetWorldTranslation, AZ::Vector3::CreateZero());
+
         CoordinateTransformRequestBus::Event(
             m_coordinateTransformEntityId, &CoordinateTransformRequestBus::Events::BindTransformChangeEventHandler,
             m_cesiumTransformChangeHandler);
-        CoordinateTransformRequestBus::Event(
-            m_coordinateTransformEntityId, &CoordinateTransformRequestBus::Events::BindTransformEnableEventHandler,
-            m_cesiumTransformEnableHandler);
-        CoordinateTransformRequestBus::EventResult(
-            m_coordinateTransformEntityEnable, m_coordinateTransformEntityId, &CoordinateTransformRequestBus::Events::IsEnable);
+    }
+
+    void GeoReferenceCameraFlyController::OnEntityDeactivated([[maybe_unused]] const AZ::EntityId& coordinateTransformEntityId)
+    {
+        // stop any fly first
+        StopFly();
+        ResetCameraMovement();
+
+        // disconnect any events from the current coordinate transform entity
+        m_cesiumTransformChangeHandler.Disconnect();
     }
 
     void GeoReferenceCameraFlyController::FlyToECEFLocation(const glm::dvec3& location, const glm::dvec3& direction)
     {
-        if (!m_cameraEnable)
-        {
-            return;
-        }
-
         // Get camera current O3DE world transform to calculate its ECEF position and orientation
         AZ::Transform O3DECameraTransform = AZ::Transform::CreateIdentity();
         AZ::TransformBus::EventResult(O3DECameraTransform, GetEntityId(), &AZ::TransformBus::Events::GetWorldTM);
@@ -165,7 +169,7 @@ namespace Cesium
         if (m_ecefPositionInterpolator)
         {
             ecefCurrentPosition = m_ecefPositionInterpolator->GetCurrentPosition();
-            if (m_coordinateTransformEntityEnable)
+            if (m_coordinateTransformEntityId.IsValid())
             {
                 glm::dmat4 O3DEToECEF{ 1.0 };
                 CoordinateTransformRequestBus::EventResult(
@@ -177,7 +181,7 @@ namespace Cesium
             m_ecefPositionInterpolator = AZStd::make_unique<GeoReferenceInterpolator>(
                 ecefCurrentPosition, ecefCameraTransform[1], location, direction, ecefCameraTransform, cameraConfiguration);
         }
-        else if (m_coordinateTransformEntityEnable)
+        else if (m_coordinateTransformEntityId.IsValid())
         {
             glm::dmat4 O3DEToECEF{ 1.0 };
             CoordinateTransformRequestBus::EventResult(
@@ -237,7 +241,7 @@ namespace Cesium
         glm::dvec3 ecefCurrentPosition = m_ecefPositionInterpolator->GetCurrentPosition();
         glm::dquat ecefOrientation = m_ecefPositionInterpolator->GetCurrentOrientation();
 
-        if (m_coordinateTransformEntityEnable)
+        if (m_coordinateTransformEntityId.IsValid())
         {
             glm::dmat4 ECEFToO3DE{ 1.0 };
             CoordinateTransformRequestBus::EventResult(
@@ -418,28 +422,6 @@ namespace Cesium
             m_cameraMovement = glm::dvec3{ 0.0 };
             m_cameraMoveUpdate = false;
         }
-    }
-
-    void GeoReferenceCameraFlyController::EnableCamera()
-    {
-        // initialize camera rotation
-        AZ::Transform worldTM{};
-        AZ::TransformBus::EventResult(worldTM, GetEntityId(), &AZ::TransformBus::Events::GetWorldTM);
-        AZ::Vector3 worldOrientation = worldTM.GetRotation().GetEulerRadians();
-        m_cameraPitch = worldOrientation.GetX();
-        m_cameraHead = worldOrientation.GetZ();
-
-        AZ::TickBus::Handler::BusConnect();
-        AzFramework::InputChannelEventListener::Connect();
-    }
-
-    void GeoReferenceCameraFlyController::DisableCamera()
-    {
-        AZ::TickBus::Handler::BusDisconnect();
-        AzFramework::InputChannelEventListener::Disconnect();
-
-        StopFly();
-        ResetCameraMovement();
     }
 
     void GeoReferenceCameraFlyController::StopFly()

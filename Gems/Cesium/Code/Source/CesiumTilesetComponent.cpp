@@ -12,6 +12,7 @@
 #include <Atom/RPI.Public/ViewProviderBus.h>
 #include <Atom/RPI.Public/View.h>
 #include <AzFramework/Components/CameraBus.h>
+#include <AzCore/Component/Entity.h>
 #include <AzCore/Component/NonUniformScaleBus.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/std/algorithm.h>
@@ -183,8 +184,9 @@ namespace Cesium
     };
 
     struct CesiumTilesetComponent::Impl
-        : public RasterOverlayRequestBus::Handler
+        : public RasterOverlayContainerRequestBus::Handler
         , private AZ::TransformNotificationBus::Handler
+        , private AZ::EntityBus::Handler
     {
         enum ConfigurationDirtyFlags
         {
@@ -207,21 +209,6 @@ namespace Cesium
                     this->m_configFlags |= ConfigurationDirtyFlags::TransformChange;
                 });
 
-            m_cesiumTransformEnableHandler = TransformEnableEvent::Handler(
-                [this](bool enable, const CoordinateTransformConfiguration& configuration) mutable
-                {
-                    if (enable)
-                    {
-                        this->m_coordinateTransformConfig = configuration;
-                        this->m_configFlags |= ConfigurationDirtyFlags::TransformChange;
-                    }
-                    else
-                    {
-                        this->m_coordinateTransformConfig = CoordinateTransformConfiguration{};
-                        this->m_configFlags |= ConfigurationDirtyFlags::TransformChange;
-                    }
-                });
-
             m_nonUniformScaleChangedHandler = AZ::NonUniformScaleChangedEvent::Handler(
                 [this](const AZ::Vector3& scale)
                 {
@@ -235,27 +222,28 @@ namespace Cesium
             LoadTileset(tilesetSource);
 
             // Set the O3DE transform first before any transformation from Cesium coord to O3DE coordinate
-            AZ::Transform worldTransform;
+            AZ::Transform worldTransform = AZ::Transform::CreateIdentity();
             AZ::TransformBus::EventResult(worldTransform, m_selfEntity, &AZ::TransformBus::Events::GetWorldTM);
             AZ::Vector3 worldScale = AZ::Vector3::CreateOne();
             AZ::NonUniformScaleRequestBus::EventResult(worldScale, m_selfEntity, &AZ::NonUniformScaleRequestBus::Events::GetScale);
             SetWorldTransform(worldTransform, worldScale);
 
-            // set cesium transform to convert from Cesium Coord to O3DE
-            ConnectCoordinateTransformEntityEvents(coordinateTransformEntityId);
-
             AZ::NonUniformScaleRequestBus::Event(
                 m_selfEntity, &AZ::NonUniformScaleRequests::RegisterScaleChangedEvent, m_nonUniformScaleChangedHandler);
             AZ::TransformNotificationBus::Handler::BusConnect(m_selfEntity);
 
-            RasterOverlayRequestBus::Handler::BusConnect(m_selfEntity);
+            // set cesium transform to convert from Cesium Coord to O3DE
+            ConnectCoordinateTransformEntityEvents(coordinateTransformEntityId);
+
+            RasterOverlayContainerRequestBus::Handler::BusConnect(m_selfEntity);
         }
 
         ~Impl() noexcept
         {
-            RasterOverlayRequestBus::Handler::BusDisconnect();
+            RasterOverlayContainerRequestBus::Handler::BusDisconnect();
             AZ::TransformNotificationBus::Handler::BusDisconnect();
             m_nonUniformScaleChangedHandler.Disconnect();
+            m_tilesetUnloadedEvent.Signal();
             m_tileset.reset();
             m_renderResourcesPreparer.reset();
             DisconnectCoordinateTransformEntityEvents();
@@ -264,6 +252,11 @@ namespace Cesium
 
         void LoadTileset(const TilesetSource& tilesetSource)
         {
+            if (tilesetSource.m_type != TilesetSourceType::None)
+            {
+                m_tilesetUnloadedEvent.Signal();
+            }
+
             switch (tilesetSource.m_type)
             {
             case TilesetSourceType::LocalFile:
@@ -278,17 +271,19 @@ namespace Cesium
             default:
                 break;
             }
+
+            if (tilesetSource.m_type != TilesetSourceType::None)
+            {
+                m_tilesetLoadedEvent.Signal();
+            }
         }
 
         Cesium3DTilesSelection::TilesetExternals CreateTilesetExternal(IOKind kind)
         {
             // create render resources preparer if not exist
-            if (!m_renderResourcesPreparer)
-            {
-                AZ::Render::MeshFeatureProcessorInterface* meshFeatureProcessor =
-                    AZ::RPI::Scene::GetFeatureProcessorForEntity<AZ::Render::MeshFeatureProcessorInterface>(m_selfEntity);
-                m_renderResourcesPreparer = std::make_shared<RenderResourcesPreparer>(meshFeatureProcessor);
-            }
+            AZ::Render::MeshFeatureProcessorInterface* meshFeatureProcessor =
+                AZ::RPI::Scene::GetFeatureProcessorForEntity<AZ::Render::MeshFeatureProcessorInterface>(m_selfEntity);
+            m_renderResourcesPreparer = std::make_shared<RenderResourcesPreparer>(meshFeatureProcessor);
 
             return Cesium3DTilesSelection::TilesetExternals{
                 CesiumInterface::Get()->GetAssetAccessor(kind),
@@ -318,9 +313,11 @@ namespace Cesium
                 externals, source.m_cesiumIonAssetId, source.m_cesiumIonAssetToken.c_str());
         }
 
-        void ConnectCoordinateTransformEntityEvents(const AZ::EntityId& coordinateTransformEntityId)
-        {
-            DisconnectCoordinateTransformEntityEvents();
+        void OnEntityActivated(const AZ::EntityId& coordinateTransformEntityId) override {
+            // this function is needed because coordinateTransformEntityId can be initialized after tileset entity. In that case,
+            // the coordinate transform component will not receive any request from this tileset entity when this entity is activated.
+            // So we have to listen to the event when coordinateTransformEntityId is activated to transform the tileset correctly 
+            m_cesiumTransformChangeHandler.Disconnect();
 
             CoordinateTransformConfiguration config;
             if (coordinateTransformEntityId.IsValid())
@@ -328,29 +325,36 @@ namespace Cesium
                 CoordinateTransformRequestBus::EventResult(
                     config, coordinateTransformEntityId, &CoordinateTransformRequestBus::Events::GetConfiguration);
 
-                if (!m_cesiumTransformChangeHandler.IsConnected())
-                {
-                    CoordinateTransformRequestBus::Event(
-                        coordinateTransformEntityId, &CoordinateTransformRequestBus::Events::BindTransformChangeEventHandler,
-                        m_cesiumTransformChangeHandler);
-                }
-
-                if (!m_cesiumTransformEnableHandler.IsConnected())
-                {
-                    CoordinateTransformRequestBus::Event(
-                        coordinateTransformEntityId, &CoordinateTransformRequestBus::Events::BindTransformEnableEventHandler,
-                        m_cesiumTransformEnableHandler);
-                }
+                CoordinateTransformRequestBus::Event(
+                    coordinateTransformEntityId, &CoordinateTransformRequestBus::Events::BindTransformChangeEventHandler,
+                    m_cesiumTransformChangeHandler);
             }
 
             m_coordinateTransformConfig = config;
             m_configFlags |= ConfigurationDirtyFlags::TransformChange;
         }
 
+        void OnEntityDeactivated([[maybe_unused]] const AZ::EntityId& coordinateTransformEntityId) override {
+            m_cesiumTransformChangeHandler.Disconnect();
+            m_coordinateTransformConfig = CoordinateTransformConfiguration{};
+            m_configFlags |= ConfigurationDirtyFlags::TransformChange;
+        }
+
+        void ConnectCoordinateTransformEntityEvents(const AZ::EntityId& coordinateTransformEntityId)
+        {
+            DisconnectCoordinateTransformEntityEvents();
+            if (coordinateTransformEntityId.IsValid())
+            {
+                AZ::EntityBus::Handler::BusConnect(coordinateTransformEntityId);
+            }
+        }
+
         void DisconnectCoordinateTransformEntityEvents()
         {
+            AZ::EntityBus::Handler::BusDisconnect(); // disconnect the current coordinate transform entity
             m_cesiumTransformChangeHandler.Disconnect();
-            m_cesiumTransformEnableHandler.Disconnect();
+            m_coordinateTransformConfig = CoordinateTransformConfiguration{};
+            m_configFlags |= ConfigurationDirtyFlags::TransformChange;
         }
 
         void SetWorldTransform(const AZ::Transform& world, const AZ::Vector3& nonUniformScale)
@@ -401,6 +405,16 @@ namespace Cesium
                 m_tileset->getOverlays().remove(rasterOverlay);
                 m_renderResourcesPreparer->RemoveRasterLayer(rasterOverlay);
             }
+        }
+
+        void BindContainerLoadedEvent(RasterOverlayContainerLoadedEvent::Handler& handler) override
+        {
+            handler.Connect(m_tilesetLoadedEvent);
+        }
+
+        void BindContainerUnloadedEvent(RasterOverlayContainerUnloadedEvent::Handler& handler) override
+        {
+            handler.Connect(m_tilesetUnloadedEvent);
         }
 
         void FlushTilesetSourceChange(const TilesetSource &source)
@@ -468,8 +482,9 @@ namespace Cesium
         CameraConfigurations m_cameraConfigurations;
         std::shared_ptr<RenderResourcesPreparer> m_renderResourcesPreparer;
         AZStd::unique_ptr<Cesium3DTilesSelection::Tileset> m_tileset;
+        RasterOverlayContainerLoadedEvent m_tilesetLoadedEvent;
+        RasterOverlayContainerLoadedEvent m_tilesetUnloadedEvent;
         TransformChangeEvent::Handler m_cesiumTransformChangeHandler;
-        TransformEnableEvent::Handler m_cesiumTransformEnableHandler;
         AZ::NonUniformScaleChangedEvent::Handler m_nonUniformScaleChangedHandler;
         CoordinateTransformConfiguration m_coordinateTransformConfig;
         glm::dmat4 m_O3DETransform;
@@ -478,6 +493,9 @@ namespace Cesium
 
     void CesiumTilesetComponent::Reflect(AZ::ReflectContext* context)
     {
+        TilesetConfiguration::Reflect(context);
+        TilesetSource::Reflect(context);
+
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
             serializeContext->Class<CesiumTilesetComponent, AZ::Component>()
@@ -486,6 +504,26 @@ namespace Cesium
                 ->Field("TilesetSource", &CesiumTilesetComponent::m_tilesetSource)
                 ->Field("CoordinateTransformEntityId", &CesiumTilesetComponent::m_coordinateTransformEntityId);
         }
+    }
+
+    void CesiumTilesetComponent::GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided)
+    {
+        provided.push_back(AZ_CRC_CE("3DTilesService"));
+    }
+
+    void CesiumTilesetComponent::GetIncompatibleServices(AZ::ComponentDescriptor::DependencyArrayType& incompatible)
+    {
+        incompatible.push_back(AZ_CRC_CE("3DTilesService"));
+    }
+
+    void CesiumTilesetComponent::GetRequiredServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& required)
+    {
+    }
+
+    void CesiumTilesetComponent::GetDependentServices(AZ::ComponentDescriptor::DependencyArrayType& dependent)
+    {
+        dependent.push_back(AZ_CRC("TransformService", 0x8ee22c50));
+        dependent.push_back(AZ_CRC_CE("NonUniformScaleService"));
     }
 
     CesiumTilesetComponent::CesiumTilesetComponent()

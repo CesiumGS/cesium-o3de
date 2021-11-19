@@ -1,22 +1,19 @@
 #pragma once
 
-#include <Cesium/CesiumTilesetComponentBus.h>
-#include <AzCore/Component/EntityId.h>
-#include <AzCore/std/string/string.h>
-#include <AzCore/std/smart_ptr/unique_ptr.h>
+#include <Cesium/GeoReferenceCameraFlyController.h>
 #include <AzToolsFramework/ToolsComponents/EditorComponentBase.h>
+#include <AzCore/Component/EntityId.h>
+#include <glm/glm.hpp>
+#include <AzCore/std/smart_ptr/unique_ptr.h>
 
 namespace Cesium
 {
-    class CesiumTilesetComponent;
-
-    class CesiumTilesetEditorComponent
-        : public AzToolsFramework::Components::EditorComponentBase
+    class GeoReferenceCameraControllerEditor : public AzToolsFramework::Components::EditorComponentBase
     {
     public:
-        AZ_EDITOR_COMPONENT(CesiumTilesetEditorComponent, "{25978273-7635-415C-ABFE-8364A65B68FC}");
+        AZ_EDITOR_COMPONENT(GeoReferenceCameraControllerEditor, "{2BE32EA3-A610-448B-82A8-82D58A8456C7}");
 
-        CesiumTilesetEditorComponent();
+        GeoReferenceCameraControllerEditor();
 
         static void Reflect(AZ::ReflectContext* context);
 
@@ -37,15 +34,9 @@ namespace Cesium
 
         void Deactivate() override;
 
-        AZ::u32 OnTilesetSourceChanged();
-
-        AZ::u32 OnTilesetConfigurationChanged();
-
-        AZ::u32 OnCoordinateTransformEntityChanged();
-
-        AZStd::unique_ptr<CesiumTilesetComponent> m_tilesetComponent;
-        TilesetConfiguration m_tilesetConfiguration;
-        TilesetSource m_tilesetSource;
+        double m_mouseSensitivity{ 40.0 };
+        double m_panningSpeed{ 5.0 };
+        double m_movementSpeed{ 5.0 };
         AZ::EntityId m_coordinateTransformEntityId;
     };
-} // namespace Cesium
+}

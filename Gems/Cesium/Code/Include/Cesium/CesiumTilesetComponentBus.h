@@ -4,6 +4,7 @@
 #include <Cesium/OrientedBoundingBox.h>
 #include <Cesium/BoundingRegion.h>
 #include <AzCore/Component/ComponentBus.h>
+#include <AzCore/EBus/Event.h>
 #include <AzCore/std/string/string.h>
 #include <AzCore/std/containers/variant.h>
 #include <AzCore/std/utils.h>
@@ -106,6 +107,9 @@ namespace Cesium
         TilesetUrlSource m_url;
         TilesetCesiumIonSource m_cesiumIon;
     };
+
+    using TilesetLoadedEvent = AZ::Event<>;
+    using TilesetUnloadedEvent = AZ::Event<>;
 
     class CesiumTilesetRequest : public AZ::ComponentBus
     {

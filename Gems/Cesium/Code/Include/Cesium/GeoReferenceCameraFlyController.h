@@ -6,6 +6,7 @@
 #include <AzCore/Component/Component.h>
 #include <AzCore/Component/EntityId.h>
 #include <AzCore/Component/TickBus.h>
+#include <AzCore/Component/EntityBus.h>
 #include <AzCore/std/smart_ptr/unique_ptr.h>
 #include <glm/glm.hpp>
 
@@ -16,6 +17,7 @@ namespace Cesium
     class GeoReferenceCameraFlyController
         : public AZ::Component
         , public AZ::TickBus::Handler
+        , public AZ::EntityBus::Handler
         , public AzFramework::InputChannelEventListener
         , public GeoReferenceCameraFlyControllerRequestBus::Handler
     {
@@ -24,11 +26,15 @@ namespace Cesium
 
         static void Reflect(AZ::ReflectContext* context);
 
+        static void GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided);
+
+        static void GetIncompatibleServices(AZ::ComponentDescriptor::DependencyArrayType& incompatible);
+
+        static void GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required);
+
+        static void GetDependentServices(AZ::ComponentDescriptor::DependencyArrayType& dependent);
+
         GeoReferenceCameraFlyController();
-
-        void SetEnable(bool enable) override;
-
-        bool IsEnable() const override;
 
         void SetMouseSensitivity(double mouseSensitivity) override;
 
@@ -48,14 +54,20 @@ namespace Cesium
 
         void BindCameraTransitionFlyEventHandler(CameraTransitionFlyEvent::Handler& handler) override;
 
-    private:
         void Init() override;
 
         void Activate() override;
 
         void Deactivate() override;
 
+        using AZ::Component::SetEntity;
+
+    private:
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
+
+        void OnEntityActivated(const AZ::EntityId& coordinateTransformEntityId) override;
+
+        void OnEntityDeactivated(const AZ::EntityId& coordinateTransformEntityId) override; 
 
         void ProcessBeginFlyState();
 
@@ -71,30 +83,25 @@ namespace Cesium
 
         void OnKeyEvent(const AzFramework::InputChannel& inputChannel);
 
-        void EnableCamera();
-
-        void DisableCamera();
-
         void StopFly();
 
         void ResetCameraMovement();
 
+        // configurations for controller
+        double m_mouseSensitivity;
+        double m_movementSpeed;
+        double m_panningSpeed;
         AZ::EntityId m_coordinateTransformEntityId;
+
         TransformChangeEvent::Handler m_cesiumTransformChangeHandler;
-        TransformEnableEvent::Handler m_cesiumTransformEnableHandler;
         AZStd::unique_ptr<Interpolator> m_ecefPositionInterpolator;
         CameraTransitionFlyEvent m_flyTransitionEvent;
         CameraFlyState m_prevCameraFlyState;
         CameraFlyState m_cameraFlyState;
-        double m_mouseSensitivity;
-        double m_movementSpeed;
-        double m_panningSpeed;
         double m_cameraPitch;
         double m_cameraHead;
         glm::dvec3 m_cameraMovement;
         bool m_cameraRotateUpdate;
         bool m_cameraMoveUpdate;
-        bool m_cameraEnable;
-        bool m_coordinateTransformEntityEnable;
     };
 } // namespace Cesium
