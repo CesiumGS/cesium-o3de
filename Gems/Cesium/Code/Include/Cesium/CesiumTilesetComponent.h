@@ -51,11 +51,14 @@ namespace Cesium
         using AZ::Component::SetEntity;
 
     private:
+        static void ReflectTilesetBoundingVolume(AZ::ReflectContext* context);
+
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
 
         class CameraConfigurations;
         struct BoundingVolumeConverter;
         struct BoundingVolumeTransform;
+        enum class TilesetBoundingVolumeType;
         struct Impl;
 
         AZStd::unique_ptr<Impl> m_impl;

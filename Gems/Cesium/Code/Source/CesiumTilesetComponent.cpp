@@ -181,6 +181,14 @@ namespace Cesium
         glm::dmat4 m_transform;
     };
 
+    enum class CesiumTilesetComponent::TilesetBoundingVolumeType
+    {
+        None,
+        BoundingSphere,
+        OrientedBoundingBox,
+        BoundingRegion
+    };
+
     struct CesiumTilesetComponent::Impl
         : public RasterOverlayContainerRequestBus::Handler
         , private AZ::TransformNotificationBus::Handler
@@ -493,10 +501,10 @@ namespace Cesium
     {
         TilesetConfiguration::Reflect(context);
         TilesetSource::Reflect(context);
-        BehaviorContextTilesetBoundingVolumeHelper::Reflect(context);
         BoundingRegion::Reflect(context);
         BoundingSphere::Reflect(context);
         OrientedBoundingBox::Reflect(context);
+        ReflectTilesetBoundingVolume(context);
 
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
@@ -607,6 +615,74 @@ namespace Cesium
     {
         m_tilesetSource = source;
         m_impl->m_configFlags = Impl::ConfigurationDirtyFlags::AllChange;
+    }
+
+    void CesiumTilesetComponent::ReflectTilesetBoundingVolume(AZ::ReflectContext* context)
+    {
+        if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
+        {
+            auto getType = [](TilesetBoundingVolume* source)
+            {
+                if (source->index() == 1)
+                {
+                    return static_cast<int>(TilesetBoundingVolumeType::BoundingSphere);
+                }
+
+                if (source->index() == 2)
+                {
+                    return static_cast<int>(TilesetBoundingVolumeType::OrientedBoundingBox);
+                }
+
+                if (source->index() == 3)
+                {
+                    return static_cast<int>(TilesetBoundingVolumeType::BoundingRegion);
+                }
+
+                return static_cast<int>(TilesetBoundingVolumeType::None);
+            };
+
+            auto getBoundingSphere = [](TilesetBoundingVolume* source) -> BoundingSphere*
+            {
+                if (source->index() == 1)
+                {
+                    return AZStd::get_if<BoundingSphere>(source);
+                }
+
+                return nullptr;
+            };
+
+            auto getOBB = [](TilesetBoundingVolume* source) -> OrientedBoundingBox*
+            {
+                if (source->index() == 2)
+                {
+                    return AZStd::get_if<OrientedBoundingBox>(source);
+                }
+
+                return nullptr;
+            };
+
+            auto getBoundingRegion = [](TilesetBoundingVolume* source) -> BoundingRegion*
+            {
+                if (source->index() == 3)
+                {
+                    return AZStd::get_if<BoundingRegion>(source);
+                }
+
+                return nullptr;
+            };
+
+            behaviorContext->Enum<static_cast<int>(TilesetBoundingVolumeType::None)>("TilesetBoundingVolumeType_None")
+                ->Enum<static_cast<int>(TilesetBoundingVolumeType::BoundingSphere)>("TilesetBoundingVolumeType_BoundingSphere")
+                ->Enum<static_cast<int>(TilesetBoundingVolumeType::OrientedBoundingBox)>("TilesetBoundingVolumeType_OrientedBoundingBox")
+                ->Enum<static_cast<int>(TilesetBoundingVolumeType::BoundingRegion)>("TilesetBoundingVolumeType_BoundingRegion");
+
+            behaviorContext->Class<TilesetBoundingVolume>("TilesetBoundingVolume")
+                ->Attribute(AZ::Script::Attributes::Category, "Cesium/3DTiles")
+                ->Property("type", getType, nullptr)
+                ->Property("boundingSphere", getBoundingSphere, nullptr)
+                ->Property("orientedBoundingBox", getOBB, nullptr)
+                ->Property("boundingRegion", getBoundingRegion, nullptr);
+        }
     }
 
     void CesiumTilesetComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)

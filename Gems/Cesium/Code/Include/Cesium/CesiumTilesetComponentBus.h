@@ -15,27 +15,6 @@ namespace Cesium
 {
     using TilesetBoundingVolume = AZStd::variant<AZStd::monostate, BoundingSphere, OrientedBoundingBox, BoundingRegion>;
 
-    enum class TilesetBoundingVolumeType
-    {
-        None,
-        BoundingSphere,
-        OrientedBoundingBox,
-        BoundingRegion
-    };
-
-    struct BehaviorContextTilesetBoundingVolumeHelper
-    {
-        static void Reflect(AZ::ReflectContext* context);
-
-        static int GetType(TilesetBoundingVolume* source);
-
-        static BoundingSphere* GetBoundingSphere(TilesetBoundingVolume* source);
-
-        static OrientedBoundingBox* GetOrientedBoundingBox(TilesetBoundingVolume* source);
-
-        static BoundingRegion* GetBoundingRegion(TilesetBoundingVolume* source);
-    };
-
     struct TilesetConfiguration final
     {
         AZ_RTTI(TilesetConfiguration, "{13578DDF-7A60-4851-821C-A5238F222611}");

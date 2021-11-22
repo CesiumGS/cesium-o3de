@@ -2,6 +2,7 @@
 #include <Cesium3DTilesSelection/RasterOverlay.h>
 #include <Cesium3DTilesSelection/BingMapsRasterOverlay.h>
 #include <AzCore/Serialization/SerializeContext.h>
+#include <AzCore/RTTI/BehaviorContext.h>
 
 namespace Cesium
 {
@@ -15,6 +16,38 @@ namespace Cesium
                 ->Field("key", &BingRasterOverlaySource::m_key)
                 ->Field("bingMapStyle", &BingRasterOverlaySource::m_bingMapStyle)
                 ->Field("culture", &BingRasterOverlaySource::m_culture)
+                ;
+        }
+
+        if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
+        {
+            behaviorContext->Enum<static_cast<int>(BingMapsStyle::Aerial)>("BingMapsStyle_Aerial")
+                ->Enum<static_cast<int>(BingMapsStyle::AerialWithLabels)>("BingMapsStyle_AerialWithLabels")
+                ->Enum<static_cast<int>(BingMapsStyle::AerialWithLabelsOnDemand)>("BingMapsStyle_AerialWithLabelsOnDemand")
+                ->Enum<static_cast<int>(BingMapsStyle::Road)>("BingMapsStyle_Road")
+                ->Enum<static_cast<int>(BingMapsStyle::RoadOnDemand)>("BingMapsStyle_RoadOnDemand")
+                ->Enum<static_cast<int>(BingMapsStyle::CanvasDark)>("BingMapsStyle_CanvasDark")
+                ->Enum<static_cast<int>(BingMapsStyle::CanvasLight)>("BingMapsStyle_CanvasLight")
+                ->Enum<static_cast<int>(BingMapsStyle::CanvasGray)>("BingMapsStyle_CanvasGray")
+                ->Enum<static_cast<int>(BingMapsStyle::OrdnanceSurvey)>("BingMapsStyle_OrdnanceSurvey")
+                ->Enum<static_cast<int>(BingMapsStyle::CollinsBart)>("BingMapsStyle_CollinsBart")
+                ;
+
+            auto getBingMapStyle = [](BingRasterOverlaySource* source)
+            {
+                return source->m_bingMapStyle;
+            };
+
+            auto setBingMapStyle = [](BingRasterOverlaySource* source, int style)
+            {
+                source->m_bingMapStyle = static_cast<BingMapsStyle>(style);
+            };
+
+            behaviorContext->Class<BingRasterOverlaySource>("BingRasterOverlaySource")
+                ->Property("url", BehaviorValueProperty(&BingRasterOverlaySource::m_url))
+                ->Property("key", BehaviorValueProperty(&BingRasterOverlaySource::m_key))
+                ->Property("bingMapStyle", getBingMapStyle, setBingMapStyle)
+                ->Property("culture", BehaviorValueProperty(&BingRasterOverlaySource::m_culture))
                 ;
         }
     }
@@ -47,6 +80,23 @@ namespace Cesium
             serializeContext->Class<BingRasterOverlayComponent, AZ::Component, RasterOverlayComponent>()->Version(0)
                 ->Field("source", &BingRasterOverlayComponent::m_source)
                 ;
+        }
+
+        if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
+        {
+            auto getConfiguration = [](BingRasterOverlayComponent* component)
+            {
+                return component->GetConfiguration();
+            };
+
+            auto setConfiguration = [](BingRasterOverlayComponent* component, const RasterOverlayConfiguration& configuration)
+            {
+                return component->SetConfiguration(configuration);
+            };
+
+            behaviorContext->Class<BingRasterOverlayComponent>("BingRasterOverlayComponent")
+                ->Property("configuration", getConfiguration, setConfiguration)
+                ->Property("source", BehaviorValueProperty(&BingRasterOverlayComponent::m_source));
         }
     }
 

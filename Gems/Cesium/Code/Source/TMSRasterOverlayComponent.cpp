@@ -2,6 +2,7 @@
 #include <Cesium3DTilesSelection/RasterOverlay.h>
 #include <Cesium3DTilesSelection/TileMapServiceRasterOverlay.h>
 #include <AzCore/Serialization/SerializeContext.h>
+#include <AzCore/RTTI/BehaviorContext.h>
 
 namespace Cesium
 {
@@ -15,6 +16,17 @@ namespace Cesium
                 ->Field("fileExtension", &TMSRasterOverlaySource::m_fileExtension)
                 ->Field("minimumLevel", &TMSRasterOverlaySource::m_minimumLevel)
                 ->Field("maximumLevel", &TMSRasterOverlaySource::m_maximumLevel)
+                ;
+        }
+
+        if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
+        {
+            behaviorContext->Class<TMSRasterOverlaySource>("TMSRasterOverlaySource")
+                ->Property("url", BehaviorValueProperty(&TMSRasterOverlaySource::m_url))
+                ->Property("headers", BehaviorValueProperty(&TMSRasterOverlaySource::m_headers))
+                ->Property("fileExtension", BehaviorValueProperty(&TMSRasterOverlaySource::m_fileExtension))
+                ->Property("minimumLevel", BehaviorValueProperty(&TMSRasterOverlaySource::m_minimumLevel))
+                ->Property("maximumLevel", BehaviorValueProperty(&TMSRasterOverlaySource::m_maximumLevel))
                 ;
         }
     }
@@ -34,6 +46,23 @@ namespace Cesium
         {
             serializeContext->Class<TMSRasterOverlayComponent, AZ::Component, RasterOverlayComponent>()->Version(0)
                 ->Field("source", &TMSRasterOverlayComponent::m_source);
+        }
+
+        if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
+        {
+            auto getConfiguration = [](TMSRasterOverlayComponent* component)
+            {
+                return component->GetConfiguration();
+            };
+
+            auto setConfiguration = [](TMSRasterOverlayComponent* component, const RasterOverlayConfiguration& configuration)
+            {
+                return component->SetConfiguration(configuration);
+            };
+
+            behaviorContext->Class<TMSRasterOverlayComponent>("TMSRasterOverlayComponent")
+                ->Property("configuration", getConfiguration, setConfiguration)
+                ->Property("source", BehaviorValueProperty(&TMSRasterOverlayComponent::m_source));
         }
     }
 

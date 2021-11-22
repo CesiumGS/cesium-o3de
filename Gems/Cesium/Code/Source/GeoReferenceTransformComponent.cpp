@@ -1,6 +1,7 @@
 #include <Cesium/GeoReferenceTransformComponent.h>
 #include <CesiumGeospatial/Transforms.h>
 #include <AzCore/Serialization/SerializeContext.h>
+#include <AzCore/RTTI/BehaviorContext.h>
 #include <glm/gtc/matrix_inverse.hpp>
 
 namespace Cesium

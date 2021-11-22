@@ -4,6 +4,7 @@
 #include <Cesium3DTilesSelection/IonRasterOverlay.h>
 #include <AzCore/std/optional.h>
 #include <AzCore/Serialization/SerializeContext.h>
+#include <AzCore/RTTI/BehaviorContext.h>
 #include <memory>
 
 namespace Cesium
@@ -23,6 +24,13 @@ namespace Cesium
                 ->Field("ionToken", &CesiumIonRasterOverlaySource::m_ionToken)
                 ;
         }
+
+        if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
+        {
+            behaviorContext->Class<CesiumIonRasterOverlaySource>("CesiumIonRasterOverlaySource")
+                ->Property("assetId", BehaviorValueProperty(&CesiumIonRasterOverlaySource::m_ionAssetId))
+                ->Property("assetToken", BehaviorValueProperty(&CesiumIonRasterOverlaySource::m_ionToken));
+        }
     }
 
     CesiumIonRasterOverlaySource::CesiumIonRasterOverlaySource()
@@ -40,6 +48,23 @@ namespace Cesium
             serializeContext->Class<CesiumIonRasterOverlayComponent, AZ::Component, RasterOverlayComponent>()->Version(0)
                 ->Field("source", &CesiumIonRasterOverlayComponent::m_source)
                 ;
+        }
+
+        if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
+        {
+            auto getConfiguration = [](CesiumIonRasterOverlayComponent* component)
+            {
+                return component->GetConfiguration();
+            };
+
+            auto setConfiguration = [](CesiumIonRasterOverlayComponent* component, const RasterOverlayConfiguration& configuration)
+            {
+                return component->SetConfiguration(configuration);
+            };
+
+            behaviorContext->Class<CesiumIonRasterOverlayComponent>("CesiumIonRasterOverlayComponent")
+                ->Property("configuration", getConfiguration, setConfiguration)
+                ->Property("source", BehaviorValueProperty(&CesiumIonRasterOverlayComponent::m_source));
         }
     }
 
