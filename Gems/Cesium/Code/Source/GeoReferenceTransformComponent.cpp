@@ -10,8 +10,16 @@ namespace Cesium
     {
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<GeoReferenceTransformComponent, AZ::Component>()->Version(0)->
-                Field("coordinateTransformConfiguration", &GeoReferenceTransformComponent::m_config)
+            serializeContext->Class<GeoReferenceTransformComponent, AZ::Component>()->Version(0)->Field(
+                "coordinateTransformConfiguration", &GeoReferenceTransformComponent::m_config);
+        }
+
+        if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
+        {
+            behaviorContext->Class<GeoReferenceTransformComponent>("GeoReferenceTransformComponent")
+                ->Attribute(AZ::Script::Attributes::Category, "Cesium/Georeference")
+                ->Method("SetECEFCoordOrigin", &GeoReferenceTransformComponent::SetECEFCoordOrigin)
+                ->Method("GetECEFCoordOrigin", &GeoReferenceTransformComponent::GetECEFCoordOrigin)
                 ;
         }
     }

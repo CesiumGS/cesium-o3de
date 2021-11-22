@@ -81,11 +81,8 @@ namespace Cesium
         CesiumIon
     };
 
-    struct TilesetSource final
+    class TilesetSource final
     {
-    private:
-        struct BehaviorContextTilesetSourceHelper;
-
     public:
         AZ_RTTI(TilesetSource, "{AA390F90-E695-4753-8F7C-D7E5AE9BE830}");
         AZ_CLASS_ALLOCATOR(TilesetSource, AZ::SystemAllocator, 0);
@@ -105,6 +102,23 @@ namespace Cesium
         bool IsUrl();
 
         bool IsCesiumIon();
+
+        void SetLocalFile(const TilesetLocalFileSource& source);
+
+        void SetCesiumIon(const TilesetCesiumIonSource& source);
+
+        void SetUrl(const TilesetUrlSource& source);
+
+        TilesetSourceType GetType() const;
+
+        const TilesetLocalFileSource* GetLocalFile() const;
+
+        const TilesetCesiumIonSource* GetCesiumIon() const;
+
+        const TilesetUrlSource* GetUrl() const;
+
+    private:
+        friend class CesiumTilesetEditorComponent;
 
         TilesetSourceType m_type;
         TilesetLocalFileSource m_localFile;

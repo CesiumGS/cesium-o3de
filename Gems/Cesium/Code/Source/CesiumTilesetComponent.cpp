@@ -258,27 +258,28 @@ namespace Cesium
 
         void LoadTileset(const TilesetSource& tilesetSource)
         {
-            if (tilesetSource.m_type != TilesetSourceType::None)
+            TilesetSourceType type = tilesetSource.GetType();
+            if (type != TilesetSourceType::None)
             {
                 m_tilesetUnloadedEvent.Signal();
             }
 
-            switch (tilesetSource.m_type)
+            switch (type)
             {
             case TilesetSourceType::LocalFile:
-                LoadTilesetFromLocalFile(tilesetSource.m_localFile);
+                LoadTilesetFromLocalFile(*tilesetSource.GetLocalFile());
                 break;
             case TilesetSourceType::Url:
-                LoadTilesetFromUrl(tilesetSource.m_url);
+                LoadTilesetFromUrl(*tilesetSource.GetUrl());
                 break;
             case TilesetSourceType::CesiumIon:
-                LoadTilesetFromCesiumIon(tilesetSource.m_cesiumIon);
+                LoadTilesetFromCesiumIon(*tilesetSource.GetCesiumIon());
                 break;
             default:
                 break;
             }
 
-            if (tilesetSource.m_type != TilesetSourceType::None)
+            if (type != TilesetSourceType::None)
             {
                 m_tilesetLoadedEvent.Signal();
             }

@@ -86,62 +86,6 @@ namespace Cesium
         }
     }
 
-    struct TilesetSource::BehaviorContextTilesetSourceHelper
-    {
-        static int GetType(TilesetSource *source)
-        {
-            return static_cast<int>(source->m_type);
-        }
-
-        static const TilesetLocalFileSource* GetLocalFile(TilesetSource *source)
-        {
-            if (source->m_type == TilesetSourceType::LocalFile)
-            {
-                return &source->m_localFile;
-            }
-
-            return nullptr;
-        }
-
-        static void SetLocalFile(TilesetSource *source, TilesetLocalFileSource& localFile)
-        {
-            source->m_type = TilesetSourceType::LocalFile;
-            source->m_localFile = localFile;
-        }
-
-        static const TilesetCesiumIonSource* GetCesiumIon(TilesetSource *source)
-        {
-            if (source->m_type == TilesetSourceType::CesiumIon)
-            {
-                return &source->m_cesiumIon;
-            }
-
-            return nullptr;
-        }
-
-        static void SetCesiumIon(TilesetSource *source, TilesetCesiumIonSource& cesiumIon)
-        {
-            source->m_type = TilesetSourceType::CesiumIon;
-            source->m_cesiumIon = cesiumIon;
-        }
-
-        static const TilesetUrlSource* GetUrl(TilesetSource *source)
-        {
-            if (source->m_type == TilesetSourceType::Url)
-            {
-                return &source->m_url;
-            }
-
-            return nullptr;
-        }
-
-        static void SetUrl(TilesetSource *source, TilesetUrlSource& urlSource)
-        {
-            source->m_type = TilesetSourceType::Url;
-            source->m_url = urlSource;
-        }
-    };
-
     void TilesetSource::Reflect(AZ::ReflectContext* context)
     {
         TilesetLocalFileSource::Reflect(context);
@@ -165,12 +109,21 @@ namespace Cesium
                 ->Enum<static_cast<int>(TilesetSourceType::Url)>("TilesetSourceType_Url")
                 ->Enum<static_cast<int>(TilesetSourceType::CesiumIon)>("TilesetSourceType_CesiumIon");
 
+            auto getType = [](TilesetSource* source) -> int
+            {
+                return static_cast<int>(source->GetType());
+            };
+
             behaviorContext->Class<TilesetSource>("TilesetSource")
                 ->Attribute(AZ::Script::Attributes::Category, "Cesium/3DTiles")
-                ->Property("type", BehaviorContextTilesetSourceHelper::GetType, nullptr)
-                ->Property("localFile", BehaviorContextTilesetSourceHelper::GetLocalFile, BehaviorContextTilesetSourceHelper::SetLocalFile)
-                ->Property("url", BehaviorContextTilesetSourceHelper::GetUrl, BehaviorContextTilesetSourceHelper::SetUrl)
-                ->Property("cesiumIon", BehaviorContextTilesetSourceHelper::GetCesiumIon, BehaviorContextTilesetSourceHelper::SetCesiumIon);
+                ->Property("Type", getType, nullptr)
+                ->Method("SetLocalFile", &TilesetSource::SetLocalFile)
+                ->Method("SetUrl", &TilesetSource::SetUrl)
+                ->Method("SetCesiumIon", &TilesetSource::SetCesiumIon)
+                ->Method("GetLocalFile", &TilesetSource::GetLocalFile)
+                ->Method("GetUrl", &TilesetSource::GetUrl)
+                ->Method("GetCesiumIon", &TilesetSource::GetCesiumIon)
+                ;
             ;
         }
     }
@@ -188,5 +141,58 @@ namespace Cesium
     bool Cesium::TilesetSource::IsCesiumIon() 
     {
         return m_type == TilesetSourceType::CesiumIon;
+    }
+
+    TilesetSourceType TilesetSource::GetType() const
+    {
+        return m_type;
+    }
+
+    void TilesetSource::SetLocalFile(const TilesetLocalFileSource& source)
+    {
+        m_type = TilesetSourceType::LocalFile;
+        m_localFile = source;
+    }
+
+    void TilesetSource::SetCesiumIon(const TilesetCesiumIonSource& source)
+    {
+        m_type = TilesetSourceType::CesiumIon;
+        m_cesiumIon = source;
+    }
+
+    void TilesetSource::SetUrl(const TilesetUrlSource& source)
+    {
+        m_type = TilesetSourceType::Url;
+        m_url = source;
+    }
+
+    const TilesetLocalFileSource* TilesetSource::GetLocalFile() const
+    {
+        if (m_type == TilesetSourceType::LocalFile)
+        {
+            return &m_localFile;
+        }
+
+        return nullptr;
+    }
+
+    const TilesetCesiumIonSource* TilesetSource::GetCesiumIon() const
+    {
+        if (m_type == TilesetSourceType::CesiumIon)
+        {
+            return &m_cesiumIon;
+        }
+
+        return nullptr;
+    }
+
+    const TilesetUrlSource* TilesetSource::GetUrl() const
+    {
+        if (m_type == TilesetSourceType::Url)
+        {
+            return &m_url;
+        }
+
+        return nullptr;
     }
 } // namespace Cesium
