@@ -36,9 +36,66 @@ namespace Cesium
     template<typename VecType>
     void MathSerialization::ReflectGlmVecBehavior(AZ::BehaviorContext* behaviorContext, const AZStd::string& name)
     {
-        behaviorContext->Class<VecType>(name.c_str())
-            ->Attribute(AZ::Script::Attributes::Category, "Cesium/Math")
-            ->Attribute(AZ::Script::Attributes::Storage, AZ::Script::Attributes::StorageType::Value)
+        auto classBuilder = behaviorContext->Class<VecType>(name.c_str())
+                                ->Attribute(AZ::Script::Attributes::Category, "Cesium/Math")
+                                ->Attribute(AZ::Script::Attributes::Storage, AZ::Script::Attributes::StorageType::Value);
+        for (std::size_t i = 0; i < VecType::length(); ++i)
+        {
+            if (i == 0)
+            {
+                classBuilder->Property(
+                    "X",
+                    [](const VecType* vec)
+                    {
+                        return (*vec)[0];
+                    },
+                    [](VecType* vec, double x)
+                    {
+                        (*vec)[0] = x;
+                    });
+            }
+            else if (i == 1)
+            {
+                classBuilder->Property(
+                    "Y",
+                    [](const VecType* vec)
+                    {
+                        return (*vec)[1];
+                    },
+                    [](VecType* vec, double y)
+                    {
+                        (*vec)[1] = y;
+                    });
+            }
+            else if (i == 2)
+            {
+                classBuilder->Property(
+                    "Z",
+                    [](const VecType* vec)
+                    {
+                        return (*vec)[2];
+                    },
+                    [](VecType* vec, double z)
+                    {
+                        (*vec)[2] = z;
+                    });
+            }
+            else if (i == 3)
+            {
+                classBuilder->Property(
+                    "W",
+                    [](const VecType* vec)
+                    {
+                        return (*vec)[3];
+                    },
+                    [](VecType* vec, double w)
+                    {
+                        (*vec)[3] = w;
+                    });
+            }
+        }
+
+        classBuilder
             ->Method(
                 "Add",
                 [](const VecType& lhs, const VecType& rhs)
@@ -144,6 +201,46 @@ namespace Cesium
         behaviorContext->Class<glm::dquat>("DQuaternion")
             ->Attribute(AZ::Script::Attributes::Category, "Cesium/Math")
             ->Attribute(AZ::Script::Attributes::Storage, AZ::Script::Attributes::StorageType::Value)
+            ->Property(
+                "X",
+                [](const glm::dquat* quat)
+                {
+                    return (*quat)[0];
+                },
+                [](glm::dquat* quat, double x)
+                {
+                    (*quat)[0] = x;
+                })
+            ->Property(
+                "Y",
+                [](const glm::dquat* quat)
+                {
+                    return (*quat)[1];
+                },
+                [](glm::dquat* quat, double y)
+                {
+                    (*quat)[1] = y;
+                })
+            ->Property(
+                "Z",
+                [](const glm::dquat* quat)
+                {
+                    return (*quat)[2];
+                },
+                [](glm::dquat* quat, double z)
+                {
+                    (*quat)[2] = z;
+                })
+            ->Property(
+                "W",
+                [](const glm::dquat* quat)
+                {
+                    return (*quat)[3];
+                },
+                [](glm::dquat* quat, double w)
+                {
+                    (*quat)[3] = w;
+                })
             ->Method(
                 "Add",
                 [](const glm::dquat& lhs, const glm::dquat& rhs)
@@ -252,21 +349,20 @@ namespace Cesium
                 {
                     return glm::lerp(x, y, time);
                 },
-                {  AZ::BehaviorParameterOverrides("X"), AZ::BehaviorParameterOverrides("Y"), AZ::BehaviorParameterOverrides("Time") })
+                { AZ::BehaviorParameterOverrides("X"), AZ::BehaviorParameterOverrides("Y"), AZ::BehaviorParameterOverrides("Time") })
             ->Method(
                 "Slerp",
                 [](const glm::dquat& x, const glm::dquat& y, double time)
                 {
                     return glm::slerp(x, y, time);
                 },
-                {  AZ::BehaviorParameterOverrides("X"), AZ::BehaviorParameterOverrides("Y"), AZ::BehaviorParameterOverrides("Time") })
+                { AZ::BehaviorParameterOverrides("X"), AZ::BehaviorParameterOverrides("Y"), AZ::BehaviorParameterOverrides("Time") })
             ->Method(
                 "Equal",
                 [](const glm::dquat& lhs, const glm::dquat& rhs)
                 {
                     return lhs == rhs;
-                })
-            ;
+                });
     }
 
 } // namespace Cesium
