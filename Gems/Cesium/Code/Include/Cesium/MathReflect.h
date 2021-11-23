@@ -2,8 +2,11 @@
 
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/Json/BaseJsonSerializer.h>
+#include <AzCore/RTTI/ReflectContext.h>
+#include <AzCore/RTTI/BehaviorContext.h>
 #include <AzCore/RTTI/RTTI.h>
 #include <AzCore/Memory/SystemAllocator.h>
+#include <AzCore/std/string/string.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -11,7 +14,9 @@
 
 namespace AZ
 {
+    AZ_TYPE_INFO_SPECIALIZE(glm::dvec2, "{51022DB5-F187-4FB9-8DC2-533F81AD337E}");
     AZ_TYPE_INFO_SPECIALIZE(glm::dvec3, "{1E2EB371-18B6-4B35-B974-81E0E8CCF2A3}");
+    AZ_TYPE_INFO_SPECIALIZE(glm::dvec4, "{9657DD0A-632F-4FA1-A01F-6BCB1CB08B33}");
     AZ_TYPE_INFO_SPECIALIZE(glm::dquat, "{B4A0CC9A-FE9B-4777-8F94-C14C1540A3C5}");
 }
 
@@ -19,7 +24,14 @@ namespace Cesium
 {
     struct MathSerialization
     {
+    public:
         static void Reflect(AZ::ReflectContext* context);
+
+    private:
+        template<typename VecType>
+        static void ReflectGlmVecBehavior(AZ::BehaviorContext* context, const AZStd::string& name);
+
+        static void ReflectGlmQuatBehavior(AZ::BehaviorContext* context);
     };
 
     template<typename VecType>
@@ -185,11 +197,25 @@ namespace Cesium
         }
     };
 
+    class GlmDVec2JsonSerializer : public GlmVecJsonSerializer<glm::dvec2>
+    {
+    public:
+        AZ_RTTI(GlmDVec2JsonSerializer, "{179887FA-8034-4264-B6A1-216D6A7FD16C}", GlmVecJsonSerializer<glm::dvec2>);
+        AZ_CLASS_ALLOCATOR(GlmDVec2JsonSerializer, AZ::SystemAllocator, 0);
+    };
+
     class GlmDVec3JsonSerializer : public GlmVecJsonSerializer<glm::dvec3>
     {
     public:
         AZ_RTTI(GlmDVec3JsonSerializer, "{9BCD6B7B-845D-4073-B20C-1C822861A1AA}", GlmVecJsonSerializer<glm::dvec3>);
         AZ_CLASS_ALLOCATOR(GlmDVec3JsonSerializer, AZ::SystemAllocator, 0);
+    };
+
+    class GlmDVec4JsonSerializer : public GlmVecJsonSerializer<glm::dvec4>
+    {
+    public:
+        AZ_RTTI(GlmDVec4JsonSerializer, "{1A1F8E80-6408-4224-B0FC-8E0F9DD6B119}", GlmVecJsonSerializer<glm::dvec4>);
+        AZ_CLASS_ALLOCATOR(GlmDVec4JsonSerializer, AZ::SystemAllocator, 0);
     };
 
     class GlmDQuatJsonSerializer : public GlmVecJsonSerializer<glm::dquat>

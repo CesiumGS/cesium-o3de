@@ -92,6 +92,23 @@ namespace Cesium
         }
     };
 
+    class DVector2PropertyHandler
+        : public DoubleVectorPropertyHandlerBase<glm::dvec2>
+    {
+    public:
+        AZ_CLASS_ALLOCATOR(DVector2PropertyHandler, AZ::SystemAllocator, 0);
+
+        DVector2PropertyHandler()
+            : DoubleVectorPropertyHandlerBase(2)
+        {
+        };
+
+        AZ::u32 GetHandlerName(void) const override
+        {
+            return AZ_CRC("CesiumDoubleVector4");
+        }
+    };
+
     class DVector3PropertyHandler
         : public DoubleVectorPropertyHandlerBase<glm::dvec3>
     {
@@ -106,6 +123,23 @@ namespace Cesium
         AZ::u32 GetHandlerName(void) const override
         {
             return AZ_CRC("CesiumDoubleVector3");
+        }
+    };
+
+    class DVector4PropertyHandler
+        : public DoubleVectorPropertyHandlerBase<glm::dvec4>
+    {
+    public:
+        AZ_CLASS_ALLOCATOR(DVector4PropertyHandler, AZ::SystemAllocator, 0);
+
+        DVector4PropertyHandler()
+            : DoubleVectorPropertyHandlerBase(4)
+        {
+        };
+
+        AZ::u32 GetHandlerName(void) const override
+        {
+            return AZ_CRC("CesiumDoubleVector4");
         }
     };
 
