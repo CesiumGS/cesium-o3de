@@ -59,8 +59,20 @@ namespace Cesium
                     return lhs * rhs;
                 })
             ->Method(
-                "Devide",
+                "Divide",
                 [](const VecType& lhs, const VecType& rhs)
+                {
+                    return lhs / rhs;
+                })
+            ->Method(
+                "MultiplyByConstant",
+                [](const VecType& lhs, double rhs)
+                {
+                    return lhs * rhs;
+                })
+            ->Method(
+                "DivideByConstant",
+                [](const VecType& lhs, double rhs)
                 {
                     return lhs / rhs;
                 })
@@ -131,7 +143,7 @@ namespace Cesium
     void MathSerialization::ReflectGlmQuatBehavior(AZ::BehaviorContext* behaviorContext)
     {
         behaviorContext->Class<glm::dquat>("DQuaternion")
-            ->Attribute(AZ::Script::Attributes::Category, "Cesium/Math/DQuaternion")
+            ->Attribute(AZ::Script::Attributes::Category, "Cesium/Math")
             ->Attribute(AZ::Script::Attributes::Storage, AZ::Script::Attributes::StorageType::Value);
     }
 
