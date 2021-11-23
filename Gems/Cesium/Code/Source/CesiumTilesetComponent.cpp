@@ -502,9 +502,6 @@ namespace Cesium
     {
         TilesetConfiguration::Reflect(context);
         TilesetSource::Reflect(context);
-        BoundingRegion::Reflect(context);
-        BoundingSphere::Reflect(context);
-        OrientedBoundingBox::Reflect(context);
         ReflectTilesetBoundingVolume(context);
 
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))

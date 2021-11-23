@@ -52,19 +52,12 @@ namespace Cesium
 
         if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
         {
-            auto getConfiguration = [](CesiumIonRasterOverlayComponent* component)
-            {
-                return component->GetConfiguration();
-            };
-
-            auto setConfiguration = [](CesiumIonRasterOverlayComponent* component, const RasterOverlayConfiguration& configuration)
-            {
-                return component->SetConfiguration(configuration);
-            };
-
             behaviorContext->Class<CesiumIonRasterOverlayComponent>("CesiumIonRasterOverlayComponent")
-                ->Property("configuration", getConfiguration, setConfiguration)
-                ->Property("source", BehaviorValueProperty(&CesiumIonRasterOverlayComponent::m_source));
+                ->Attribute(AZ::Script::Attributes::Category, "Cesium/RasterOverlays")
+                ->Method("SetConfiguration", &CesiumIonRasterOverlayComponent::SetConfiguration)
+                ->Method("GetConfiguration", &CesiumIonRasterOverlayComponent::GetConfiguration)
+                ->Method("LoadRasterOverlay", &CesiumIonRasterOverlayComponent::LoadRasterOverlay)
+                ;
         }
     }
 

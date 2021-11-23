@@ -21,6 +21,12 @@ namespace Cesium
         , public AzFramework::InputChannelEventListener
         , public GeoReferenceCameraFlyControllerRequestBus::Handler
     {
+        enum class CameraFlyState
+        {
+            MidFly,
+            NoFly
+        };
+
     public:
         AZ_COMPONENT(GeoReferenceCameraFlyController, "{6CBEF517-E55D-4D22-B957-383722683A78}", AZ::Component)
 
@@ -52,7 +58,7 @@ namespace Cesium
 
         void FlyToECEFLocation(const glm::dvec3& location, const glm::dvec3& direction) override;
 
-        void BindCameraTransitionFlyEventHandler(CameraTransitionFlyEvent::Handler& handler) override;
+        void BindCameraStopFlyEventHandler(CameraStopFlyEvent::Handler& handler) override;
 
         void Init() override;
 
@@ -69,13 +75,9 @@ namespace Cesium
 
         void OnEntityDeactivated(const AZ::EntityId& coordinateTransformEntityId) override; 
 
-        void ProcessBeginFlyState();
-
         void ProcessMidFlyState(float deltaTime);
 
         void ProcessNoFlyState();
-
-        void TransitionToFlyState(CameraFlyState newState, const glm::dvec3& ecefCurrentPosition);
 
         bool OnInputChannelEventFiltered(const AzFramework::InputChannel& inputChannel) override;
 
@@ -95,8 +97,7 @@ namespace Cesium
 
         TransformChangeEvent::Handler m_cesiumTransformChangeHandler;
         AZStd::unique_ptr<Interpolator> m_ecefPositionInterpolator;
-        CameraTransitionFlyEvent m_flyTransitionEvent;
-        CameraFlyState m_prevCameraFlyState;
+        CameraStopFlyEvent m_stopFlyEvent;
         CameraFlyState m_cameraFlyState;
         double m_cameraPitch;
         double m_cameraHead;

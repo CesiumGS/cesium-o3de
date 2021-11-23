@@ -7,14 +7,7 @@
 
 namespace Cesium
 {
-    enum class CameraFlyState
-    {
-        BeginFly,
-        MidFly,
-        NoFly
-    };
-
-    using CameraTransitionFlyEvent = AZ::Event<CameraFlyState, CameraFlyState, const glm::dvec3&>;
+    using CameraStopFlyEvent = AZ::Event<const glm::dvec3&>;
 
     class GeoReferenceCameraFlyControllerRequest : public AZ::ComponentBus
     {
@@ -35,7 +28,7 @@ namespace Cesium
 
         virtual void FlyToECEFLocation(const glm::dvec3& location, const glm::dvec3& direction) = 0;
 
-        virtual void BindCameraTransitionFlyEventHandler(CameraTransitionFlyEvent::Handler& handler) = 0;
+        virtual void BindCameraStopFlyEventHandler(CameraStopFlyEvent::Handler& handler) = 0;
     };
 
     using GeoReferenceCameraFlyControllerRequestBus = AZ::EBus<GeoReferenceCameraFlyControllerRequest>;

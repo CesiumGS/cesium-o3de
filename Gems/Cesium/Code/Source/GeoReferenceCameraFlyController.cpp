@@ -8,6 +8,7 @@
 #include <AzFramework/Components/CameraBus.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Component/TransformBus.h>
+#include <AzCore/RTTI/BehaviorContext.h>
 #include <glm/gtc/quaternion.hpp>
 
 namespace Cesium
@@ -22,6 +23,24 @@ namespace Cesium
                 Field("panningSpeed", &GeoReferenceCameraFlyController::m_panningSpeed)->
                 Field("coordinateTransformEntityId", &GeoReferenceCameraFlyController::m_coordinateTransformEntityId)
                 ;
+        }
+
+        if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
+        {
+            AZ::BehaviorAzEventDescription cameraTransitionFlyEventDesc;
+            cameraTransitionFlyEventDesc.m_eventName = "CameraStopFlyEvent";
+            cameraTransitionFlyEventDesc.m_parameterNames.push_back("Destination");
+
+            behaviorContext->EBus<GeoReferenceCameraFlyControllerRequestBus>("GeoReferenceCameraFlyControllerRequestBus")
+                ->Attribute(AZ::Script::Attributes::Category, "Cesium/Camera")
+                ->Event("SetMouseSensitivity", &GeoReferenceCameraFlyControllerRequestBus::Events::SetMouseSensitivity)
+                ->Event("GetMouseSensitivity", &GeoReferenceCameraFlyControllerRequestBus::Events::GetMouseSensitivity)
+                ->Event("SetPanningSpeed", &GeoReferenceCameraFlyControllerRequestBus::Events::SetPanningSpeed)
+                ->Event("GetPanningSpeed", &GeoReferenceCameraFlyControllerRequestBus::Events::GetPanningSpeed)
+                ->Event("SetMovementSpeed", &GeoReferenceCameraFlyControllerRequestBus::Events::SetMovementSpeed)
+                ->Event("GetMovementSpeed", &GeoReferenceCameraFlyControllerRequestBus::Events::GetMovementSpeed)
+                ->Event("SetCoordinateTransform", &GeoReferenceCameraFlyControllerRequestBus::Events::SetCoordinateTransform)
+                ->Event("FlyToECEFLocation", &GeoReferenceCameraFlyControllerRequestBus::Events::FlyToECEFLocation);
         }
     }
 
@@ -46,8 +65,7 @@ namespace Cesium
     }
 
     GeoReferenceCameraFlyController::GeoReferenceCameraFlyController()
-        : m_prevCameraFlyState{ CameraFlyState::NoFly }
-        , m_cameraFlyState{ CameraFlyState::NoFly }
+        : m_cameraFlyState{CameraFlyState::NoFly}
         , m_mouseSensitivity{ 1.0 }
         , m_movementSpeed{ 1.0 }
         , m_panningSpeed{ 1.0 }
@@ -201,37 +219,27 @@ namespace Cesium
         }
 
         // transition to the new state
-        TransitionToFlyState(CameraFlyState::BeginFly, ecefCurrentPosition);
+        m_cameraFlyState = CameraFlyState::MidFly;
     }
 
-    void GeoReferenceCameraFlyController::BindCameraTransitionFlyEventHandler(CameraTransitionFlyEvent::Handler& handler)
+    void GeoReferenceCameraFlyController::BindCameraStopFlyEventHandler(CameraStopFlyEvent::Handler& handler)
     {
-        handler.Connect(m_flyTransitionEvent);
+        handler.Connect(m_stopFlyEvent);
     }
 
     void GeoReferenceCameraFlyController::OnTick(float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
     {
         switch (m_cameraFlyState)
         {
-        case Cesium::CameraFlyState::BeginFly:
-            ProcessBeginFlyState();
-            break;
-        case Cesium::CameraFlyState::MidFly:
+        case CameraFlyState::MidFly:
             ProcessMidFlyState(deltaTime);
             break;
-        case Cesium::CameraFlyState::NoFly:
+        case CameraFlyState::NoFly:
             ProcessNoFlyState();
             break;
         default:
             break;
         }
-    }
-
-    void GeoReferenceCameraFlyController::ProcessBeginFlyState()
-    {
-        assert(m_ecefPositionInterpolator != nullptr);
-        glm::dvec3 ecefCurrentPosition = m_ecefPositionInterpolator->GetCurrentPosition();
-        TransitionToFlyState(CameraFlyState::MidFly, ecefCurrentPosition);
     }
 
     void GeoReferenceCameraFlyController::ProcessMidFlyState(float deltaTime)
@@ -274,14 +282,7 @@ namespace Cesium
         // if the interpolator stops updating, then we transition to the end state
         if (m_ecefPositionInterpolator->IsStop())
         {
-            // initialize new camera rotation
-            AZ::Transform worldTM{};
-            AZ::TransformBus::EventResult(worldTM, GetEntityId(), &AZ::TransformBus::Events::GetWorldTM);
-            AZ::Vector3 worldOrientation = worldTM.GetRotation().GetEulerRadians();
-            m_cameraPitch = worldOrientation.GetX();
-            m_cameraHead = worldOrientation.GetZ();
-            m_ecefPositionInterpolator = nullptr;
-            TransitionToFlyState(CameraFlyState::NoFly, ecefCurrentPosition);
+            StopFly();
         }
     }
 
@@ -322,13 +323,6 @@ namespace Cesium
 
             AZ::TransformBus::Event(GetEntityId(), &AZ::TransformBus::Events::SetWorldTM, O3DECameraTransform);
         }
-    }
-
-    void GeoReferenceCameraFlyController::TransitionToFlyState(CameraFlyState newState, const glm::dvec3& ecefCurrentPosition)
-    {
-        m_prevCameraFlyState = m_cameraFlyState;
-        m_cameraFlyState = newState;
-        m_flyTransitionEvent.Signal(m_prevCameraFlyState, m_cameraFlyState, ecefCurrentPosition);
     }
 
     bool GeoReferenceCameraFlyController::OnInputChannelEventFiltered(const AzFramework::InputChannel& inputChannel)
@@ -430,9 +424,19 @@ namespace Cesium
         if (m_cameraFlyState != CameraFlyState::NoFly)
         {
             assert(m_ecefPositionInterpolator != nullptr);
+
+            // inform camera stop flying
             glm::dvec3 ecefCurrentPosition = m_ecefPositionInterpolator->GetCurrentPosition();
-            TransitionToFlyState(CameraFlyState::NoFly, ecefCurrentPosition);
+            AZ::Transform worldTM{};
+            AZ::TransformBus::EventResult(worldTM, GetEntityId(), &AZ::TransformBus::Events::GetWorldTM);
+            AZ::Vector3 worldOrientation = worldTM.GetRotation().GetEulerRadians();
+            m_cameraPitch = worldOrientation.GetX();
+            m_cameraHead = worldOrientation.GetZ();
             m_ecefPositionInterpolator = nullptr;
+            m_stopFlyEvent.Signal(ecefCurrentPosition);
+
+            // transition to no fly state
+            m_cameraFlyState = CameraFlyState::NoFly;
         }
     }
 

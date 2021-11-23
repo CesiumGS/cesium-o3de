@@ -5,6 +5,11 @@
 #include "TaskProcessor.h"
 #include "LocalFileManager.h"
 #include "HttpManager.h"
+#include <Cesium/BoundingRegion.h>
+#include <Cesium/BoundingSphere.h>
+#include <Cesium/OrientedBoundingBox.h>
+#include <Cesium/Cartographic.h>
+#include <Cesium/MathReflect.h>
 #include <Cesium3DTilesSelection/registerAllTileContentTypes.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/EditContext.h>
@@ -16,6 +21,12 @@ namespace Cesium
 {
     void CesiumSystemComponent::Reflect(AZ::ReflectContext* context)
     {
+        MathSerialization::Reflect(context);
+        BoundingRegion::Reflect(context);
+        BoundingSphere::Reflect(context);
+        OrientedBoundingBox::Reflect(context);
+        Cartographic::Reflect(context);
+
         if (AZ::SerializeContext* serialize = azrtti_cast<AZ::SerializeContext*>(context))
         {
             serialize->Class<CesiumSystemComponent, AZ::Component>()

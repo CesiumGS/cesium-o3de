@@ -38,7 +38,6 @@ namespace Cesium
 
     void GeoReferenceTransformEditorComponent::Reflect(AZ::ReflectContext* context)
     {
-        CoordinateTransformConfiguration::Reflect(context);
         DegreeCartographic::Reflect(context);
 
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))

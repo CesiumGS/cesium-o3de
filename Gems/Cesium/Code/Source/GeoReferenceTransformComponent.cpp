@@ -8,6 +8,8 @@ namespace Cesium
 {
     void GeoReferenceTransformComponent::Reflect(AZ::ReflectContext* context)
     {
+        CoordinateTransformConfiguration::Reflect(context);
+
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
             serializeContext->Class<GeoReferenceTransformComponent, AZ::Component>()->Version(0)->Field(
@@ -16,11 +18,17 @@ namespace Cesium
 
         if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
         {
-            behaviorContext->Class<GeoReferenceTransformComponent>("GeoReferenceTransformComponent")
-                ->Attribute(AZ::Script::Attributes::Category, "Cesium/Georeference")
-                ->Method("SetECEFCoordOrigin", &GeoReferenceTransformComponent::SetECEFCoordOrigin)
-                ->Method("GetECEFCoordOrigin", &GeoReferenceTransformComponent::GetECEFCoordOrigin)
-                ;
+            //behaviorContext->EBus<CoordinateTransformRequestBus>("CoordinateTransformRequestBus")
+            //    ->Attribute(AZ::Script::Attributes::Category, "Cesium/Georeference")
+            //    ->Event("SetECEFCoordOrigin", &CoordinateTransformRequestBus::Events::SetECEFCoordOrigin)
+            //    ->Event("GetECEFCoordOrigin", &GeoReferenceTransformComponent::GetECEFCoordOrigin)
+            //    ->Event("O3DEToECEF", &GeoReferenceTransformComponent::O3DEToECEF)
+            //    ->Event("ECEFToO3DE", &GeoReferenceTransformComponent::ECEFToO3DE)
+            //    ->Event("CalculateO3DEToECEFAtOrigin", &GeoReferenceTransformComponent::CalculateO3DEToECEFAtOrigin)
+            //    ->Event("CalculateECEFToO3DEAtOrigin", &GeoReferenceTransformComponent::CalculateECEFToO3DEAtOrigin)
+            //    ->Event("GetConfiguration", &GeoReferenceTransformComponent::GetConfiguration)
+            //    ->Event("BindTransformChangeEventHandler", &GeoReferenceTransformComponent::BindTransformChangeEventHandler)
+            //    ;
         }
     }
 

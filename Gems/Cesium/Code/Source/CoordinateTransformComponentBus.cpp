@@ -5,7 +5,6 @@ namespace Cesium
 {
     void CoordinateTransformConfiguration::Reflect(AZ::ReflectContext* context)
     {
-        MathSerialization::Reflect(context);
         if (auto serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
             serializeContext->Class<CoordinateTransformConfiguration>()
