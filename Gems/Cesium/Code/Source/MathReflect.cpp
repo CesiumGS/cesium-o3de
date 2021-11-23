@@ -51,7 +51,6 @@ namespace Cesium
                 {
                     return lhs - rhs;
                 })
-            ->Attribute(AZ::Script::Attributes::Operator, AZ::Script::Attributes::OperatorType::Sub)
             ->Method(
                 "Multiply",
                 [](const VecType& lhs, const VecType& rhs)
@@ -144,7 +143,130 @@ namespace Cesium
     {
         behaviorContext->Class<glm::dquat>("DQuaternion")
             ->Attribute(AZ::Script::Attributes::Category, "Cesium/Math")
-            ->Attribute(AZ::Script::Attributes::Storage, AZ::Script::Attributes::StorageType::Value);
+            ->Attribute(AZ::Script::Attributes::Storage, AZ::Script::Attributes::StorageType::Value)
+            ->Method(
+                "Add",
+                [](const glm::dquat& lhs, const glm::dquat& rhs)
+                {
+                    return lhs + rhs;
+                })
+            ->Method(
+                "Subtract",
+                [](const glm::dquat& lhs, const glm::dquat& rhs)
+                {
+                    return lhs - rhs;
+                })
+            ->Method(
+                "Multiply",
+                [](const glm::dquat& lhs, const glm::dquat& rhs)
+                {
+                    return lhs * rhs;
+                })
+            ->Method(
+                "MultiplyByConstant",
+                [](const glm::dquat& lhs, double rhs)
+                {
+                    return lhs * rhs;
+                })
+            ->Method(
+                "DivideByConstant",
+                [](const glm::dquat& lhs, double rhs)
+                {
+                    return lhs / rhs;
+                })
+            ->Method(
+                "MultiplyByDVector3",
+                [](const glm::dquat& lhs, const glm::dvec3& rhs)
+                {
+                    return lhs * rhs;
+                })
+            ->Method(
+                "MultiplyByDVector4",
+                [](const glm::dquat& lhs, const glm::dvec4& rhs)
+                {
+                    return lhs * rhs;
+                })
+            ->Method(
+                "Normalized",
+                [](const glm::dquat& quat)
+                {
+                    return glm::normalize(quat);
+                })
+            ->Method(
+                "Length",
+                [](const glm::dquat& quat)
+                {
+                    return glm::length(quat);
+                })
+            ->Method(
+                "LengthSq",
+                [](const glm::dquat& quat)
+                {
+                    return glm::dot(quat, quat);
+                })
+            ->Method(
+                "Dot",
+                [](const glm::dquat& lhs, const glm::dquat& rhs)
+                {
+                    return glm::dot(lhs, rhs);
+                })
+            ->Method(
+                "Conjugate",
+                [](const glm::dquat& quat)
+                {
+                    return glm::conjugate(quat);
+                })
+            ->Method(
+                "Inverse",
+                [](const glm::dquat& quat)
+                {
+                    return glm::inverse(quat);
+                })
+            ->Method(
+                "EulerAngles",
+                [](const glm::dquat& quat)
+                {
+                    return glm::eulerAngles(quat);
+                })
+            ->Method(
+                "Yaw",
+                [](const glm::dquat& quat)
+                {
+                    return glm::yaw(quat);
+                })
+            ->Method(
+                "Pitch",
+                [](const glm::dquat& quat)
+                {
+                    return glm::pitch(quat);
+                })
+            ->Method(
+                "Roll",
+                [](const glm::dquat& quat)
+                {
+                    return glm::roll(quat);
+                })
+            ->Method(
+                "Lerp",
+                [](const glm::dquat& x, const glm::dquat& y, double time)
+                {
+                    return glm::lerp(x, y, time);
+                },
+                {  AZ::BehaviorParameterOverrides("X"), AZ::BehaviorParameterOverrides("Y"), AZ::BehaviorParameterOverrides("Time") })
+            ->Method(
+                "Slerp",
+                [](const glm::dquat& x, const glm::dquat& y, double time)
+                {
+                    return glm::slerp(x, y, time);
+                },
+                {  AZ::BehaviorParameterOverrides("X"), AZ::BehaviorParameterOverrides("Y"), AZ::BehaviorParameterOverrides("Time") })
+            ->Method(
+                "Equal",
+                [](const glm::dquat& lhs, const glm::dquat& rhs)
+                {
+                    return lhs == rhs;
+                })
+            ;
     }
 
 } // namespace Cesium
