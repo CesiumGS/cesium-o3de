@@ -7,6 +7,7 @@ namespace Cesium
 {
     void CesiumEditorSystemComponent::Reflect(AZ::ReflectContext* context)
     {
+        MathDataWidget::Reflect(context);
         if (auto serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
             serializeContext->Class<CesiumEditorSystemComponent, CesiumSystemComponent>()
@@ -42,14 +43,13 @@ namespace Cesium
 
     void CesiumEditorSystemComponent::Activate()
     {
-        MathDataWidgetHandlers::Register();
+        MathDataWidget::RegisterHandlers();
         CesiumSystemComponent::Activate();
         AzToolsFramework::EditorEvents::Bus::Handler::BusConnect();
     }
 
     void CesiumEditorSystemComponent::Deactivate()
     {
-        MathDataWidgetHandlers::Unregister();
         AzToolsFramework::EditorEvents::Bus::Handler::BusDisconnect();
         CesiumSystemComponent::Deactivate();
     }

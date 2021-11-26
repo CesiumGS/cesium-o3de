@@ -86,10 +86,19 @@ namespace Cesium
         {
             behaviorContext->Class<BingRasterOverlayComponent>("BingRasterOverlayComponent")
                 ->Attribute(AZ::Script::Attributes::Category, "Cesium/RasterOverlays")
-                ->Method("SetConfiguration", &BingRasterOverlayComponent::SetConfiguration)
-                ->Method("GetConfiguration", &BingRasterOverlayComponent::GetConfiguration)
-                ->Method("LoadRasterOverlay", &BingRasterOverlayComponent::LoadRasterOverlay)
-                ;
+                ->Method(
+                    "SetConfiguration",
+                    [](BingRasterOverlayComponent& component, const RasterOverlayConfiguration& config)
+                    {
+                        component.SetConfiguration(config);
+                    })
+                ->Method(
+                    "GetConfiguration",
+                    [](const BingRasterOverlayComponent& component)
+                    {
+                        return component.GetConfiguration();
+                    })
+                ->Method("LoadRasterOverlay", &BingRasterOverlayComponent::LoadRasterOverlay);
         }
     }
 

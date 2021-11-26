@@ -2,6 +2,7 @@
 
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/Json/BaseJsonSerializer.h>
+#include <AzCore/Serialization/Json/RegistrationContext.h>
 #include <AzCore/RTTI/ReflectContext.h>
 #include <AzCore/RTTI/BehaviorContext.h>
 #include <AzCore/RTTI/RTTI.h>
@@ -14,12 +15,13 @@
 
 namespace AZ
 {
-    AZ_TYPE_INFO_SPECIALIZE(glm::dmat3, "{889D681F-010D-4B5C-B2CE-81097383B329}");
-    AZ_TYPE_INFO_SPECIALIZE(glm::dmat4, "{8C9ECA4A-052D-47AC-A969-D5E5CF41D79A}");
     AZ_TYPE_INFO_SPECIALIZE(glm::dvec2, "{51022DB5-F187-4FB9-8DC2-533F81AD337E}");
     AZ_TYPE_INFO_SPECIALIZE(glm::dvec3, "{1E2EB371-18B6-4B35-B974-81E0E8CCF2A3}");
     AZ_TYPE_INFO_SPECIALIZE(glm::dvec4, "{9657DD0A-632F-4FA1-A01F-6BCB1CB08B33}");
     AZ_TYPE_INFO_SPECIALIZE(glm::dquat, "{B4A0CC9A-FE9B-4777-8F94-C14C1540A3C5}");
+    AZ_TYPE_INFO_SPECIALIZE(glm::dmat2, "{BA94BDF3-6285-4290-9818-7ADBA66F135B}");
+    AZ_TYPE_INFO_SPECIALIZE(glm::dmat3, "{889D681F-010D-4B5C-B2CE-81097383B329}");
+    AZ_TYPE_INFO_SPECIALIZE(glm::dmat4, "{8C9ECA4A-052D-47AC-A969-D5E5CF41D79A}");
 }
 
 namespace Cesium
@@ -95,7 +97,6 @@ namespace Cesium
                 ++i;
             }
 
-            stream.Seek(0, AZ::IO::GenericStream::ST_SEEK_BEGIN);
             return static_cast<size_t>(stream.Write(sizeof(VecType), reinterpret_cast<void*>(&instance)));
         }
 
@@ -120,6 +121,97 @@ namespace Cesium
         }
     };
 
+    template<typename MatType>
+    class GlmDMatSerializer : public AZ::SerializeContext::IDataSerializer
+    {
+        std::size_t Save(const void* classPtr, AZ::IO::GenericStream& stream, [[maybe_unused]] bool isDataBigEndian) override
+        {
+            if (classPtr == nullptr)
+            {
+                return 0;
+            }
+
+            const MatType* instance = reinterpret_cast<const MatType*>(classPtr);
+            return static_cast<size_t>(stream.Write(sizeof(MatType), glm::value_ptr(*instance)));
+        }
+
+        std::size_t DataToText(AZ::IO::GenericStream& in, AZ::IO::GenericStream& out, [[maybe_unused]] bool isDataBigEndian) override
+        {
+            using VecType = typename MatType::col_type;
+
+            if (in.GetLength() < sizeof(MatType))
+            {
+                return 0;
+            }
+
+            MatType instance{};
+            in.Read(sizeof(MatType), reinterpret_cast<void*>(&instance));
+
+            AZStd::string outText = "[";
+            AZStd::string separator = "";
+            for (typename MatType::length_type i = 0; i < instance.length(); ++i)
+            {
+                for (typename VecType::length_type j = 0; j < instance[0].length(); ++j)
+                {
+                    outText += separator + AZStd::to_string(instance[i][j]);
+                    separator = ",";
+                }
+            }
+            outText += "]";
+
+            return static_cast<std::size_t>(out.Write(outText.size(), outText.data()));
+        }
+
+        std::size_t TextToData(
+            const char* text,
+            [[maybe_unused]] unsigned int textVersion,
+            AZ::IO::GenericStream& stream,
+            [[maybe_unused]] bool isDataBigEndian) override
+        {
+            MatType instance{};
+            std::size_t begin = 1;
+            std::size_t end = 1;
+            typename MatType::length_type i = 0;
+            typename MatType::length_type totalElements = instance.length() * instance[0].length();
+            while (begin <= end && text[begin] != '\0' && i < totalElements)
+            {
+                while (text[end] != ']' && text[end] != ',' && text[end] != '\0')
+                {
+                    ++end;
+                }
+
+                typename MatType::length_type col = i / instance.length();
+                typename MatType::length_type row = i % instance[0].length();
+                instance[col][row] = std::atof(&text[begin]);
+                begin = end + 1;
+                end = begin;
+                ++i;
+            }
+
+            return static_cast<size_t>(stream.Write(sizeof(MatType), reinterpret_cast<void*>(&instance)));
+        }
+
+        bool Load(void* classPtr, AZ::IO::GenericStream& stream, unsigned int version, [[maybe_unused]] bool isDataBigEndian) override
+        {
+            AZ_UNUSED(version);
+            if (stream.GetLength() < sizeof(MatType))
+            {
+                return false;
+            }
+
+            MatType* instance = reinterpret_cast<MatType*>(classPtr);
+            stream.Read(sizeof(MatType), glm::value_ptr(*instance));
+            return true;
+        }
+
+        bool CompareValueData(const void* lhs, const void* rhs) override
+        {
+            const MatType* lhsInstance = reinterpret_cast<const MatType*>(lhs);
+            const MatType* rhsInstance = reinterpret_cast<const MatType*>(rhs);
+            return *lhsInstance == *rhsInstance;
+        }
+    };
+
     template<typename VecType>
     class GlmVecJsonSerializer : public AZ::BaseJsonSerializer
     {
@@ -127,14 +219,18 @@ namespace Cesium
         AZ_RTTI(GlmVecJsonSerializer, "{338EA004-2521-4052-BB64-A8505F3ABBD7}", AZ::BaseJsonSerializer);
         AZ_CLASS_ALLOCATOR(GlmVecJsonSerializer, AZ::SystemAllocator, 0);
 
-        AZ::JsonSerializationResult::Result Load(void* outputValue, const AZ::Uuid& outputValueTypeId, const rapidjson::Value& inputValue,
+        AZ::JsonSerializationResult::Result Load(
+            void* outputValue,
+            const AZ::Uuid& outputValueTypeId,
+            const rapidjson::Value& inputValue,
             AZ::JsonDeserializerContext& context) override
         {
             namespace JSR = AZ::JsonSerializationResult;
 
             if (outputValueTypeId != azrtti_typeid<VecType>())
             {
-                return context.Report(JSR::Tasks::ReadField, JSR::Outcomes::Invalid, "Unable to deserialize glm::dvec from json because of type mismatch.");
+                return context.Report(
+                    JSR::Tasks::ReadField, JSR::Outcomes::Invalid, "Unable to deserialize glm::dvec from json because of type mismatch.");
             }
 
             VecType* instance = reinterpret_cast<VecType*>(outputValue);
@@ -155,18 +251,23 @@ namespace Cesium
                 }
                 else
                 {
-                    return context.Report(JSR::Tasks::ReadField, JSR::Outcomes::Invalid, "Json array size mismatches with the size of glm::dvec.");
+                    return context.Report(
+                        JSR::Tasks::ReadField, JSR::Outcomes::Invalid, "Json array size mismatches with the size of glm::dvec.");
                 }
             }
             else
             {
-                return context.Report(JSR::Tasks::ReadField, JSR::Outcomes::Invalid, "Cannot deserialize glm::dvec for json format that is not an array.");
+                return context.Report(
+                    JSR::Tasks::ReadField, JSR::Outcomes::Invalid, "Cannot deserialize glm::dvec for json format that is not an array.");
             }
 
             return context.Report(JSR::Tasks::ReadField, JSR::Outcomes::Success, "Successfully deserialize glm::dvec");
         }
-        
-        AZ::JsonSerializationResult::Result Store(rapidjson::Value& outputValue, const void* inputValue, [[maybe_unused]] const void* defaultValue,
+
+        AZ::JsonSerializationResult::Result Store(
+            rapidjson::Value& outputValue,
+            const void* inputValue,
+            [[maybe_unused]] const void* defaultValue,
             const AZ::Uuid& valueTypeId,
             AZ::JsonSerializerContext& context) override
         {
@@ -174,7 +275,8 @@ namespace Cesium
 
             if (valueTypeId != azrtti_typeid<VecType>())
             {
-                return context.Report(JSR::Tasks::WriteValue, JSR::Outcomes::Invalid, "Unable to serialize glm::dvec to json because of type mismatch.");
+                return context.Report(
+                    JSR::Tasks::WriteValue, JSR::Outcomes::Invalid, "Unable to serialize glm::dvec to json because of type mismatch.");
             }
 
             const VecType* instance = reinterpret_cast<const VecType*>(inputValue);
@@ -189,7 +291,114 @@ namespace Cesium
             {
                 outputValue.PushBack((*instance)[i], context.GetJsonAllocator());
             }
-            
+
+            return context.Report(JSR::Tasks::WriteValue, JSR::Outcomes::Success, "Successfully serialize glm::dvec");
+        }
+
+        OperationFlags GetOperationsFlags() const override
+        {
+            return OperationFlags::InitializeNewInstance;
+        }
+    };
+
+    template<typename MatType>
+    class GlmDMatJsonSerializer : public AZ::BaseJsonSerializer
+    {
+    public:
+        AZ_RTTI(GlmDMatJsonSerializer, "{44B47C67-E32F-48E9-BFF0-20C3620F49E1}", AZ::BaseJsonSerializer);
+        AZ_CLASS_ALLOCATOR(GlmDMatJsonSerializer, AZ::SystemAllocator, 0);
+
+        AZ::JsonSerializationResult::Result Load(
+            void* outputValue,
+            const AZ::Uuid& outputValueTypeId,
+            const rapidjson::Value& inputValue,
+            AZ::JsonDeserializerContext& context) override
+        {
+            namespace JSR = AZ::JsonSerializationResult;
+            using VecType = typename MatType::col_type;
+
+            if (outputValueTypeId != azrtti_typeid<MatType>())
+            {
+                return context.Report(
+                    JSR::Tasks::ReadField, JSR::Outcomes::Invalid, "Unable to deserialize glm::dmat from json because of type mismatch.");
+            }
+
+            MatType* instance = reinterpret_cast<MatType*>(outputValue);
+            if (instance == nullptr)
+            {
+                return context.Report(JSR::Tasks::ReadField, JSR::Outcomes::Invalid, "Unable to deserialize nullptr glm::dmat from json.");
+            }
+
+            if (inputValue.GetType() == rapidjson::Type::kArrayType)
+            {
+                const auto& arrayValue = inputValue.GetArray();
+                if (arrayValue.Size() == static_cast<rapidjson::SizeType>(instance->length()))
+                {
+                    auto columnSerializer = context.GetRegistrationContext()->GetSerializerForType(azrtti_typeid<VecType>());
+                    for (rapidjson::SizeType i = 0; i < arrayValue.Size(); ++i)
+                    {
+                        VecType& col = (*instance)[i];
+                        auto result = columnSerializer->Load(&col, azrtti_typeid<VecType>(), arrayValue[i], context);
+                        if (result.GetResultCode().GetOutcome() != JSR::Outcomes::Success)
+                        {
+                            return result;
+                        }
+                    }
+                }
+                else
+                {
+                    return context.Report(
+                        JSR::Tasks::ReadField, JSR::Outcomes::Invalid, "Json array size mismatches with the size of glm::dmat.");
+                }
+            }
+            else
+            {
+                return context.Report(
+                    JSR::Tasks::ReadField, JSR::Outcomes::Invalid, "Cannot deserialize glm::dmat for json format that is not an array.");
+            }
+
+            return context.Report(JSR::Tasks::ReadField, JSR::Outcomes::Success, "Successfully deserialize glm::dmat");
+
+        }
+
+        AZ::JsonSerializationResult::Result Store(
+            rapidjson::Value& outputValue,
+            const void* inputValue,
+            [[maybe_unused]] const void* defaultValue,
+            const AZ::Uuid& valueTypeId,
+            AZ::JsonSerializerContext& context) override
+        {
+            namespace JSR = AZ::JsonSerializationResult;
+            using VecType = typename MatType::col_type;
+
+            if (valueTypeId != azrtti_typeid<MatType>())
+            {
+                return context.Report(
+                    JSR::Tasks::WriteValue, JSR::Outcomes::Invalid, "Unable to serialize glm::dmat to json because of type mismatch.");
+            }
+
+            const MatType* instance = reinterpret_cast<const MatType*>(inputValue);
+            if (instance == nullptr)
+            {
+                return context.Report(JSR::Tasks::ReadField, JSR::Outcomes::Invalid, "Unable to serialize nullptr glm::dmat to json.");
+            }
+
+            outputValue.SetArray();
+            outputValue.Reserve(instance->length(), context.GetJsonAllocator());
+            auto columnSerializer = context.GetRegistrationContext()->GetSerializerForType(azrtti_typeid<VecType>());
+            for (typename MatType::length_type i = 0; i < instance->length(); ++i)
+            {
+                const VecType& colValue = (*instance)[i];
+                rapidjson::Value columnJson;
+                auto result = columnSerializer->Store(columnJson, &colValue, nullptr, azrtti_typeid<VecType>(), context);
+                if (result.GetResultCode().GetOutcome() != JSR::Outcomes::Success)
+                {
+                    return result;
+                }
+
+                outputValue.PushBack(columnJson, context.GetJsonAllocator());
+            }
+
             return context.Report(JSR::Tasks::WriteValue, JSR::Outcomes::Success, "Successfully serialize glm::dvec");
         }
 
@@ -225,5 +434,26 @@ namespace Cesium
     public:
         AZ_RTTI(GlmDQuatJsonSerializer, "{CDCD546F-EEFE-44AD-B525-2E00C8E2FC52}", GlmVecJsonSerializer<glm::dquat>);
         AZ_CLASS_ALLOCATOR(GlmDQuatJsonSerializer, AZ::SystemAllocator, 0);
+    };
+
+    class GlmDMat2JsonSerializer : public GlmDMatJsonSerializer<glm::dmat2>
+    {
+    public:
+        AZ_RTTI(GlmDMat2JsonSerializer, "{91F705E2-522E-4CF5-BFB9-688E3B510E2F}", GlmDMatJsonSerializer<glm::dmat2>);
+        AZ_CLASS_ALLOCATOR(GlmDMat2JsonSerializer, AZ::SystemAllocator, 0);
+    };
+
+    class GlmDMat3JsonSerializer : public GlmDMatJsonSerializer<glm::dmat3>
+    {
+    public:
+        AZ_RTTI(GlmDMat3JsonSerializer, "{2707FC00-7EED-44AC-860B-A6165469553E}", GlmDMatJsonSerializer<glm::dmat3>);
+        AZ_CLASS_ALLOCATOR(GlmDMat3JsonSerializer, AZ::SystemAllocator, 0);
+    };
+
+    class GlmDMat4JsonSerializer : public GlmDMatJsonSerializer<glm::dmat4>
+    {
+    public:
+        AZ_RTTI(GlmDMat4JsonSerializer, "{C268E7C8-1FBE-4560-A34D-CFCEA9E1D7C8}", GlmDMatJsonSerializer<glm::dmat4>);
+        AZ_CLASS_ALLOCATOR(GlmDMat4JsonSerializer, AZ::SystemAllocator, 0);
     };
 } // namespace Cesium

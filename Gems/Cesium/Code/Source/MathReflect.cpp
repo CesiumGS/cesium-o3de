@@ -1,10 +1,19 @@
 #include <Cesium/MathReflect.h>
+#include <Cesium/BoundingRegion.h>
+#include <Cesium/BoundingSphere.h>
+#include <Cesium/OrientedBoundingBox.h>
+#include <Cesium/Cartographic.h>
 #include <AzCore/Serialization/Json/RegistrationContext.h>
 
 namespace Cesium
 {
     void MathSerialization::Reflect(AZ::ReflectContext* context)
     {
+        BoundingRegion::Reflect(context);
+        BoundingSphere::Reflect(context);
+        OrientedBoundingBox::Reflect(context);
+        Cartographic::Reflect(context);
+
         auto serializeContext = azrtti_cast<AZ::SerializeContext*>(context);
         if (serializeContext)
         {
@@ -12,6 +21,9 @@ namespace Cesium
             serializeContext->Class<glm::dvec3>()->Serializer<GlmVecSerializer<glm::dvec3>>();
             serializeContext->Class<glm::dvec4>()->Serializer<GlmVecSerializer<glm::dvec4>>();
             serializeContext->Class<glm::dquat>()->Serializer<GlmVecSerializer<glm::dquat>>();
+            serializeContext->Class<glm::dmat2>()->Serializer<GlmDMatSerializer<glm::dmat2>>();
+            serializeContext->Class<glm::dmat3>()->Serializer<GlmDMatSerializer<glm::dmat3>>();
+            serializeContext->Class<glm::dmat4>()->Serializer<GlmDMatSerializer<glm::dmat4>>();
         }
 
         AZ::JsonRegistrationContext* jsonRegistrationContext = azrtti_cast<AZ::JsonRegistrationContext*>(context);
@@ -21,6 +33,9 @@ namespace Cesium
             jsonRegistrationContext->Serializer<GlmDVec3JsonSerializer>()->HandlesType<glm::dvec3>();
             jsonRegistrationContext->Serializer<GlmDVec4JsonSerializer>()->HandlesType<glm::dvec4>();
             jsonRegistrationContext->Serializer<GlmDQuatJsonSerializer>()->HandlesType<glm::dquat>();
+            jsonRegistrationContext->Serializer<GlmDMat2JsonSerializer>()->HandlesType<glm::dmat2>();
+            jsonRegistrationContext->Serializer<GlmDMat3JsonSerializer>()->HandlesType<glm::dmat3>();
+            jsonRegistrationContext->Serializer<GlmDMat4JsonSerializer>()->HandlesType<glm::dmat4>();
         }
 
         if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))

@@ -7,11 +7,11 @@
 
 namespace Cesium
 {
-    struct MathDataWidgetHandlers
+    struct MathDataWidget
     {
-        static void Register();
+        static void Reflect(AZ::ReflectContext *context);
 
-        static void Unregister();
+        static void RegisterHandlers();
     };
 
     template <typename TypeBeingHandled>

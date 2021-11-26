@@ -22,12 +22,10 @@ namespace Cesium
                 ->Attribute(AZ::Script::Attributes::Category, "Cesium/Georeference")
                 ->Event("SetECEFCoordOrigin", &CoordinateTransformRequestBus::Events::SetECEFCoordOrigin)
                 ->Event("GetECEFCoordOrigin", &CoordinateTransformRequestBus::Events::GetECEFCoordOrigin)
-                //->Event("O3DEToECEF", &CoordinateTransformRequestBus::Events::O3DEToECEF)
-                //->Event("ECEFToO3DE", &CoordinateTransformRequestBus::Events::ECEFToO3DE)
-                //->Event("CalculateO3DEToECEFAtOrigin", &CoordinateTransformRequestBus::Events::CalculateO3DEToECEFAtOrigin)
-                //->Event("CalculateECEFToO3DEAtOrigin", &CoordinateTransformRequestBus::Events::CalculateECEFToO3DEAtOrigin)
-                //->Event("GetConfiguration", &CoordinateTransformRequestBus::Events::GetConfiguration)
-                //->Event("BindTransformChangeEventHandler", &CoordinateTransformRequestBus::Events::BindTransformChangeEventHandler)
+                ->Event("O3DEToECEF", &CoordinateTransformRequestBus::Events::O3DEToECEF)
+                ->Event("ECEFToO3DE", &CoordinateTransformRequestBus::Events::ECEFToO3DE)
+                ->Event("CalculateO3DEToECEFAtOrigin", &CoordinateTransformRequestBus::Events::CalculateO3DEToECEFAtOrigin)
+                ->Event("CalculateECEFToO3DEAtOrigin", &CoordinateTransformRequestBus::Events::CalculateECEFToO3DEAtOrigin)
                 ;
         }
     }
