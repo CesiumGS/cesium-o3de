@@ -19,7 +19,7 @@ namespace AZ
     AZ_TYPE_INFO_SPECIALIZE(glm::dvec3, "{1E2EB371-18B6-4B35-B974-81E0E8CCF2A3}");
     AZ_TYPE_INFO_SPECIALIZE(glm::dvec4, "{9657DD0A-632F-4FA1-A01F-6BCB1CB08B33}");
     AZ_TYPE_INFO_SPECIALIZE(glm::dquat, "{B4A0CC9A-FE9B-4777-8F94-C14C1540A3C5}");
-    AZ_TYPE_INFO_SPECIALIZE(glm::dmat2, "{BA94BDF3-6285-4290-9818-7ADBA66F135B}");
+    AZ_TYPE_INFO_SPECIALIZE(glm::dmat2, "{76A74122-EDA2-403A-B9EE-F271C15F108D}");
     AZ_TYPE_INFO_SPECIALIZE(glm::dmat3, "{889D681F-010D-4B5C-B2CE-81097383B329}");
     AZ_TYPE_INFO_SPECIALIZE(glm::dmat4, "{8C9ECA4A-052D-47AC-A969-D5E5CF41D79A}");
 }
@@ -34,6 +34,9 @@ namespace Cesium
     private:
         template<typename VecType>
         static void ReflectGlmVecBehavior(AZ::BehaviorContext* context, const AZStd::string& name);
+
+        template<typename MatType>
+        static void ReflectGlmDMatBehavior(AZ::BehaviorContext* context, const AZStd::string& name);
 
         static void ReflectGlmQuatBehavior(AZ::BehaviorContext* context);
     };

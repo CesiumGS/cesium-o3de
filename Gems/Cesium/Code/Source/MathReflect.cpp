@@ -44,7 +44,9 @@ namespace Cesium
             ReflectGlmVecBehavior<glm::dvec3>(behaviorContext, "DVector3");
             ReflectGlmVecBehavior<glm::dvec4>(behaviorContext, "DVector4");
             ReflectGlmQuatBehavior(behaviorContext);
-
+            ReflectGlmDMatBehavior<glm::dmat2>(behaviorContext, "DMatrix2");
+            ReflectGlmDMatBehavior<glm::dmat3>(behaviorContext, "DMatrix3");
+            ReflectGlmDMatBehavior<glm::dmat4>(behaviorContext, "DMatrix4");
         }
     }
 
@@ -208,7 +210,24 @@ namespace Cesium
                 {
                     return lhs == rhs;
                 })
-            ;
+            ->Method(
+                "CreateIdentity",
+                []()
+                {
+                    return VecType{ 1.0 };
+                })
+            ->Method(
+                "CreateZero",
+                []()
+                {
+                    return VecType{ 0.0 };
+                })
+            ->Method(
+                "CreateFromConstant",
+                [](double c)
+                {
+                    return VecType{ c };
+                });
     }
 
     void MathSerialization::ReflectGlmQuatBehavior(AZ::BehaviorContext* behaviorContext)
@@ -299,6 +318,18 @@ namespace Cesium
                     return lhs * rhs;
                 })
             ->Method(
+                "ToDMatrix4",
+                [](const glm::dquat& quat)
+                {
+                    return glm::mat4_cast(quat);
+                })
+            ->Method(
+                "ToDMatrix3",
+                [](const glm::dquat& quat)
+                {
+                    return glm::mat3_cast(quat);
+                })
+            ->Method(
                 "Normalized",
                 [](const glm::dquat& quat)
                 {
@@ -380,4 +411,147 @@ namespace Cesium
                 });
     }
 
+    template<typename MatType>
+    void MathSerialization::ReflectGlmDMatBehavior(AZ::BehaviorContext* behaviorContext, const AZStd::string& name)
+    {
+        auto classBuilder = behaviorContext->Class<MatType>(name.c_str())
+                                ->Attribute(AZ::Script::Attributes::Category, "Cesium/Math")
+                                ->Attribute(AZ::Script::Attributes::Storage, AZ::Script::Attributes::StorageType::Value)
+                                ->Method(
+                                    "GetColumn",
+                                    [](const MatType& mat, typename MatType::length_type col)
+                                    {
+                                        return mat[col];
+                                    },
+                                    { AZ::BehaviorParameterOverrides("Matrix"), AZ::BehaviorParameterOverrides("ColumnIndex") })
+                                ->Method(
+                                    "SetColumn",
+                                    [](MatType& mat, typename MatType::length_type col, const typename MatType::col_type& colValue)
+                                    {
+                                        mat[col] = colValue;
+                                    },
+                                    { AZ::BehaviorParameterOverrides("Matrix"), AZ::BehaviorParameterOverrides("ColumnIndex"),
+                                      AZ::BehaviorParameterOverrides("ColumnValue") })
+                                ->Method(
+                                    "GetElement",
+                                    [](const MatType& mat, typename MatType::length_type col, typename MatType::length_type row)
+                                    {
+                                        return mat[col][row];
+                                    },
+                                    { AZ::BehaviorParameterOverrides("Matrix"), AZ::BehaviorParameterOverrides("ColumnIndex"),
+                                      AZ::BehaviorParameterOverrides("RowIndex") })
+                                ->Method(
+                                    "SetElement",
+                                    [](MatType& mat, typename MatType::length_type col, typename MatType::length_type row, double value)
+                                    {
+                                        mat[col][row] = value;
+                                    },
+                                    { AZ::BehaviorParameterOverrides("Matrix"), AZ::BehaviorParameterOverrides("ColumnIndex"),
+                                      AZ::BehaviorParameterOverrides("RowIndex"), AZ::BehaviorParameterOverrides("Value") })
+                                ->Method(
+                                    "Add",
+                                    [](const MatType& lhs, const MatType& rhs)
+                                    {
+                                        return lhs + rhs;
+                                    })
+                                ->Method(
+                                    "Subtract",
+                                    [](const MatType& lhs, const MatType& rhs)
+                                    {
+                                        return lhs - rhs;
+                                    })
+                                ->Method(
+                                    "Multiply",
+                                    [](const MatType& lhs, const MatType& rhs)
+                                    {
+                                        return lhs * rhs;
+                                    })
+                                ->Method(
+                                    "MultiplyByConstant",
+                                    [](const MatType& lhs, double rhs)
+                                    {
+                                        return lhs * rhs;
+                                    })
+                                ->Method(
+                                    "DivideByConstant",
+                                    [](const MatType& lhs, double rhs)
+                                    {
+                                        return lhs / rhs;
+                                    })
+                                ->Method(
+                                    "MultiplyByVector",
+                                    [](const MatType& lhs, const typename MatType::col_type& rhs)
+                                    {
+                                        return lhs * rhs;
+                                    })
+                                ->Method(
+                                    "MultiplyVectorWithMatrix",
+                                    [](const typename MatType::col_type& lhs, const MatType& rhs)
+                                    {
+                                        return lhs * rhs;
+                                    })
+                                ->Method(
+                                    "Inverse",
+                                    [](const MatType& mat)
+                                    {
+                                        return glm::inverse(mat);
+                                    })
+                                ->Method(
+                                    "Transpose",
+                                    [](const MatType& mat)
+                                    {
+                                        return glm::transpose(mat);
+                                    })
+                                ->Method(
+                                    "Determinant",
+                                    [](const MatType& mat)
+                                    {
+                                        return glm::determinant(mat);
+                                    })
+                                ->Method(
+                                    "CreateIdentity",
+                                    []()
+                                    {
+                                        return MatType{ 1.0 };
+                                    })
+                                ->Method(
+                                    "CreateDiagonal",
+                                    [](double c)
+                                    {
+                                        return MatType{ c };
+                                    })
+                                ->Method(
+                                    "Equal",
+                                    [](const MatType& lhs, const MatType& rhs)
+                                    {
+                                        return lhs == rhs;
+                                    });
+
+        if constexpr (std::is_same_v<MatType, glm::dmat4>)
+        {
+            classBuilder
+                ->Method(
+                    "Translate",
+                    [](const glm::dmat4& mat, const glm::dvec3& translate)
+                    {
+                        return glm::translate(mat, translate);
+                    },
+                    { AZ::BehaviorParameterOverrides("Matrix"), AZ::BehaviorParameterOverrides("Translate") })
+                ->Method(
+                    "Rotate",
+                    [](const glm::dmat4& mat, double angle, const glm::dvec3& axis)
+                    {
+                        return glm::rotate(mat, angle, axis);
+                    },
+                    { AZ::BehaviorParameterOverrides("Matrix"), AZ::BehaviorParameterOverrides("Angle"),
+                      AZ::BehaviorParameterOverrides("Axis") })
+                ->Method(
+                    "Scale",
+                    [](const glm::dmat4& mat, const glm::dvec3& scale)
+                    {
+                        return glm::scale(mat, scale);
+                    },
+                    { AZ::BehaviorParameterOverrides("Matrix"), AZ::BehaviorParameterOverrides("Scale") });
+        }
+    }
 } // namespace Cesium
