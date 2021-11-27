@@ -1,4 +1,4 @@
-#include <Cesium/MathDataWidget.h>
+#include "MathDataWidget.h"
 #include <Cesium/OrientedBoundingBox.h>
 #include <Cesium/BoundingSphere.h>
 #include <Cesium/BoundingRegion.h>
@@ -65,30 +65,22 @@ namespace Cesium
 
     void MathDataWidget::RegisterHandlers()
     {
+        RegisterHandler(aznew DVector2PropertyHandler());
+        RegisterHandler(aznew DVector3PropertyHandler());
+        RegisterHandler(aznew DVector4PropertyHandler());
+        RegisterHandler(aznew DQuatPropertyHandler());
+        RegisterHandler(aznew DMatrix2PropertyHandler());
+        RegisterHandler(aznew DMatrix3PropertyHandler());
+        RegisterHandler(aznew DMatrix4PropertyHandler());
+    }
+
+    void MathDataWidget::RegisterHandler(AzToolsFramework::PropertyHandlerBase* handle)
+    {
         using namespace AzToolsFramework;
 
-        auto dvec2PropertyHandler = aznew DVector2PropertyHandler();
-        AZ_Assert(dvec2PropertyHandler->AutoDelete(),
-            "DVector2PropertyHandler is no longer set to auto-delete, it will leak memory.");
+        AZ_Assert(handle->AutoDelete(),
+            "Property widget handle is no longer set to auto-delete, it will leak memory.");
         PropertyTypeRegistrationMessages::Bus::Broadcast(
-            &PropertyTypeRegistrationMessages::Bus::Events::RegisterPropertyType, dvec2PropertyHandler);
-
-        auto dvec3PropertyHandler = aznew DVector3PropertyHandler();
-        AZ_Assert(dvec3PropertyHandler->AutoDelete(),
-            "DVector3PropertyHandler is no longer set to auto-delete, it will leak memory.");
-        PropertyTypeRegistrationMessages::Bus::Broadcast(
-            &PropertyTypeRegistrationMessages::Bus::Events::RegisterPropertyType, dvec3PropertyHandler);
-
-        auto dvec4PropertyHandler = aznew DVector4PropertyHandler();
-        AZ_Assert(dvec4PropertyHandler->AutoDelete(),
-            "DVector4PropertyHandler is no longer set to auto-delete, it will leak memory.");
-        PropertyTypeRegistrationMessages::Bus::Broadcast(
-            &PropertyTypeRegistrationMessages::Bus::Events::RegisterPropertyType, dvec4PropertyHandler);
-
-        auto dquatPropertyHandler = aznew DQuatPropertyHandler();
-        AZ_Assert(dquatPropertyHandler->AutoDelete(),
-            "DQuatPropertyHandler is no longer set to auto-delete, it will leak memory.");
-        PropertyTypeRegistrationMessages::Bus::Broadcast(
-            &PropertyTypeRegistrationMessages::Bus::Events::RegisterPropertyType, dquatPropertyHandler);
+            &PropertyTypeRegistrationMessages::Bus::Events::RegisterPropertyType, handle);
     }
 } // namespace Cesium

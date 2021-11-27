@@ -1,4 +1,4 @@
-#include <Cesium/CesiumTilesetEditorComponent.h>
+#include "CesiumTilesetEditorComponent.h"
 #include <Cesium/CesiumTilesetComponent.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/EditContext.h>

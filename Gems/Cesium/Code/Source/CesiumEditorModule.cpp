@@ -1,12 +1,12 @@
 
 #include <CesiumModuleInterface.h>
-#include <CesiumEditorSystemComponent.h>
-#include <Cesium/CesiumTilesetEditorComponent.h>
-#include <Cesium/GeoReferenceTransformEditorComponent.h>
-#include <Cesium/GeoReferenceCameraFlyControllerEditor.h>
-#include <Cesium/BingRasterOverlayEditorComponent.h>
-#include <Cesium/CesiumIonRasterOverlayEditorComponent.h>
-#include <Cesium/TMSRasterOverlayEditorComponent.h>
+#include "CesiumEditorSystemComponent.h"
+#include "CesiumTilesetEditorComponent.h"
+#include "GeoReferenceTransformEditorComponent.h"
+#include "GeoReferenceCameraFlyControllerEditor.h"
+#include "BingRasterOverlayEditorComponent.h"
+#include "CesiumIonRasterOverlayEditorComponent.h"
+#include "TMSRasterOverlayEditorComponent.h"
 
 namespace Cesium
 {

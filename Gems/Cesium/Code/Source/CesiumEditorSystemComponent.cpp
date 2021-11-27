@@ -1,7 +1,7 @@
 
+#include "CesiumEditorSystemComponent.h"
+#include "MathDataWidget.h"
 #include <AzCore/Serialization/SerializeContext.h>
-#include <CesiumEditorSystemComponent.h>
-#include <Cesium/MathDataWidget.h>
 
 namespace Cesium
 {

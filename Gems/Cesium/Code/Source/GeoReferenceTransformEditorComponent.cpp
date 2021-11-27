@@ -1,4 +1,4 @@
-#include <Cesium/GeoReferenceTransformEditorComponent.h>
+#include "GeoReferenceTransformEditorComponent.h"
 #include <Cesium/GeoReferenceTransformComponent.h>
 #include <Cesium/GeospatialHelper.h>
 #include <AzCore/Serialization/SerializeContext.h>

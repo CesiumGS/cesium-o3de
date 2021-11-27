@@ -1,4 +1,4 @@
-#include <Cesium/TMSRasterOverlayEditorComponent.h>
+#include "TMSRasterOverlayEditorComponent.h"
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/EditContext.h>
 
