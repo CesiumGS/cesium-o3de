@@ -3,6 +3,7 @@
 #include <Cesium/BoundingSphere.h>
 #include <Cesium/OrientedBoundingBox.h>
 #include <Cesium/Cartographic.h>
+#include <Cesium/GeospatialHelper.h>
 #include <AzCore/Serialization/Json/RegistrationContext.h>
 
 namespace Cesium
@@ -13,6 +14,7 @@ namespace Cesium
         BoundingSphere::Reflect(context);
         OrientedBoundingBox::Reflect(context);
         Cartographic::Reflect(context);
+        GeospatialHelper::Reflect(context);
 
         auto serializeContext = azrtti_cast<AZ::SerializeContext*>(context);
         if (serializeContext)

@@ -40,7 +40,7 @@ namespace Cesium
                 ->Event("SetMovementSpeed", &GeoReferenceCameraFlyControllerRequestBus::Events::SetMovementSpeed)
                 ->Event("GetMovementSpeed", &GeoReferenceCameraFlyControllerRequestBus::Events::GetMovementSpeed)
                 ->Event("SetCoordinateTransform", &GeoReferenceCameraFlyControllerRequestBus::Events::SetCoordinateTransform)
-                ->Event("FlyToECEFLocation", &GeoReferenceCameraFlyControllerRequestBus::Events::FlyToECEFLocation);
+                ->Event("FlyToECEFLocation", &GeoReferenceCameraFlyControllerRequestBus::Events::FlyToECEFLocation, { AZ::BehaviorParameterOverrides("ECEFLocation"), AZ::BehaviorParameterOverrides("ECEFDirection") });
         }
     }
 
