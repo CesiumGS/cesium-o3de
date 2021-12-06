@@ -2,6 +2,7 @@
 set(FILES
     Tests/CesiumEditorTest.cpp
     Tests/MatrixWidgetTest.cpp
+    Tests/CesiumIonPanelWidgetTest.cpp
     Tests/BingRasterOverlayEditorComponentTest.cpp
     Tests/CesiumIonRasterOverlayEditorComponentTest.cpp
     Tests/TMSRasterOverlayEditorComponentTest.cpp

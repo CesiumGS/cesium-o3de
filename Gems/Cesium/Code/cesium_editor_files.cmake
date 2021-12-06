@@ -18,4 +18,7 @@ set(FILES
     Source/GeoReferenceTransformEditorComponent.h
     Source/CesiumTilesetEditorComponent.cpp
     Source/CesiumTilesetEditorComponent.h
+    Source/CesiumIonPanelWidget.cpp
+    Source/CesiumIonPanelWidget.h
+    Source/CesiumResources.qrc
 )

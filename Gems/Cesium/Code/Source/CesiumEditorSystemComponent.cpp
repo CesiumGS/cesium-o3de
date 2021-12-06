@@ -1,6 +1,8 @@
 
 #include "CesiumEditorSystemComponent.h"
+#include "CesiumIonPanelWidget.h"
 #include "MathDataWidget.h"
+#include <AzToolsFramework/API/ViewPaneOptions.h>
 #include <AzCore/Serialization/SerializeContext.h>
 
 namespace Cesium
@@ -43,6 +45,7 @@ namespace Cesium
 
     void CesiumEditorSystemComponent::Activate()
     {
+        Q_INIT_RESOURCE(CesiumResources);
         MathDataWidget::RegisterHandlers();
         CesiumSystemComponent::Activate();
         AzToolsFramework::EditorEvents::Bus::Handler::BusConnect();
@@ -52,6 +55,16 @@ namespace Cesium
     {
         AzToolsFramework::EditorEvents::Bus::Handler::BusDisconnect();
         CesiumSystemComponent::Deactivate();
+    }
+
+    void CesiumEditorSystemComponent::NotifyRegisterViews()
+    {
+        AzToolsFramework::ViewPaneOptions options;
+        options.paneRect = QRect(100, 100, 500, 500);
+        options.showOnToolsToolbar = true;
+        options.toolbarIcon = ":/Cesium/Cesium_logo_only.svg";
+
+        AzToolsFramework::RegisterViewPane<CesiumIonPanelWidget>("Cesium Ion", "Cesium", options);
     }
 
 } // namespace Cesium
