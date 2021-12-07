@@ -2,6 +2,7 @@
 
 #if !defined(Q_MOC_RUN)
 #include <AzToolsFramework/UI/PropertyEditor/PropertyEditorAPI.h>
+#include <AzToolsFramework/API/ToolsApplicationAPI.h>
 #include <QWidget>
 #include <QPushButton>
 
@@ -36,12 +37,25 @@ namespace Cesium
         CesiumIonPanelWidget(QWidget* parent);
 
     private:
-        QGridLayout* CreateMenu();
+        QGridLayout* CreatePanelMenu();
+
+        QGridLayout* CreateQuickAddBasicMenu();
 
         QHBoxLayout* CreateMenuHeader(const char* header);
 
         IconButton* AddToolButton(QGridLayout* gridLayout, const QIcon& icon, const QIcon& activeIcon, const char* text, int column);
 
+        IconButton* CreateQuickAddMenuItem(QGridLayout* gridLayout, const char* name, int row);
+
         QFrame* CreateHorizontalLine();
+
+        AzToolsFramework::EntityIdList GetSelectedEntities();
+
+    private slots:
+        void AddBlankTileset();
+
+        void AddGeoreference();
+
+        void AddGeoreferenceCamera();
     };
 }
