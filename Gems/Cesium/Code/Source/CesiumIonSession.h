@@ -32,6 +32,8 @@ namespace Cesium
 
         CesiumIonSession();
 
+        ~CesiumIonSession() noexcept;
+
         const std::shared_ptr<CesiumAsync::IAssetAccessor>& GetAssetAccessor() const
         {
             return this->m_assetAccessor;

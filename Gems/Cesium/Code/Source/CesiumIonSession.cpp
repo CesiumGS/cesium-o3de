@@ -48,12 +48,21 @@ namespace Cesium
         }
     }
 
+    CesiumIonSession::~CesiumIonSession()
+    {
+        if (CesiumIonSessionInterface::Get() == this)
+        {
+            CesiumIonSessionInterface::Unregister(this);
+        }
+    }
+
     void CesiumIonSession::Init()
     {
     }
 
     void CesiumIonSession::Activate()
     {
+        Resume();
     }
 
     void CesiumIonSession::Deactivate()

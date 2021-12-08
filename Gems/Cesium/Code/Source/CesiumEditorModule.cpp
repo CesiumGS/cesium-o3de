@@ -7,6 +7,7 @@
 #include "BingRasterOverlayEditorComponent.h"
 #include "CesiumIonRasterOverlayEditorComponent.h"
 #include "TMSRasterOverlayEditorComponent.h"
+#include "CesiumIonSession.h"
 
 namespace Cesium
 {
@@ -25,10 +26,10 @@ namespace Cesium
             // EditContext. This happens through the [MyComponent]::Reflect() function.
             m_descriptors.insert(
                 m_descriptors.end(),
-                { CesiumEditorSystemComponent::CreateDescriptor(), CesiumTilesetEditorComponent::CreateDescriptor(),
-                  GeoReferenceTransformEditorComponent::CreateDescriptor(), GeoReferenceCameraControllerEditor::CreateDescriptor(),
-                  BingRasterOverlayEditorComponent::CreateDescriptor(), CesiumIonRasterOverlayEditorComponent::CreateDescriptor(),
-                  TMSRasterOverlayEditorComponent::CreateDescriptor() });
+                { CesiumEditorSystemComponent::CreateDescriptor(), CesiumIonSession::CreateDescriptor(),
+                  CesiumTilesetEditorComponent::CreateDescriptor(), GeoReferenceTransformEditorComponent::CreateDescriptor(),
+                  GeoReferenceCameraControllerEditor::CreateDescriptor(), BingRasterOverlayEditorComponent::CreateDescriptor(),
+                  CesiumIonRasterOverlayEditorComponent::CreateDescriptor(), TMSRasterOverlayEditorComponent::CreateDescriptor() });
         }
 
         /**
