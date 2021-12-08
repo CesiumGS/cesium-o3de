@@ -1,4 +1,5 @@
 #include <Cesium/BoundingSphere.h>
+#include <Cesium/MathReflect.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/RTTI/BehaviorContext.h>
 
