@@ -1,6 +1,7 @@
 #include "CesiumIonSession.h"
 #include "CesiumSystemComponentBus.h"
 #include "PlatformInfo.h"
+#include <Editor/EditorSettingsAPIBus.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <QDesktopServices>
 #include <QUrl>
@@ -62,11 +63,49 @@ namespace Cesium
 
     void CesiumIonSession::Activate()
     {
-        Resume();
+        AZ::TickBus::Handler::BusConnect();
     }
 
     void CesiumIonSession::Deactivate()
     {
+        AZ::TickBus::Handler::BusDisconnect();
+    }
+
+    void CesiumIonSession::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
+    {
+        m_asyncSystem.dispatchMainThreadTasks();
+    }
+
+    void CesiumIonSession::SaveAccessToken(const AZStd::string& ionAccessToken)
+    {
+        m_ionAccessToken = ionAccessToken;
+        AzToolsFramework::EditorSettingsAPIRequests::SettingOutcome outcome;
+        AzToolsFramework::EditorSettingsAPIBus::BroadcastResult(
+            outcome, &AzToolsFramework::EditorSettingsAPIBus::Events::SetValue, AZStd::string_view("CesiumIonSession|IonAccessToken"),
+            AZStd::any(m_ionAccessToken));
+        if (!outcome.IsSuccess())
+        {
+            CesiumInterface::Get()->GetLogger()->warn("Cannot save ion access token {}", outcome.GetError().c_str());
+        }
+    }
+
+    void CesiumIonSession::ReadAccessToken()
+    {
+        AzToolsFramework::EditorSettingsAPIRequests::SettingOutcome outcome;
+        AzToolsFramework::EditorSettingsAPIBus::BroadcastResult(
+            outcome, &AzToolsFramework::EditorSettingsAPIBus::Events::GetValue, AZStd::string_view("CesiumIonSession|IonAccessToken"));
+        if (!outcome.IsSuccess())
+        {
+            CesiumInterface::Get()->GetLogger()->warn("Cannot read ion access token {}", outcome.GetError().c_str());
+        }
+        else
+        {
+            const AZStd::any& result = outcome.GetValue();
+            if (const AZStd::string* saveIonAccessToken = AZStd::any_cast<AZStd::string>(&result))
+            {
+                m_ionAccessToken = *saveIonAccessToken;
+            }
+        }
     }
 
     void CesiumIonSession::Connect()
@@ -91,9 +130,7 @@ namespace Cesium
                 {
                     this->m_isConnecting = false;
                     this->m_connection = std::move(connection);
-
-                    m_ionAccessToken = this->m_connection.value().getAccessToken().c_str();
-
+                    SaveAccessToken(this->m_connection.value().getAccessToken().c_str());
                     this->ConnectionUpdated.Signal();
                 })
             .catchInMainThread(
@@ -107,6 +144,8 @@ namespace Cesium
 
     void CesiumIonSession::Resume()
     {
+        ReadAccessToken();
+
         if (m_ionAccessToken.empty())
         {
             // No existing session to resume.
@@ -147,7 +186,7 @@ namespace Cesium
         this->m_tokens.reset();
         this->m_assetAccessToken.reset();
 
-        m_ionAccessToken.clear();
+        SaveAccessToken("");
 
         this->ConnectionUpdated.Signal();
         this->ProfileUpdated.Signal();

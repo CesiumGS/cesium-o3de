@@ -1,6 +1,7 @@
 <!DOCTYPE RCC><RCC version="1.0">
     <qresource prefix="/Cesium">
         <file alias="Cesium_logo_only.svg">../../Assets/Editor/Icons/Components/Cesium_logo_only.svg</file>
+        <file alias="Cesium_light_color.svg">../../Assets/Editor/Icons/Logo/Cesium_light_color.svg</file>
 
         <file alias="book-reader-solid.svg">../../Assets/Editor/Icons/FontAwesome/book-reader-solid.svg</file>
         <file alias="book-reader-solid-active.svg">../../Assets/Editor/Icons/FontAwesome/book-reader-solid-active.svg</file>

@@ -5,6 +5,7 @@
 #include <CesiumAsync/AsyncSystem.h>
 #include <AzCore/Interface/Interface.h>
 #include <AzCore/Component/Component.h>
+#include <AzCore/Component/TickBus.h>
 #include <AzCore/EBus/Event.h>
 #include <string>
 #include <optional>
@@ -15,7 +16,7 @@ namespace Cesium
 {
     using IonSessionUpdatedEvent = AZ::Event<>;
 
-    class CesiumIonSession : public AZ::Component
+    class CesiumIonSession : public AZ::Component, public AZ::TickBus::Handler
     {
     public:
         AZ_COMPONENT(CesiumIonSession, "{A9008492-0CAF-4B7E-9477-316F26FD1389}");
@@ -157,6 +158,12 @@ namespace Cesium
         void Activate() override;
 
         void Deactivate() override;
+
+        void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
+
+        void SaveAccessToken(const AZStd::string& ionAccessToken);
+
+        void ReadAccessToken();
 
         // runtime variable
         CesiumAsync::AsyncSystem m_asyncSystem;

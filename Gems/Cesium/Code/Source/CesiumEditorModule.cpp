@@ -39,7 +39,7 @@ namespace Cesium
         AZ::ComponentTypeList GetRequiredSystemComponents() const override
         {
             return AZ::ComponentTypeList {
-                azrtti_typeid<CesiumEditorSystemComponent>(),
+                azrtti_typeid<CesiumEditorSystemComponent>(), azrtti_typeid<CesiumIonSession>()
             };
         }
     };

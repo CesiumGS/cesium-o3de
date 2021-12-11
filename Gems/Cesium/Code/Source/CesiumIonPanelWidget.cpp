@@ -4,6 +4,7 @@
 #include "GeoReferenceCameraFlyControllerEditor.h"
 #include <AzToolsFramework/Component/EditorComponentAPIBus.h>
 #include <AzFramework/Components/CameraBus.h>
+#include <QPicture>
 #include <QVBoxLayout>
 #include <QToolBar>
 #include <QAction>
@@ -36,20 +37,37 @@ namespace Cesium
     CesiumIonPanelWidget::CesiumIonPanelWidget(QWidget* parent)
         : QWidget(parent)
     {
+        m_ionConnected = IonSessionUpdatedEvent::Handler(
+            [this]()
+            {
+                m_quickAddIonAsset->setVisible(CesiumIonSessionInterface::Get()->IsConnected());
+                m_ionLogin->setVisible(!CesiumIonSessionInterface::Get()->IsConnected());
+            });
+        m_ionConnected.Connect(CesiumIonSessionInterface::Get()->ConnectionUpdated);
+        CesiumIonSessionInterface::Get()->Resume();
+
         QVBoxLayout* mainLayout = new QVBoxLayout(this);
         mainLayout->setSpacing(10);
-        mainLayout->addLayout(CreatePanelMenu());
-        mainLayout->addLayout(CreateMenuHeader("Quick Add Basic Entities"));
-        mainLayout->addLayout(CreateQuickAddBasicMenu());
-        mainLayout->addLayout(CreateMenuHeader("Quick Add Cesium Ion Assets"));
+        mainLayout->addWidget(CreatePanelMenu());
+        mainLayout->addWidget(CreateQuickAddBasicMenu());
+
+        m_quickAddIonAsset = CreateQuickAddIonMenu();
+        m_quickAddIonAsset->setVisible(CesiumIonSessionInterface::Get()->IsConnected());
+        mainLayout->addWidget(m_quickAddIonAsset);
+
+        m_ionLogin = CreateCesiumLogin();
+        m_ionLogin->setVisible(!CesiumIonSessionInterface::Get()->IsConnected());
+        mainLayout->addWidget(m_ionLogin);
+
         mainLayout->addStretch();
         setLayout(mainLayout);
     }
 
-    QGridLayout* CesiumIonPanelWidget::CreatePanelMenu()
+    QWidget* CesiumIonPanelWidget::CreatePanelMenu()
     {
-        QGridLayout* menuGridLayout = new QGridLayout(this);
-        menuGridLayout->setContentsMargins(QMargins(0, 10, 0, 10));
+        QWidget* widget = new QWidget(this);
+        QGridLayout* menuGridLayout = new QGridLayout(widget);
+        widget->setLayout(menuGridLayout);
         int col = 0;
         auto addBtn =
             AddToolButton(menuGridLayout, QIcon(":/Cesium/plus-solid.svg"), QIcon(":/Cesium/plus-solid-active.svg"), "Add", col++);
@@ -89,45 +107,94 @@ namespace Cesium
 
         auto signoutBtn = AddToolButton(
             menuGridLayout, QIcon(":/Cesium/sign-out-alt-solid.svg"), QIcon(":/Cesium/sign-out-alt-solid-active.svg"), "Sign Out", col++);
-        signoutBtn->setEnabled(false);
+        signoutBtn->setEnabled(CesiumIonSessionInterface::Get()->IsConnected());
         QObject::connect(
             signoutBtn, &IconButton::pressed, this,
             []()
             {
+                CesiumIonSessionInterface::Get()->Disconnect();
             });
 
-        return menuGridLayout;
+        return widget;
     }
 
-    QGridLayout* CesiumIonPanelWidget::CreateQuickAddBasicMenu()
+    QWidget* CesiumIonPanelWidget::CreateQuickAddBasicMenu()
     {
-        int row = 0;
-        QGridLayout* layout = new QGridLayout();
-        layout->setContentsMargins(QMargins(0, 0, 0, 10));
+        QWidget* widget = new QWidget(this);
+        QVBoxLayout* vlayout = new QVBoxLayout(widget);
+        widget->setLayout(vlayout);
 
-        IconButton* addBlankTileset = CreateQuickAddMenuItem(layout, "Blank 3D Tiles Entity", row++);
+        vlayout->addWidget(CreateMenuHeader("Quick Add Basic Entities"));
+
+        int row = 0;
+        QGridLayout* itemLayout = new QGridLayout(widget);
+        itemLayout->setSpacing(15);
+        vlayout->addLayout(itemLayout);
+
+        IconButton* addBlankTileset = CreateQuickAddMenuItem(
+            itemLayout, "Blank 3D Tiles Entity",
+            "An empty tileset that can be configured to show Cesium ion assets or tilesets from other sources.", row++);
         QObject::connect(addBlankTileset, &IconButton::pressed, this, &CesiumIonPanelWidget::AddBlankTileset);
 
-        IconButton* addGeoreference = CreateQuickAddMenuItem(layout, "Georeference Entity", row++);
+        IconButton* addGeoreference = CreateQuickAddMenuItem(itemLayout, "Georeference Entity", "", row++);
         QObject::connect(addGeoreference, &IconButton::pressed, this, &CesiumIonPanelWidget::AddGeoreference);
 
-        IconButton* addGeoreferenceCamera = CreateQuickAddMenuItem(layout, "Georeference Camera Entity", row++);
+        IconButton* addGeoreferenceCamera = CreateQuickAddMenuItem(
+            itemLayout, "Georeference Camera Entity", "A camera that can be used to intuitively navigate in a geospatial environment.",
+            row++);
         QObject::connect(addGeoreferenceCamera, &IconButton::pressed, this, &CesiumIonPanelWidget::AddGeoreferenceCamera);
 
-        return layout;
+        return widget;
     }
 
-    QHBoxLayout* CesiumIonPanelWidget::CreateMenuHeader(const char* header)
+    QWidget* CesiumIonPanelWidget::CreateQuickAddIonMenu()
     {
+        QWidget* widget = new QWidget(this);
+        QVBoxLayout* vlayout = new QVBoxLayout(widget);
+        widget->setLayout(vlayout);
+
+        vlayout->addWidget(CreateMenuHeader("Quick Add Cesium Ion Assets"));
+
+        int row = 0;
+        QGridLayout* itemLayout = new QGridLayout(widget);
+        itemLayout->setSpacing(15);
+        vlayout->addLayout(itemLayout);
+
+        CreateQuickAddAssetItem(
+            itemLayout, "Cesium World Terrain + Bing Maps Aerial imagery",
+            "High-resolution global terrain tileset curated from several data sources, textured with Bing Maps satellite imagery.", row++);
+        CreateQuickAddAssetItem(
+            itemLayout, "Cesium World Terrain + Bing Maps Aerial with Labels imagery",
+            "High-resolution global terrain tileset curated from several data sources, textured with labeled Bing Maps satellite imagery.",
+            row++);
+        CreateQuickAddAssetItem(
+            itemLayout, "Cesium World Terrain + Bing Maps Road imagery",
+            "High-resolution global terrain tileset curated from several data sources, textured with Bing Maps imagery.", row++);
+        CreateQuickAddAssetItem(
+            itemLayout, "Cesium World Terrain + Sentinel-2 imagery",
+            "High-resolution global terrain tileset curated from several data sources, textured with high-resolution satellite imagery "
+            "from the Sentinel-2 project.",
+            row++);
+        CreateQuickAddAssetItem(
+            itemLayout, "Cesium OSM Buildings", "A 3D buildings layer derived from OpenStreetMap covering the entire world.", row++);
+
+        return widget;
+    }
+
+    QWidget* CesiumIonPanelWidget::CreateMenuHeader(const char* header)
+    {
+        QWidget* widget = new QWidget(this);
         QHBoxLayout* layout = new QHBoxLayout(this);
+        widget->setLayout(layout);
+
         QLabel* label = new QLabel(header, this);
         label->setContentsMargins(QMargins(0, 0, 0, 0));
-        label->setStyleSheet("font-size: 15px;");
+        label->setStyleSheet("font-size: 15px; font-weight: bold");
 
         layout->addWidget(CreateHorizontalLine());
         layout->addWidget(label);
         layout->addWidget(CreateHorizontalLine());
-        return layout;
+        return widget;
     }
 
     IconButton* CesiumIonPanelWidget::AddToolButton(
@@ -140,7 +207,7 @@ namespace Cesium
 
         QLabel* label = new QLabel(text, this);
         label->setAlignment(Qt::AlignCenter);
-        label->setStyleSheet("font-size: 12px;");
+        label->setStyleSheet("font-size: 13px;");
 
         gridLayout->addWidget(btn, 0, column);
         gridLayout->addWidget(label, 1, column);
@@ -148,14 +215,22 @@ namespace Cesium
         return btn;
     }
 
-    IconButton* CesiumIonPanelWidget::CreateQuickAddMenuItem( QGridLayout* layout, const char* name, int row)
+    void CesiumIonPanelWidget::CreateQuickAddAssetItem(QGridLayout* gridLayout, const char* name, const char* tooltip, int row)
+    {
+        IconButton* btn = CreateQuickAddMenuItem(gridLayout, name, tooltip, row++);
+        QObject::connect(btn, &IconButton::pressed, this, &CesiumIonPanelWidget::AddBlankTileset);
+    }
+
+    IconButton* CesiumIonPanelWidget::CreateQuickAddMenuItem( QGridLayout* layout, const char* name, const char* tooltip, int row)
     {
         QLabel* label = new QLabel(name, this);
+        label->setToolTip(tooltip);
         label->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
         label->setAlignment(Qt::AlignLeft);
-        label->setStyleSheet("font-size: 12px;");
+        label->setStyleSheet("font-size: 13px;");
 
         auto btn = new IconButton(QIcon(":/Cesium/plus-solid.svg"), QIcon(":/Cesium/plus-solid-active.svg"), this);
+        btn->setToolTip(tooltip);
         btn->setIconSize(QSize(20, 20));
         btn->setFlat(true);
         btn->setStyleSheet("QPushButton { border: 0px; }");
@@ -164,6 +239,49 @@ namespace Cesium
         layout->addWidget(btn, row, 4);
 
         return btn;
+    }
+
+    QWidget* CesiumIonPanelWidget::CreateCesiumLogin()
+    {
+        QWidget* widget = new QWidget(this);
+
+        QVBoxLayout* layout = new QVBoxLayout(this);
+        widget->setLayout(layout);
+
+        QLabel* cesiumLogo = new QLabel(this);
+        cesiumLogo->setPixmap(
+            QPixmap(":/Cesium/Cesium_light_color.svg")
+                .scaled(QSize(250, 250), Qt::AspectRatioMode::KeepAspectRatio, Qt::TransformationMode::SmoothTransformation));
+        cesiumLogo->setAlignment(Qt::AlignCenter);
+        layout->addWidget(cesiumLogo);
+
+        QHBoxLayout* textLayout = new QHBoxLayout(this);
+        textLayout->addStretch(1);
+
+        QLabel* text = new QLabel(this);
+        text->setText("Access global high-resolution 3D content, including photogrammetry, terrain, imagery, and buildings. Bring your own "
+                      "data for tiling, hosting, and streaming to O3DE Engine.");
+        text->setWordWrap(true);
+        text->setStyleSheet("font-size: 13px");
+        textLayout->addWidget(text, 10);
+        textLayout->addStretch(1);
+        textLayout->setContentsMargins(QMargins(0, 10, 0, 20));
+        layout->addLayout(textLayout);
+
+        QPushButton* loginBtn = new QPushButton(this);
+        loginBtn->setText("Connect to Cesium ion");
+        loginBtn->setStyleSheet("font-size: 15px; font-weight: bold; color: white");
+        loginBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+        loginBtn->setFixedSize(QSize(220, 40));
+        QObject::connect(
+            loginBtn, &QPushButton::pressed, this,
+            []()
+            {
+                CesiumIonSessionInterface::Get()->Connect();
+            });
+        layout->addWidget(loginBtn, 0, Qt::AlignCenter);
+
+        return widget;
     }
 
     QFrame* CesiumIonPanelWidget::CreateHorizontalLine()

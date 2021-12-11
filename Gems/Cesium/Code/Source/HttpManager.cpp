@@ -46,8 +46,10 @@ namespace Cesium
 
             if (!m_httpRequestParameter.m_body.empty())
             {
-                auto bodyStream = std::make_shared<std::stringstream>(m_httpRequestParameter.m_body.c_str());
-                awsHttpRequest->AddContentBody(std::move(bodyStream));
+                auto body = std::make_shared<Aws::StringStream>();
+                body->write(m_httpRequestParameter.m_body.c_str(), m_httpRequestParameter.m_body.length());
+                awsHttpRequest->AddContentBody(std::move(body));
+                awsHttpRequest->SetContentLength(std::to_string(m_httpRequestParameter.m_body.length()).c_str());
             }
 
             auto awsHttpResponse = m_awsHttpClient->MakeRequest(awsHttpRequest);

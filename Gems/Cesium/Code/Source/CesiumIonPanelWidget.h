@@ -1,12 +1,14 @@
 #pragma once
 
 #if !defined(Q_MOC_RUN)
+#include "CesiumIonSession.h"
 #include <AzToolsFramework/UI/PropertyEditor/PropertyEditorAPI.h>
 #include <AzToolsFramework/API/ToolsApplicationAPI.h>
 #include <QWidget>
 #include <QPushButton>
 
 class QGridLayout;
+class QVBoxLayout;
 class QHBoxLayout;
 class QFrame;
 class QIcon;
@@ -37,19 +39,30 @@ namespace Cesium
         CesiumIonPanelWidget(QWidget* parent);
 
     private:
-        QGridLayout* CreatePanelMenu();
+        QWidget* CreatePanelMenu();
 
-        QGridLayout* CreateQuickAddBasicMenu();
+        QWidget* CreateQuickAddBasicMenu();
 
-        QHBoxLayout* CreateMenuHeader(const char* header);
+        QWidget* CreateQuickAddIonMenu();
+
+        QWidget* CreateMenuHeader(const char* header);
 
         IconButton* AddToolButton(QGridLayout* gridLayout, const QIcon& icon, const QIcon& activeIcon, const char* text, int column);
 
-        IconButton* CreateQuickAddMenuItem(QGridLayout* gridLayout, const char* name, int row);
+        IconButton* CreateQuickAddMenuItem(QGridLayout* gridLayout, const char* name, const char* tooltip, int row);
+
+        void CreateQuickAddAssetItem(QGridLayout* gridLayout, const char* name, const char* tooltip, int row);
+
+        QWidget* CreateCesiumLogin();
 
         QFrame* CreateHorizontalLine();
 
         AzToolsFramework::EntityIdList GetSelectedEntities();
+
+        IonSessionUpdatedEvent::Handler m_ionConnected;
+
+        QWidget* m_ionLogin;
+        QWidget* m_quickAddIonAsset;
 
     private slots:
         void AddBlankTileset();
