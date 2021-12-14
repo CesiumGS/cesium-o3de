@@ -128,7 +128,7 @@ namespace Cesium
         static CesiumAsync::HttpHeaders ConvertToCesiumHeaders(const Aws::Http::HeaderValueCollection& headers);
 
         static std::shared_ptr<HttpAssetRequest> CreateO3DEAssetRequest(
-            const Aws::Http::HttpRequest& request, Aws::Http::HttpResponse& response);
+            const Aws::Http::HttpRequest& request, Aws::Http::HttpResponse* response);
 
         static std::unique_ptr<HttpAssetResponse> CreateO3DEAssetResponse(Aws::Http::HttpResponse& response);
 

@@ -53,14 +53,7 @@ namespace Cesium
             }
 
             auto awsHttpResponse = m_awsHttpClient->MakeRequest(awsHttpRequest);
-            if (!awsHttpRequest || !awsHttpResponse)
-            {
-                m_promise.reject(std::runtime_error("Request failed for url: " + std::string(m_httpRequestParameter.m_url.c_str())));
-            }
-            else
-            {
-                m_promise.resolve({ awsHttpRequest, awsHttpResponse });
-            }
+            m_promise.resolve({ awsHttpRequest, awsHttpResponse });
         }
 
         std::shared_ptr<Aws::Http::HttpClient> m_awsHttpClient;
@@ -93,13 +86,13 @@ namespace Cesium
                 awsURI, Aws::Http::HttpMethod::HTTP_GET, Aws::Utils::Stream::DefaultResponseStreamFactoryMethod);
 
             auto awsHttpResponse = m_awsHttpClient->MakeRequest(awsHttpRequest);
-            if (!awsHttpRequest || !awsHttpResponse)
+            if (awsHttpResponse)
             {
-                m_promise.reject(std::runtime_error("Request failed for url: " + absoluteUrl));
+                m_promise.resolve(HttpManager::GetResponseBodyContent(*awsHttpResponse));
             }
             else
             {
-                m_promise.resolve(HttpManager::GetResponseBodyContent(*awsHttpResponse));
+                m_promise.resolve(IOContent{});
             }
         }
 
