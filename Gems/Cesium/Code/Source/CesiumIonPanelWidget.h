@@ -51,7 +51,14 @@ namespace Cesium
 
         IconButton* CreateQuickAddMenuItem(QGridLayout* gridLayout, const char* name, const char* tooltip, int row);
 
-        void CreateQuickAddAssetItem(QGridLayout* gridLayout, const char* name, const char* tooltip, int row);
+        void CreateQuickAddAssetItem(
+            QGridLayout* gridLayout,
+            const char* name,
+            const char* tooltip,
+            const char* tilesetName,
+            std::uint32_t tilesetIonAssetId,
+            int imageryIonAssetId,
+            int row);
 
         QWidget* CreateCesiumLogin();
 

@@ -162,21 +162,24 @@ namespace Cesium
 
         CreateQuickAddAssetItem(
             itemLayout, "Cesium World Terrain + Bing Maps Aerial imagery",
-            "High-resolution global terrain tileset curated from several data sources, textured with Bing Maps satellite imagery.", row++);
+            "High-resolution global terrain tileset curated from several data sources, textured with Bing Maps satellite imagery.",
+            "CWT + Bing Aerial imagery", 1, 2, row++);
         CreateQuickAddAssetItem(
             itemLayout, "Cesium World Terrain + Bing Maps Aerial with Labels imagery",
             "High-resolution global terrain tileset curated from several data sources, textured with labeled Bing Maps satellite imagery.",
-            row++);
+            "CWT + Bing Aerial with Labels imagery", 1, 3, row++);
         CreateQuickAddAssetItem(
             itemLayout, "Cesium World Terrain + Bing Maps Road imagery",
-            "High-resolution global terrain tileset curated from several data sources, textured with Bing Maps imagery.", row++);
+            "High-resolution global terrain tileset curated from several data sources, textured with Bing Maps imagery.",
+            "CWT + Bing Road imagery", 1, 4, row++);
         CreateQuickAddAssetItem(
             itemLayout, "Cesium World Terrain + Sentinel-2 imagery",
             "High-resolution global terrain tileset curated from several data sources, textured with high-resolution satellite imagery "
             "from the Sentinel-2 project.",
-            row++);
+            "CWT + Sentinel-2 imagery", 1, 3954, row++);
         CreateQuickAddAssetItem(
-            itemLayout, "Cesium OSM Buildings", "A 3D buildings layer derived from OpenStreetMap covering the entire world.", row++);
+            itemLayout, "Cesium OSM Buildings", "A 3D buildings layer derived from OpenStreetMap covering the entire world.",
+            "Cesium OSM Buildings", 96188, -1, row++);
 
         return widget;
     }
@@ -215,10 +218,51 @@ namespace Cesium
         return btn;
     }
 
-    void CesiumIonPanelWidget::CreateQuickAddAssetItem(QGridLayout* gridLayout, const char* name, const char* tooltip, int row)
+    void CesiumIonPanelWidget::CreateQuickAddAssetItem(
+        QGridLayout* gridLayout,
+        const char* name,
+        const char* tooltip,
+        const char* tilesetName,
+        std::uint32_t tilesetIonAssetId,
+        int imageryIonAssetId,
+        int row)
     {
+        (void)(tilesetName);
+        (void)(imageryIonAssetId);
         IconButton* btn = CreateQuickAddMenuItem(gridLayout, name, tooltip, row++);
-        QObject::connect(btn, &IconButton::pressed, this, &CesiumIonPanelWidget::AddBlankTileset);
+        QObject::connect(
+            btn, &IconButton::pressed, this,
+            [this, tilesetIonAssetId]()
+            {
+                using namespace AzToolsFramework;
+
+                auto selectedEntities = GetSelectedEntities();
+                for (const AZ::EntityId& entityId : selectedEntities)
+                {
+                    AZ::EntityId tilesetEntityId{};
+                    ToolsApplicationRequestBus::BroadcastResult(
+                        tilesetEntityId, &ToolsApplicationRequestBus::Events::CreateNewEntity, entityId);
+
+                    EditorComponentAPIRequests::AddComponentsOutcome outcomes;
+                    EditorComponentAPIBus::BroadcastResult(
+                        outcomes, &EditorComponentAPIBus::Events::AddComponentOfType, tilesetEntityId,
+                        azrtti_typeid<CesiumTilesetEditorComponent>());
+                    if (outcomes.IsSuccess())
+                    {
+                        TilesetCesiumIonSource ionSource;
+                        ionSource.m_cesiumIonAssetId = tilesetIonAssetId;
+                        ionSource.m_cesiumIonAssetToken = CesiumIonSessionInterface::Get()->GetAssetAccessToken().token.c_str();
+
+                        TilesetSource tilesetSource;
+                        tilesetSource.SetCesiumIon(ionSource);
+
+                        EditorComponentAPIRequests::PropertyOutcome propertyOutcome;
+                        EditorComponentAPIBus::BroadcastResult(
+                            propertyOutcome, &EditorComponentAPIBus::Events::SetComponentProperty, outcomes.GetValue().front(),
+                            AZStd::string_view("Source"), AZStd::any(tilesetSource));
+                    }
+                }
+            });
     }
 
     IconButton* CesiumIonPanelWidget::CreateQuickAddMenuItem( QGridLayout* layout, const char* name, const char* tooltip, int row)
