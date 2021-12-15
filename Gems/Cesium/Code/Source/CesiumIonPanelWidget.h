@@ -4,6 +4,8 @@
 #include "CesiumIonSession.h"
 #include <AzToolsFramework/UI/PropertyEditor/PropertyEditorAPI.h>
 #include <AzToolsFramework/API/ToolsApplicationAPI.h>
+#include <AzCore/std/string/string.h>
+#include <AzCore/std/smart_ptr/shared_ptr.h>
 #include <QWidget>
 #include <QPushButton>
 
@@ -30,6 +32,13 @@ namespace Cesium
     private:
         QIcon _icon;
         QIcon _activeIcon;
+    };
+
+    struct IonAssetItem
+    {
+        AZStd::string m_tilesetName;
+        std::uint32_t m_tilesetIonAssetId;
+        int m_imageryIonAssetId;
     };
 
     class CesiumIonPanelWidget : public QWidget
@@ -67,15 +76,21 @@ namespace Cesium
         AzToolsFramework::EntityIdList GetSelectedEntities();
 
         IonSessionUpdatedEvent::Handler m_ionConnected;
+        IonSessionUpdatedEvent::Handler m_assetTokenUpdated;
 
         QWidget* m_ionLogin;
         QWidget* m_quickAddIonAsset;
 
     private slots:
+        void AddIonTileset(AZStd::shared_ptr<IonAssetItem> item);
+
         void AddBlankTileset();
 
         void AddGeoreference();
 
         void AddGeoreferenceCamera();
+
+    signals:
+        void AddIonTilesetSignal(AZStd::shared_ptr<IonAssetItem> item);
     };
 }

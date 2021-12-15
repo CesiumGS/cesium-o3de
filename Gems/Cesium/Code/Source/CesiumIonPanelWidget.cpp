@@ -40,11 +40,25 @@ namespace Cesium
         m_ionConnected = IonSessionUpdatedEvent::Handler(
             [this]()
             {
-                m_quickAddIonAsset->setVisible(CesiumIonSessionInterface::Get()->IsConnected());
-                m_ionLogin->setVisible(!CesiumIonSessionInterface::Get()->IsConnected());
+                CesiumIonSessionInterface::Get()->RefreshAssetAccessTokenIfNeeded();
+
+                bool signedIn = CesiumIonSessionInterface::Get()->IsConnected() && CesiumIonSessionInterface::Get()->IsAssetAccessTokenLoaded(); 
+                m_quickAddIonAsset->setVisible(signedIn);
+                m_ionLogin->setVisible(!signedIn);
             });
+
+        m_assetTokenUpdated = IonSessionUpdatedEvent::Handler(
+            [this]()
+            {
+                bool signedIn = CesiumIonSessionInterface::Get()->IsConnected() && CesiumIonSessionInterface::Get()->IsAssetAccessTokenLoaded(); 
+                m_quickAddIonAsset->setVisible(signedIn);
+                m_ionLogin->setVisible(!signedIn);
+            }); 
+
         m_ionConnected.Connect(CesiumIonSessionInterface::Get()->ConnectionUpdated);
+        m_assetTokenUpdated.Connect(CesiumIonSessionInterface::Get()->AssetAccessTokenUpdated);
         CesiumIonSessionInterface::Get()->Resume();
+        CesiumIonSessionInterface::Get()->RefreshAssetAccessTokenIfNeeded();
 
         QVBoxLayout* mainLayout = new QVBoxLayout(this);
         mainLayout->setSpacing(10);
@@ -107,7 +121,6 @@ namespace Cesium
 
         auto signoutBtn = AddToolButton(
             menuGridLayout, QIcon(":/Cesium/sign-out-alt-solid.svg"), QIcon(":/Cesium/sign-out-alt-solid-active.svg"), "Sign Out", col++);
-        signoutBtn->setEnabled(CesiumIonSessionInterface::Get()->IsConnected());
         QObject::connect(
             signoutBtn, &IconButton::pressed, this,
             []()
@@ -181,6 +194,8 @@ namespace Cesium
             itemLayout, "Cesium OSM Buildings", "A 3D buildings layer derived from OpenStreetMap covering the entire world.",
             "Cesium OSM Buildings", 96188, -1, row++);
 
+        QObject::connect(this, &CesiumIonPanelWidget::AddIonTilesetSignal, this, &CesiumIonPanelWidget::AddIonTileset);
+
         return widget;
     }
 
@@ -227,41 +242,17 @@ namespace Cesium
         int imageryIonAssetId,
         int row)
     {
-        (void)(tilesetName);
-        (void)(imageryIonAssetId);
+        auto ionItem = AZStd::make_shared<IonAssetItem>();
+        ionItem->m_tilesetName = tilesetName;
+        ionItem->m_tilesetIonAssetId = tilesetIonAssetId;
+        ionItem->m_imageryIonAssetId = imageryIonAssetId;
+
         IconButton* btn = CreateQuickAddMenuItem(gridLayout, name, tooltip, row++);
         QObject::connect(
             btn, &IconButton::pressed, this,
-            [this, tilesetIonAssetId]()
+            [this, ionItem]()
             {
-                using namespace AzToolsFramework;
-
-                auto selectedEntities = GetSelectedEntities();
-                for (const AZ::EntityId& entityId : selectedEntities)
-                {
-                    AZ::EntityId tilesetEntityId{};
-                    ToolsApplicationRequestBus::BroadcastResult(
-                        tilesetEntityId, &ToolsApplicationRequestBus::Events::CreateNewEntity, entityId);
-
-                    EditorComponentAPIRequests::AddComponentsOutcome outcomes;
-                    EditorComponentAPIBus::BroadcastResult(
-                        outcomes, &EditorComponentAPIBus::Events::AddComponentOfType, tilesetEntityId,
-                        azrtti_typeid<CesiumTilesetEditorComponent>());
-                    if (outcomes.IsSuccess())
-                    {
-                        TilesetCesiumIonSource ionSource;
-                        ionSource.m_cesiumIonAssetId = tilesetIonAssetId;
-                        ionSource.m_cesiumIonAssetToken = CesiumIonSessionInterface::Get()->GetAssetAccessToken().token.c_str();
-
-                        TilesetSource tilesetSource;
-                        tilesetSource.SetCesiumIon(ionSource);
-
-                        EditorComponentAPIRequests::PropertyOutcome propertyOutcome;
-                        EditorComponentAPIBus::BroadcastResult(
-                            propertyOutcome, &EditorComponentAPIBus::Events::SetComponentProperty, outcomes.GetValue().front(),
-                            AZStd::string_view("Source"), AZStd::any(tilesetSource));
-                    }
-                }
+                emit AddIonTilesetSignal(ionItem);
             });
     }
 
@@ -354,6 +345,95 @@ namespace Cesium
         }
 
         return selectedEntities;
+    }
+
+    void CesiumIonPanelWidget::AddIonTileset(AZStd::shared_ptr<IonAssetItem> item)
+    {
+        using namespace AzToolsFramework;
+
+        const std::optional<CesiumIonClient::Connection>& connection = CesiumIonSessionInterface::Get()->GetConnection();
+        if (!connection)
+        {
+            AZ_Printf("Cesium", "Cannot add an ion asset without an active connection");
+            return;
+        }
+
+        connection->asset(item->m_tilesetIonAssetId)
+            .thenInMainThread(
+                [connection, item](CesiumIonClient::Response<CesiumIonClient::Asset>&& response)
+                {
+                    if (!response.value.has_value())
+                    {
+                        return connection->getAsyncSystem().createResolvedFuture<int64_t>(std::move(int64_t(item->m_tilesetIonAssetId)));
+                    }
+
+                    if (item->m_imageryIonAssetId >= 0)
+                    {
+                        return connection->asset(item->m_imageryIonAssetId)
+                            .thenInMainThread(
+                                [item](CesiumIonClient::Response<CesiumIonClient::Asset>&& overlayResponse)
+                                {
+                                    return overlayResponse.value.has_value() ? int64_t(-1) : int64_t(item->m_imageryIonAssetId);
+                                });
+                    }
+                    else
+                    {
+                        return connection->getAsyncSystem().createResolvedFuture<int64_t>(-1);
+                    }
+                })
+            .thenInMainThread(
+                [this, item](int64_t missingAsset)
+                {
+                    if (missingAsset != -1)
+                    {
+                        return;
+                    }
+
+                    auto selectedEntities = GetSelectedEntities();
+                    for (const AZ::EntityId& entityId : selectedEntities)
+                    {
+                        AzToolsFramework::ScopedUndoBatch undoBatch("Add Ion Asset");
+
+                        // create new entity and rename it to tileset name
+                        AZ::EntityId tilesetEntityId{};
+                        ToolsApplicationRequestBus::BroadcastResult(
+                            tilesetEntityId, &ToolsApplicationRequestBus::Events::CreateNewEntity, entityId);
+
+                        AZ::Entity* tilesetEntity = nullptr;
+                        AZ::ComponentApplicationBus::BroadcastResult(
+                            tilesetEntity, &AZ::ComponentApplicationRequests::FindEntity, tilesetEntityId);
+                        tilesetEntity->SetName(item->m_tilesetName);
+
+                        // Add 3D Tiles component to the new entity
+                        EditorComponentAPIRequests::AddComponentsOutcome tilesetComponentOutcomes;
+                        EditorComponentAPIBus::BroadcastResult(
+                            tilesetComponentOutcomes, &EditorComponentAPIBus::Events::AddComponentOfType, tilesetEntityId,
+                            azrtti_typeid<CesiumTilesetEditorComponent>());
+                        if (tilesetComponentOutcomes.IsSuccess())
+                        {
+                            TilesetCesiumIonSource ionSource;
+                            ionSource.m_cesiumIonAssetId = item->m_tilesetIonAssetId;
+                            ionSource.m_cesiumIonAssetToken = CesiumIonSessionInterface::Get()->GetAssetAccessToken().token.c_str();
+
+                            TilesetSource tilesetSource;
+                            tilesetSource.SetCesiumIon(ionSource);
+
+                            EditorComponentAPIRequests::PropertyOutcome propertyOutcome;
+                            EditorComponentAPIBus::BroadcastResult(
+                                propertyOutcome, &EditorComponentAPIBus::Events::SetComponentProperty,
+                                tilesetComponentOutcomes.GetValue().front(), AZStd::string_view("Source"), AZStd::any(tilesetSource));
+                            PropertyEditorGUIMessages::Bus::Broadcast(
+                                &PropertyEditorGUIMessages::RequestRefresh, PropertyModificationRefreshLevel::Refresh_AttributesAndValues);
+                        }
+
+                        // Add raster overlay to the new entity if there are any
+                        if (item->m_imageryIonAssetId >= 0)
+                        {
+                        }
+
+                        undoBatch.MarkEntityDirty(tilesetEntityId);
+                    }
+                });
     }
 
     void CesiumIonPanelWidget::AddBlankTileset()
