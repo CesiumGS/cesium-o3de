@@ -29,10 +29,10 @@ namespace Cesium
                         ->Attribute(AZ::Edit::Attributes::ViewportIcon, "Editor/Icons/Components/Cesium_logo_only.svg")
                         ->Attribute(AZ::Edit::Attributes::AppearsInAddComponentMenu, AZ_CRC("Game", 0x232b318c))
                         ->Attribute(AZ::Edit::Attributes::AutoExpand, true)
-                    ->DataElement(AZ::Edit::UIHandlers::Default, &TMSRasterOverlayEditorComponent::m_configuration, "", "")
+                    ->DataElement(AZ::Edit::UIHandlers::Default, &TMSRasterOverlayEditorComponent::m_configuration, "Configuration", "")
                         ->Attribute(AZ::Edit::Attributes::Visibility, AZ::Edit::PropertyVisibility::ShowChildrenOnly)
                         ->Attribute(AZ::Edit::Attributes::ChangeNotify, &TMSRasterOverlayEditorComponent::OnConfigurationChanged)
-                    ->DataElement(AZ::Edit::UIHandlers::Default, &TMSRasterOverlayEditorComponent::m_source, "", "")
+                    ->DataElement(AZ::Edit::UIHandlers::Default, &TMSRasterOverlayEditorComponent::m_source, "Source", "")
                         ->Attribute(AZ::Edit::Attributes::Visibility, AZ::Edit::PropertyVisibility::ShowChildrenOnly)
                         ->Attribute(AZ::Edit::Attributes::ChangeNotify, &TMSRasterOverlayEditorComponent::OnSourceChanged)
                     ;

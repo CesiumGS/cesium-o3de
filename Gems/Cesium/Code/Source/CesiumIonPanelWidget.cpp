@@ -1,5 +1,6 @@
 #include "CesiumIonPanelWidget.h"
 #include "CesiumTilesetEditorComponent.h"
+#include "CesiumIonRasterOverlayEditorComponent.h"
 #include "GeoReferenceTransformEditorComponent.h"
 #include "GeoReferenceCameraFlyControllerEditor.h"
 #include <AzToolsFramework/Component/EditorComponentAPIBus.h>
@@ -422,15 +423,32 @@ namespace Cesium
                             EditorComponentAPIBus::BroadcastResult(
                                 propertyOutcome, &EditorComponentAPIBus::Events::SetComponentProperty,
                                 tilesetComponentOutcomes.GetValue().front(), AZStd::string_view("Source"), AZStd::any(tilesetSource));
-                            PropertyEditorGUIMessages::Bus::Broadcast(
-                                &PropertyEditorGUIMessages::RequestRefresh, PropertyModificationRefreshLevel::Refresh_AttributesAndValues);
                         }
 
                         // Add raster overlay to the new entity if there are any
                         if (item->m_imageryIonAssetId >= 0)
                         {
+                            EditorComponentAPIRequests::AddComponentsOutcome rasterOverlayComponentOutcomes;
+                            EditorComponentAPIBus::BroadcastResult(
+                                rasterOverlayComponentOutcomes, &EditorComponentAPIBus::Events::AddComponentOfType, tilesetEntityId,
+                                azrtti_typeid<CesiumIonRasterOverlayEditorComponent>());
+
+                            if (rasterOverlayComponentOutcomes.IsSuccess())
+                            {
+                                CesiumIonRasterOverlaySource rasterOverlaySource;
+                                rasterOverlaySource.m_ionAssetId = item->m_imageryIonAssetId;
+                                rasterOverlaySource.m_ionToken = CesiumIonSessionInterface::Get()->GetAssetAccessToken().token.c_str();
+
+                                EditorComponentAPIRequests::PropertyOutcome propertyOutcome;
+                                EditorComponentAPIBus::BroadcastResult(
+                                    propertyOutcome, &EditorComponentAPIBus::Events::SetComponentProperty,
+                                    rasterOverlayComponentOutcomes.GetValue().front(), AZStd::string_view("Source"),
+                                    AZStd::any(rasterOverlaySource));
+                            }
                         }
 
+                        PropertyEditorGUIMessages::Bus::Broadcast(
+                            &PropertyEditorGUIMessages::RequestRefresh, PropertyModificationRefreshLevel::Refresh_AttributesAndValues);
                         undoBatch.MarkEntityDirty(tilesetEntityId);
                     }
                 });
