@@ -5,9 +5,7 @@
 #include "GeoReferenceCameraFlyControllerEditor.h"
 #include <AzToolsFramework/Component/EditorComponentAPIBus.h>
 #include <AzFramework/Components/CameraBus.h>
-#include <QPicture>
 #include <QVBoxLayout>
-#include <QToolBar>
 #include <QAction>
 #include <QIcon>
 #include <QMargins>
