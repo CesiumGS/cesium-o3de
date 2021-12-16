@@ -131,6 +131,7 @@ namespace Cesium
                     this->m_isConnecting = false;
                     this->m_connection = std::move(connection);
                     SaveAccessToken(this->m_connection.value().getAccessToken().c_str());
+                    RefreshAssetAccessToken();
                     this->ConnectionUpdated.Signal();
                 })
             .catchInMainThread(
@@ -144,6 +145,11 @@ namespace Cesium
 
     void CesiumIonSession::Resume()
     {
+        if (this->m_isResuming)
+        {
+            return;
+        }
+
         ReadAccessToken();
 
         if (m_ionAccessToken.empty())
@@ -168,6 +174,7 @@ namespace Cesium
                         this->m_connection.reset();
                     }
                     this->m_isResuming = false;
+                    RefreshAssetAccessToken();
                     this->ConnectionUpdated.Signal();
                 })
             .catchInMainThread(
@@ -272,7 +279,7 @@ namespace Cesium
                     this->m_tokens = std::move(tokens.value);
                     this->TokensUpdated.Signal();
                     this->RefreshTokensIfNeeded();
-                    this->RefreshAssetAccessTokenIfNeeded();
+                    this->RefreshAssetAccessToken();
                 })
             .catchInMainThread(
                 [this](std::exception&&)
@@ -319,6 +326,7 @@ namespace Cesium
         {
             this->m_assetAccessToken = CesiumIonClient::Token(*pFound);
             this->m_isLoadingAssetAccessToken = false;
+            RefreshAssets();
             this->AssetAccessTokenUpdated.Signal();
         }
         else
@@ -329,6 +337,7 @@ namespace Cesium
                     {
                         this->m_assetAccessToken = std::move(token.value);
                         this->m_isLoadingAssetAccessToken = false;
+                        RefreshAssets();
                         this->AssetAccessTokenUpdated.Signal();
                     });
         }

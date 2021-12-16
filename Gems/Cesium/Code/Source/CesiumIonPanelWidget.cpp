@@ -39,8 +39,6 @@ namespace Cesium
         m_ionConnected = IonSessionUpdatedEvent::Handler(
             [this]()
             {
-                CesiumIonSessionInterface::Get()->RefreshAssetAccessTokenIfNeeded();
-
                 bool signedIn = CesiumIonSessionInterface::Get()->IsConnected() && CesiumIonSessionInterface::Get()->IsAssetAccessTokenLoaded(); 
                 m_quickAddIonAsset->setVisible(signedIn);
                 m_ionLogin->setVisible(!signedIn);
@@ -53,11 +51,10 @@ namespace Cesium
                 m_quickAddIonAsset->setVisible(signedIn);
                 m_ionLogin->setVisible(!signedIn);
             }); 
+        CesiumIonSessionInterface::Get()->Resume();
 
         m_ionConnected.Connect(CesiumIonSessionInterface::Get()->ConnectionUpdated);
         m_assetTokenUpdated.Connect(CesiumIonSessionInterface::Get()->AssetAccessTokenUpdated);
-        CesiumIonSessionInterface::Get()->Resume();
-        CesiumIonSessionInterface::Get()->RefreshAssetAccessTokenIfNeeded();
 
         QVBoxLayout* mainLayout = new QVBoxLayout(this);
         mainLayout->setSpacing(10);

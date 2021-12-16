@@ -134,14 +134,6 @@ namespace Cesium
             return this->m_authorizeUrl;
         }
 
-        bool RefreshProfileIfNeeded();
-
-        bool RefreshAssetsIfNeeded();
-
-        bool RefreshTokensIfNeeded();
-
-        bool RefreshAssetAccessTokenIfNeeded();
-
         IonSessionUpdatedEvent ConnectionUpdated;
 
         IonSessionUpdatedEvent ProfileUpdated;
@@ -161,6 +153,14 @@ namespace Cesium
 
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
 
+        bool RefreshProfileIfNeeded();
+
+        bool RefreshAssetsIfNeeded();
+
+        bool RefreshTokensIfNeeded();
+
+        bool RefreshAssetAccessTokenIfNeeded();
+
         void SaveAccessToken(const AZStd::string& ionAccessToken);
 
         void ReadAccessToken();
@@ -175,17 +175,17 @@ namespace Cesium
         std::optional<std::vector<CesiumIonClient::Token>> m_tokens;
         std::optional<CesiumIonClient::Token> m_assetAccessToken;
 
-        bool m_isConnecting;
-        bool m_isResuming;
-        bool m_isLoadingProfile;
-        bool m_isLoadingAssets;
-        bool m_isLoadingTokens;
-        bool m_isLoadingAssetAccessToken;
+        bool m_isConnecting{false};
+        bool m_isResuming{false};
+        bool m_isLoadingProfile{false};
+        bool m_isLoadingAssets{false};
+        bool m_isLoadingTokens{false};
+        bool m_isLoadingAssetAccessToken{false};
 
-        bool m_loadProfileQueued;
-        bool m_loadAssetsQueued;
-        bool m_loadTokensQueued;
-        bool m_loadAssetAccessTokenQueued;
+        bool m_loadProfileQueued{false};
+        bool m_loadAssetsQueued{false};
+        bool m_loadTokensQueued{false};
+        bool m_loadAssetAccessTokenQueued{false};
 
         std::string m_authorizeUrl;
 
