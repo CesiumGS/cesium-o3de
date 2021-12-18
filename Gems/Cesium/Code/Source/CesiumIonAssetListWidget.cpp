@@ -2,7 +2,9 @@
 #include <AzCore/std/smart_ptr/make_shared.h>
 #include <AzQtComponents/Components/Widgets/TableView.h>
 #include <QVBoxLayout>
+#include <QSplitter>
 #include <QMargins>
+#include <QScrollArea>
 
 namespace Cesium
 {
@@ -39,7 +41,7 @@ namespace Cesium
 
     int CesiumIonAssetListModel::rowCount(const QModelIndex& parent) const
     {
-        return parent.isValid() ? 0 : static_cast<int>(this->_assets.size());
+        return parent.isValid() ? 0 : static_cast<int>(this->m_assets.size());
     }
 
     int CesiumIonAssetListModel::columnCount(const QModelIndex& parent) const
@@ -75,7 +77,8 @@ namespace Cesium
             ? emptyAssets
             : CesiumIonSessionInterface::Get()->GetAssets();
 
-        this->_assets = assets.items;
+        this->m_assets = assets.items;
+        emit assetUpdated();
     }
 
     QVariant CesiumIonAssetListModel::data(const QModelIndex& index, int role) const
@@ -87,7 +90,7 @@ namespace Cesium
             return QVariant();
         }
 
-        const auto& asset = this->_assets[row];
+        const auto& asset = this->m_assets[row];
         if (role == Qt::DisplayRole)
         {
             switch (index.column())
@@ -112,6 +115,134 @@ namespace Cesium
         return QVariant();
     }
 
+    const CesiumIonClient::Asset* CesiumIonAssetListModel::GetAsset(int row)
+    {
+        if (row >= m_assets.size() || row < 0)
+        {
+            return nullptr;
+        }
+
+        return &m_assets[row];
+    }
+
+    CesiumIonAssetDetailWidget::CesiumIonAssetDetailWidget(QWidget* parent)
+        : QWidget(parent)
+    {
+        QVBoxLayout* mainLayout = new QVBoxLayout(this);
+
+        // setup scroll area
+        QVBoxLayout* scrollLayout = new QVBoxLayout();
+        scrollLayout->setSpacing(15);
+
+        QWidget* scrollWidget = new QWidget();
+        scrollWidget->setLayout(scrollLayout);
+
+        QScrollArea* scrollArea = new QScrollArea(this);
+        scrollArea->setWidget(scrollWidget);
+        scrollArea->setWidgetResizable(true);
+
+        // asset name and id
+        m_assetName = CreateLabel();
+        m_assetName->setWordWrap(true);
+        m_assetName->setStyleSheet("font-weight: bold; font-size: 20px;");
+        scrollLayout->addWidget(m_assetName, 1);
+
+        m_assetId = CreateLabel();
+        scrollLayout->addWidget(m_assetId, 1);
+
+        // description
+        m_assetDescriptionHeader = CreateLabel();
+        m_assetDescriptionHeader->setText("Description:");
+        m_assetDescriptionHeader->setStyleSheet("text-decoration: underline; font-size: 15px");
+        scrollLayout->addWidget(m_assetDescriptionHeader, 1);
+
+        m_assetDescription = CreateLabel();
+        m_assetDescription->setWordWrap(true);
+        m_assetDescription->setTextFormat(Qt::MarkdownText);
+        scrollLayout->addWidget(m_assetDescription, 1);
+
+        // attribution
+        m_assetAttributionHeader = CreateLabel();
+        m_assetAttributionHeader->setText("Attribution:");
+        m_assetAttributionHeader->setStyleSheet("text-decoration: underline; font-size: 15px");
+        scrollLayout->addWidget(m_assetAttributionHeader, 1);
+
+        m_assetAttribution = CreateLabel();
+        m_assetAttribution->setWordWrap(true);
+        m_assetAttribution->setTextFormat(Qt::MarkdownText);
+        scrollLayout->addWidget(m_assetAttribution, 1);
+        scrollLayout->addStretch(100);
+
+        mainLayout->addWidget(scrollArea);
+        setLayout(mainLayout);
+    }
+
+    void CesiumIonAssetDetailWidget::SetAsset(const CesiumIonClient::Asset* asset)
+    {
+        if (!asset)
+        {
+            m_assetName->setVisible(false);
+            m_assetId->setVisible(false);
+            m_assetDescriptionHeader->setVisible(false);
+            m_assetDescription->setVisible(false);
+            m_assetAttributionHeader->setVisible(false);
+            m_assetAttribution->setVisible(false);
+            return;
+        }
+
+        m_currentAssetId = asset->id;
+
+        QString name = asset->name.c_str();
+        m_assetName->setText(name);
+        m_assetName->setVisible(true);
+
+        QString assetId = "(ID: " + QString::number(asset->id) + ")";
+        m_assetId->setText(assetId);
+        m_assetId->setVisible(true);
+
+        // set description
+        m_assetDescriptionHeader->setVisible(true);
+        QString assetDescription;
+        if (asset->description.empty())
+        {
+            assetDescription = "N/A";
+        }
+        else
+        {
+             assetDescription = asset->description.c_str();
+        }
+        m_assetDescription->setText(assetDescription);
+        m_assetDescription->setVisible(true);
+
+        // set attribution
+        m_assetAttributionHeader->setVisible(true);
+        QString attribution;
+        if (asset->attribution.empty())
+        {
+            attribution = "N/A";
+        }
+        else
+        {
+            attribution = asset->attribution.c_str();
+        }
+        m_assetAttribution->setText(attribution);
+        m_assetAttribution->setVisible(true);
+    }
+
+    int CesiumIonAssetDetailWidget::GetCurrentAssetId() const
+    {
+        return m_currentAssetId;
+    }
+
+    QLabel* CesiumIonAssetDetailWidget::CreateLabel()
+    {
+        auto label = new QLabel(this);
+        label->setVisible(false);
+        label->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
+        label->setAlignment(Qt::AlignLeft);
+        return label;
+    }
+
     CesiumIonAssetListWidget::CesiumIonAssetListWidget(QWidget* parent)
         : QWidget(parent)
     {
@@ -120,11 +251,33 @@ namespace Cesium
         QVBoxLayout* mainLayout = new QVBoxLayout(this);
         mainLayout->setContentsMargins(QMargins(0, 0, 0, 0));
 
-        AzQtComponents::TableView* table = new AzQtComponents::TableView(this);
-        table->setModel(new CesiumIonAssetListModel());
+        QSplitter* splitter = new QSplitter(this);
 
-        mainLayout->addWidget(table);
+        // create asset list table
+        m_assetListModel = new CesiumIonAssetListModel();
+        AzQtComponents::TableView* table = new AzQtComponents::TableView(this);
+        table->setModel(m_assetListModel);
+        QObject::connect(table, &QAbstractItemView::clicked, this, &CesiumIonAssetListWidget::AssetDoubleClicked);
+        QObject::connect(m_assetListModel, &CesiumIonAssetListModel::assetUpdated, this, &CesiumIonAssetListWidget::AssetUpdated);
+        splitter->addWidget(table);
+
+        // create asset detail
+        m_assetDetailWidget = new CesiumIonAssetDetailWidget(this);
+        splitter->addWidget(m_assetDetailWidget);
+
+        mainLayout->addWidget(splitter);
         setLayout(mainLayout);
     }
 
+    void CesiumIonAssetListWidget::AssetDoubleClicked(const QModelIndex& index)
+    {
+        const CesiumIonClient::Asset* asset = m_assetListModel->GetAsset(index.row());
+        m_assetDetailWidget->SetAsset(asset);
+    }
+
+    void CesiumIonAssetListWidget::AssetUpdated()
+    {
+        const CesiumIonClient::Asset* asset = m_assetListModel->GetAsset(m_assetDetailWidget->GetCurrentAssetId());
+        m_assetDetailWidget->SetAsset(asset);
+    }
 } // namespace Cesium
