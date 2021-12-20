@@ -536,6 +536,54 @@ namespace Cesium
                 });
     }
 
+    void CesiumIonSession::AddImageryToLevel(std::uint32_t ionImageryAssetId)
+    {
+        using namespace AzToolsFramework;
+
+        const std::optional<CesiumIonClient::Connection>& connection = CesiumIonSessionInterface::Get()->GetConnection();
+        if (!connection)
+        {
+            AZ_Printf("Cesium", "Cannot add an ion asset without an active connection");
+            return;
+        }
+
+        connection->asset(ionImageryAssetId)
+            .thenInMainThread(
+                [this, ionImageryAssetId](CesiumIonClient::Response<CesiumIonClient::Asset>&& overlayResponse)
+                {
+                    if (overlayResponse.value.has_value())
+                    {
+                        auto selectedEntities = GetSelectedEntities();
+                        for (const AZ::EntityId& entityId : selectedEntities)
+                        {
+                            AzToolsFramework::ScopedUndoBatch undoBatch("Drape Ion Imagery");
+
+                            EditorComponentAPIRequests::AddComponentsOutcome rasterOverlayComponentOutcomes;
+                            EditorComponentAPIBus::BroadcastResult(
+                                rasterOverlayComponentOutcomes, &EditorComponentAPIBus::Events::AddComponentOfType, entityId,
+                                azrtti_typeid<CesiumIonRasterOverlayEditorComponent>());
+
+                            if (rasterOverlayComponentOutcomes.IsSuccess())
+                            {
+                                CesiumIonRasterOverlaySource rasterOverlaySource;
+                                rasterOverlaySource.m_ionAssetId = ionImageryAssetId;
+                                rasterOverlaySource.m_ionToken = CesiumIonSessionInterface::Get()->GetAssetAccessToken().token.c_str();
+
+                                EditorComponentAPIRequests::PropertyOutcome propertyOutcome;
+                                EditorComponentAPIBus::BroadcastResult(
+                                    propertyOutcome, &EditorComponentAPIBus::Events::SetComponentProperty,
+                                    rasterOverlayComponentOutcomes.GetValue().front(), AZStd::string_view("Source"),
+                                    AZStd::any(rasterOverlaySource));
+                            }
+
+                            PropertyEditorGUIMessages::Bus::Broadcast(
+                                &PropertyEditorGUIMessages::RequestRefresh, PropertyModificationRefreshLevel::Refresh_AttributesAndValues);
+                            undoBatch.MarkEntityDirty(entityId);
+                        }
+                    }
+                });
+    }
+
     bool CesiumIonSession::RefreshProfileIfNeeded()
     {
         if (this->m_loadProfileQueued || !this->m_profile.has_value())

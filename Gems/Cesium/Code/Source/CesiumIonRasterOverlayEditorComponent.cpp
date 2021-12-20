@@ -109,12 +109,22 @@ namespace Cesium
 
     AZ::u32 CesiumIonRasterOverlayEditorComponent::OnSourceChanged()
     {
+        if (!m_rasterOverlayComponent)
+        {
+            return AZ::Edit::PropertyRefreshLevels::None;
+        }
+
         m_rasterOverlayComponent->LoadRasterOverlay(m_source);
         return AZ::Edit::PropertyRefreshLevels::None;
     }
 
     AZ::u32 CesiumIonRasterOverlayEditorComponent::OnConfigurationChanged()
     {
+        if (!m_rasterOverlayComponent)
+        {
+            return AZ::Edit::PropertyRefreshLevels::None;
+        }
+
         m_rasterOverlayComponent->SetConfiguration(m_configuration);
         return AZ::Edit::PropertyRefreshLevels::None;
     }

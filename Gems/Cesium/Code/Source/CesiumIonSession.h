@@ -132,6 +132,8 @@ namespace Cesium
 
         void AddTilesetToLevel(AZStd::shared_ptr<IonAssetItem> item);
 
+        void AddImageryToLevel(std::uint32_t ionImageryAssetId);
+
         IonSessionUpdatedEvent ConnectionUpdated;
 
         IonSessionUpdatedEvent ProfileUpdated;

@@ -11,6 +11,7 @@
 class QVariant;
 class QLabel;
 class QPushButton;
+class QVBoxLayout;
 
 #endif
 
@@ -71,8 +72,14 @@ namespace Cesium
     private slots:
         void AddTilesetToLevel();
 
+        void DrapImageryOverTileset();
+
     private:
+        void ResetAll();
+
         QLabel* CreateLabel();
+
+        QPushButton* CreateButton(QVBoxLayout* scrollLayout);
 
         QLabel* m_assetName{ nullptr };
         QLabel* m_assetId{ nullptr };
@@ -81,8 +88,10 @@ namespace Cesium
         QLabel* m_assetAttributionHeader{ nullptr };
         QLabel* m_assetAttribution{ nullptr };
         QPushButton* m_addToLevelButton{ nullptr };
+        QPushButton* m_drapOnTilesetButton{ nullptr };
         int m_currentAssetId{ -1 };
         AZStd::string m_currentAssetName;
+        AZStd::string m_currentAssetType;
     };
 
     class CesiumIonAssetListWidget : public QWidget

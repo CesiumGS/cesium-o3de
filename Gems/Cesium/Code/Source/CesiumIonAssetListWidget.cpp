@@ -171,19 +171,15 @@ namespace Cesium
         m_assetId = CreateLabel();
         scrollLayout->addWidget(m_assetId, 1);
 
+        // add imagery add button
+        m_drapOnTilesetButton = CreateButton(scrollLayout);
+        m_drapOnTilesetButton->setText("Drapped over Tileset");
+        QObject::connect(m_drapOnTilesetButton, &QPushButton::clicked, this, &CesiumIonAssetDetailWidget::DrapImageryOverTileset);
+
         // add asset add button
-        QHBoxLayout* addToLevelLayout = new QHBoxLayout(this);
-        addToLevelLayout->addStretch(1);
-        m_addToLevelButton = new QPushButton(this);
+        m_addToLevelButton = CreateButton(scrollLayout);
         m_addToLevelButton->setText("Add to Level");
-        m_addToLevelButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::MinimumExpanding);
-        m_addToLevelButton->setFixedWidth(200);
-        m_addToLevelButton->setMinimumHeight(30);
-        m_addToLevelButton->setVisible(false);
         QObject::connect(m_addToLevelButton, &QPushButton::clicked, this, &CesiumIonAssetDetailWidget::AddTilesetToLevel);
-        addToLevelLayout->addWidget(m_addToLevelButton, 5);
-        addToLevelLayout->addStretch(1);
-        scrollLayout->addLayout(addToLevelLayout);
 
         // description
         m_assetDescriptionHeader = CreateLabel();
@@ -214,23 +210,18 @@ namespace Cesium
 
     void CesiumIonAssetDetailWidget::SetAsset(const CesiumIonClient::Asset* asset)
     {
+        ResetAll();
+
         if (!asset)
         {
-            m_currentAssetId = -1;
-            m_currentAssetName = "";
-            m_assetName->setVisible(false);
-            m_assetId->setVisible(false);
-            m_addToLevelButton->setVisible(false);
-            m_assetDescriptionHeader->setVisible(false);
-            m_assetDescription->setVisible(false);
-            m_assetAttributionHeader->setVisible(false);
-            m_assetAttribution->setVisible(false);
             return;
         }
 
         m_currentAssetId = asset->id;
         m_currentAssetName = asset->name.c_str();
+        m_currentAssetType = asset->type.c_str();
 
+        // display description and asset ID
         QString name = asset->name.c_str();
         m_assetName->setText(name);
         m_assetName->setVisible(true);
@@ -239,7 +230,15 @@ namespace Cesium
         m_assetId->setText(assetId);
         m_assetId->setVisible(true);
 
-        m_addToLevelButton->setVisible(true);
+        // display button to add asset to level
+        if (asset->type == "3DTILES" || asset->type == "TERRAIN")
+        {
+            m_addToLevelButton->setVisible(true);
+        }
+        else if (asset->type == "IMAGERY")
+        {
+            m_drapOnTilesetButton->setVisible(true);
+        }
 
         // set description
         m_assetDescriptionHeader->setVisible(true);
@@ -272,18 +271,55 @@ namespace Cesium
 
     void CesiumIonAssetDetailWidget::AddTilesetToLevel()
     {
-        if (m_currentAssetId != -1)
+        if (m_currentAssetId == -1)
         {
-            AZStd::shared_ptr<IonAssetItem> item = AZStd::make_shared<IonAssetItem>();
-            item->m_tilesetName = m_currentAssetName;
-            item->m_tilesetIonAssetId = m_currentAssetId;
-            CesiumIonSessionInterface::Get()->AddTilesetToLevel(item);
+            return;
         }
+
+        if (m_currentAssetType != "3DTILES" && m_currentAssetType != "TERRAIN")
+        {
+            return;
+        }
+
+        AZStd::shared_ptr<IonAssetItem> item = AZStd::make_shared<IonAssetItem>();
+        item->m_tilesetName = m_currentAssetName;
+        item->m_tilesetIonAssetId = m_currentAssetId;
+        CesiumIonSessionInterface::Get()->AddTilesetToLevel(item);
     }
 
     int CesiumIonAssetDetailWidget::GetCurrentAssetId() const
     {
         return m_currentAssetId;
+    }
+
+    void CesiumIonAssetDetailWidget::DrapImageryOverTileset()
+    {
+        if (m_currentAssetId == -1)
+        {
+            return;
+        }
+
+        if (m_currentAssetType != "IMAGERY")
+        {
+            return;
+        }
+
+        CesiumIonSessionInterface::Get()->AddImageryToLevel(static_cast<std::uint32_t>(m_currentAssetId));
+    }
+
+    void CesiumIonAssetDetailWidget::ResetAll()
+    {
+        m_currentAssetId = -1;
+        m_currentAssetName = "";
+        m_currentAssetType = "";
+        m_assetName->setVisible(false);
+        m_assetId->setVisible(false);
+        m_addToLevelButton->setVisible(false);
+        m_drapOnTilesetButton->setVisible(false);
+        m_assetDescriptionHeader->setVisible(false);
+        m_assetDescription->setVisible(false);
+        m_assetAttributionHeader->setVisible(false);
+        m_assetAttribution->setVisible(false);
     }
 
     QLabel* CesiumIonAssetDetailWidget::CreateLabel()
@@ -293,6 +329,22 @@ namespace Cesium
         label->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Preferred);
         label->setAlignment(Qt::AlignLeft);
         return label;
+    }
+
+    QPushButton* CesiumIonAssetDetailWidget::CreateButton(QVBoxLayout* scrollLayout)
+    {
+        QHBoxLayout* btnLayout = new QHBoxLayout(this);
+        btnLayout->addStretch(1);
+        auto btn = new QPushButton(this);
+        btn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::MinimumExpanding);
+        btn->setFixedWidth(200);
+        btn->setMinimumHeight(30);
+        btn->setVisible(false);
+        btnLayout->addWidget(btn, 5);
+        btnLayout->addStretch(1);
+        scrollLayout->addLayout(btnLayout);
+
+        return btn;
     }
 
     CesiumIonAssetListWidget::CesiumIonAssetListWidget(QWidget* parent)
