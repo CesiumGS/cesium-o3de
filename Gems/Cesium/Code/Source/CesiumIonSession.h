@@ -3,10 +3,12 @@
 #include <CesiumIonClient/Connection.h>
 #include <CesiumAsync/IAssetAccessor.h>
 #include <CesiumAsync/AsyncSystem.h>
+#include <AzToolsFramework/API/ToolsApplicationAPI.h>
 #include <AzCore/Interface/Interface.h>
 #include <AzCore/Component/Component.h>
 #include <AzCore/Component/TickBus.h>
 #include <AzCore/EBus/Event.h>
+#include <AzCore/std/smart_ptr/shared_ptr.h>
 #include <string>
 #include <optional>
 #include <memory>
@@ -15,6 +17,13 @@
 namespace Cesium
 {
     using IonSessionUpdatedEvent = AZ::Event<>;
+
+    struct IonAssetItem
+    {
+        AZStd::string m_tilesetName{};
+        std::uint32_t m_tilesetIonAssetId{0};
+        int m_imageryIonAssetId{-1};
+    };
 
     class CesiumIonSession : public AZ::Component, public AZ::TickBus::Handler
     {
@@ -118,6 +127,10 @@ namespace Cesium
         {
             return this->m_authorizeUrl;
         }
+
+        AzToolsFramework::EntityIdList GetSelectedEntities() const;
+
+        void AddTilesetToLevel(AZStd::shared_ptr<IonAssetItem> item);
 
         IonSessionUpdatedEvent ConnectionUpdated;
 

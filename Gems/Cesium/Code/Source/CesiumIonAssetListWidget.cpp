@@ -1,6 +1,7 @@
 #include "CesiumIonAssetListWidget.h"
-#include <AzCore/std/smart_ptr/make_shared.h>
 #include <AzQtComponents/Components/Widgets/TableView.h>
+#include <AzCore/std/smart_ptr/make_shared.h>
+#include <AzCore/std/algorithm.h>
 #include <QVBoxLayout>
 #include <QSplitter>
 #include <QMargins>
@@ -128,6 +129,23 @@ namespace Cesium
         return &m_assets[row];
     }
 
+    const CesiumIonClient::Asset* CesiumIonAssetListModel::GetAssetById(int assetId)
+    {
+        auto it = AZStd::find_if(
+            m_assets.begin(), m_assets.end(),
+            [assetId](const CesiumIonClient::Asset& asset)
+            {
+                return asset.id == assetId;
+            });
+
+        if (it == m_assets.end())
+        {
+            return nullptr;
+        }
+
+        return &(*it);
+    }
+
     CesiumIonAssetDetailWidget::CesiumIonAssetDetailWidget(QWidget* parent)
         : QWidget(parent)
     {
@@ -162,12 +180,7 @@ namespace Cesium
         m_addToLevelButton->setFixedWidth(200);
         m_addToLevelButton->setMinimumHeight(30);
         m_addToLevelButton->setVisible(false);
-        QObject::connect(
-            m_addToLevelButton, &QPushButton::clicked, this,
-            []()
-            {
-                AZ_Printf("Cesium", "What'sup");
-            });
+        QObject::connect(m_addToLevelButton, &QPushButton::clicked, this, &CesiumIonAssetDetailWidget::AddTilesetToLevel);
         addToLevelLayout->addWidget(m_addToLevelButton, 5);
         addToLevelLayout->addStretch(1);
         scrollLayout->addLayout(addToLevelLayout);
@@ -203,6 +216,8 @@ namespace Cesium
     {
         if (!asset)
         {
+            m_currentAssetId = -1;
+            m_currentAssetName = "";
             m_assetName->setVisible(false);
             m_assetId->setVisible(false);
             m_addToLevelButton->setVisible(false);
@@ -214,6 +229,7 @@ namespace Cesium
         }
 
         m_currentAssetId = asset->id;
+        m_currentAssetName = asset->name.c_str();
 
         QString name = asset->name.c_str();
         m_assetName->setText(name);
@@ -252,6 +268,17 @@ namespace Cesium
         }
         m_assetAttribution->setText(attribution);
         m_assetAttribution->setVisible(true);
+    }
+
+    void CesiumIonAssetDetailWidget::AddTilesetToLevel()
+    {
+        if (m_currentAssetId != -1)
+        {
+            AZStd::shared_ptr<IonAssetItem> item = AZStd::make_shared<IonAssetItem>();
+            item->m_tilesetName = m_currentAssetName;
+            item->m_tilesetIonAssetId = m_currentAssetId;
+            CesiumIonSessionInterface::Get()->AddTilesetToLevel(item);
+        }
     }
 
     int CesiumIonAssetDetailWidget::GetCurrentAssetId() const
@@ -302,7 +329,7 @@ namespace Cesium
 
     void CesiumIonAssetListWidget::AssetUpdated()
     {
-        const CesiumIonClient::Asset* asset = m_assetListModel->GetAsset(m_assetDetailWidget->GetCurrentAssetId());
+        const CesiumIonClient::Asset* asset = m_assetListModel->GetAssetById(m_assetDetailWidget->GetCurrentAssetId());
         m_assetDetailWidget->SetAsset(asset);
     }
 } // namespace Cesium

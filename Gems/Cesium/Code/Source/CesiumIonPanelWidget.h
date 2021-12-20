@@ -2,8 +2,6 @@
 
 #if !defined(Q_MOC_RUN)
 #include "CesiumIonSession.h"
-#include <AzToolsFramework/UI/PropertyEditor/PropertyEditorAPI.h>
-#include <AzToolsFramework/API/ToolsApplicationAPI.h>
 #include <AzCore/std/string/string.h>
 #include <AzCore/std/smart_ptr/shared_ptr.h>
 #include <QWidget>
@@ -32,13 +30,6 @@ namespace Cesium
     private:
         QIcon _icon;
         QIcon _activeIcon;
-    };
-
-    struct IonAssetItem
-    {
-        AZStd::string m_tilesetName;
-        std::uint32_t m_tilesetIonAssetId;
-        int m_imageryIonAssetId;
     };
 
     class CesiumIonPanelWidget : public QWidget
@@ -72,8 +63,6 @@ namespace Cesium
         QWidget* CreateCesiumLogin();
 
         QFrame* CreateHorizontalLine();
-
-        AzToolsFramework::EntityIdList GetSelectedEntities();
 
         IonSessionUpdatedEvent::Handler m_ionConnected;
         IonSessionUpdatedEvent::Handler m_assetTokenUpdated;

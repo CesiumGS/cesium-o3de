@@ -1,6 +1,5 @@
 #include "CesiumIonPanelWidget.h"
 #include "CesiumTilesetEditorComponent.h"
-#include "CesiumIonRasterOverlayEditorComponent.h"
 #include "GeoReferenceTransformEditorComponent.h"
 #include "GeoReferenceCameraFlyControllerEditor.h"
 #include <AzToolsFramework/Component/EditorComponentAPIBus.h>
@@ -325,135 +324,16 @@ namespace Cesium
         return line;
     }
 
-    AzToolsFramework::EntityIdList CesiumIonPanelWidget::GetSelectedEntities()
-    {
-        using namespace AzToolsFramework; 
-        EntityIdList selectedEntities;
-        ToolsApplicationRequestBus::BroadcastResult(
-            selectedEntities, &AzToolsFramework::ToolsApplicationRequestBus::Events::GetSelectedEntities);
-        if (selectedEntities.empty())
-        {
-            AZ::EntityId levelEntityId{};
-            AzToolsFramework::ToolsApplicationRequestBus::BroadcastResult(
-                levelEntityId, &AzToolsFramework::ToolsApplicationRequestBus::Events::GetCurrentLevelEntityId);
-
-            selectedEntities.emplace_back(levelEntityId);
-        }
-
-        return selectedEntities;
-    }
-
     void CesiumIonPanelWidget::AddIonTileset(AZStd::shared_ptr<IonAssetItem> item)
     {
-        using namespace AzToolsFramework;
-
-        const std::optional<CesiumIonClient::Connection>& connection = CesiumIonSessionInterface::Get()->GetConnection();
-        if (!connection)
-        {
-            AZ_Printf("Cesium", "Cannot add an ion asset without an active connection");
-            return;
-        }
-
-        connection->asset(item->m_tilesetIonAssetId)
-            .thenInMainThread(
-                [connection, item](CesiumIonClient::Response<CesiumIonClient::Asset>&& response)
-                {
-                    if (!response.value.has_value())
-                    {
-                        return connection->getAsyncSystem().createResolvedFuture<int64_t>(std::move(int64_t(item->m_tilesetIonAssetId)));
-                    }
-
-                    if (item->m_imageryIonAssetId >= 0)
-                    {
-                        return connection->asset(item->m_imageryIonAssetId)
-                            .thenInMainThread(
-                                [item](CesiumIonClient::Response<CesiumIonClient::Asset>&& overlayResponse)
-                                {
-                                    return overlayResponse.value.has_value() ? int64_t(-1) : int64_t(item->m_imageryIonAssetId);
-                                });
-                    }
-                    else
-                    {
-                        return connection->getAsyncSystem().createResolvedFuture<int64_t>(-1);
-                    }
-                })
-            .thenInMainThread(
-                [this, item](int64_t missingAsset)
-                {
-                    if (missingAsset != -1)
-                    {
-                        return;
-                    }
-
-                    auto selectedEntities = GetSelectedEntities();
-                    for (const AZ::EntityId& entityId : selectedEntities)
-                    {
-                        AzToolsFramework::ScopedUndoBatch undoBatch("Add Ion Asset");
-
-                        // create new entity and rename it to tileset name
-                        AZ::EntityId tilesetEntityId{};
-                        ToolsApplicationRequestBus::BroadcastResult(
-                            tilesetEntityId, &ToolsApplicationRequestBus::Events::CreateNewEntity, entityId);
-
-                        AZ::Entity* tilesetEntity = nullptr;
-                        AZ::ComponentApplicationBus::BroadcastResult(
-                            tilesetEntity, &AZ::ComponentApplicationRequests::FindEntity, tilesetEntityId);
-                        tilesetEntity->SetName(item->m_tilesetName);
-
-                        // Add 3D Tiles component to the new entity
-                        EditorComponentAPIRequests::AddComponentsOutcome tilesetComponentOutcomes;
-                        EditorComponentAPIBus::BroadcastResult(
-                            tilesetComponentOutcomes, &EditorComponentAPIBus::Events::AddComponentOfType, tilesetEntityId,
-                            azrtti_typeid<CesiumTilesetEditorComponent>());
-                        if (tilesetComponentOutcomes.IsSuccess())
-                        {
-                            TilesetCesiumIonSource ionSource;
-                            ionSource.m_cesiumIonAssetId = item->m_tilesetIonAssetId;
-                            ionSource.m_cesiumIonAssetToken = CesiumIonSessionInterface::Get()->GetAssetAccessToken().token.c_str();
-
-                            TilesetSource tilesetSource;
-                            tilesetSource.SetCesiumIon(ionSource);
-
-                            EditorComponentAPIRequests::PropertyOutcome propertyOutcome;
-                            EditorComponentAPIBus::BroadcastResult(
-                                propertyOutcome, &EditorComponentAPIBus::Events::SetComponentProperty,
-                                tilesetComponentOutcomes.GetValue().front(), AZStd::string_view("Source"), AZStd::any(tilesetSource));
-                        }
-
-                        // Add raster overlay to the new entity if there are any
-                        if (item->m_imageryIonAssetId >= 0)
-                        {
-                            EditorComponentAPIRequests::AddComponentsOutcome rasterOverlayComponentOutcomes;
-                            EditorComponentAPIBus::BroadcastResult(
-                                rasterOverlayComponentOutcomes, &EditorComponentAPIBus::Events::AddComponentOfType, tilesetEntityId,
-                                azrtti_typeid<CesiumIonRasterOverlayEditorComponent>());
-
-                            if (rasterOverlayComponentOutcomes.IsSuccess())
-                            {
-                                CesiumIonRasterOverlaySource rasterOverlaySource;
-                                rasterOverlaySource.m_ionAssetId = item->m_imageryIonAssetId;
-                                rasterOverlaySource.m_ionToken = CesiumIonSessionInterface::Get()->GetAssetAccessToken().token.c_str();
-
-                                EditorComponentAPIRequests::PropertyOutcome propertyOutcome;
-                                EditorComponentAPIBus::BroadcastResult(
-                                    propertyOutcome, &EditorComponentAPIBus::Events::SetComponentProperty,
-                                    rasterOverlayComponentOutcomes.GetValue().front(), AZStd::string_view("Source"),
-                                    AZStd::any(rasterOverlaySource));
-                            }
-                        }
-
-                        PropertyEditorGUIMessages::Bus::Broadcast(
-                            &PropertyEditorGUIMessages::RequestRefresh, PropertyModificationRefreshLevel::Refresh_AttributesAndValues);
-                        undoBatch.MarkEntityDirty(tilesetEntityId);
-                    }
-                });
+        CesiumIonSessionInterface::Get()->AddTilesetToLevel(item);
     }
 
     void CesiumIonPanelWidget::AddBlankTileset()
     {
         using namespace AzToolsFramework; 
 
-        auto selectedEntities = GetSelectedEntities();
+        auto selectedEntities = CesiumIonSessionInterface::Get()->GetSelectedEntities();
         for (const AZ::EntityId& entityId : selectedEntities)
         {
             AZ::EntityId tilesetEntityId{};
@@ -470,7 +350,7 @@ namespace Cesium
     {
         using namespace AzToolsFramework; 
 
-        auto selectedEntities = GetSelectedEntities();
+        auto selectedEntities = CesiumIonSessionInterface::Get()->GetSelectedEntities();
         for (const AZ::EntityId& entityId : selectedEntities)
         {
             AZ::EntityId tilesetEntityId{};
@@ -487,7 +367,7 @@ namespace Cesium
     {
         using namespace AzToolsFramework; 
 
-        auto selectedEntities = GetSelectedEntities();
+        auto selectedEntities = CesiumIonSessionInterface::Get()->GetSelectedEntities();
         for (const AZ::EntityId& entityId : selectedEntities)
         {
             AZ::EntityId tilesetEntityId{};

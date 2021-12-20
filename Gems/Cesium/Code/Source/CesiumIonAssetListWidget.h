@@ -3,6 +3,7 @@
 #if !defined(Q_MOC_RUN)
 
 #include "CesiumIonSession.h"
+#include <AzCore/std/string/string.h>
 #include <CesiumIonClient/Assets.h>
 #include <QWidget>
 #include <QAbstractTableModel>
@@ -41,6 +42,8 @@ namespace Cesium
 
         const CesiumIonClient::Asset* GetAsset(int row);
 
+        const CesiumIonClient::Asset* GetAssetById(int assetId);
+
     signals:
         void assetUpdated();
 
@@ -65,6 +68,9 @@ namespace Cesium
 
         int GetCurrentAssetId() const;
 
+    private slots:
+        void AddTilesetToLevel();
+
     private:
         QLabel* CreateLabel();
 
@@ -76,6 +82,7 @@ namespace Cesium
         QLabel* m_assetAttribution{ nullptr };
         QPushButton* m_addToLevelButton{ nullptr };
         int m_currentAssetId{ -1 };
+        AZStd::string m_currentAssetName;
     };
 
     class CesiumIonAssetListWidget : public QWidget
