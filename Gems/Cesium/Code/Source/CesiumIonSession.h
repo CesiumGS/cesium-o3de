@@ -35,21 +35,6 @@ namespace Cesium
 
         ~CesiumIonSession() noexcept;
 
-        const std::shared_ptr<CesiumAsync::IAssetAccessor>& GetAssetAccessor() const
-        {
-            return this->m_assetAccessor;
-        }
-
-        const CesiumAsync::AsyncSystem& GetAsyncSystem() const
-        {
-            return this->m_asyncSystem;
-        }
-
-        CesiumAsync::AsyncSystem& GetAsyncSystem()
-        {
-            return this->m_asyncSystem;
-        }
-
         bool IsConnected() const
         {
             return this->m_connection.has_value();

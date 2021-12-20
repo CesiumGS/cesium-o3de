@@ -6,8 +6,10 @@
 #include <CesiumIonClient/Assets.h>
 #include <QWidget>
 #include <QAbstractTableModel>
-#include <QVariant>
-#include <QLabel>
+
+class QVariant;
+class QLabel;
+class QPushButton;
 
 #endif
 
@@ -72,6 +74,7 @@ namespace Cesium
         QLabel* m_assetDescription{ nullptr };
         QLabel* m_assetAttributionHeader{ nullptr };
         QLabel* m_assetAttribution{ nullptr };
+        QPushButton* m_addToLevelButton{ nullptr };
         int m_currentAssetId{ -1 };
     };
 

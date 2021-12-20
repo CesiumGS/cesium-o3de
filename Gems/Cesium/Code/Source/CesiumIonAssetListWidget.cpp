@@ -5,6 +5,9 @@
 #include <QSplitter>
 #include <QMargins>
 #include <QScrollArea>
+#include <QVariant>
+#include <QPushButton>
+#include <QLabel>
 
 namespace Cesium
 {
@@ -150,6 +153,25 @@ namespace Cesium
         m_assetId = CreateLabel();
         scrollLayout->addWidget(m_assetId, 1);
 
+        // add asset add button
+        QHBoxLayout* addToLevelLayout = new QHBoxLayout(this);
+        addToLevelLayout->addStretch(1);
+        m_addToLevelButton = new QPushButton(this);
+        m_addToLevelButton->setText("Add to Level");
+        m_addToLevelButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::MinimumExpanding);
+        m_addToLevelButton->setFixedWidth(200);
+        m_addToLevelButton->setMinimumHeight(30);
+        m_addToLevelButton->setVisible(false);
+        QObject::connect(
+            m_addToLevelButton, &QPushButton::clicked, this,
+            []()
+            {
+                AZ_Printf("Cesium", "What'sup");
+            });
+        addToLevelLayout->addWidget(m_addToLevelButton, 5);
+        addToLevelLayout->addStretch(1);
+        scrollLayout->addLayout(addToLevelLayout);
+
         // description
         m_assetDescriptionHeader = CreateLabel();
         m_assetDescriptionHeader->setText("Description:");
@@ -183,6 +205,7 @@ namespace Cesium
         {
             m_assetName->setVisible(false);
             m_assetId->setVisible(false);
+            m_addToLevelButton->setVisible(false);
             m_assetDescriptionHeader->setVisible(false);
             m_assetDescription->setVisible(false);
             m_assetAttributionHeader->setVisible(false);
@@ -199,6 +222,8 @@ namespace Cesium
         QString assetId = "(ID: " + QString::number(asset->id) + ")";
         m_assetId->setText(assetId);
         m_assetId->setVisible(true);
+
+        m_addToLevelButton->setVisible(true);
 
         // set description
         m_assetDescriptionHeader->setVisible(true);
