@@ -554,13 +554,44 @@ namespace Cesium
                         {
                             AzToolsFramework::ScopedUndoBatch undoBatch("Drape Ion Imagery");
 
-                            EditorComponentAPIRequests::AddComponentsOutcome rasterOverlayComponentOutcomes;
+                            bool hasTilesetComponent = false;
                             EditorComponentAPIBus::BroadcastResult(
-                                rasterOverlayComponentOutcomes, &EditorComponentAPIBus::Events::AddComponentOfType, tilesetEntityId,
-                                azrtti_typeid<CesiumIonRasterOverlayEditorComponent>());
+                                hasTilesetComponent, &EditorComponentAPIBus::Events::HasComponentOfType, tilesetEntityId,
+                                azrtti_typeid<CesiumTilesetEditorComponent>());
 
-                            if (rasterOverlayComponentOutcomes.IsSuccess())
+                            AZStd::vector<AZ::Uuid> componentsToAdd;
+                            componentsToAdd.reserve(2);
+                            if (!hasTilesetComponent)
                             {
+                                componentsToAdd.emplace_back(azrtti_typeid<CesiumTilesetEditorComponent>());
+                            }
+                            componentsToAdd.emplace_back(azrtti_typeid<CesiumIonRasterOverlayEditorComponent>());
+
+                            EditorComponentAPIRequests::AddComponentsOutcome componentOutcomes;
+                            EditorComponentAPIBus::BroadcastResult(
+                                componentOutcomes, &EditorComponentAPIBus::Events::AddComponentsOfType, tilesetEntityId,
+                                componentsToAdd);
+
+                            if (componentOutcomes.IsSuccess())
+                            {
+                                // add CWT if there is no tileset component in the entity
+                                if (!hasTilesetComponent)
+                                {
+                                    TilesetCesiumIonSource ionSource;
+                                    ionSource.m_cesiumIonAssetId = 1;
+                                    ionSource.m_cesiumIonAssetToken = CesiumIonSessionInterface::Get()->GetAssetAccessToken().token.c_str();
+
+                                    TilesetSource tilesetSource;
+                                    tilesetSource.SetCesiumIon(ionSource);
+
+                                    EditorComponentAPIRequests::PropertyOutcome propertyOutcome;
+                                    EditorComponentAPIBus::BroadcastResult(
+                                        propertyOutcome, &EditorComponentAPIBus::Events::SetComponentProperty,
+                                        componentOutcomes.GetValue().front(), AZStd::string_view("Source"),
+                                        AZStd::any(tilesetSource));
+                                }
+
+                                // add raster overlay
                                 CesiumIonRasterOverlaySource rasterOverlaySource;
                                 rasterOverlaySource.m_ionAssetId = ionImageryAssetId;
                                 rasterOverlaySource.m_ionToken = CesiumIonSessionInterface::Get()->GetAssetAccessToken().token.c_str();
@@ -568,7 +599,7 @@ namespace Cesium
                                 EditorComponentAPIRequests::PropertyOutcome propertyOutcome;
                                 EditorComponentAPIBus::BroadcastResult(
                                     propertyOutcome, &EditorComponentAPIBus::Events::SetComponentProperty,
-                                    rasterOverlayComponentOutcomes.GetValue().front(), AZStd::string_view("Source"),
+                                    componentOutcomes.GetValue().back(), AZStd::string_view("Source"),
                                     AZStd::any(rasterOverlaySource));
                             }
 
