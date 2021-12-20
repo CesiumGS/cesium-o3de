@@ -72,7 +72,7 @@ namespace Cesium
     private slots:
         void AddTilesetToLevel();
 
-        void DrapImageryOverTileset();
+        void DrapeImageryOverTileset();
 
     private:
         void ResetAll();

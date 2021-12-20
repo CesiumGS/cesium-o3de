@@ -154,18 +154,33 @@ namespace Cesium
 
     AZ::u32 CesiumTilesetEditorComponent::OnTilesetSourceChanged()
     {
+        if (!m_tilesetComponent)
+        {
+            return AZ::Edit::PropertyRefreshLevels::None;
+        }
+
         m_tilesetComponent->LoadTileset(m_tilesetSource);
         return AZ::Edit::PropertyRefreshLevels::None;
     }
 
     AZ::u32 CesiumTilesetEditorComponent::OnTilesetConfigurationChanged()
     {
+        if (!m_tilesetComponent)
+        {
+            return AZ::Edit::PropertyRefreshLevels::None;
+        }
+
         m_tilesetComponent->SetConfiguration(m_tilesetConfiguration);
         return AZ::Edit::PropertyRefreshLevels::None;
     }
 
     AZ::u32 CesiumTilesetEditorComponent::OnCoordinateTransformEntityChanged()
     {
+        if (!m_tilesetComponent)
+        {
+            return AZ::Edit::PropertyRefreshLevels::None;
+        }
+
         m_tilesetComponent->SetCoordinateTransform(m_coordinateTransformEntityId);
         return AZ::Edit::PropertyRefreshLevels::None;
     }

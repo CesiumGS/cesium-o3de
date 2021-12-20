@@ -173,12 +173,12 @@ namespace Cesium
 
         // add imagery add button
         m_drapOnTilesetButton = CreateButton(scrollLayout);
-        m_drapOnTilesetButton->setText("Drapped over Tileset");
-        QObject::connect(m_drapOnTilesetButton, &QPushButton::clicked, this, &CesiumIonAssetDetailWidget::DrapImageryOverTileset);
+        m_drapOnTilesetButton->setText("Drape over Tileset");
+        QObject::connect(m_drapOnTilesetButton, &QPushButton::clicked, this, &CesiumIonAssetDetailWidget::DrapeImageryOverTileset);
 
         // add asset add button
         m_addToLevelButton = CreateButton(scrollLayout);
-        m_addToLevelButton->setText("Add to Level");
+        m_addToLevelButton->setText("Add to Entity");
         QObject::connect(m_addToLevelButton, &QPushButton::clicked, this, &CesiumIonAssetDetailWidget::AddTilesetToLevel);
 
         // description
@@ -292,7 +292,7 @@ namespace Cesium
         return m_currentAssetId;
     }
 
-    void CesiumIonAssetDetailWidget::DrapImageryOverTileset()
+    void CesiumIonAssetDetailWidget::DrapeImageryOverTileset()
     {
         if (m_currentAssetId == -1)
         {

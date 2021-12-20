@@ -473,15 +473,11 @@ namespace Cesium
                     }
 
                     auto selectedEntities = GetSelectedEntities();
-                    for (const AZ::EntityId& entityId : selectedEntities)
+                    for (const AZ::EntityId& tilesetEntityId : selectedEntities)
                     {
                         AzToolsFramework::ScopedUndoBatch undoBatch("Add Ion Asset");
 
                         // create new entity and rename it to tileset name
-                        AZ::EntityId tilesetEntityId{};
-                        ToolsApplicationRequestBus::BroadcastResult(
-                            tilesetEntityId, &ToolsApplicationRequestBus::Events::CreateNewEntity, entityId);
-
                         AZ::Entity* tilesetEntity = nullptr;
                         AZ::ComponentApplicationBus::BroadcastResult(
                             tilesetEntity, &AZ::ComponentApplicationRequests::FindEntity, tilesetEntityId);
@@ -554,13 +550,13 @@ namespace Cesium
                     if (overlayResponse.value.has_value())
                     {
                         auto selectedEntities = GetSelectedEntities();
-                        for (const AZ::EntityId& entityId : selectedEntities)
+                        for (const AZ::EntityId& tilesetEntityId : selectedEntities)
                         {
                             AzToolsFramework::ScopedUndoBatch undoBatch("Drape Ion Imagery");
 
                             EditorComponentAPIRequests::AddComponentsOutcome rasterOverlayComponentOutcomes;
                             EditorComponentAPIBus::BroadcastResult(
-                                rasterOverlayComponentOutcomes, &EditorComponentAPIBus::Events::AddComponentOfType, entityId,
+                                rasterOverlayComponentOutcomes, &EditorComponentAPIBus::Events::AddComponentOfType, tilesetEntityId,
                                 azrtti_typeid<CesiumIonRasterOverlayEditorComponent>());
 
                             if (rasterOverlayComponentOutcomes.IsSuccess())
@@ -578,7 +574,7 @@ namespace Cesium
 
                             PropertyEditorGUIMessages::Bus::Broadcast(
                                 &PropertyEditorGUIMessages::RequestRefresh, PropertyModificationRefreshLevel::Refresh_AttributesAndValues);
-                            undoBatch.MarkEntityDirty(entityId);
+                            undoBatch.MarkEntityDirty(tilesetEntityId);
                         }
                     }
                 });

@@ -156,6 +156,11 @@ namespace Cesium
 
     void GeoReferenceTransformEditorComponent::OnOriginAsCartesianChanged()
     {
+        if (!m_georeferenceComponent)
+        {
+            return;
+        }
+
         auto maybeCartographic = GeospatialHelper::ECEFCartesianToCartographic(m_originAsCartesian);
         if (maybeCartographic)
         {
@@ -173,6 +178,11 @@ namespace Cesium
 
     void GeoReferenceTransformEditorComponent::OnOriginAsCartographicChanged()
     {
+        if (!m_georeferenceComponent)
+        {
+            return;
+        }
+
         Cartographic radCartographic{ glm::radians(m_originAsCartographic.m_longitude), glm::radians(m_originAsCartographic.m_latitude),
                                       m_originAsCartographic.m_height };
         m_originAsCartesian = GeospatialHelper::CartographicToECEFCartesian(radCartographic);

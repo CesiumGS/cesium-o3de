@@ -140,15 +140,15 @@ namespace Cesium
         vlayout->addLayout(itemLayout);
 
         IconButton* addBlankTileset = CreateQuickAddMenuItem(
-            itemLayout, "Blank 3D Tiles Entity",
+            itemLayout, "Blank 3D Tiles Component",
             "An empty tileset that can be configured to show Cesium ion assets or tilesets from other sources.", row++);
         QObject::connect(addBlankTileset, &IconButton::pressed, this, &CesiumIonPanelWidget::AddBlankTileset);
 
-        IconButton* addGeoreference = CreateQuickAddMenuItem(itemLayout, "Georeference Entity", "", row++);
+        IconButton* addGeoreference = CreateQuickAddMenuItem(itemLayout, "Georeference Component", "", row++);
         QObject::connect(addGeoreference, &IconButton::pressed, this, &CesiumIonPanelWidget::AddGeoreference);
 
         IconButton* addGeoreferenceCamera = CreateQuickAddMenuItem(
-            itemLayout, "Georeference Camera Entity", "A camera that can be used to intuitively navigate in a geospatial environment.",
+            itemLayout, "Georeference Camera Controller Component", "A camera that can be used to intuitively navigate in a geospatial environment.",
             row++);
         QObject::connect(addGeoreferenceCamera, &IconButton::pressed, this, &CesiumIonPanelWidget::AddGeoreferenceCamera);
 
@@ -336,12 +336,9 @@ namespace Cesium
         auto selectedEntities = CesiumIonSessionInterface::Get()->GetSelectedEntities();
         for (const AZ::EntityId& entityId : selectedEntities)
         {
-            AZ::EntityId tilesetEntityId{};
-            ToolsApplicationRequestBus::BroadcastResult(tilesetEntityId, &ToolsApplicationRequestBus::Events::CreateNewEntity, entityId);
-
             EditorComponentAPIRequests::AddComponentsOutcome outcomes;
             EditorComponentAPIBus::BroadcastResult(
-                outcomes, &EditorComponentAPIBus::Events::AddComponentOfType, tilesetEntityId,
+                outcomes, &EditorComponentAPIBus::Events::AddComponentOfType, entityId,
                 azrtti_typeid<CesiumTilesetEditorComponent>());
         }
     }
@@ -353,12 +350,9 @@ namespace Cesium
         auto selectedEntities = CesiumIonSessionInterface::Get()->GetSelectedEntities();
         for (const AZ::EntityId& entityId : selectedEntities)
         {
-            AZ::EntityId tilesetEntityId{};
-            ToolsApplicationRequestBus::BroadcastResult(tilesetEntityId, &ToolsApplicationRequestBus::Events::CreateNewEntity, entityId);
-
             EditorComponentAPIRequests::AddComponentsOutcome outcomes;
             EditorComponentAPIBus::BroadcastResult(
-                outcomes, &EditorComponentAPIBus::Events::AddComponentOfType, tilesetEntityId,
+                outcomes, &EditorComponentAPIBus::Events::AddComponentOfType, entityId,
                 azrtti_typeid<GeoReferenceTransformEditorComponent>());
         }
     }
@@ -370,13 +364,10 @@ namespace Cesium
         auto selectedEntities = CesiumIonSessionInterface::Get()->GetSelectedEntities();
         for (const AZ::EntityId& entityId : selectedEntities)
         {
-            AZ::EntityId tilesetEntityId{};
-            ToolsApplicationRequestBus::BroadcastResult(tilesetEntityId, &ToolsApplicationRequestBus::Events::CreateNewEntity, entityId);
-
-            AZStd::vector<AZ::Uuid> componentsToAdd{ azrtti_typeid<GeoReferenceTransformEditorComponent>(), EditorCameraComponentTypeId };
+            AZStd::vector<AZ::Uuid> componentsToAdd{ azrtti_typeid<GeoReferenceCameraControllerEditor>(), EditorCameraComponentTypeId };
             EditorComponentAPIRequests::AddComponentsOutcome outcomes;
             EditorComponentAPIBus::BroadcastResult(
-                outcomes, &EditorComponentAPIBus::Events::AddComponentsOfType, tilesetEntityId, componentsToAdd);
+                outcomes, &EditorComponentAPIBus::Events::AddComponentsOfType, entityId, componentsToAdd);
         }
     }
 } // namespace Cesium
