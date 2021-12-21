@@ -2,6 +2,7 @@
 #include "CesiumEditorSystemComponent.h"
 #include "CesiumIonPanelWidget.h"
 #include "CesiumIonAssetListWidget.h"
+#include "CesiumIonSettingsWidget.h"
 #include "MathDataWidget.h"
 #include <AzToolsFramework/API/ViewPaneOptions.h>
 #include <AzToolsFramework/API/ToolsApplicationAPI.h>
@@ -69,6 +70,10 @@ namespace Cesium
         AzToolsFramework::ViewPaneOptions cesiumIonAssetListOptions;
         cesiumIonAssetListOptions.showOnToolsToolbar = false;
         AzToolsFramework::RegisterViewPane<CesiumIonAssetListWidget>(CesiumIonAssetListWidget::WIDGET_NAME, "Cesium", cesiumIonAssetListOptions);
+
+        AzToolsFramework::ViewPaneOptions cesiumIonSettingsOptions;
+        cesiumIonSettingsOptions.showOnToolsToolbar = false;
+        AzToolsFramework::RegisterViewPane<CesiumIonSettingsWidget>(CesiumIonSettingsWidget::WIDGET_NAME, "Cesium", cesiumIonSettingsOptions);
     }
 
 } // namespace Cesium

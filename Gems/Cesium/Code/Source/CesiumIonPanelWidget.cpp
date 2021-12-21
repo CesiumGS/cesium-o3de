@@ -1,5 +1,6 @@
 #include "CesiumIonPanelWidget.h"
 #include "CesiumIonAssetListWidget.h"
+#include "CesiumIonSettingsWidget.h"
 #include "CesiumTilesetEditorComponent.h"
 #include "GeoReferenceTransformEditorComponent.h"
 #include "GeoReferenceCameraFlyControllerEditor.h"
@@ -123,6 +124,7 @@ namespace Cesium
             settingBtn, &IconButton::pressed, this,
             []()
             {
+                AzToolsFramework::OpenViewPane(CesiumIonSettingsWidget::WIDGET_NAME);
             });
 
         auto signoutBtn = AddToolButton(
