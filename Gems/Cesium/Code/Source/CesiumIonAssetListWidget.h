@@ -101,6 +101,8 @@ namespace Cesium
     public:
         CesiumIonAssetListWidget(QWidget* parent);
 
+        static constexpr const char* const WIDGET_NAME = "Cesium Ion Assets";
+
     private slots:
         void AssetDoubleClicked(const QModelIndex &index);
 

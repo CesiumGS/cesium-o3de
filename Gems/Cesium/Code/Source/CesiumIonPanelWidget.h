@@ -38,6 +38,8 @@ namespace Cesium
     public:
         CesiumIonPanelWidget(QWidget* parent);
 
+        static constexpr const char* const WIDGET_NAME = "Cesium Ion";
+
     private:
         QWidget* CreatePanelMenu();
 

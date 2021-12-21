@@ -4,6 +4,7 @@
 #include "CesiumIonAssetListWidget.h"
 #include "MathDataWidget.h"
 #include <AzToolsFramework/API/ViewPaneOptions.h>
+#include <AzToolsFramework/API/ToolsApplicationAPI.h>
 #include <AzCore/Serialization/SerializeContext.h>
 
 namespace Cesium
@@ -63,11 +64,11 @@ namespace Cesium
         AzToolsFramework::ViewPaneOptions cesiumIonPanelOptions;
         cesiumIonPanelOptions.showOnToolsToolbar = true;
         cesiumIonPanelOptions.toolbarIcon = ":/Cesium/Cesium_logo_only.svg";
-        AzToolsFramework::RegisterViewPane<CesiumIonPanelWidget>("Cesium Ion", "Cesium", cesiumIonPanelOptions);
+        AzToolsFramework::RegisterViewPane<CesiumIonPanelWidget>(CesiumIonPanelWidget::WIDGET_NAME, "Cesium", cesiumIonPanelOptions);
 
         AzToolsFramework::ViewPaneOptions cesiumIonAssetListOptions;
         cesiumIonAssetListOptions.showOnToolsToolbar = false;
-        AzToolsFramework::RegisterViewPane<CesiumIonAssetListWidget>("Cesium Ion Assets", "Cesium", cesiumIonAssetListOptions);
+        AzToolsFramework::RegisterViewPane<CesiumIonAssetListWidget>(CesiumIonAssetListWidget::WIDGET_NAME, "Cesium", cesiumIonAssetListOptions);
     }
 
 } // namespace Cesium

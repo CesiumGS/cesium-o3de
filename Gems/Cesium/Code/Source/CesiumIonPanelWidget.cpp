@@ -1,8 +1,10 @@
 #include "CesiumIonPanelWidget.h"
+#include "CesiumIonAssetListWidget.h"
 #include "CesiumTilesetEditorComponent.h"
 #include "GeoReferenceTransformEditorComponent.h"
 #include "GeoReferenceCameraFlyControllerEditor.h"
 #include <AzToolsFramework/Component/EditorComponentAPIBus.h>
+#include <AzToolsFramework/API/ToolsApplicationAPI.h>
 #include <AzFramework/Components/CameraBus.h>
 #include <QVBoxLayout>
 #include <QAction>
@@ -84,6 +86,7 @@ namespace Cesium
             addBtn, &IconButton::pressed, this,
             []()
             {
+                AzToolsFramework::OpenViewPane(CesiumIonAssetListWidget::WIDGET_NAME);
             });
 
         auto uploadBtn = AddToolButton(
