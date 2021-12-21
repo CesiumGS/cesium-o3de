@@ -117,6 +117,14 @@ namespace Cesium
                 QDesktopServices::openUrl(QUrl("https://community.cesium.com/"));
             });
 
+        auto settingBtn =
+            AddToolButton(menuGridLayout, QIcon(":/Cesium/cogs-solid.svg"), QIcon(":/Cesium/cogs-solid-active.svg"), "Settings", col++);
+        QObject::connect(
+            settingBtn, &IconButton::pressed, this,
+            []()
+            {
+            });
+
         auto signoutBtn = AddToolButton(
             menuGridLayout, QIcon(":/Cesium/sign-out-alt-solid.svg"), QIcon(":/Cesium/sign-out-alt-solid-active.svg"), "Sign Out", col++);
         QObject::connect(
