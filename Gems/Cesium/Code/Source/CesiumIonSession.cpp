@@ -15,10 +15,7 @@ namespace Cesium
     {
         if (AZ::SerializeContext* serialize = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serialize->Class<CesiumIonSession, AZ::Component>()
-                ->Version(0)
-                ->Field("ionAccessToken", &CesiumIonSession::m_ionAccessToken)
-                ;
+            serialize->Class<CesiumIonSession, AZ::Component>()->Version(0)->Field("ionAccessToken", &CesiumIonSession::m_ionAccessToken);
         }
     }
 
@@ -111,6 +108,61 @@ namespace Cesium
         }
     }
 
+    bool CesiumIonSession::IsConnected() const
+    {
+        return this->m_connection.has_value();
+    }
+
+    bool CesiumIonSession::IsConnecting() const
+    {
+        return this->m_isConnecting;
+    }
+
+    bool CesiumIonSession::IsResuming() const
+    {
+        return this->m_isResuming;
+    }
+
+    bool CesiumIonSession::IsProfileLoaded() const
+    {
+        return this->m_profile.has_value();
+    }
+
+    bool CesiumIonSession::IsLoadingProfile() const
+    {
+        return this->m_isLoadingProfile;
+    }
+
+    bool CesiumIonSession::IsAssetListLoaded() const
+    {
+        return this->m_assets.has_value();
+    }
+
+    bool CesiumIonSession::IsLoadingAssetList() const
+    {
+        return this->m_isLoadingAssets;
+    }
+
+    bool CesiumIonSession::IsTokenListLoaded() const
+    {
+        return this->m_tokens.has_value();
+    }
+
+    bool CesiumIonSession::IsLoadingTokenList() const
+    {
+        return this->m_isLoadingTokens;
+    }
+
+    bool CesiumIonSession::IsAssetAccessTokenLoaded() const
+    {
+        return this->m_assetAccessToken.has_value();
+    }
+
+    bool CesiumIonSession::IsLoadingAssetAccessToken() const
+    {
+        return this->m_isLoadingAssetAccessToken;
+    }
+
     void CesiumIonSession::Connect()
     {
         if (this->IsConnecting() || this->IsConnected() || this->IsResuming())
@@ -163,8 +215,7 @@ namespace Cesium
 
         this->m_isResuming = true;
 
-        this->m_connection = CesiumIonClient::Connection(
-            this->m_asyncSystem, this->m_assetAccessor, m_ionAccessToken.c_str());
+        this->m_connection = CesiumIonClient::Connection(this->m_asyncSystem, this->m_assetAccessor, m_ionAccessToken.c_str());
 
         // Verify that the connection actually works.
         this->m_connection.value()
@@ -407,9 +458,14 @@ namespace Cesium
         }
     }
 
+    const std::string& CesiumIonSession::GetAuthorizeUrl() const
+    {
+        return this->m_authorizeUrl;
+    }
+
     AzToolsFramework::EntityIdList CesiumIonSession::GetSelectedEntities() const
     {
-        using namespace AzToolsFramework; 
+        using namespace AzToolsFramework;
         EntityIdList selectedEntities;
         ToolsApplicationRequestBus::BroadcastResult(
             selectedEntities, &AzToolsFramework::ToolsApplicationRequestBus::Events::GetSelectedEntities);
@@ -569,8 +625,7 @@ namespace Cesium
 
                             EditorComponentAPIRequests::AddComponentsOutcome componentOutcomes;
                             EditorComponentAPIBus::BroadcastResult(
-                                componentOutcomes, &EditorComponentAPIBus::Events::AddComponentsOfType, tilesetEntityId,
-                                componentsToAdd);
+                                componentOutcomes, &EditorComponentAPIBus::Events::AddComponentsOfType, tilesetEntityId, componentsToAdd);
 
                             if (componentOutcomes.IsSuccess())
                             {
@@ -587,8 +642,7 @@ namespace Cesium
                                     EditorComponentAPIRequests::PropertyOutcome propertyOutcome;
                                     EditorComponentAPIBus::BroadcastResult(
                                         propertyOutcome, &EditorComponentAPIBus::Events::SetComponentProperty,
-                                        componentOutcomes.GetValue().front(), AZStd::string_view("Source"),
-                                        AZStd::any(tilesetSource));
+                                        componentOutcomes.GetValue().front(), AZStd::string_view("Source"), AZStd::any(tilesetSource));
                                 }
 
                                 // add raster overlay
@@ -599,8 +653,7 @@ namespace Cesium
                                 EditorComponentAPIRequests::PropertyOutcome propertyOutcome;
                                 EditorComponentAPIBus::BroadcastResult(
                                     propertyOutcome, &EditorComponentAPIBus::Events::SetComponentProperty,
-                                    componentOutcomes.GetValue().back(), AZStd::string_view("Source"),
-                                    AZStd::any(rasterOverlaySource));
+                                    componentOutcomes.GetValue().back(), AZStd::string_view("Source"), AZStd::any(rasterOverlaySource));
                             }
 
                             PropertyEditorGUIMessages::Bus::Broadcast(

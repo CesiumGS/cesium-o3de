@@ -44,60 +44,27 @@ namespace Cesium
 
         ~CesiumIonSession() noexcept;
 
-        bool IsConnected() const
-        {
-            return this->m_connection.has_value();
-        }
+        bool IsConnected() const;
 
-        bool IsConnecting() const
-        {
-            return this->m_isConnecting;
-        }
+        bool IsConnecting() const;
 
-        bool IsResuming() const
-        {
-            return this->m_isResuming;
-        }
+        bool IsResuming() const;
 
-        bool IsProfileLoaded() const
-        {
-            return this->m_profile.has_value();
-        }
+        bool IsProfileLoaded() const;
 
-        bool IsLoadingProfile() const
-        {
-            return this->m_isLoadingProfile;
-        }
+        bool IsLoadingProfile() const;
 
-        bool IsAssetListLoaded() const
-        {
-            return this->m_assets.has_value();
-        }
+        bool IsAssetListLoaded() const;
 
-        bool IsLoadingAssetList() const
-        {
-            return this->m_isLoadingAssets;
-        }
+        bool IsLoadingAssetList() const;
 
-        bool IsTokenListLoaded() const
-        {
-            return this->m_tokens.has_value();
-        }
+        bool IsTokenListLoaded() const;
 
-        bool IsLoadingTokenList() const
-        {
-            return this->m_isLoadingTokens;
-        }
+        bool IsLoadingTokenList() const;
 
-        bool IsAssetAccessTokenLoaded() const
-        {
-            return this->m_assetAccessToken.has_value();
-        }
+        bool IsAssetAccessTokenLoaded() const;
 
-        bool IsLoadingAssetAccessToken() const
-        {
-            return this->m_isLoadingAssetAccessToken;
-        }
+        bool IsLoadingAssetAccessToken() const;
 
         void Connect();
 
@@ -123,10 +90,7 @@ namespace Cesium
 
         const CesiumIonClient::Token& GetAssetAccessToken();
 
-        const std::string& GetAuthorizeUrl() const
-        {
-            return this->m_authorizeUrl;
-        }
+        const std::string& GetAuthorizeUrl() const;
 
         AzToolsFramework::EntityIdList GetSelectedEntities() const;
 
