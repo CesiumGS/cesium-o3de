@@ -1,6 +1,5 @@
 #include "CesiumIonPanelWidget.h"
 #include "CesiumIonAssetListWidget.h"
-#include "CesiumIonSettingsWidget.h"
 #include "CesiumTilesetEditorComponent.h"
 #include "GeoReferenceTransformEditorComponent.h"
 #include "GeoReferenceCameraFlyControllerEditor.h"
@@ -116,15 +115,6 @@ namespace Cesium
             []()
             {
                 QDesktopServices::openUrl(QUrl("https://community.cesium.com/"));
-            });
-
-        auto settingBtn =
-            AddToolButton(menuGridLayout, QIcon(":/Cesium/cogs-solid.svg"), QIcon(":/Cesium/cogs-solid-active.svg"), "Settings", col++);
-        QObject::connect(
-            settingBtn, &IconButton::pressed, this,
-            []()
-            {
-                AzToolsFramework::OpenViewPane(CesiumIonSettingsWidget::WIDGET_NAME);
             });
 
         auto signoutBtn = AddToolButton(

@@ -15,9 +15,6 @@
         <file alias="plus-solid.svg">../../Assets/Editor/Icons/FontAwesome/plus-solid.svg</file>
         <file alias="plus-solid-active.svg">../../Assets/Editor/Icons/FontAwesome/plus-solid-active.svg</file>
 
-        <file alias="cogs-solid.svg">../../Assets/Editor/Icons/FontAwesome/cogs-solid.svg</file>
-        <file alias="cogs-solid-active.svg">../../Assets/Editor/Icons/FontAwesome/cogs-solid-active.svg</file>
-
         <file alias="sign-out-alt-solid.svg">../../Assets/Editor/Icons/FontAwesome/sign-out-alt-solid.svg</file>
         <file alias="sign-out-alt-solid-active.svg">../../Assets/Editor/Icons/FontAwesome/sign-out-alt-solid-active.svg</file>
 
