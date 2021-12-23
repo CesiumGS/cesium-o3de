@@ -5,6 +5,10 @@
 #include "TaskProcessor.h"
 #include "LocalFileManager.h"
 #include "HttpManager.h"
+#include <Cesium/CesiumTilesetComponentBus.h>
+#include <Cesium/OriginShiftAwareComponentBus.h>
+#include <Cesium/CoordinateTransformComponentBus.h>
+#include <Cesium/GeoReferenceCameraFlyControllerBus.h>
 #include <Cesium/BoundingRegion.h>
 #include <Cesium/BoundingSphere.h>
 #include <Cesium/OrientedBoundingBox.h>
@@ -28,6 +32,17 @@ namespace Cesium
         OrientedBoundingBox::Reflect(context);
         Cartographic::Reflect(context);
         GeospatialHelper::Reflect(context);
+
+        TilesetConfiguration::Reflect(context);
+        TilesetSource::Reflect(context);
+        CesiumTilesetRequest::Reflect(context);
+
+        OriginShiftAwareRequest::Reflect(context);
+
+        CoordinateTransformConfiguration::Reflect(context);
+        CoordinateTransformRequest::Reflect(context);
+
+        GeoReferenceCameraFlyControllerRequest::Reflect(context);
 
         if (AZ::SerializeContext* serialize = azrtti_cast<AZ::SerializeContext*>(context))
         {

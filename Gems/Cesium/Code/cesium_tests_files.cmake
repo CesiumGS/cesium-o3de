@@ -26,6 +26,7 @@ set(FILES
     Tests/GltfModelComponentBusTest.cpp
     Tests/CesiumTilesetComponentBusTest.cpp
     Tests/CoordinateTransformComponentBusTest.cpp
+    Tests/CesiumTilesetComponentBusTest.cpp
     Tests/GeoReferenceCameraFlyControllerBusTest.cpp
     Tests/RasterOverlayRequestBusTest.cpp
     Tests/GltfLoadContextTest.cpp

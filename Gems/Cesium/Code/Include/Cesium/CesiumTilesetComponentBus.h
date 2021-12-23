@@ -3,6 +3,7 @@
 #include <Cesium/BoundingSphere.h>
 #include <Cesium/OrientedBoundingBox.h>
 #include <Cesium/BoundingRegion.h>
+#include <AzCore/RTTI/ReflectContext.h>
 #include <AzCore/Component/ComponentBus.h>
 #include <AzCore/EBus/Event.h>
 #include <AzCore/std/string/string.h>
@@ -132,11 +133,11 @@ namespace Cesium
     class CesiumTilesetRequest : public AZ::ComponentBus
     {
     public:
+        static void Reflect(AZ::ReflectContext* context);
+
         virtual void SetConfiguration(const TilesetConfiguration& configration) = 0;
 
         virtual const TilesetConfiguration& GetConfiguration() const = 0;
-
-        virtual void SetCoordinateTransform(const AZ::EntityId& cesiumTransformEntityId) = 0;
 
         virtual TilesetBoundingVolume GetBoundingVolumeInECEF() const = 0;
 

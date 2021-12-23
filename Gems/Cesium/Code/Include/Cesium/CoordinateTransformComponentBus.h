@@ -1,5 +1,6 @@
 #pragma once
 
+#include <AzCore/RTTI/ReflectContext.h>
 #include <AzCore/Component/ComponentBus.h>
 #include <AzCore/EBus/Event.h>
 #include <glm/glm.hpp>
@@ -32,6 +33,8 @@ namespace Cesium
     class CoordinateTransformRequest : public AZ::ComponentBus
     {
     public:
+        static void Reflect(AZ::ReflectContext* context);
+
         virtual void SetECEFCoordOrigin(const glm::dvec3& origin) = 0;
 
         virtual const glm::dvec3& GetECEFCoordOrigin() const = 0;

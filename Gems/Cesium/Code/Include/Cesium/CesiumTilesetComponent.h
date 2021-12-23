@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Cesium/CesiumTilesetComponentBus.h>
+#include <Cesium/OriginShiftAwareComponentBus.h>
 #include <AzFramework/Viewport/ViewportId.h>
 #include <AzCore/Component/Component.h>
 #include <AzCore/Component/EntityId.h>
@@ -16,6 +17,7 @@ namespace Cesium
         , public AZ::TickBus::Handler
         , public AZ::EntityBus::Handler
         , public CesiumTilesetRequestBus::Handler
+        , public OriginShiftAwareRequestBus::Handler
     {
     public:
         AZ_COMPONENT(CesiumTilesetComponent, "{56948418-6C82-4DF2-9A8D-C292C22FCBDF}", AZ::Component)

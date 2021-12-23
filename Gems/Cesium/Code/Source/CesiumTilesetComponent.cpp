@@ -500,8 +500,6 @@ namespace Cesium
 
     void CesiumTilesetComponent::Reflect(AZ::ReflectContext* context)
     {
-        TilesetConfiguration::Reflect(context);
-        TilesetSource::Reflect(context);
         ReflectTilesetBoundingVolume(context);
 
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
@@ -511,18 +509,6 @@ namespace Cesium
                 ->Field("TilesetConfiguration", &CesiumTilesetComponent::m_tilesetConfiguration)
                 ->Field("TilesetSource", &CesiumTilesetComponent::m_tilesetSource)
                 ->Field("CoordinateTransformEntityId", &CesiumTilesetComponent::m_coordinateTransformEntityId);
-        }
-
-        if (AZ::BehaviorContext* behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
-        {
-            behaviorContext->EBus<CesiumTilesetRequestBus>("CesiumTilesetRequestBus")
-                ->Attribute(AZ::Script::Attributes::Category, "Cesium/3DTiles")
-                ->Event("SetConfiguration", &CesiumTilesetRequestBus::Events::SetConfiguration)
-                ->Event("GetConfiguration", &CesiumTilesetRequestBus::Events::GetConfiguration)
-                ->Event("SetCoordinateTransform", &CesiumTilesetRequestBus::Events::SetCoordinateTransform)
-                ->Event("GetBoundingVolumeInECEF", &CesiumTilesetRequestBus::Events::GetBoundingVolumeInECEF)
-                ->Event("LoadTileset", &CesiumTilesetRequestBus::Events::LoadTileset)
-                ;
         }
     }
 
@@ -559,6 +545,7 @@ namespace Cesium
         m_impl = AZStd::make_unique<Impl>(GetEntityId(), m_coordinateTransformEntityId, m_tilesetSource);
         AZ::TickBus::Handler::BusConnect();
         CesiumTilesetRequestBus::Handler::BusConnect(GetEntityId());
+        OriginShiftAwareRequestBus::Handler::BusConnect(GetEntityId());
     }
 
     void CesiumTilesetComponent::Deactivate()
@@ -566,6 +553,7 @@ namespace Cesium
         m_impl.reset();
         AZ::TickBus::Handler::BusDisconnect();
         CesiumTilesetRequestBus::Handler::BusDisconnect();
+        OriginShiftAwareRequestBus::Handler::BusDisconnect();
     }
 
     void CesiumTilesetComponent::SetConfiguration(const TilesetConfiguration& configration)

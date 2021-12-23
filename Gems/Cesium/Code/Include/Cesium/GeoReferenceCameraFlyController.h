@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Cesium/GeoReferenceCameraFlyControllerBus.h>
+#include <Cesium/OriginShiftAwareComponentBus.h>
 #include <Cesium/CoordinateTransformComponentBus.h>
 #include <AzFramework/Input/Events/InputChannelEventListener.h>
 #include <AzCore/Component/Component.h>
@@ -20,6 +21,7 @@ namespace Cesium
         , public AZ::EntityBus::Handler
         , public AzFramework::InputChannelEventListener
         , public GeoReferenceCameraFlyControllerRequestBus::Handler
+        , public OriginShiftAwareRequestBus::Handler
     {
         enum class CameraFlyState
         {
