@@ -73,7 +73,7 @@ namespace Cesium
     void GeoReferenceCameraFlyController::Activate()
     {
         GeoReferenceCameraFlyControllerRequestBus::Handler::BusConnect(GetEntityId());
-        OriginShiftAwareRequestBus::Handler::BusConnect(GetEntityId());
+        LevelCoordinateTransformNotificationBus::Handler::BusConnect();
         AZ::TickBus::Handler::BusConnect();
         AZ::EntityBus::Handler::BusConnect(m_coordinateTransformEntityId);
         AzFramework::InputChannelEventListener::Connect();
@@ -82,7 +82,7 @@ namespace Cesium
     void GeoReferenceCameraFlyController::Deactivate()
     {
         GeoReferenceCameraFlyControllerRequestBus::Handler::BusDisconnect();
-        OriginShiftAwareRequestBus::Handler::BusDisconnect();
+        LevelCoordinateTransformNotificationBus::Handler::BusDisconnect();
         AZ::TickBus::Handler::BusDisconnect();
         AZ::EntityBus::Handler::BusDisconnect();
         AzFramework::InputChannelEventListener::Disconnect();
@@ -121,7 +121,7 @@ namespace Cesium
         return m_movementSpeed;
     }
 
-    void GeoReferenceCameraFlyController::SetCoordinateTransform(const AZ::EntityId& coordinateTransformEntityId)
+    void GeoReferenceCameraFlyController::OnCoordinateTransformChange(const AZ::EntityId& coordinateTransformEntityId)
     {
         // stop any fly and camera movement first
         StopFly();

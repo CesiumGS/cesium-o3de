@@ -16,8 +16,7 @@ namespace Cesium
                 ->Version(0)
                 ->Field("mouseSensitivity", &GeoReferenceCameraControllerEditor::m_mouseSensitivity)
                 ->Field("panningSpeed", &GeoReferenceCameraControllerEditor::m_panningSpeed)
-                ->Field("movementSpeed", &GeoReferenceCameraControllerEditor::m_movementSpeed)
-                ->Field("coordinateTransformEntityId", &GeoReferenceCameraControllerEditor::m_coordinateTransformEntityId);
+                ->Field("movementSpeed", &GeoReferenceCameraControllerEditor::m_movementSpeed);
 
             AZ::EditContext* editContext = serializeContext->GetEditContext();
             if (editContext)
@@ -35,9 +34,7 @@ namespace Cesium
                         AZ::Edit::UIHandlers::Default, &GeoReferenceCameraControllerEditor::m_mouseSensitivity, "Mouse Sensitivity", "")
                     ->DataElement(AZ::Edit::UIHandlers::Default, &GeoReferenceCameraControllerEditor::m_panningSpeed, "Panning Speed", "")
                     ->DataElement(AZ::Edit::UIHandlers::Default, &GeoReferenceCameraControllerEditor::m_movementSpeed, "Movement Speed", "")
-                    ->DataElement(
-                        AZ::Edit::UIHandlers::Default, &GeoReferenceCameraControllerEditor::m_coordinateTransformEntityId,
-                        "Coordinate Transform Entity", "");
+                    ;
             }
         }
     }
@@ -71,7 +68,6 @@ namespace Cesium
         controller->SetMouseSensitivity(m_mouseSensitivity);
         controller->SetPanningSpeed(m_panningSpeed);
         controller->SetMovementSpeed(m_movementSpeed);
-        controller->SetCoordinateTransform(m_coordinateTransformEntityId);
     }
 
     void GeoReferenceCameraControllerEditor::Init()

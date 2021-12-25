@@ -18,7 +18,6 @@ namespace Cesium
                 ->Version(0)
                 ->Field("tilesetConfiguration", &CesiumTilesetEditorComponent::m_tilesetConfiguration)
                 ->Field("tilesetSource", &CesiumTilesetEditorComponent::m_tilesetSource)
-                ->Field("coordinateTransformEntityId", &CesiumTilesetEditorComponent::m_coordinateTransformEntityId)
                 ;
 
             AZ::EditContext* editContext = serializeContext->GetEditContext();
@@ -39,8 +38,6 @@ namespace Cesium
                     ->DataElement(AZ::Edit::UIHandlers::Default, &CesiumTilesetEditorComponent::m_tilesetConfiguration, "Configuration", "")
                         ->Attribute(AZ::Edit::Attributes::Visibility, AZ::Edit::PropertyVisibility::ShowChildrenOnly)
                         ->Attribute(AZ::Edit::Attributes::ChangeNotify, &CesiumTilesetEditorComponent::OnTilesetConfigurationChanged)
-                    ->DataElement(AZ::Edit::UIHandlers::Default, &CesiumTilesetEditorComponent::m_coordinateTransformEntityId, "Coordinate Transform Entity", "")
-                        ->Attribute(AZ::Edit::Attributes::ChangeNotify, &CesiumTilesetEditorComponent::OnCoordinateTransformEntityChanged);
                     ;
 
                 editContext->Class<TilesetSource>("TilesetSource", "")
@@ -123,7 +120,6 @@ namespace Cesium
         tilesetComponent->Init();
         tilesetComponent->Activate();
         tilesetComponent->SetConfiguration(m_tilesetConfiguration);
-        tilesetComponent->SetCoordinateTransform(m_coordinateTransformEntityId);
         tilesetComponent->LoadTileset(m_tilesetSource);
     }
 
@@ -142,7 +138,6 @@ namespace Cesium
         m_tilesetComponent->Init();
         m_tilesetComponent->Activate();
         m_tilesetComponent->SetConfiguration(m_tilesetConfiguration);
-        m_tilesetComponent->SetCoordinateTransform(m_coordinateTransformEntityId);
         m_tilesetComponent->LoadTileset(m_tilesetSource);
     }
 
@@ -171,17 +166,6 @@ namespace Cesium
         }
 
         m_tilesetComponent->SetConfiguration(m_tilesetConfiguration);
-        return AZ::Edit::PropertyRefreshLevels::None;
-    }
-
-    AZ::u32 CesiumTilesetEditorComponent::OnCoordinateTransformEntityChanged()
-    {
-        if (!m_tilesetComponent)
-        {
-            return AZ::Edit::PropertyRefreshLevels::None;
-        }
-
-        m_tilesetComponent->SetCoordinateTransform(m_coordinateTransformEntityId);
         return AZ::Edit::PropertyRefreshLevels::None;
     }
 } // namespace Cesium

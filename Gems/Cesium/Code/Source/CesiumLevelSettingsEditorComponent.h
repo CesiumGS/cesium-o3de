@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Cesium/CesiumLevelSettingsComponent.h>
 #include <AzToolsFramework/ToolsComponents/EditorComponentBase.h>
 #include <AzCore/Interface/Interface.h>
 #include <AzCore/Component/EntityId.h>
@@ -8,11 +9,10 @@
 
 namespace Cesium
 {
-    class CesiumLevelSettings final : public AzToolsFramework::Components::EditorComponentBase
-
+    class CesiumLevelSettingsEditorComponent final : public AzToolsFramework::Components::EditorComponentBase
     {
     public:
-        AZ_EDITOR_COMPONENT(CesiumLevelSettings, "{01CDCAD3-9A55-4FEB-9125-8A6F631EA102}");
+        AZ_EDITOR_COMPONENT(CesiumLevelSettingsEditorComponent, "{40988450-F52D-4EA7-8A3E-6AF7990446EF}");
 
         static void Reflect(AZ::ReflectContext* context);
 
@@ -30,9 +30,12 @@ namespace Cesium
 
         void Deactivate() override;
 
+        void BuildGameEntity(AZ::Entity* gameEntity) override;
+
     private:
         void OnDefaultCoordinateTransformEntityChanged();
 
+        CesiumLevelSettingsComponent m_levelComponent;
         AZ::EntityId m_defaultCoordinateTransformEntityId;
     };
 }

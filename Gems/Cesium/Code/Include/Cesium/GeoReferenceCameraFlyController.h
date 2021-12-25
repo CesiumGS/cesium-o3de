@@ -21,7 +21,7 @@ namespace Cesium
         , public AZ::EntityBus::Handler
         , public AzFramework::InputChannelEventListener
         , public GeoReferenceCameraFlyControllerRequestBus::Handler
-        , public OriginShiftAwareRequestBus::Handler
+        , public LevelCoordinateTransformNotificationBus::Handler
     {
         enum class CameraFlyState
         {
@@ -56,7 +56,7 @@ namespace Cesium
 
         double GetMovementSpeed() const override;
 
-        void SetCoordinateTransform(const AZ::EntityId& coordinateTransformEntityId) override;
+        void OnCoordinateTransformChange(const AZ::EntityId& coordinateTransformEntityId) override;
 
         void FlyToECEFLocation(const glm::dvec3& location, const glm::dvec3& direction) override;
 

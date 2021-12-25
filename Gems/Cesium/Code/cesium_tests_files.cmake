@@ -26,6 +26,7 @@ set(FILES
     Tests/GltfModelComponentBusTest.cpp
     Tests/CesiumTilesetComponentBusTest.cpp
     Tests/CoordinateTransformComponentBusTest.cpp
+    Tests/OriginShiftAwareComponentBusTest.cpp
     Tests/CesiumTilesetComponentBusTest.cpp
     Tests/GeoReferenceCameraFlyControllerBusTest.cpp
     Tests/RasterOverlayRequestBusTest.cpp
@@ -37,6 +38,7 @@ set(FILES
     Tests/GltfModelBuilderTest.cpp
     Tests/GltfModelTest.cpp
     Tests/WorldCompositionTest.cpp
+    Tests/CesiumLevelSettingsComponentTest.cpp
     Tests/GeoReferenceTransformComponentTest.cpp
     Tests/CesiumSystemComponentTest.cpp
     Tests/GltfModelComponentTest.cpp

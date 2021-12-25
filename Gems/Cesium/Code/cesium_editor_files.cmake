@@ -4,12 +4,12 @@ set(FILES
     Source/CesiumEditorSystemComponent.h
     Source/MatrixWidget.cpp
     Source/MatrixWidget.h
-    Source/CesiumLevelSettings.cpp
-    Source/CesiumLevelSettings.h
     Source/CesiumIonSession.cpp
     Source/CesiumIonSession.h
     Source/CesiumIonAssetListWidget.cpp
     Source/CesiumIonAssetListWidget.h
+    Source/CesiumLevelSettingsEditorComponent.cpp
+    Source/CesiumLevelSettingsEditorComponent.h
     Source/CesiumIonRasterOverlayEditorComponent.cpp
     Source/CesiumIonRasterOverlayEditorComponent.h
     Source/BingRasterOverlayEditorComponent.cpp

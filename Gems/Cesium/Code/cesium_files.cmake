@@ -69,6 +69,8 @@ set(FILES
     Include/Cesium/CoordinateTransformComponentBus.h
     Source/OriginShiftAwareComponentBus.cpp
     Include/Cesium/OriginShiftAwareComponentBus.h
+    Source/CesiumLevelSettingsComponent.cpp
+    Include/Cesium/CesiumLevelSettingsComponent.h
     Source/CesiumTilesetComponentBus.cpp
     Include/Cesium/CesiumTilesetComponentBus.h
     Source/CesiumTilesetComponent.cpp

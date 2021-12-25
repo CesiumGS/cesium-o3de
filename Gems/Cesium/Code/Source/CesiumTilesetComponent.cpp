@@ -545,7 +545,7 @@ namespace Cesium
         m_impl = AZStd::make_unique<Impl>(GetEntityId(), m_coordinateTransformEntityId, m_tilesetSource);
         AZ::TickBus::Handler::BusConnect();
         CesiumTilesetRequestBus::Handler::BusConnect(GetEntityId());
-        OriginShiftAwareRequestBus::Handler::BusConnect(GetEntityId());
+        LevelCoordinateTransformNotificationBus::Handler::BusConnect();
     }
 
     void CesiumTilesetComponent::Deactivate()
@@ -553,7 +553,7 @@ namespace Cesium
         m_impl.reset();
         AZ::TickBus::Handler::BusDisconnect();
         CesiumTilesetRequestBus::Handler::BusDisconnect();
-        OriginShiftAwareRequestBus::Handler::BusDisconnect();
+        LevelCoordinateTransformNotificationBus::Handler::BusDisconnect();
     }
 
     void CesiumTilesetComponent::SetConfiguration(const TilesetConfiguration& configration)
@@ -567,7 +567,7 @@ namespace Cesium
         return m_tilesetConfiguration;
     }
 
-    void CesiumTilesetComponent::SetCoordinateTransform(const AZ::EntityId& coordinateTransformEntityId)
+    void CesiumTilesetComponent::OnCoordinateTransformChange(const AZ::EntityId& coordinateTransformEntityId)
     {
         m_coordinateTransformEntityId = coordinateTransformEntityId;
         m_impl->ConnectCoordinateTransformEntityEvents(m_coordinateTransformEntityId);

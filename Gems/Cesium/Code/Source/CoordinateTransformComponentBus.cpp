@@ -21,7 +21,7 @@ namespace Cesium
         if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
         {
             behaviorContext->EBus<CoordinateTransformRequestBus>("CoordinateTransformRequestBus")
-                ->Attribute(AZ::Script::Attributes::Category, "Cesium/OriginShifting")
+                ->Attribute(AZ::Script::Attributes::Category, "Cesium/CoordinateTransform")
                 ->Event("SetECEFCoordOrigin", &CoordinateTransformRequestBus::Events::SetECEFCoordOrigin)
                 ->Event("GetECEFCoordOrigin", &CoordinateTransformRequestBus::Events::GetECEFCoordOrigin)
                 ->Event("O3DEToECEF", &CoordinateTransformRequestBus::Events::O3DEToECEF)

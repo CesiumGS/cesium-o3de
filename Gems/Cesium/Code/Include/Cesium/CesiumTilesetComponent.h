@@ -17,7 +17,7 @@ namespace Cesium
         , public AZ::TickBus::Handler
         , public AZ::EntityBus::Handler
         , public CesiumTilesetRequestBus::Handler
-        , public OriginShiftAwareRequestBus::Handler
+        , public LevelCoordinateTransformNotificationBus::Handler
     {
     public:
         AZ_COMPONENT(CesiumTilesetComponent, "{56948418-6C82-4DF2-9A8D-C292C22FCBDF}", AZ::Component)
@@ -38,7 +38,7 @@ namespace Cesium
 
         const TilesetConfiguration& GetConfiguration() const override;
 
-        void SetCoordinateTransform(const AZ::EntityId& coordinateTransformEntityId) override;
+        void OnCoordinateTransformChange(const AZ::EntityId& coordinateTransformEntityId) override;
 
         TilesetBoundingVolume GetBoundingVolumeInECEF() const override;
 
