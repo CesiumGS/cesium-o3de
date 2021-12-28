@@ -145,6 +145,48 @@ namespace Cesium
         }
     };
 
+    struct CesiumTilesetComponent::BoundingVolumeToAABB
+    {
+        AZ::Aabb operator()(const CesiumGeometry::BoundingSphere& sphere)
+        {
+            glm::dvec3 center = m_transform * glm::dvec4(sphere.getCenter(), 1.0);
+            double uniformScale = glm::max(
+                glm::max(glm::length(glm::dvec3(m_transform[0])), glm::length(glm::dvec3(m_transform[1]))),
+                glm::length(glm::dvec3(m_transform[2])));
+
+            glm::dvec3 minAabb = center - sphere.getRadius() * glm::dvec3(uniformScale);
+            glm::dvec3 maxAabb = center + sphere.getRadius() * glm::dvec3(uniformScale);
+
+            return AZ::Aabb::CreateFromMinMax(
+                AZ::Vector3(static_cast<float>(minAabb.x), static_cast<float>(minAabb.y), static_cast<float>(minAabb.z)),
+                AZ::Vector3(static_cast<float>(maxAabb.x), static_cast<float>(maxAabb.y), static_cast<float>(maxAabb.z)));
+        }
+
+        AZ::Aabb operator()(const CesiumGeometry::OrientedBoundingBox& box)
+        {
+            glm::dvec3 center = m_transform * glm::dvec4(box.getCenter(), 1.0);
+            glm::dmat3 halfLengthsAndOrientation = glm::dmat3(m_transform) * box.getHalfAxes();
+            glm::dvec3 halfLength{ glm::length(halfLengthsAndOrientation[0]), glm::length(halfLengthsAndOrientation[1]),
+                                   glm::length(halfLengthsAndOrientation[2]) };
+
+            return AZ::Aabb::CreateCenterHalfExtents(
+                AZ::Vector3(static_cast<float>(center.x), static_cast<float>(center.y), static_cast<float>(center.z)),
+                AZ::Vector3(static_cast<float>(halfLength.x), static_cast<float>(halfLength.y), static_cast<float>(halfLength.z)));
+        }
+
+        AZ::Aabb operator()(const CesiumGeospatial::BoundingRegion& region)
+        {
+            return this->operator()(region.getBoundingBox());
+        }
+
+        AZ::Aabb operator()(const CesiumGeospatial::BoundingRegionWithLooseFittingHeights& region)
+        {
+            return this->operator()(region.getBoundingRegion().getBoundingBox());
+        }
+
+        glm::dmat4 m_transform;
+    };
+
     struct CesiumTilesetComponent::BoundingVolumeTransform
     {
         TilesetBoundingVolume operator()(const CesiumGeometry::BoundingSphere& sphere)
@@ -544,6 +586,7 @@ namespace Cesium
     {
         m_impl = AZStd::make_unique<Impl>(GetEntityId(), m_coordinateTransformEntityId, m_tilesetSource);
         AZ::TickBus::Handler::BusConnect();
+        AzFramework::BoundsRequestBus::Handler::BusConnect(GetEntityId());
         CesiumTilesetRequestBus::Handler::BusConnect(GetEntityId());
         LevelCoordinateTransformNotificationBus::Handler::BusConnect();
     }
@@ -552,6 +595,7 @@ namespace Cesium
     {
         m_impl.reset();
         AZ::TickBus::Handler::BusDisconnect();
+        AzFramework::BoundsRequestBus::Handler::BusDisconnect();
         CesiumTilesetRequestBus::Handler::BusDisconnect();
         LevelCoordinateTransformNotificationBus::Handler::BusDisconnect();
     }
@@ -571,6 +615,40 @@ namespace Cesium
     {
         m_coordinateTransformEntityId = coordinateTransformEntityId;
         m_impl->ConnectCoordinateTransformEntityEvents(m_coordinateTransformEntityId);
+    }
+
+    AZ::Aabb CesiumTilesetComponent::GetWorldBounds()
+    {
+        if (!m_impl->m_tileset)
+        {
+            return AZ::Aabb{};
+        }
+
+        const auto rootTile = m_impl->m_tileset->getRootTile();
+        if (!rootTile)
+        {
+            return AZ::Aabb{};
+        }
+
+        return std::visit(
+            BoundingVolumeToAABB{ m_impl->m_O3DETransform * m_impl->m_coordinateTransformConfig.m_ECEFToO3DE },
+            rootTile->getBoundingVolume());
+    }
+
+    AZ::Aabb CesiumTilesetComponent::GetLocalBounds()
+    {
+        if (!m_impl->m_tileset)
+        {
+            return AZ::Aabb{};
+        }
+
+        const auto rootTile = m_impl->m_tileset->getRootTile();
+        if (!rootTile)
+        {
+            return AZ::Aabb{};
+        }
+
+        return std::visit(BoundingVolumeToAABB{ m_impl->m_coordinateTransformConfig.m_ECEFToO3DE }, rootTile->getBoundingVolume());
     }
 
     TilesetBoundingVolume CesiumTilesetComponent::GetBoundingVolumeInECEF() const
