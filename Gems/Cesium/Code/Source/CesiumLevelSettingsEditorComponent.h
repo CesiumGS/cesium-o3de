@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Cesium/CesiumLevelSettingsComponent.h>
+#include <Cesium/OriginShiftAwareComponentBus.h>
 #include <AzToolsFramework/ToolsComponents/EditorComponentBase.h>
 #include <AzCore/Interface/Interface.h>
 #include <AzCore/Component/EntityId.h>
@@ -9,7 +9,9 @@
 
 namespace Cesium
 {
-    class CesiumLevelSettingsEditorComponent final : public AzToolsFramework::Components::EditorComponentBase
+    class CesiumLevelSettingsEditorComponent final
+        : public AzToolsFramework::Components::EditorComponentBase
+        , public LevelCoordinateTransformRequestBus::Handler
     {
     public:
         AZ_EDITOR_COMPONENT(CesiumLevelSettingsEditorComponent, "{40988450-F52D-4EA7-8A3E-6AF7990446EF}");
@@ -32,10 +34,13 @@ namespace Cesium
 
         void BuildGameEntity(AZ::Entity* gameEntity) override;
 
+        AZ::EntityId GetCoordinateTransform() const override;
+
+        void SetCoordinateTransform(const AZ::EntityId& coordinateTransformEntityId) override;
+
     private:
         void OnDefaultCoordinateTransformEntityChanged();
 
-        CesiumLevelSettingsComponent m_levelComponent;
         AZ::EntityId m_defaultCoordinateTransformEntityId;
     };
 }

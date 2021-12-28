@@ -161,8 +161,8 @@ namespace Cesium
 
     void GeoReferenceTransformEditorComponent::OnSetAsLevelGeoreferencePressed()
     {
-        LevelCoordinateTransformNotificationBus::Broadcast(
-            &LevelCoordinateTransformNotificationBus::Events::OnCoordinateTransformChange, GetEntityId());
+        LevelCoordinateTransformRequestBus::Broadcast(
+            &LevelCoordinateTransformRequestBus::Events::SetCoordinateTransform, GetEntityId());
     }
 
     void GeoReferenceTransformEditorComponent::OnOriginAsCartesianChanged()

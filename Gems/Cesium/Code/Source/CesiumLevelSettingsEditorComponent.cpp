@@ -1,5 +1,7 @@
 #include "CesiumLevelSettingsEditorComponent.h"
-#include <Cesium/OriginShiftAwareComponentBus.h>
+#include <Cesium/CesiumLevelSettingsComponent.h>
+#include <AzToolsFramework/Component/EditorComponentAPIBus.h>
+#include <AzToolsFramework/API/ToolsApplicationAPI.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/EditContext.h>
 
@@ -58,16 +60,14 @@ namespace Cesium
 
     void CesiumLevelSettingsEditorComponent::Activate()
     {
-        m_levelComponent.SetEntity(GetEntity());
-        m_levelComponent.Init();
-        m_levelComponent.Activate();
-        m_levelComponent.SetCoordinateTransform(m_defaultCoordinateTransformEntityId);
+        LevelCoordinateTransformRequestBus::Handler::BusConnect();
+        LevelCoordinateTransformNotificationBus::Broadcast(
+            &LevelCoordinateTransformNotificationBus::Events::OnCoordinateTransformChange, m_defaultCoordinateTransformEntityId);
     }
 
     void CesiumLevelSettingsEditorComponent::Deactivate()
     {
-        m_levelComponent.Deactivate();
-        m_levelComponent.SetEntity(nullptr);
+        LevelCoordinateTransformRequestBus::Handler::BusDisconnect();
     }
 
     void CesiumLevelSettingsEditorComponent::BuildGameEntity(AZ::Entity* gameEntity)
@@ -78,8 +78,29 @@ namespace Cesium
         component->SetCoordinateTransform(m_defaultCoordinateTransformEntityId);
     }
 
+    AZ::EntityId CesiumLevelSettingsEditorComponent::GetCoordinateTransform() const
+    {
+        return m_defaultCoordinateTransformEntityId;
+    }
+
+    void CesiumLevelSettingsEditorComponent::SetCoordinateTransform(const AZ::EntityId& coordinateTransformEntityId)
+    {
+        using namespace AzToolsFramework;
+        ScopedUndoBatch undoBatch("Change Level Coordinate Transform");
+
+        m_defaultCoordinateTransformEntityId = coordinateTransformEntityId;
+        LevelCoordinateTransformNotificationBus::Broadcast(
+            &LevelCoordinateTransformNotificationBus::Events::OnCoordinateTransformChange, m_defaultCoordinateTransformEntityId);
+
+        PropertyEditorGUIMessages::Bus::Broadcast(
+            &PropertyEditorGUIMessages::RequestRefresh, PropertyModificationRefreshLevel::Refresh_AttributesAndValues);
+
+        undoBatch.MarkEntityDirty(GetEntityId());
+    }
+
     void CesiumLevelSettingsEditorComponent::OnDefaultCoordinateTransformEntityChanged()
     {
-        m_levelComponent.SetCoordinateTransform(m_defaultCoordinateTransformEntityId);
+        LevelCoordinateTransformNotificationBus::Broadcast(
+            &LevelCoordinateTransformNotificationBus::Events::OnCoordinateTransformChange, m_defaultCoordinateTransformEntityId);
     }
 } // namespace Cesium
