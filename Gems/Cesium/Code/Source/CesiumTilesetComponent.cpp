@@ -762,6 +762,31 @@ namespace Cesium
 
             if (!viewStates.empty())
             {
+                // check if the root is visible. If it's not, then we should remove all the cache
+                const auto rootTile = m_impl->m_tileset->getRootTile();
+                if (rootTile)
+                {
+                    bool isTilesetVisible = false;
+                    for (const auto& viewState : viewStates)
+                    {
+                        if (viewState.isBoundingVolumeVisible(rootTile->getBoundingVolume()))
+                        {
+                            isTilesetVisible = true;
+                            break;
+                        }
+                    }
+
+                    if (!isTilesetVisible)
+                    {
+                        m_impl->m_tileset->getOptions().maximumCachedBytes = 0;
+                    }
+                    else
+                    {
+                        m_impl->m_tileset->getOptions().maximumCachedBytes = m_tilesetConfiguration.m_maximumCacheBytes;
+                    }
+                }
+
+                // retrieve tiles are visible in the current frame
                 const Cesium3DTilesSelection::ViewUpdateResult& viewUpdate = m_impl->m_tileset->updateView(viewStates);
 
                 for (Cesium3DTilesSelection::Tile* tile : viewUpdate.tilesToNoLongerRenderThisFrame)

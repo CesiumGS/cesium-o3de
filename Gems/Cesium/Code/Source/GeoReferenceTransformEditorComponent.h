@@ -65,6 +65,8 @@ namespace Cesium
 
         bool UseOriginAsCartographic();
 
+        void OnSetAsLevelGeoreferencePressed();
+
         AZStd::unique_ptr<GeoReferenceTransformComponent> m_georeferenceComponent;
         OriginType m_originType;
         glm::dvec3 m_originAsCartesian{0.0};

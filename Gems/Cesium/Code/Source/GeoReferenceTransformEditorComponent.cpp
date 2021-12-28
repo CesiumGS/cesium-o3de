@@ -1,5 +1,6 @@
 #include "GeoReferenceTransformEditorComponent.h"
 #include <Cesium/GeoReferenceTransformComponent.h>
+#include <Cesium/OriginShiftAwareComponentBus.h>
 #include <Cesium/GeospatialHelper.h>
 #include <Cesium/MathReflect.h>
 #include <AzCore/Serialization/SerializeContext.h>
@@ -61,6 +62,10 @@ namespace Cesium
                         ->Attribute(AZ::Edit::Attributes::ViewportIcon, "Editor/Icons/Components/Cesium_logo_only.svg")
                         ->Attribute(AZ::Edit::Attributes::AppearsInAddComponentMenu, AZ_CRC("Game", 0x232b318c))
                         ->Attribute(AZ::Edit::Attributes::AutoExpand, true)
+                    ->UIElement(AZ::Edit::UIHandlers::Button, "Set As Level Georeference", "")
+                        ->Attribute(AZ::Edit::Attributes::NameLabelOverride, "")
+                        ->Attribute(AZ::Edit::Attributes::ButtonText, "Set As Level Georeference")
+                        ->Attribute(AZ::Edit::Attributes::ChangeNotify, &GeoReferenceTransformEditorComponent::OnSetAsLevelGeoreferencePressed)
                     ->ClassElement(AZ::Edit::ClassElements::Group, "Origin")
                         ->Attribute(AZ::Edit::Attributes::AutoExpand, true)
                         ->DataElement(AZ::Edit::UIHandlers::ComboBox, &GeoReferenceTransformEditorComponent::m_originType, "Type", "")
@@ -152,6 +157,12 @@ namespace Cesium
     bool GeoReferenceTransformEditorComponent::UseOriginAsCartographic()
     {
         return m_originType == OriginType::Cartographic;
+    }
+
+    void GeoReferenceTransformEditorComponent::OnSetAsLevelGeoreferencePressed()
+    {
+        LevelCoordinateTransformNotificationBus::Broadcast(
+            &LevelCoordinateTransformNotificationBus::Events::OnCoordinateTransformChange, GetEntityId());
     }
 
     void GeoReferenceTransformEditorComponent::OnOriginAsCartesianChanged()
