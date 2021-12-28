@@ -2,8 +2,13 @@
 #include <Cesium/CesiumLevelSettingsComponent.h>
 #include <AzToolsFramework/Component/EditorComponentAPIBus.h>
 #include <AzToolsFramework/API/ToolsApplicationAPI.h>
+#include <AtomToolsFramework/Viewport/ModularViewportCameraControllerRequestBus.h>
+#include <Atom/RPI.Public/ViewportContext.h>
+#include <Atom/RPI.Public/ViewportContextBus.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/EditContext.h>
+#include <AzCore/Math/Vector3.h>
+#include <AzCore/Math/Quaternion.h>
 
 namespace Cesium
 {
@@ -86,11 +91,21 @@ namespace Cesium
     void CesiumLevelSettingsEditorComponent::SetCoordinateTransform(const AZ::EntityId& coordinateTransformEntityId)
     {
         using namespace AzToolsFramework;
+        using namespace AtomToolsFramework;
         ScopedUndoBatch undoBatch("Change Level Coordinate Transform");
 
         m_defaultCoordinateTransformEntityId = coordinateTransformEntityId;
         LevelCoordinateTransformNotificationBus::Broadcast(
             &LevelCoordinateTransformNotificationBus::Events::OnCoordinateTransformChange, m_defaultCoordinateTransformEntityId);
+
+        auto viewportContextManager = AZ::Interface<AZ::RPI::ViewportContextRequestsInterface>::Get();
+        viewportContextManager->EnumerateViewportContexts(
+            [](AZ::RPI::ViewportContextPtr viewportContextPtr) 
+            {
+                ModularViewportCameraControllerRequestBus::Event(
+                    viewportContextPtr->GetId(), &ModularViewportCameraControllerRequestBus::Events::InterpolateToTransform,
+                    AZ::Transform::CreateFromQuaternionAndTranslation(AZ::Quaternion::CreateIdentity(), AZ::Vector3(0, 0, 0)));
+            });
 
         PropertyEditorGUIMessages::Bus::Broadcast(
             &PropertyEditorGUIMessages::RequestRefresh, PropertyModificationRefreshLevel::Refresh_AttributesAndValues);
