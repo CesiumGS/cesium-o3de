@@ -14,7 +14,8 @@ namespace Cesium
         enum class OriginType
         {
             Cartesian,
-            Cartographic
+            Cartographic,
+            EntityCoordinate
         };
 
         struct DegreeCartographic final
@@ -61,9 +62,13 @@ namespace Cesium
 
         void OnOriginAsCartographicChanged();
 
+        void OnOriginAsEntityCoordinateChanged();
+
         bool UseOriginAsCartesian();
 
         bool UseOriginAsCartographic();
+
+        bool UseOriginAsEntityCoordinate();
 
         void OnSetAsLevelGeoreferencePressed();
 
@@ -71,5 +76,6 @@ namespace Cesium
         OriginType m_originType;
         glm::dvec3 m_originAsCartesian{0.0};
         DegreeCartographic m_originAsCartographic{};
+        AZ::EntityId m_sampledEntityId;
     };
 } // namespace Cesium

@@ -1,5 +1,6 @@
 #include "GeoReferenceTransformEditorComponent.h"
 #include <Cesium/GeoReferenceTransformComponent.h>
+#include <Cesium/CesiumTilesetComponentBus.h>
 #include <Cesium/OriginShiftAwareComponentBus.h>
 #include <Cesium/GeospatialHelper.h>
 #include <Cesium/MathReflect.h>
@@ -48,7 +49,9 @@ namespace Cesium
                 ->Version(0)
                 ->Field("originType", &GeoReferenceTransformEditorComponent::m_originType)
                 ->Field("originAsCartesian", &GeoReferenceTransformEditorComponent::m_originAsCartesian)
-                ->Field("originAsCartographic", &GeoReferenceTransformEditorComponent::m_originAsCartographic);
+                ->Field("originAsCartographic", &GeoReferenceTransformEditorComponent::m_originAsCartographic)
+                ->Field("sampledEntityId", &GeoReferenceTransformEditorComponent::m_sampledEntityId)
+                ;
 
             AZ::EditContext* editContext = serializeContext->GetEditContext();
             if (editContext)
@@ -71,6 +74,7 @@ namespace Cesium
                         ->DataElement(AZ::Edit::UIHandlers::ComboBox, &GeoReferenceTransformEditorComponent::m_originType, "Type", "")
                             ->EnumAttribute(OriginType::Cartesian, "Cartesian")
                             ->EnumAttribute(OriginType::Cartographic, "Cartographic")
+                            ->EnumAttribute(OriginType::EntityCoordinate, "Entity ECEF Coordinate")
                             ->Attribute(AZ::Edit::Attributes::ChangeNotify, AZ::Edit::PropertyRefreshLevels::EntireTree)
                         ->DataElement(AZ::Edit::UIHandlers::Default, &GeoReferenceTransformEditorComponent::m_originAsCartesian, "Cartesian", "")
                             ->Attribute(AZ::Edit::Attributes::Decimals, 15)
@@ -80,6 +84,9 @@ namespace Cesium
                         ->DataElement(AZ::Edit::UIHandlers::Default, &GeoReferenceTransformEditorComponent::m_originAsCartographic, "Cartographic", "")
                             ->Attribute(AZ::Edit::Attributes::Visibility, & GeoReferenceTransformEditorComponent::UseOriginAsCartographic)
                             ->Attribute(AZ::Edit::Attributes::ChangeNotify, &GeoReferenceTransformEditorComponent::OnOriginAsCartographicChanged)
+                        ->DataElement(AZ::Edit::UIHandlers::Default, &GeoReferenceTransformEditorComponent::m_sampledEntityId, "Sample Entity ECEF Coordinate", "")
+                            ->Attribute(AZ::Edit::Attributes::Visibility, & GeoReferenceTransformEditorComponent::UseOriginAsEntityCoordinate)
+                            ->Attribute(AZ::Edit::Attributes::ChangeNotify, &GeoReferenceTransformEditorComponent::OnOriginAsEntityCoordinateChanged)
                     ;
 
                 editContext->Class<DegreeCartographic>("Cartographic", "")
@@ -159,6 +166,11 @@ namespace Cesium
         return m_originType == OriginType::Cartographic;
     }
 
+    bool GeoReferenceTransformEditorComponent::UseOriginAsEntityCoordinate()
+    {
+        return m_originType == OriginType::EntityCoordinate;
+    }
+
     void GeoReferenceTransformEditorComponent::OnSetAsLevelGeoreferencePressed()
     {
         LevelCoordinateTransformRequestBus::Broadcast(
@@ -198,6 +210,40 @@ namespace Cesium
                                       m_originAsCartographic.m_height };
         m_originAsCartesian = GeospatialHelper::CartographicToECEFCartesian(radCartographic);
         m_georeferenceComponent->SetECEFCoordOrigin(m_originAsCartesian);
+    }
+
+    void GeoReferenceTransformEditorComponent::OnOriginAsEntityCoordinateChanged()
+    {
+        if (!m_georeferenceComponent)
+        {
+            return;
+        }
+
+        TilesetBoundingVolume boundingVolume = AZStd::monostate{};
+        CesiumTilesetRequestBus::EventResult(boundingVolume, m_sampledEntityId, &CesiumTilesetRequestBus::Handler::GetBoundingVolumeInECEF);
+        if (auto empty = AZStd::get_if<AZStd::monostate>(&boundingVolume))
+        {
+            return;
+        }
+        else if (auto sphere = AZStd::get_if<BoundingSphere>(&boundingVolume))
+        {
+            m_originAsCartesian = sphere->m_center;
+            OnOriginAsCartesianChanged();
+        }
+        else if (auto obb = AZStd::get_if<OrientedBoundingBox>(&boundingVolume))
+        {
+            m_originAsCartesian = obb->m_center;
+            OnOriginAsCartesianChanged();
+        }
+        else if (auto region = AZStd::get_if<BoundingRegion>(&boundingVolume))
+        {
+            auto cartoCenter = Cartographic(
+                (region->m_east + region->m_west) / 2.0, (region->m_north + region->m_south) / 2.0,
+                (region->m_minHeight + region->m_maxHeight) / 2.0);
+            auto center = GeospatialHelper::CartographicToECEFCartesian(cartoCenter);
+            m_originAsCartesian = center;
+            OnOriginAsCartesianChanged();
+        }
     }
 
 } // namespace Cesium
