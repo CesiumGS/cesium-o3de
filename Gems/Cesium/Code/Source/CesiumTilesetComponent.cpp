@@ -4,7 +4,11 @@
 #include "RasterOverlayRequestBus.h"
 #include "CesiumSystemComponentBus.h"
 #include "MathHelper.h"
+// TODO: remove
 #include <Atom/Feature/Mesh/MeshFeatureProcessorInterface.h>
+#include <Atom/Feature/AuxGeom/AuxGeomFeatureProcessor.h>
+
+#include <Atom/RPI.Public/AuxGeom/AuxGeomDraw.h>
 #include <Atom/RPI.Public/ViewportContext.h>
 #include <Atom/RPI.Public/ViewportContextBus.h>
 #include <Atom/RPI.Public/Scene.h>
@@ -166,12 +170,27 @@ namespace Cesium
         {
             glm::dvec3 center = m_transform * glm::dvec4(box.getCenter(), 1.0);
             glm::dmat3 halfLengthsAndOrientation = glm::dmat3(m_transform) * box.getHalfAxes();
-            glm::dvec3 halfLength{ glm::length(halfLengthsAndOrientation[0]), glm::length(halfLengthsAndOrientation[1]),
-                                   glm::length(halfLengthsAndOrientation[2]) };
 
-            return AZ::Aabb::CreateCenterHalfExtents(
-                AZ::Vector3(static_cast<float>(center.x), static_cast<float>(center.y), static_cast<float>(center.z)),
-                AZ::Vector3(static_cast<float>(halfLength.x), static_cast<float>(halfLength.y), static_cast<float>(halfLength.z)));
+            glm::dvec3 minAabb{std::numeric_limits<double>::infinity()};
+            glm::dvec3 maxAabb{-std::numeric_limits<double>::infinity()};
+            static const double Signs[] = { -1.0, 1.0 };
+            for (std::int32_t i = 0; i < 2; i++)
+            {
+                for (std::int32_t j = 0; j < 2; j++)
+                {
+                    for (int32_t k = 0; k < 2; k++)
+                    {
+                        auto corner = center + Signs[i] * halfLengthsAndOrientation[0] + Signs[j] * halfLengthsAndOrientation[1] +
+                            Signs[k] * halfLengthsAndOrientation[2];
+                        minAabb = glm::min(minAabb, corner);
+                        maxAabb = glm::max(maxAabb, corner);
+                    }
+                }
+            }
+
+            return AZ::Aabb::CreateFromMinMax(
+                AZ::Vector3(static_cast<float>(minAabb.x), static_cast<float>(minAabb.y), static_cast<float>(minAabb.z)),
+                AZ::Vector3(static_cast<float>(maxAabb.x), static_cast<float>(maxAabb.y), static_cast<float>(maxAabb.z)));
         }
 
         AZ::Aabb operator()(const CesiumGeospatial::BoundingRegion& region)
@@ -806,6 +825,12 @@ namespace Cesium
                         m_impl->m_renderResourcesPreparer->SetVisible(renderResources, true);
                     }
                 }
+
+                // TODO: remove
+                AZ::RPI::AuxGeomFeatureProcessorInterface* meshFeatureProcessor =
+                    AZ::RPI::Scene::GetFeatureProcessorForEntity<AZ::RPI::AuxGeomFeatureProcessorInterface>(GetEntityId());
+                auto drawQueue = meshFeatureProcessor->GetDrawQueue();
+                drawQueue->DrawAabb(GetWorldBounds(), AZ::Colors::White, AZ::RPI::AuxGeomDraw::DrawStyle::Line);
             }
         }
     }
