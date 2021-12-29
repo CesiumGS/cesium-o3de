@@ -221,11 +221,7 @@ namespace Cesium
 
         TilesetBoundingVolume boundingVolume = AZStd::monostate{};
         CesiumTilesetRequestBus::EventResult(boundingVolume, m_sampledEntityId, &CesiumTilesetRequestBus::Handler::GetBoundingVolumeInECEF);
-        if (auto empty = AZStd::get_if<AZStd::monostate>(&boundingVolume))
-        {
-            return;
-        }
-        else if (auto sphere = AZStd::get_if<BoundingSphere>(&boundingVolume))
+        if (auto sphere = AZStd::get_if<BoundingSphere>(&boundingVolume))
         {
             m_originAsCartesian = sphere->m_center;
             OnOriginAsCartesianChanged();
@@ -242,6 +238,15 @@ namespace Cesium
                 (region->m_minHeight + region->m_maxHeight) / 2.0);
             auto center = GeospatialHelper::CartographicToECEFCartesian(cartoCenter);
             m_originAsCartesian = center;
+            OnOriginAsCartesianChanged();
+        }
+        else
+        {
+            // not a tileset, then try to see if it's another geoereference
+            CoordinateTransformConfiguration transformConfig{};
+            CoordinateTransformRequestBus::EventResult(
+                transformConfig, m_sampledEntityId, &CoordinateTransformRequestBus::Events::GetConfiguration);
+            m_originAsCartesian = transformConfig.m_origin;
             OnOriginAsCartesianChanged();
         }
     }
