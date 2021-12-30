@@ -514,12 +514,8 @@ namespace Cesium
                 return;
             }
 
-            glm::dvec3 ecefBoundingCenter = Cesium3DTilesSelection::getBoundingVolumeCenter(root->getBoundingVolume());
-            glm::dvec3 o3deBoundingCenter = m_coordinateTransformConfig.m_ECEFToO3DE * glm::dvec4(ecefBoundingCenter, 1.0);
-            glm::dmat4 totalO3DETransform =
-                glm::translate(glm::dmat4(1.0), o3deBoundingCenter) * glm::translate(m_O3DETransform, -o3deBoundingCenter);
-            m_renderResourcesPreparer->SetTransform(totalO3DETransform * m_coordinateTransformConfig.m_ECEFToO3DE);
-            m_cameraConfigurations.SetTransform(m_coordinateTransformConfig.m_O3DEToECEF * glm::affineInverse(totalO3DETransform));
+            m_renderResourcesPreparer->SetTransform(m_O3DETransform * m_coordinateTransformConfig.m_ECEFToO3DE);
+            m_cameraConfigurations.SetTransform(m_coordinateTransformConfig.m_O3DEToECEF * glm::affineInverse(m_O3DETransform));
             m_configFlags = m_configFlags & ~ConfigurationDirtyFlags::TransformChange;
         }
 
