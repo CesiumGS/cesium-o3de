@@ -1,7 +1,9 @@
 #include "CesiumIonAssetListWidget.h"
 #include <AzQtComponents/Components/Widgets/TableView.h>
+#include <AzQtComponents/Components/FilteredSearchWidget.h>
 #include <AzCore/std/smart_ptr/make_shared.h>
 #include <AzCore/std/algorithm.h>
+#include <QDateTime>
 #include <QVBoxLayout>
 #include <QSplitter>
 #include <QMargins>
@@ -9,6 +11,7 @@
 #include <QVariant>
 #include <QPushButton>
 #include <QLabel>
+#include <QSortFilterProxyModel>
 
 namespace Cesium
 {
@@ -109,7 +112,7 @@ namespace Cesium
             }
             case Column::ColumnAssetDate:
             {
-                return asset.dateAdded.c_str();
+                    return QDateTime::fromString(asset.dateAdded.c_str(), "yyyy-MM-ddThh:mm:ss.zzzZ").toString("yyyy-MM-dd");
             }
             default:
                 break;
@@ -357,13 +360,52 @@ namespace Cesium
 
         QSplitter* splitter = new QSplitter(this);
 
+        // create table widget consisting of asset list and filter
+        QWidget* tableWidget = new QWidget(this);
+        QVBoxLayout* tableLayout = new QVBoxLayout(this);
+        tableLayout->setContentsMargins(QMargins(0, 0, 0, 0));
+        tableWidget->setLayout(tableLayout);
+        splitter->addWidget(tableWidget);
+
+        // create filter widget
+        QHBoxLayout* filterLayout = new QHBoxLayout(this);
+        filterLayout->setContentsMargins(QMargins(5, 5, 5, 5));
+
+        QPushButton* refreshButton = new QPushButton(this);
+        refreshButton->setToolTip("Refresh the asset lists");
+        refreshButton->setIcon(QIcon(":/Cesium/sync-alt-solid.svg"));
+        refreshButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+        refreshButton->setIconSize(QSize(20, 20));
+        refreshButton->setFixedSize(QSize(35, 35));
+        QObject::connect(
+            refreshButton, &QPushButton::pressed, this,
+            []()
+            {
+                CesiumIonSessionInterface::Get()->RefreshAssets();
+            });
+        filterLayout->addWidget(refreshButton);
+
+        filterLayout->addStretch();
+
+        AzQtComponents::FilteredSearchWidget* filterWidget = new AzQtComponents::FilteredSearchWidget(this);
+        filterWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
+        filterWidget->setFixedWidth(250);
+        connect(filterWidget, &AzQtComponents::FilteredSearchWidget::TextFilterChanged, this, &CesiumIonAssetListWidget::OnSearchTextChanged);
+        filterLayout->addWidget(filterWidget);
+
+        tableLayout->addLayout(filterLayout);
+
         // create asset list table
         m_assetListModel = new CesiumIonAssetListModel();
+        m_assetListFilterModel = new QSortFilterProxyModel(this);
+        m_assetListFilterModel->setSourceModel(m_assetListModel);
         AzQtComponents::TableView* table = new AzQtComponents::TableView(this);
-        table->setModel(m_assetListModel);
+        table->setSortingEnabled(true);
+        table->sortByColumn(static_cast<int>(CesiumIonAssetListModel::Column::ColumnAssetDate), Qt::SortOrder::DescendingOrder);
+        table->setModel(m_assetListFilterModel);
         QObject::connect(table, &QAbstractItemView::clicked, this, &CesiumIonAssetListWidget::AssetDoubleClicked);
         QObject::connect(m_assetListModel, &CesiumIonAssetListModel::assetUpdated, this, &CesiumIonAssetListWidget::AssetUpdated);
-        splitter->addWidget(table);
+        tableLayout->addWidget(table);
 
         // create asset detail
         m_assetDetailWidget = new CesiumIonAssetDetailWidget(this);
@@ -375,7 +417,8 @@ namespace Cesium
 
     void CesiumIonAssetListWidget::AssetDoubleClicked(const QModelIndex& index)
     {
-        const CesiumIonClient::Asset* asset = m_assetListModel->GetAsset(index.row());
+        QModelIndex sourceIndex = m_assetListFilterModel->mapToSource(index);
+        const CesiumIonClient::Asset* asset = m_assetListModel->GetAsset(sourceIndex.row());
         m_assetDetailWidget->SetAsset(asset);
     }
 
@@ -383,5 +426,10 @@ namespace Cesium
     {
         const CesiumIonClient::Asset* asset = m_assetListModel->GetAssetById(m_assetDetailWidget->GetCurrentAssetId());
         m_assetDetailWidget->SetAsset(asset);
+    }
+
+    void CesiumIonAssetListWidget::OnSearchTextChanged(const QString& searchText)
+    {
+        m_assetListFilterModel->setFilterRegExp(QRegExp(searchText, Qt::CaseInsensitive, QRegExp::FixedString));
     }
 } // namespace Cesium

@@ -12,6 +12,7 @@ class QVariant;
 class QLabel;
 class QPushButton;
 class QVBoxLayout;
+class QSortFilterProxyModel;
 
 #endif
 
@@ -22,6 +23,7 @@ namespace Cesium
     {
         Q_OBJECT
 
+    public:
         enum Column
         {
             ColumnAssetName,
@@ -30,7 +32,6 @@ namespace Cesium
             Max
         };
 
-    public:
         explicit CesiumIonAssetListModel(QObject* parent = nullptr);
 
         int rowCount(const QModelIndex& parent = QModelIndex()) const override;
@@ -108,8 +109,11 @@ namespace Cesium
 
         void AssetUpdated();
 
+        void OnSearchTextChanged(const QString& searchText);
+
     private:
         CesiumIonAssetDetailWidget* m_assetDetailWidget{ nullptr };
         CesiumIonAssetListModel* m_assetListModel{nullptr};
+        QSortFilterProxyModel* m_assetListFilterModel{ nullptr };
     };
 } // namespace Cesium
