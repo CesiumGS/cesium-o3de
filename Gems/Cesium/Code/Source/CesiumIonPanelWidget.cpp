@@ -6,6 +6,7 @@
 #include <AzToolsFramework/Component/EditorComponentAPIBus.h>
 #include <AzToolsFramework/API/ToolsApplicationAPI.h>
 #include <AzFramework/Components/CameraBus.h>
+#include <QScrollArea>
 #include <QVBoxLayout>
 #include <QAction>
 #include <QIcon>
@@ -13,6 +14,9 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include <QLabel>
+#include <QLineEdit>
+#include <QGuiApplication>
+#include <QClipboard>
 
 namespace Cesium
 {
@@ -40,37 +44,58 @@ namespace Cesium
         m_ionConnected = IonSessionUpdatedEvent::Handler(
             [this]()
             {
-                bool signedIn = CesiumIonSessionInterface::Get()->IsConnected() && CesiumIonSessionInterface::Get()->IsAssetAccessTokenLoaded(); 
+                bool signedIn =
+                    CesiumIonSessionInterface::Get()->IsConnected() && CesiumIonSessionInterface::Get()->IsAssetAccessTokenLoaded();
                 m_quickAddIonAsset->setVisible(signedIn);
                 m_ionLogin->setVisible(!signedIn);
+                m_loadingLogin->setVisible(
+                    CesiumIonSessionInterface::Get()->IsConnecting());
             });
 
         m_assetTokenUpdated = IonSessionUpdatedEvent::Handler(
             [this]()
             {
-                bool signedIn = CesiumIonSessionInterface::Get()->IsConnected() && CesiumIonSessionInterface::Get()->IsAssetAccessTokenLoaded(); 
+                bool signedIn =
+                    CesiumIonSessionInterface::Get()->IsConnected() && CesiumIonSessionInterface::Get()->IsAssetAccessTokenLoaded();
                 m_quickAddIonAsset->setVisible(signedIn);
                 m_ionLogin->setVisible(!signedIn);
-            }); 
+                m_loadingLogin->setVisible(CesiumIonSessionInterface::Get()->IsConnecting());
+            });
         CesiumIonSessionInterface::Get()->Resume();
 
         m_ionConnected.Connect(CesiumIonSessionInterface::Get()->ConnectionUpdated);
         m_assetTokenUpdated.Connect(CesiumIonSessionInterface::Get()->AssetAccessTokenUpdated);
+        bool signedIn = CesiumIonSessionInterface::Get()->IsConnected() && CesiumIonSessionInterface::Get()->IsAssetAccessTokenLoaded();
 
         QVBoxLayout* mainLayout = new QVBoxLayout(this);
         mainLayout->setSpacing(10);
         mainLayout->addWidget(CreatePanelMenu());
-        mainLayout->addWidget(CreateQuickAddBasicMenu());
+
+        // setup scroll area
+        QVBoxLayout* scrollLayout = new QVBoxLayout();
+        QWidget* scrollWidget = new QWidget();
+        scrollWidget->setLayout(scrollLayout);
+
+        QScrollArea* scrollArea = new QScrollArea(this);
+        scrollArea->setWidget(scrollWidget);
+        scrollArea->setWidgetResizable(true);
+
+        scrollLayout->addWidget(CreateQuickAddBasicMenu(), 1, Qt::AlignTop);
 
         m_quickAddIonAsset = CreateQuickAddIonMenu();
-        m_quickAddIonAsset->setVisible(CesiumIonSessionInterface::Get()->IsConnected());
-        mainLayout->addWidget(m_quickAddIonAsset);
+        m_quickAddIonAsset->setVisible(signedIn);
+        scrollLayout->addWidget(m_quickAddIonAsset, 1, Qt::AlignTop);
 
         m_ionLogin = CreateCesiumLogin();
-        m_ionLogin->setVisible(!CesiumIonSessionInterface::Get()->IsConnected());
-        mainLayout->addWidget(m_ionLogin);
+        m_ionLogin->setVisible(!signedIn);
+        scrollLayout->addWidget(m_ionLogin, 1, Qt::AlignTop);
 
-        mainLayout->addStretch();
+        m_loadingLogin = CreateLoading();
+        m_loadingLogin->setVisible(CesiumIonSessionInterface::Get()->IsConnecting());
+        scrollLayout->addWidget(m_loadingLogin, 1, Qt::AlignTop);
+        scrollLayout->addStretch(100);
+
+        mainLayout->addWidget(scrollArea);
         setLayout(mainLayout);
     }
 
@@ -306,13 +331,66 @@ namespace Cesium
         loginBtn->setStyleSheet("font-size: 15px; font-weight: bold; color: white");
         loginBtn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
         loginBtn->setFixedSize(QSize(220, 40));
+        loginBtn->setEnabled(!CesiumIonSessionInterface::Get()->IsConnecting());
         QObject::connect(
             loginBtn, &QPushButton::pressed, this,
-            []()
+            [this]()
             {
                 CesiumIonSessionInterface::Get()->Connect();
+                m_loadingLogin->setVisible(true);
+                m_authorizeTokenText->setText(CesiumIonSessionInterface::Get()->GetAuthorizeUrl().c_str());
             });
         layout->addWidget(loginBtn, 0, Qt::AlignCenter);
+
+        return widget;
+    }
+
+    QWidget* CesiumIonPanelWidget::CreateLoading()
+    {
+        QWidget* widget = new QWidget(this);
+
+        QVBoxLayout* layout = new QVBoxLayout(this);
+        widget->setLayout(layout);
+
+        QLabel* loadingText = new QLabel("Waiting for you to sign in Cesium Ion with your web browser...", this);
+        loadingText->setStyleSheet("font-size: 13px");
+        loadingText->setWordWrap(true);
+        loadingText->setAlignment(Qt::AlignCenter);
+        layout->addWidget(loadingText);
+
+        QPushButton* openWebBrowser = new QPushButton("Open web browser again", this);
+        openWebBrowser->setFlat(true);
+        openWebBrowser->setStyleSheet("QPushButton { border: 0px; font-size: 13px; text-decoration: underline } QPushButton:hover { color: #409fed; }");
+        QObject::connect(
+            openWebBrowser, &QPushButton::pressed, this,
+            []()
+            {
+                QDesktopServices::openUrl(QUrl(CesiumIonSessionInterface::Get()->GetAuthorizeUrl().c_str()));
+            });
+        layout->addWidget(openWebBrowser, 0, Qt::AlignCenter);
+
+        QLabel* copyUrlText = new QLabel("Or copy the URL below into your web browser", this);
+        copyUrlText->setStyleSheet("font-size: 13px");
+        copyUrlText->setWordWrap(true);
+        copyUrlText->setAlignment(Qt::AlignCenter);
+        layout->addWidget(copyUrlText);
+
+        QHBoxLayout* urlLayout = new QHBoxLayout(this);
+        m_authorizeTokenText = new QLineEdit(this);
+        m_authorizeTokenText->setText(CesiumIonSessionInterface::Get()->GetAuthorizeUrl().c_str());
+        urlLayout->addWidget(m_authorizeTokenText, 2);
+
+        QPushButton* copyToClipboard = new QPushButton("Copy to clipboard", this);
+        QObject::connect(
+            copyToClipboard, &QPushButton::pressed, this,
+            []()
+            {
+                auto clipboard = QGuiApplication::clipboard();
+                clipboard->setText(CesiumIonSessionInterface::Get()->GetAuthorizeUrl().c_str());
+            });
+        urlLayout->addWidget(copyToClipboard, 1);
+
+        layout->addLayout(urlLayout);
 
         return widget;
     }

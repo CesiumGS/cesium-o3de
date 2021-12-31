@@ -12,6 +12,7 @@ class QVBoxLayout;
 class QHBoxLayout;
 class QFrame;
 class QIcon;
+class QLineEdit;
 #endif
 
 namespace Cesium
@@ -64,13 +65,17 @@ namespace Cesium
 
         QWidget* CreateCesiumLogin();
 
+        QWidget* CreateLoading();
+
         QFrame* CreateHorizontalLine();
 
         IonSessionUpdatedEvent::Handler m_ionConnected;
         IonSessionUpdatedEvent::Handler m_assetTokenUpdated;
 
         QWidget* m_ionLogin;
+        QWidget* m_loadingLogin;
         QWidget* m_quickAddIonAsset;
+        QLineEdit* m_authorizeTokenText;
 
     private slots:
         void AddIonTileset(AZStd::shared_ptr<IonAssetItem> item);
