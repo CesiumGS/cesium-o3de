@@ -4,6 +4,9 @@
 #include <Cesium/OriginShiftAwareComponentBus.h>
 #include <Cesium/GeospatialHelper.h>
 #include <Cesium/MathReflect.h>
+#include <AtomToolsFramework/Viewport/ModularViewportCameraControllerRequestBus.h>
+#include <Atom/RPI.Public/ViewportContext.h>
+#include <Atom/RPI.Public/ViewportContextBus.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/EditContext.h>
 
@@ -18,6 +21,123 @@ namespace Cesium
                 ->Field("longitude", &DegreeCartographic::m_longitude)
                 ->Field("latitude", &DegreeCartographic::m_latitude)
                 ->Field("height", &DegreeCartographic::m_height);
+
+            AZ::EditContext* editContext = serializeContext->GetEditContext();
+            if (editContext)
+            {
+                editContext->Class<DegreeCartographic>("Cartographic", "")
+                    ->ClassElement(AZ::Edit::ClassElements::EditorData, "")
+                        ->Attribute(AZ::Edit::Attributes::AutoExpand, true)
+                    ->DataElement(AZ::Edit::UIHandlers::Default, &DegreeCartographic::m_longitude, "Longitude", "")
+                        ->Attribute(AZ::Edit::Attributes::Decimals, 15)
+                        ->Attribute(AZ::Edit::Attributes::Suffix, "deg")
+                    ->DataElement(AZ::Edit::UIHandlers::Default, &DegreeCartographic::m_latitude, "Latitude", "")
+                        ->Attribute(AZ::Edit::Attributes::Decimals, 15)
+                        ->Attribute(AZ::Edit::Attributes::Suffix, "deg")
+                    ->DataElement(AZ::Edit::UIHandlers::Default, &DegreeCartographic::m_height, "Height", "")
+                        ->Attribute(AZ::Edit::Attributes::Decimals, 15)
+                        ->Attribute(AZ::Edit::Attributes::Suffix, "m")
+                ;
+
+            }
+        }
+    }
+
+    void GeoReferenceTransformEditorComponent::SampleOriginGroup::Reflect(AZ::ReflectContext* context)
+    {
+        if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
+        {
+            serializeContext->Class<SampleOriginGroup>()
+                ->Version(0)
+                ->Field("sampleOriginMethod", &SampleOriginGroup::m_sampleOriginMethod)
+                ->Field("sampledEntityId", &SampleOriginGroup::m_sampledEntityId);
+
+            AZ::EditContext* editContext = serializeContext->GetEditContext();
+            if (editContext)
+            {
+                editContext->Class<SampleOriginGroup>("Sample Origin Coordinate", "")
+                    ->ClassElement(AZ::Edit::ClassElements::EditorData, "")
+                        ->Attribute(AZ::Edit::Attributes::AutoExpand, true)
+                    ->DataElement(AZ::Edit::UIHandlers::ComboBox, &SampleOriginGroup::m_sampleOriginMethod, "Sample Method", "")
+                        ->EnumAttribute(SampleOriginMethod::EntityCoordinate, "Entity ECEF Coordinate")
+                        ->EnumAttribute(SampleOriginMethod::CameraPosition, "Camera ECEF Coordinate")
+                        ->Attribute(AZ::Edit::Attributes::ChangeNotify, AZ::Edit::PropertyRefreshLevels::EntireTree)
+                    ->DataElement(AZ::Edit::UIHandlers::Default, &SampleOriginGroup::m_sampledEntityId, "Entity ECEF Coordinate", "")
+                        ->Attribute(AZ::Edit::Attributes::Visibility, &SampleOriginGroup::UseOriginAsEntityCoordinate)
+                        ->Attribute(AZ::Edit::Attributes::ChangeNotify, &SampleOriginGroup::OnOriginAsEntityCoordinateChanged)
+                    ->UIElement(AZ::Edit::UIHandlers::Button, "Sample Camera ECEF Coordinate", "")
+                        ->Attribute(AZ::Edit::Attributes::ButtonText, "Sample Camera ECEF Coordinate")
+                        ->Attribute(AZ::Edit::Attributes::Visibility, &SampleOriginGroup::UseOriginAsCameraPosition)
+                        ->Attribute(AZ::Edit::Attributes::ChangeNotify, &SampleOriginGroup::OnOriginAsCameraPosition)
+                ;
+
+            }
+        }
+    }
+
+    bool GeoReferenceTransformEditorComponent::SampleOriginGroup::UseOriginAsEntityCoordinate()
+    {
+        return m_sampleOriginMethod == SampleOriginMethod::EntityCoordinate;
+    }
+
+    void GeoReferenceTransformEditorComponent::SampleOriginGroup::OnOriginAsEntityCoordinateChanged()
+    {
+        m_originChanged = true;
+
+        TilesetBoundingVolume boundingVolume = AZStd::monostate{};
+        CesiumTilesetRequestBus::EventResult(boundingVolume, m_sampledEntityId, &CesiumTilesetRequestBus::Handler::GetBoundingVolumeInECEF);
+        if (auto sphere = AZStd::get_if<BoundingSphere>(&boundingVolume))
+        {
+            m_originAsCartesian = sphere->m_center;
+        }
+        else if (auto obb = AZStd::get_if<OrientedBoundingBox>(&boundingVolume))
+        {
+            m_originAsCartesian = obb->m_center;
+        }
+        else if (auto region = AZStd::get_if<BoundingRegion>(&boundingVolume))
+        {
+            auto cartoCenter = Cartographic(
+                (region->m_east + region->m_west) / 2.0, (region->m_north + region->m_south) / 2.0,
+                (region->m_minHeight + region->m_maxHeight) / 2.0);
+            auto center = GeospatialHelper::CartographicToECEFCartesian(cartoCenter);
+            m_originAsCartesian = center;
+        }
+        else
+        {
+            // not a tileset, then try to see if it's another geoereference
+            CoordinateTransformConfiguration transformConfig{};
+            CoordinateTransformRequestBus::EventResult(
+                transformConfig, m_sampledEntityId, &CoordinateTransformRequestBus::Events::GetConfiguration);
+            m_originAsCartesian = transformConfig.m_origin;
+        }
+    }
+
+    bool GeoReferenceTransformEditorComponent::SampleOriginGroup::UseOriginAsCameraPosition()
+    {
+        return m_sampleOriginMethod == SampleOriginMethod::CameraPosition;
+    }
+
+    void GeoReferenceTransformEditorComponent::SampleOriginGroup::OnOriginAsCameraPosition()
+    {
+        m_originChanged = true;
+        auto viewportContextManager = AZ::Interface<AZ::RPI::ViewportContextRequestsInterface>::Get();
+        auto defaultViewportContext = viewportContextManager->GetDefaultViewportContext();
+        if (defaultViewportContext)
+        {
+            AZ::Transform cameraTransform = defaultViewportContext->GetCameraTransform();
+            AZ::Vector3 cameraPosition = cameraTransform.GetTranslation();
+            glm::dvec4 o3deCameraPosition = glm::dvec4(cameraPosition.GetX(), cameraPosition.GetY(), cameraPosition.GetZ(), 1.0);
+            AZ_Printf("Cesium", "x:%f, y:%f, z:%f", cameraPosition.GetX(), cameraPosition.GetY(), cameraPosition.GetZ());
+
+            AZ::EntityId levelEntityId;
+            LevelCoordinateTransformRequestBus::BroadcastResult(
+                levelEntityId, &LevelCoordinateTransformRequestBus::Events::GetCoordinateTransform);
+
+            CoordinateTransformConfiguration transformconfig;
+            CoordinateTransformRequestBus::EventResult(
+                transformconfig, levelEntityId, &CoordinateTransformRequestBus::Events::GetConfiguration);
+
+            m_originAsCartesian = transformconfig.m_O3DEToECEF * o3deCameraPosition;
         }
     }
 
@@ -42,6 +162,7 @@ namespace Cesium
     void GeoReferenceTransformEditorComponent::Reflect(AZ::ReflectContext* context)
     {
         DegreeCartographic::Reflect(context);
+        SampleOriginGroup::Reflect(context);
 
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
@@ -50,7 +171,7 @@ namespace Cesium
                 ->Field("originType", &GeoReferenceTransformEditorComponent::m_originType)
                 ->Field("originAsCartesian", &GeoReferenceTransformEditorComponent::m_originAsCartesian)
                 ->Field("originAsCartographic", &GeoReferenceTransformEditorComponent::m_originAsCartographic)
-                ->Field("sampledEntityId", &GeoReferenceTransformEditorComponent::m_sampledEntityId)
+                ->Field("sampleOriginGroup", &GeoReferenceTransformEditorComponent::m_sampleOriginGroup)
                 ;
 
             AZ::EditContext* editContext = serializeContext->GetEditContext();
@@ -74,7 +195,6 @@ namespace Cesium
                         ->DataElement(AZ::Edit::UIHandlers::ComboBox, &GeoReferenceTransformEditorComponent::m_originType, "Type", "")
                             ->EnumAttribute(OriginType::Cartesian, "Cartesian")
                             ->EnumAttribute(OriginType::Cartographic, "Cartographic")
-                            ->EnumAttribute(OriginType::EntityCoordinate, "Entity ECEF Coordinate")
                             ->Attribute(AZ::Edit::Attributes::ChangeNotify, AZ::Edit::PropertyRefreshLevels::EntireTree)
                         ->DataElement(AZ::Edit::UIHandlers::Default, &GeoReferenceTransformEditorComponent::m_originAsCartesian, "Cartesian", "")
                             ->Attribute(AZ::Edit::Attributes::Decimals, 15)
@@ -84,24 +204,10 @@ namespace Cesium
                         ->DataElement(AZ::Edit::UIHandlers::Default, &GeoReferenceTransformEditorComponent::m_originAsCartographic, "Cartographic", "")
                             ->Attribute(AZ::Edit::Attributes::Visibility, & GeoReferenceTransformEditorComponent::UseOriginAsCartographic)
                             ->Attribute(AZ::Edit::Attributes::ChangeNotify, &GeoReferenceTransformEditorComponent::OnOriginAsCartographicChanged)
-                        ->DataElement(AZ::Edit::UIHandlers::Default, &GeoReferenceTransformEditorComponent::m_sampledEntityId, "Sample Entity ECEF Coordinate", "")
-                            ->Attribute(AZ::Edit::Attributes::Visibility, & GeoReferenceTransformEditorComponent::UseOriginAsEntityCoordinate)
-                            ->Attribute(AZ::Edit::Attributes::ChangeNotify, &GeoReferenceTransformEditorComponent::OnOriginAsEntityCoordinateChanged)
-                    ;
+                        ->DataElement(AZ::Edit::UIHandlers::Default, &GeoReferenceTransformEditorComponent::m_sampleOriginGroup, "Sample Origin Coordinate", "")
+                            ->Attribute(AZ::Edit::Attributes::ChangeNotify, &GeoReferenceTransformEditorComponent::OnSampleOriginChanged)
+                ;
 
-                editContext->Class<DegreeCartographic>("Cartographic", "")
-                    ->ClassElement(AZ::Edit::ClassElements::EditorData, "")
-                        ->Attribute(AZ::Edit::Attributes::AutoExpand, true)
-                    ->DataElement(AZ::Edit::UIHandlers::Default, &DegreeCartographic::m_longitude, "Longitude", "")
-                        ->Attribute(AZ::Edit::Attributes::Decimals, 15)
-                        ->Attribute(AZ::Edit::Attributes::Suffix, "deg")
-                    ->DataElement(AZ::Edit::UIHandlers::Default, &DegreeCartographic::m_latitude, "Latitude", "")
-                        ->Attribute(AZ::Edit::Attributes::Decimals, 15)
-                        ->Attribute(AZ::Edit::Attributes::Suffix, "deg")
-                    ->DataElement(AZ::Edit::UIHandlers::Default, &DegreeCartographic::m_height, "Height", "")
-                        ->Attribute(AZ::Edit::Attributes::Decimals, 15)
-                        ->Attribute(AZ::Edit::Attributes::Suffix, "m")
-                    ;
             }
         }
     }
@@ -166,22 +272,11 @@ namespace Cesium
         return m_originType == OriginType::Cartographic;
     }
 
-    bool GeoReferenceTransformEditorComponent::UseOriginAsEntityCoordinate()
-    {
-        return m_originType == OriginType::EntityCoordinate;
-    }
-
-    void GeoReferenceTransformEditorComponent::OnSetAsLevelGeoreferencePressed()
-    {
-        LevelCoordinateTransformRequestBus::Broadcast(
-            &LevelCoordinateTransformRequestBus::Events::SetCoordinateTransform, GetEntityId());
-    }
-
-    void GeoReferenceTransformEditorComponent::OnOriginAsCartesianChanged()
+    AZ::u32 GeoReferenceTransformEditorComponent::OnOriginAsCartesianChanged()
     {
         if (!m_georeferenceComponent)
         {
-            return;
+            return AZ::Edit::PropertyRefreshLevels::None;
         }
 
         auto maybeCartographic = GeospatialHelper::ECEFCartesianToCartographic(m_originAsCartesian);
@@ -197,58 +292,54 @@ namespace Cesium
         }
 
         m_georeferenceComponent->SetECEFCoordOrigin(m_originAsCartesian);
+        MoveViewportsToOrigin();
+
+        return AZ::Edit::PropertyRefreshLevels::ValuesOnly;
     }
 
-    void GeoReferenceTransformEditorComponent::OnOriginAsCartographicChanged()
+    AZ::u32 GeoReferenceTransformEditorComponent::OnOriginAsCartographicChanged()
     {
         if (!m_georeferenceComponent)
         {
-            return;
+            return AZ::Edit::PropertyRefreshLevels::None;
         }
 
         Cartographic radCartographic{ glm::radians(m_originAsCartographic.m_longitude), glm::radians(m_originAsCartographic.m_latitude),
                                       m_originAsCartographic.m_height };
         m_originAsCartesian = GeospatialHelper::CartographicToECEFCartesian(radCartographic);
         m_georeferenceComponent->SetECEFCoordOrigin(m_originAsCartesian);
+        MoveViewportsToOrigin();
+
+        return AZ::Edit::PropertyRefreshLevels::ValuesOnly;
     }
 
-    void GeoReferenceTransformEditorComponent::OnOriginAsEntityCoordinateChanged()
+    AZ::u32 GeoReferenceTransformEditorComponent::OnSampleOriginChanged()
     {
-        if (!m_georeferenceComponent)
+        if (m_sampleOriginGroup.m_originChanged)
         {
-            return;
+            m_sampleOriginGroup.m_originChanged = false;
+            m_originAsCartesian = m_sampleOriginGroup.m_originAsCartesian;
+            return OnOriginAsCartesianChanged();
         }
 
-        TilesetBoundingVolume boundingVolume = AZStd::monostate{};
-        CesiumTilesetRequestBus::EventResult(boundingVolume, m_sampledEntityId, &CesiumTilesetRequestBus::Handler::GetBoundingVolumeInECEF);
-        if (auto sphere = AZStd::get_if<BoundingSphere>(&boundingVolume))
-        {
-            m_originAsCartesian = sphere->m_center;
-            OnOriginAsCartesianChanged();
-        }
-        else if (auto obb = AZStd::get_if<OrientedBoundingBox>(&boundingVolume))
-        {
-            m_originAsCartesian = obb->m_center;
-            OnOriginAsCartesianChanged();
-        }
-        else if (auto region = AZStd::get_if<BoundingRegion>(&boundingVolume))
-        {
-            auto cartoCenter = Cartographic(
-                (region->m_east + region->m_west) / 2.0, (region->m_north + region->m_south) / 2.0,
-                (region->m_minHeight + region->m_maxHeight) / 2.0);
-            auto center = GeospatialHelper::CartographicToECEFCartesian(cartoCenter);
-            m_originAsCartesian = center;
-            OnOriginAsCartesianChanged();
-        }
-        else
-        {
-            // not a tileset, then try to see if it's another geoereference
-            CoordinateTransformConfiguration transformConfig{};
-            CoordinateTransformRequestBus::EventResult(
-                transformConfig, m_sampledEntityId, &CoordinateTransformRequestBus::Events::GetConfiguration);
-            m_originAsCartesian = transformConfig.m_origin;
-            OnOriginAsCartesianChanged();
-        }
+        return AZ::Edit::PropertyRefreshLevels::None;
+    }
+
+    void GeoReferenceTransformEditorComponent::OnSetAsLevelGeoreferencePressed()
+    {
+        LevelCoordinateTransformRequestBus::Broadcast(&LevelCoordinateTransformRequestBus::Events::SetCoordinateTransform, GetEntityId());
+    }
+
+    void GeoReferenceTransformEditorComponent::MoveViewportsToOrigin()
+    {
+        auto viewportContextManager = AZ::Interface<AZ::RPI::ViewportContextRequestsInterface>::Get();
+        viewportContextManager->EnumerateViewportContexts(
+            [](AZ::RPI::ViewportContextPtr viewportContextPtr)
+            {
+                AtomToolsFramework::ModularViewportCameraControllerRequestBus::Event(
+                    viewportContextPtr->GetId(), &AtomToolsFramework::ModularViewportCameraControllerRequestBus::Events::SetReferenceFrame,
+                    AZ::Transform::CreateIdentity());
+            });
     }
 
 } // namespace Cesium

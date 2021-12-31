@@ -102,9 +102,9 @@ namespace Cesium
         viewportContextManager->EnumerateViewportContexts(
             [](AZ::RPI::ViewportContextPtr viewportContextPtr) 
             {
-                ModularViewportCameraControllerRequestBus::Event(
-                    viewportContextPtr->GetId(), &ModularViewportCameraControllerRequestBus::Events::InterpolateToTransform,
-                    AZ::Transform::CreateFromQuaternionAndTranslation(AZ::Quaternion::CreateIdentity(), AZ::Vector3(0, 0, 0)));
+                AtomToolsFramework::ModularViewportCameraControllerRequestBus::Event(
+                    viewportContextPtr->GetId(), &AtomToolsFramework::ModularViewportCameraControllerRequestBus::Events::SetReferenceFrame,
+                    AZ::Transform::CreateIdentity());
             });
 
         PropertyEditorGUIMessages::Bus::Broadcast(

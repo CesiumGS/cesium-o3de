@@ -15,7 +15,12 @@ namespace Cesium
         {
             Cartesian,
             Cartographic,
-            EntityCoordinate
+        };
+
+        enum class SampleOriginMethod
+        {
+            EntityCoordinate,
+            CameraPosition
         };
 
         struct DegreeCartographic final
@@ -32,6 +37,27 @@ namespace Cesium
             double m_longitude;
             double m_latitude;
             double m_height;
+        };
+
+        struct SampleOriginGroup final
+        {
+            AZ_RTTI(SampleOriginGroup, "{F8AAE323-83AC-4B8B-8BB8-D3CD27DD85E2}");
+            AZ_CLASS_ALLOCATOR(SampleOriginGroup, AZ::SystemAllocator, 0);
+
+            static void Reflect(AZ::ReflectContext* context);
+
+            void OnOriginAsEntityCoordinateChanged();
+
+            void OnOriginAsCameraPosition();
+
+            bool UseOriginAsCameraPosition();
+
+            bool UseOriginAsEntityCoordinate();
+
+            SampleOriginMethod m_sampleOriginMethod;
+            AZ::EntityId m_sampledEntityId;
+            glm::dvec3 m_originAsCartesian{0.0};
+            bool m_originChanged{ false };
         };
 
     public:
@@ -58,24 +84,24 @@ namespace Cesium
 
         void Deactivate() override;
 
-        void OnOriginAsCartesianChanged();
+        AZ::u32 OnOriginAsCartesianChanged();
 
-        void OnOriginAsCartographicChanged();
+        AZ::u32 OnOriginAsCartographicChanged();
 
-        void OnOriginAsEntityCoordinateChanged();
+        AZ::u32 OnSampleOriginChanged();
+
+        void OnSetAsLevelGeoreferencePressed();
+
+        void MoveViewportsToOrigin();
 
         bool UseOriginAsCartesian();
 
         bool UseOriginAsCartographic();
 
-        bool UseOriginAsEntityCoordinate();
-
-        void OnSetAsLevelGeoreferencePressed();
-
         AZStd::unique_ptr<GeoReferenceTransformComponent> m_georeferenceComponent;
         OriginType m_originType;
         glm::dvec3 m_originAsCartesian{0.0};
         DegreeCartographic m_originAsCartographic{};
-        AZ::EntityId m_sampledEntityId;
+        SampleOriginGroup m_sampleOriginGroup;
     };
 } // namespace Cesium
