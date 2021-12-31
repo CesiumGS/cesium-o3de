@@ -7,6 +7,7 @@
 #include <AtomToolsFramework/Viewport/ModularViewportCameraControllerRequestBus.h>
 #include <Atom/RPI.Public/ViewportContext.h>
 #include <Atom/RPI.Public/ViewportContextBus.h>
+#include <AzToolsFramework/API/ToolsApplicationAPI.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/EditContext.h>
 
@@ -127,7 +128,6 @@ namespace Cesium
             AZ::Transform cameraTransform = defaultViewportContext->GetCameraTransform();
             AZ::Vector3 cameraPosition = cameraTransform.GetTranslation();
             glm::dvec4 o3deCameraPosition = glm::dvec4(cameraPosition.GetX(), cameraPosition.GetY(), cameraPosition.GetZ(), 1.0);
-            AZ_Printf("Cesium", "x:%f, y:%f, z:%f", cameraPosition.GetX(), cameraPosition.GetY(), cameraPosition.GetZ());
 
             AZ::EntityId levelEntityId;
             LevelCoordinateTransformRequestBus::BroadcastResult(
@@ -274,8 +274,10 @@ namespace Cesium
 
     AZ::u32 GeoReferenceTransformEditorComponent::OnOriginAsCartesianChanged()
     {
+        AzToolsFramework::ScopedUndoBatch undoBatch("Change Origin");
         if (!m_georeferenceComponent)
         {
+            undoBatch.MarkEntityDirty(GetEntityId());
             return AZ::Edit::PropertyRefreshLevels::None;
         }
 
@@ -294,13 +296,17 @@ namespace Cesium
         m_georeferenceComponent->SetECEFCoordOrigin(m_originAsCartesian);
         MoveViewportsToOrigin();
 
+        undoBatch.MarkEntityDirty(GetEntityId());
+
         return AZ::Edit::PropertyRefreshLevels::ValuesOnly;
     }
 
     AZ::u32 GeoReferenceTransformEditorComponent::OnOriginAsCartographicChanged()
     {
+        AzToolsFramework::ScopedUndoBatch undoBatch("Change Origin");
         if (!m_georeferenceComponent)
         {
+            undoBatch.MarkEntityDirty(GetEntityId());
             return AZ::Edit::PropertyRefreshLevels::None;
         }
 
@@ -309,6 +315,8 @@ namespace Cesium
         m_originAsCartesian = GeospatialHelper::CartographicToECEFCartesian(radCartographic);
         m_georeferenceComponent->SetECEFCoordOrigin(m_originAsCartesian);
         MoveViewportsToOrigin();
+
+        undoBatch.MarkEntityDirty(GetEntityId());
 
         return AZ::Edit::PropertyRefreshLevels::ValuesOnly;
     }
@@ -332,14 +340,22 @@ namespace Cesium
 
     void GeoReferenceTransformEditorComponent::MoveViewportsToOrigin()
     {
-        auto viewportContextManager = AZ::Interface<AZ::RPI::ViewportContextRequestsInterface>::Get();
-        viewportContextManager->EnumerateViewportContexts(
-            [](AZ::RPI::ViewportContextPtr viewportContextPtr)
-            {
-                AtomToolsFramework::ModularViewportCameraControllerRequestBus::Event(
-                    viewportContextPtr->GetId(), &AtomToolsFramework::ModularViewportCameraControllerRequestBus::Events::SetReferenceFrame,
-                    AZ::Transform::CreateIdentity());
-            });
+        AZ::EntityId levelGeoreferenceEntityId;
+        LevelCoordinateTransformRequestBus::BroadcastResult(
+            levelGeoreferenceEntityId, &LevelCoordinateTransformRequestBus::Events::GetCoordinateTransform);
+        if (levelGeoreferenceEntityId == GetEntityId())
+        {
+            // only move the camera if this one is the current level georeference
+            auto viewportContextManager = AZ::Interface<AZ::RPI::ViewportContextRequestsInterface>::Get();
+            viewportContextManager->EnumerateViewportContexts(
+                [](AZ::RPI::ViewportContextPtr viewportContextPtr)
+                {
+                    AtomToolsFramework::ModularViewportCameraControllerRequestBus::Event(
+                        viewportContextPtr->GetId(),
+                        &AtomToolsFramework::ModularViewportCameraControllerRequestBus::Events::SetReferenceFrame,
+                        AZ::Transform::CreateIdentity());
+                });
+        }
     }
 
 } // namespace Cesium
