@@ -2,18 +2,20 @@
 set(FILES
     Source/CesiumEditorSystemComponent.cpp
     Source/CesiumEditorSystemComponent.h
+    Source/MatrixWidget.cpp
+    Source/MatrixWidget.h
     Source/CesiumIonRasterOverlayEditorComponent.cpp
-    Include/Cesium/CesiumIonRasterOverlayEditorComponent.h
+    Source/CesiumIonRasterOverlayEditorComponent.h
     Source/BingRasterOverlayEditorComponent.cpp
-    Include/Cesium/BingRasterOverlayEditorComponent.h
+    Source/BingRasterOverlayEditorComponent.h
     Source/TMSRasterOverlayEditorComponent.cpp
-    Include/Cesium/TMSRasterOverlayEditorComponent.h
+    Source/TMSRasterOverlayEditorComponent.h
     Source/GeoReferenceCameraFlyControllerEditor.cpp
-    Include/Cesium/GeoReferenceCameraFlyControllerEditor.h
+    Source/GeoReferenceCameraFlyControllerEditor.h
     Source/MathDataWidget.cpp
-    Include/Cesium/MathDataWidget.h
+    Source/MathDataWidget.h
     Source/GeoReferenceTransformEditorComponent.cpp
-    Include/Cesium/GeoReferenceTransformEditorComponent.h
+    Source/GeoReferenceTransformEditorComponent.h
     Source/CesiumTilesetEditorComponent.cpp
-    Include/Cesium/CesiumTilesetEditorComponent.h
+    Source/CesiumTilesetEditorComponent.h
 )

@@ -1,4 +1,5 @@
 #include <Cesium/Cartographic.h>
+#include <AzCore/RTTI/BehaviorContext.h>
 #include <AzCore/Serialization/SerializeContext.h>
 
 namespace Cesium
@@ -12,6 +13,16 @@ namespace Cesium
                 ->Field("longitude", &Cartographic::m_longitude)
                 ->Field("latitude", &Cartographic::m_latitude)
                 ->Field("height", &Cartographic::m_height);
+        }
+
+        if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
+        {
+            behaviorContext->Class<Cartographic>("Cartographic")
+                ->Attribute(AZ::Script::Attributes::Category, "Cesium/Math")
+                ->Property("longitude", BehaviorValueProperty(&Cartographic::m_longitude))
+                ->Property("latitude", BehaviorValueProperty(&Cartographic::m_latitude))
+                ->Property("height", BehaviorValueProperty(&Cartographic::m_height))
+            ;
         }
     }
 

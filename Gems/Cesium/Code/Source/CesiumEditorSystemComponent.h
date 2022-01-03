@@ -1,8 +1,6 @@
-
 #pragma once
 
-#include <CesiumSystemComponent.h>
-
+#include "CesiumSystemComponent.h"
 #include <AzToolsFramework/Entity/EditorEntityContextBus.h>
 
 namespace Cesium

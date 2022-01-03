@@ -2,6 +2,7 @@
 #include "RasterOverlayRequestBus.h"
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/RTTI/ReflectContext.h>
+#include <AzCore/RTTI/BehaviorContext.h>
 
 namespace Cesium
 {
@@ -13,6 +14,13 @@ namespace Cesium
                 ->Version(0)
                 ->Field("maximumCacheBytes", &RasterOverlayConfiguration::m_maximumCacheBytes)
                 ->Field("maximumSimultaneousTileLoads", &RasterOverlayConfiguration::m_maximumSimultaneousTileLoads);
+        }
+
+        if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
+        {
+            behaviorContext->Class<RasterOverlayConfiguration>("RasterOverlayConfiguration")
+                ->Property("maximumCacheBytes", BehaviorValueProperty(&RasterOverlayConfiguration::m_maximumCacheBytes))
+                ->Property("maximumSimultaneousTileLoads", BehaviorValueProperty(&RasterOverlayConfiguration::m_maximumSimultaneousTileLoads));
         }
     }
 
@@ -50,7 +58,7 @@ namespace Cesium
 
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<RasterOverlayComponent>()->Version(0)
+            serializeContext->Class<RasterOverlayComponent, AZ::Component>()->Version(0)
                 ->Field("configuration", &RasterOverlayComponent::m_configuration)
                 ;
         }

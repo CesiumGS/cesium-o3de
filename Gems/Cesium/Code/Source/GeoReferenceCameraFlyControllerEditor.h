@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Cesium/GeoReferenceCameraFlyController.h>
+#include "Cesium/GeoReferenceCameraFlyController.h"
 #include <AzToolsFramework/ToolsComponents/EditorComponentBase.h>
 #include <AzCore/Component/EntityId.h>
 #include <glm/glm.hpp>

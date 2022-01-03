@@ -1,4 +1,4 @@
-#include <Cesium/GeoReferenceCameraFlyControllerEditor.h>
+#include "GeoReferenceCameraFlyControllerEditor.h"
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/EditContext.h>
 

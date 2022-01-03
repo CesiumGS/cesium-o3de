@@ -3,6 +3,7 @@
 #include <Atom/RPI.Reflect/Material/MaterialTypeAsset.h>
 #include <AzFramework/Asset/AssetCatalogBus.h>
 #include <AzCore/Asset/AssetCommon.h>
+#include <atomic>
 
 namespace Cesium
 {
@@ -16,6 +17,8 @@ namespace Cesium
         void OnCatalogLoaded(const char* catalogFile) override;
 
         void Shutdown();
+
+        AZ::Data::AssetId GenerateRandomAssetId() const; 
 
         AZ::Data::Asset<AZ::RPI::MaterialTypeAsset> m_standardPbrMaterialType;
         AZ::Data::Asset<AZ::RPI::MaterialTypeAsset> m_rasterMaterialType;

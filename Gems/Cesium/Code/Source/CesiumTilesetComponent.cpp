@@ -9,12 +9,10 @@
 #include <Atom/RPI.Public/ViewportContextBus.h>
 #include <Atom/RPI.Public/Scene.h>
 #include <Atom/RPI.Public/Base.h>
-#include <Atom/RPI.Public/ViewProviderBus.h>
 #include <Atom/RPI.Public/View.h>
-#include <AzFramework/Components/CameraBus.h>
-#include <AzCore/Component/Entity.h>
 #include <AzCore/Component/NonUniformScaleBus.h>
 #include <AzCore/Serialization/SerializeContext.h>
+#include <AzCore/RTTI/BehaviorContext.h>
 #include <AzCore/std/algorithm.h>
 #include <AzCore/std/containers/vector.h>
 #include <AzCore/std/containers/variant.h>
@@ -183,6 +181,14 @@ namespace Cesium
         glm::dmat4 m_transform;
     };
 
+    enum class CesiumTilesetComponent::TilesetBoundingVolumeType
+    {
+        None,
+        BoundingSphere,
+        OrientedBoundingBox,
+        BoundingRegion
+    };
+
     struct CesiumTilesetComponent::Impl
         : public RasterOverlayContainerRequestBus::Handler
         , private AZ::TransformNotificationBus::Handler
@@ -252,27 +258,28 @@ namespace Cesium
 
         void LoadTileset(const TilesetSource& tilesetSource)
         {
-            if (tilesetSource.m_type != TilesetSourceType::None)
+            TilesetSourceType type = tilesetSource.GetType();
+            if (type != TilesetSourceType::None)
             {
                 m_tilesetUnloadedEvent.Signal();
             }
 
-            switch (tilesetSource.m_type)
+            switch (type)
             {
             case TilesetSourceType::LocalFile:
-                LoadTilesetFromLocalFile(tilesetSource.m_localFile);
+                LoadTilesetFromLocalFile(*tilesetSource.GetLocalFile());
                 break;
             case TilesetSourceType::Url:
-                LoadTilesetFromUrl(tilesetSource.m_url);
+                LoadTilesetFromUrl(*tilesetSource.GetUrl());
                 break;
             case TilesetSourceType::CesiumIon:
-                LoadTilesetFromCesiumIon(tilesetSource.m_cesiumIon);
+                LoadTilesetFromCesiumIon(*tilesetSource.GetCesiumIon());
                 break;
             default:
                 break;
             }
 
-            if (tilesetSource.m_type != TilesetSourceType::None)
+            if (type != TilesetSourceType::None)
             {
                 m_tilesetLoadedEvent.Signal();
             }
@@ -495,6 +502,7 @@ namespace Cesium
     {
         TilesetConfiguration::Reflect(context);
         TilesetSource::Reflect(context);
+        ReflectTilesetBoundingVolume(context);
 
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
@@ -503,6 +511,18 @@ namespace Cesium
                 ->Field("TilesetConfiguration", &CesiumTilesetComponent::m_tilesetConfiguration)
                 ->Field("TilesetSource", &CesiumTilesetComponent::m_tilesetSource)
                 ->Field("CoordinateTransformEntityId", &CesiumTilesetComponent::m_coordinateTransformEntityId);
+        }
+
+        if (AZ::BehaviorContext* behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
+        {
+            behaviorContext->EBus<CesiumTilesetRequestBus>("CesiumTilesetRequestBus")
+                ->Attribute(AZ::Script::Attributes::Category, "Cesium/3DTiles")
+                ->Event("SetConfiguration", &CesiumTilesetRequestBus::Events::SetConfiguration)
+                ->Event("GetConfiguration", &CesiumTilesetRequestBus::Events::GetConfiguration)
+                ->Event("SetCoordinateTransform", &CesiumTilesetRequestBus::Events::SetCoordinateTransform)
+                ->Event("GetBoundingVolumeInECEF", &CesiumTilesetRequestBus::Events::GetBoundingVolumeInECEF)
+                ->Event("LoadTileset", &CesiumTilesetRequestBus::Events::LoadTileset)
+                ;
         }
     }
 
@@ -593,6 +613,74 @@ namespace Cesium
     {
         m_tilesetSource = source;
         m_impl->m_configFlags = Impl::ConfigurationDirtyFlags::AllChange;
+    }
+
+    void CesiumTilesetComponent::ReflectTilesetBoundingVolume(AZ::ReflectContext* context)
+    {
+        if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
+        {
+            auto getType = [](TilesetBoundingVolume* source)
+            {
+                if (source->index() == 1)
+                {
+                    return static_cast<int>(TilesetBoundingVolumeType::BoundingSphere);
+                }
+
+                if (source->index() == 2)
+                {
+                    return static_cast<int>(TilesetBoundingVolumeType::OrientedBoundingBox);
+                }
+
+                if (source->index() == 3)
+                {
+                    return static_cast<int>(TilesetBoundingVolumeType::BoundingRegion);
+                }
+
+                return static_cast<int>(TilesetBoundingVolumeType::None);
+            };
+
+            auto getBoundingSphere = [](TilesetBoundingVolume* source) -> BoundingSphere*
+            {
+                if (source->index() == 1)
+                {
+                    return AZStd::get_if<BoundingSphere>(source);
+                }
+
+                return nullptr;
+            };
+
+            auto getOBB = [](TilesetBoundingVolume* source) -> OrientedBoundingBox*
+            {
+                if (source->index() == 2)
+                {
+                    return AZStd::get_if<OrientedBoundingBox>(source);
+                }
+
+                return nullptr;
+            };
+
+            auto getBoundingRegion = [](TilesetBoundingVolume* source) -> BoundingRegion*
+            {
+                if (source->index() == 3)
+                {
+                    return AZStd::get_if<BoundingRegion>(source);
+                }
+
+                return nullptr;
+            };
+
+            behaviorContext->Enum<static_cast<int>(TilesetBoundingVolumeType::None)>("TilesetBoundingVolumeType_None")
+                ->Enum<static_cast<int>(TilesetBoundingVolumeType::BoundingSphere)>("TilesetBoundingVolumeType_BoundingSphere")
+                ->Enum<static_cast<int>(TilesetBoundingVolumeType::OrientedBoundingBox)>("TilesetBoundingVolumeType_OrientedBoundingBox")
+                ->Enum<static_cast<int>(TilesetBoundingVolumeType::BoundingRegion)>("TilesetBoundingVolumeType_BoundingRegion");
+
+            behaviorContext->Class<TilesetBoundingVolume>("TilesetBoundingVolume")
+                ->Attribute(AZ::Script::Attributes::Category, "Cesium/3DTiles")
+                ->Property("type", getType, nullptr)
+                ->Property("boundingSphere", getBoundingSphere, nullptr)
+                ->Property("orientedBoundingBox", getOBB, nullptr)
+                ->Property("boundingRegion", getBoundingRegion, nullptr);
+        }
     }
 
     void CesiumTilesetComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)

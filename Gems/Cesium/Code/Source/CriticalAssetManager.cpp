@@ -19,6 +19,12 @@ namespace Cesium
         AzFramework::AssetCatalogEventBus::Handler::BusDisconnect();
     }
 
+    AZ::Data::AssetId CriticalAssetManager::GenerateRandomAssetId() const 
+    {
+        static std::atomic_uint32_t subId = 0;
+        return AZ::Data::AssetId(AZ::Uuid::CreateRandom(), subId.fetch_add(1, std::memory_order_relaxed));
+    }
+
     void CriticalAssetManager::Shutdown()
     {
         m_standardPbrMaterialType.Release();

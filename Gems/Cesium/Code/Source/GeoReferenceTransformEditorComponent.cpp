@@ -1,4 +1,4 @@
-#include <Cesium/GeoReferenceTransformEditorComponent.h>
+#include "GeoReferenceTransformEditorComponent.h"
 #include <Cesium/GeoReferenceTransformComponent.h>
 #include <Cesium/GeospatialHelper.h>
 #include <AzCore/Serialization/SerializeContext.h>
@@ -38,7 +38,6 @@ namespace Cesium
 
     void GeoReferenceTransformEditorComponent::Reflect(AZ::ReflectContext* context)
     {
-        CoordinateTransformConfiguration::Reflect(context);
         DegreeCartographic::Reflect(context);
 
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))

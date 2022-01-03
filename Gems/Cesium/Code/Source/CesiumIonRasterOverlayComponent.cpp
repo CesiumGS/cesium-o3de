@@ -4,6 +4,7 @@
 #include <Cesium3DTilesSelection/IonRasterOverlay.h>
 #include <AzCore/std/optional.h>
 #include <AzCore/Serialization/SerializeContext.h>
+#include <AzCore/RTTI/BehaviorContext.h>
 #include <memory>
 
 namespace Cesium
@@ -23,6 +24,13 @@ namespace Cesium
                 ->Field("ionToken", &CesiumIonRasterOverlaySource::m_ionToken)
                 ;
         }
+
+        if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
+        {
+            behaviorContext->Class<CesiumIonRasterOverlaySource>("CesiumIonRasterOverlaySource")
+                ->Property("assetId", BehaviorValueProperty(&CesiumIonRasterOverlaySource::m_ionAssetId))
+                ->Property("assetToken", BehaviorValueProperty(&CesiumIonRasterOverlaySource::m_ionToken));
+        }
     }
 
     CesiumIonRasterOverlaySource::CesiumIonRasterOverlaySource()
@@ -37,9 +45,28 @@ namespace Cesium
 
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<CesiumIonRasterOverlayComponent, RasterOverlayComponent>()->Version(0)
+            serializeContext->Class<CesiumIonRasterOverlayComponent, AZ::Component, RasterOverlayComponent>()->Version(0)
                 ->Field("source", &CesiumIonRasterOverlayComponent::m_source)
                 ;
+        }
+
+        if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
+        {
+            behaviorContext->Class<CesiumIonRasterOverlayComponent>("CesiumIonRasterOverlayComponent")
+                ->Attribute(AZ::Script::Attributes::Category, "Cesium/RasterOverlays")
+                ->Method(
+                    "SetConfiguration",
+                    [](CesiumIonRasterOverlayComponent& component, const RasterOverlayConfiguration& config)
+                    {
+                        component.SetConfiguration(config);
+                    })
+                ->Method(
+                    "GetConfiguration",
+                    [](const CesiumIonRasterOverlayComponent& component)
+                    {
+                        return component.GetConfiguration();
+                    })
+                ->Method("LoadRasterOverlay", &CesiumIonRasterOverlayComponent::LoadRasterOverlay);
         }
     }
 

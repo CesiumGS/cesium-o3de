@@ -43,7 +43,7 @@ namespace Cesium
                     // Create material instance
                     const GltfLoadMaterial& loadMaterial = loadModel.m_materials[loadPrimitive.m_materialId];
                     const AZ::Data::Asset<AZ::RPI::MaterialAsset>& materialAsset = loadMaterial.m_materialAsset;
-                    AZ::Data::Instance<AZ::RPI::Material> materialInstance = AZ::RPI::Material::Create(materialAsset);
+                    AZ::Data::Instance<AZ::RPI::Material> materialInstance = AZ::RPI::Material::FindOrCreate(materialAsset);
                     m_materials[loadPrimitive.m_materialId].m_material = std::move(materialInstance);
                 }
 

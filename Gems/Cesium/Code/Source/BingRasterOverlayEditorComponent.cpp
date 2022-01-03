@@ -1,4 +1,4 @@
-#include <Cesium/BingRasterOverlayEditorComponent.h>
+#include "BingRasterOverlayEditorComponent.h"
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/EditContext.h>
 

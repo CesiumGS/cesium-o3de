@@ -2,6 +2,7 @@
 #include <Cesium3DTilesSelection/RasterOverlay.h>
 #include <Cesium3DTilesSelection/TileMapServiceRasterOverlay.h>
 #include <AzCore/Serialization/SerializeContext.h>
+#include <AzCore/RTTI/BehaviorContext.h>
 
 namespace Cesium
 {
@@ -15,6 +16,17 @@ namespace Cesium
                 ->Field("fileExtension", &TMSRasterOverlaySource::m_fileExtension)
                 ->Field("minimumLevel", &TMSRasterOverlaySource::m_minimumLevel)
                 ->Field("maximumLevel", &TMSRasterOverlaySource::m_maximumLevel)
+                ;
+        }
+
+        if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
+        {
+            behaviorContext->Class<TMSRasterOverlaySource>("TMSRasterOverlaySource")
+                ->Property("url", BehaviorValueProperty(&TMSRasterOverlaySource::m_url))
+                ->Property("headers", BehaviorValueProperty(&TMSRasterOverlaySource::m_headers))
+                ->Property("fileExtension", BehaviorValueProperty(&TMSRasterOverlaySource::m_fileExtension))
+                ->Property("minimumLevel", BehaviorValueProperty(&TMSRasterOverlaySource::m_minimumLevel))
+                ->Property("maximumLevel", BehaviorValueProperty(&TMSRasterOverlaySource::m_maximumLevel))
                 ;
         }
     }
@@ -32,8 +44,28 @@ namespace Cesium
 
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<TMSRasterOverlayComponent, AZ::Component>()->Version(0)
+            serializeContext->Class<TMSRasterOverlayComponent, AZ::Component, RasterOverlayComponent>()->Version(0)
                 ->Field("source", &TMSRasterOverlayComponent::m_source);
+        }
+
+        if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
+        {
+            behaviorContext->Class<TMSRasterOverlayComponent>("TMSRasterOverlayComponent")
+                ->Attribute(AZ::Script::Attributes::Category, "Cesium/RasterOverlays")
+                ->Method(
+                    "SetConfiguration",
+                    [](TMSRasterOverlayComponent& component, const RasterOverlayConfiguration& config)
+                    {
+                        component.SetConfiguration(config);
+                    })
+                ->Method(
+                    "GetConfiguration",
+                    [](const TMSRasterOverlayComponent& component)
+                    {
+                        return component.GetConfiguration();
+                    })
+                ->Method("LoadRasterOverlay", &TMSRasterOverlayComponent::LoadRasterOverlay)
+                ;
         }
     }
 

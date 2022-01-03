@@ -80,6 +80,7 @@ if(PAL_TRAIT_BUILD_HOST_TOOLS)
     ly_add_target(
         NAME Cesium.Editor.Static STATIC
         NAMESPACE Gem
+        AUTOMOC
         FILES_CMAKE
             cesium_editor_files.cmake
         INCLUDE_DIRECTORIES

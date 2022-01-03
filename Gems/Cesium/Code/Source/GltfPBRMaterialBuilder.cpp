@@ -32,10 +32,10 @@ namespace Cesium
     }
 
     void GltfPBRMaterialBuilder::Create(
-            const CesiumGltf::Model& model,
-            const CesiumGltf::Material& material,
-            AZStd::unordered_map<TextureId, GltfLoadTexture>& textureCache,
-            GltfLoadMaterial& result)
+        const CesiumGltf::Model& model,
+        const CesiumGltf::Material& material,
+        AZStd::unordered_map<TextureId, GltfLoadTexture>& textureCache,
+        GltfLoadMaterial& result)
     {
         // Create material asset
         AZ::Data::Asset<AZ::RPI::MaterialTypeAsset> materialTypeAsset;
@@ -48,8 +48,9 @@ namespace Cesium
             materialTypeAsset = GetDefaultMaterialType();
         }
 
+        AZ::Data::AssetId materialAssetId = CesiumInterface::Get()->GetCriticalAssetManager().GenerateRandomAssetId();
         AZ::RPI::MaterialAssetCreator materialCreator;
-        materialCreator.Begin(AZ::Uuid::CreateRandom(), *materialTypeAsset);
+        materialCreator.Begin(materialAssetId, *materialTypeAsset);
 
         ConfigurePbrMetallicRoughness(model, material, textureCache, materialCreator);
         ConfigureOcclusion(model, material, textureCache, materialCreator);
@@ -194,7 +195,6 @@ namespace Cesium
         {
             materialCreator.SetPropertyValue(AZ::Name("emissive.enable"), true);
         }
-
     }
 
     void GltfPBRMaterialBuilder::ConfigureOcclusion(
@@ -218,9 +218,7 @@ namespace Cesium
         }
     }
 
-    void GltfPBRMaterialBuilder::ConfigureOpacity(
-        const CesiumGltf::Material& material,
-        AZ::RPI::MaterialAssetCreator& materialCreator)
+    void GltfPBRMaterialBuilder::ConfigureOpacity(const CesiumGltf::Material& material, AZ::RPI::MaterialAssetCreator& materialCreator)
     {
         if (material.alphaMode == CesiumGltf::Material::AlphaMode::OPAQUE)
         {
@@ -366,7 +364,8 @@ namespace Cesium
         }
         else
         {
-            newImage = Create2DImage(imageData.pixelData.data(), imageData.pixelData.size(), width, height, AZ::RHI::Format::R8G8B8A8_UNORM);
+            newImage =
+                Create2DImage(imageData.pixelData.data(), imageData.pixelData.size(), width, height, AZ::RHI::Format::R8G8B8A8_UNORM);
         }
 
         auto cache = textureCache.insert({ imageSourceIdx, std::move(newImage) });
@@ -436,8 +435,10 @@ namespace Cesium
             ++j;
         }
 
-        auto metallicCache = textureCache.insert({metallicImageIdx, Create2DImage(metallicPixels.data(), metallicPixels.size(), width, height, AZ::RHI::Format::R8_UNORM)});
-        auto roughnessCache = textureCache.insert({roughnessImageIdx, Create2DImage(roughnessPixels.data(), roughnessPixels.size(), width, height, AZ::RHI::Format::R8_UNORM)});
+        auto metallicCache = textureCache.insert(
+            { metallicImageIdx, Create2DImage(metallicPixels.data(), metallicPixels.size(), width, height, AZ::RHI::Format::R8_UNORM) });
+        auto roughnessCache = textureCache.insert(
+            { roughnessImageIdx, Create2DImage(roughnessPixels.data(), roughnessPixels.size(), width, height, AZ::RHI::Format::R8_UNORM) });
         metallic = metallicCache.first->second.m_imageAsset;
         roughness = roughnessCache.first->second.m_imageAsset;
     }
@@ -455,8 +456,9 @@ namespace Cesium
         AZ::RHI::ImageSubresourceLayout imageSubresourceLayout = AZ::RHI::GetImageSubresourceLayout(imageDesc, AZ::RHI::ImageSubresource{});
 
         // Create mip chain
+        AZ::Data::AssetId imageMipChainAssetId = CesiumInterface::Get()->GetCriticalAssetManager().GenerateRandomAssetId();
         AZ::RPI::ImageMipChainAssetCreator mipChainCreator;
-        mipChainCreator.Begin(AZ::Uuid::CreateRandom(), 1, 1);
+        mipChainCreator.Begin(imageMipChainAssetId, 1, 1);
         mipChainCreator.BeginMip(imageSubresourceLayout);
         mipChainCreator.AddSubImage(pixelData, bytesPerImage);
         mipChainCreator.EndMip();
@@ -464,8 +466,9 @@ namespace Cesium
         mipChainCreator.End(mipChainAsset);
 
         // Create streaming image
+        AZ::Data::AssetId imageAssetId = CesiumInterface::Get()->GetCriticalAssetManager().GenerateRandomAssetId();
         AZ::RPI::StreamingImageAssetCreator imageCreator;
-        imageCreator.Begin(AZ::Uuid::CreateRandom());
+        imageCreator.Begin(imageAssetId);
         imageCreator.SetImageDescriptor(imageDesc);
         imageCreator.AddMipChainAsset(*mipChainAsset);
         AZ::Data::Asset<AZ::RPI::StreamingImageAsset> imageAsset;
