@@ -43,8 +43,10 @@ ly_add_target(
             AZ::AzCore
             AZ::AzFramework
             AZ::AWSNativeSDKInit
+            Legacy::CryCommon
             Gem::Atom_RPI.Public
             Gem::Atom_Feature_Common.Static
+            Gem::LyShine.Static
     COMPILE_DEFINITIONS
         PUBLIC
             SPDLOG_COMPILED_LIB

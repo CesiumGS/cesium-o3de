@@ -27,6 +27,7 @@ set(FILES
     Tests/CesiumTilesetComponentBusTest.cpp
     Tests/CoordinateTransformComponentBusTest.cpp
     Tests/OriginShiftAwareComponentBusTest.cpp
+    Tests/CesiumTilesetCreditComponentTest.cpp
     Tests/CesiumTilesetComponentBusTest.cpp
     Tests/GeoReferenceCameraFlyControllerBusTest.cpp
     Tests/RasterOverlayRequestBusTest.cpp

@@ -71,6 +71,8 @@ set(FILES
     Include/Cesium/OriginShiftAwareComponentBus.h
     Source/CesiumLevelSettingsComponent.cpp
     Include/Cesium/CesiumLevelSettingsComponent.h
+    Source/CesiumTilesetCreditComponent.cpp
+    Include/Cesium/CesiumTilesetCreditComponent.h
     Source/CesiumTilesetComponentBus.cpp
     Include/Cesium/CesiumTilesetComponentBus.h
     Source/CesiumTilesetComponent.cpp
