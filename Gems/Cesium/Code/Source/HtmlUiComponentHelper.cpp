@@ -86,19 +86,19 @@ namespace Cesium
             ctmbstr name = tidyNodeGetName(child);
             if (name)
             {
-                TidyAttr attr;
-                AZ_Printf("Cesium", "<%s>", name);
-
-                for (attr = tidyAttrFirst(child); attr; attr = tidyAttrNext(attr))
+                TidyTagId type = tidyNodeGetId(child);
+                if (type == TidyTagId::TidyTag_IMG)
                 {
-                    AZ_Printf("%s", tidyAttrName(attr));
-                    if (tidyAttrValue(attr))
+                    auto srcAttr = tidyAttrGetById(child, TidyAttrId::TidyAttr_SRC);
+                    if (srcAttr)
                     {
-                        AZ_Printf("Cesium", "%s", tidyAttrValue(attr));
+                        auto srcValue = tidyAttrValue(srcAttr);
+                        if (srcValue)
+                        {
+                            // TODO: Get src value
+                        }
                     }
                 }
-
-                AZ_Printf("Cesium", "</%s>", name);
             }
             else
             {
@@ -107,7 +107,6 @@ namespace Cesium
                 tidyNodeGetText(tdoc, child, &buf);
                 if (buf.bp)
                 {
-                    AZ_Printf("Cesium", "%s", reinterpret_cast<const char*>(buf.bp));
                     height += CreateTextEntity(reinterpret_cast<const char*>(buf.bp), rootElementEntityId, beginHeight + height);
                 }
 
