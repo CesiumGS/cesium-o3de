@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.20)
 project(
     cesium-unreal-extern
     VERSION 0.1.0
-    LANGUAGES CXX C
+    LANGUAGES CXX
 )
 
 # build and install cesium native
@@ -14,6 +14,11 @@ set(CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_PREFIX}/lib/${CMAKE_SYSTEM_NAME})
 
 add_subdirectory(CesiumNative)
 set_target_properties(cesium-native-tests PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
+
+set(BUILD_SHARED_LIB OFF)
+set(SUPPORT_CONSOLE_APP OFF)
+set(LIB_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR})
+add_subdirectory(tidy-html5)
 
 # trigger post install script. E.g:
 # - copy License file to Package/CesiumNative

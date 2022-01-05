@@ -51,6 +51,7 @@ ly_add_target(
         PUBLIC
             SPDLOG_COMPILED_LIB
             LIBASYNC_STATIC
+            TIDY_STATIC
 )
 
 # Here add Cesium target, it depends on the Cesium.Static

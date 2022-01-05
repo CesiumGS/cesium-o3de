@@ -35,10 +35,6 @@ namespace Cesium
     private:
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
 
-        void CreateCanvasEntity();
-
-        void CreateTextEntity(const AZStd::string& text);
-
         std::size_t m_lastCreditCount{ 0 };
         AZ::EntityId m_canvasEntityId;
         AZ::EntityId m_rootElementEntityId;

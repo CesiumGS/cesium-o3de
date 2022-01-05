@@ -23,6 +23,7 @@ set(FILES
     Tests/LinearInterpolatorTest.cpp
     Tests/RenderResourcesPreparerTest.cpp
     Tests/CesiumSystemComponentBusTest.cpp
+    Tests/HtmlUiComponentHelperTest.cpp
     Tests/GltfModelComponentBusTest.cpp
     Tests/CesiumTilesetComponentBusTest.cpp
     Tests/CoordinateTransformComponentBusTest.cpp

@@ -43,6 +43,8 @@ set(FILES
     Source/GltfModel.h
     Source/CesiumSystemComponent.cpp
     Source/CesiumSystemComponent.h
+    Source/HtmlUiComponentHelper.cpp
+    Source/HtmlUiComponentHelper.h
     Source/Interpolator.cpp
     Source/Interpolator.h
     Source/GeoReferenceInterpolator.cpp
