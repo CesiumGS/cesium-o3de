@@ -43,6 +43,10 @@ set(FILES
     Source/GltfModel.h
     Source/CesiumSystemComponent.cpp
     Source/CesiumSystemComponent.h
+    Source/DynamicUiImageComponentBus.cpp
+    Source/DynamicUiImageComponentBus.h
+    Source/DynamicUiImageComponent.cpp
+    Source/DynamicUiImageComponent.h
     Source/HtmlUiComponentHelper.cpp
     Source/HtmlUiComponentHelper.h
     Source/Interpolator.cpp

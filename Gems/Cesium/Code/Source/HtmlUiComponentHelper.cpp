@@ -1,4 +1,5 @@
 #include "HtmlUiComponentHelper.h"
+#include "DynamicUiImageComponent.h"
 #include <LyShine/UiComponentTypes.h>
 #include <LyShine/Bus/UiCanvasManagerBus.h>
 #include <LyShine/Bus/UiCanvasBus.h>
@@ -41,6 +42,7 @@ namespace Cesium
             false, false);
         UiTransform2dBus::Event(
             rootElementEntityId, &UiTransform2dBus::Events::SetOffsets, UiTransform2dInterface::Offsets{ 0.0f, 0.0f, 0.0f, 0.0f });
+
 
         // begin parse html
         TidyDoc tdoc;
@@ -95,7 +97,7 @@ namespace Cesium
                         auto srcValue = tidyAttrValue(srcAttr);
                         if (srcValue)
                         {
-                            // TODO: Get src value
+                            height += CreateImageEntity(srcValue, rootElementEntityId, beginHeight + height);
                         }
                     }
                 }
@@ -114,6 +116,38 @@ namespace Cesium
             }
 
             height += CreateHtmlNodeEntities(tdoc, child, rootElementEntityId, beginHeight + height); 
+        }
+
+        return height;
+    }
+
+    float HtmlUiComponentHelper::CreateImageEntity(const AZStd::string& url, const AZ::EntityId& rootElementEntityId, float beginHeight)
+    {
+        float height = 0.0f;
+
+        // Create the text element
+        AZ::Entity* imageEntity = nullptr;
+        UiElementBus::EventResult(imageEntity, rootElementEntityId, &UiElementBus::Events::CreateChildElement, AZStd::string("image"));
+
+        // Set up the text element
+        if (imageEntity)
+        {
+            imageEntity->Deactivate();
+            imageEntity->CreateComponent(LyShine::UiTransform2dComponentUuid);
+            imageEntity->CreateComponent(azrtti_typeid<DynamicUiImageComponent>());
+            imageEntity->Activate();
+
+            AZ::EntityId imageEntityId = imageEntity->GetId();
+            UiTransform2dBus::Event(imageEntityId, &UiTransform2dBus::Events::SetAnchors, UiTransform2dInterface::Anchors{}, false, false);
+            UiTransform2dBus::Event(imageEntityId, &UiTransform2dBus::Events::SetOffsets, UiTransform2dInterface::Offsets{-300.0f, -256.0f + beginHeight, 300.0f, 256.0f});
+            UiTransform2dBus::Event(imageEntityId, &UiTransform2dBus::Events::SetPivotAndAdjustOffsets, AZ::Vector2(0.5f));
+
+            DynamicUiImageRequestBus::Event(imageEntity->GetId(), &DynamicUiImageRequestBus::Events::LoadImageUrl, url);
+
+            std::uint32_t maxWidth = 0;
+            std::uint32_t maxHeight = 0;
+            DynamicUiImageRequestBus::Event(imageEntity->GetId(), &DynamicUiImageRequestBus::Events::GetMaxImageSize, maxWidth, maxHeight);
+            height = static_cast<float>(maxHeight);
         }
 
         return height;

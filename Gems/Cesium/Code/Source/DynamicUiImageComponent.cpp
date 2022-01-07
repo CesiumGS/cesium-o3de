@@ -1,0 +1,169 @@
+#include "DynamicUiImageComponent.h"
+#include "CesiumSystemComponentBus.h"
+#include <LyShine/Bus/UiTransformBus.h>
+#include <Atom/RPI.Public/ViewportContext.h>
+#include <Atom/RPI.Public/ViewportContextBus.h>
+#include <Atom/RPI.Public/Image/ImageSystemInterface.h>
+#include <Atom/RPI.Public/Image/StreamingImagePool.h>
+
+// Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
+// This only happens with unity build
+#include <AzCore/PlatformDef.h>
+#ifdef AZ_COMPILER_MSVC
+#pragma push_macro("OPAQUE")
+#undef OPAQUE
+#endif
+
+#include <CesiumGltf/GltfReader.h>
+
+#ifdef AZ_COMPILER_MSVC
+#pragma pop_macro("OPAQUE")
+#endif
+
+
+namespace Cesium
+{
+    void DynamicUiImageComponent::Reflect(AZ::ReflectContext* context)
+    {
+        if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
+        {
+            serializeContext->Class<DynamicUiImageComponent, AZ::Component>()
+                ->Version(0)
+                ;
+        }
+    }
+
+    void DynamicUiImageComponent::GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided)
+    {
+        provided.push_back(AZ_CRC_CE("DynamicUiImageService"));
+    }
+
+    void DynamicUiImageComponent::GetIncompatibleServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& incompatible)
+    {
+    }
+
+    void DynamicUiImageComponent::GetRequiredServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& required)
+    {
+    }
+
+    void DynamicUiImageComponent::GetDependentServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& dependent)
+    {
+    }
+
+    DynamicUiImageComponent::DynamicUiImageComponent()
+        : m_asyncSystem{ CesiumInterface::Get()->GetTaskProcessor() }
+    {
+    }
+
+    void DynamicUiImageComponent::LoadImageUrl(const AZStd::string& url)
+    {
+        AZ::EntityId selfEntityId = GetEntityId();
+        auto& httpManager = CesiumInterface::Get()->GetIOManager(Cesium::IOKind::Http);
+        Cesium::IORequestParameter requestParameter{ url, "" };
+        auto future = httpManager.GetFileContentAsync(m_asyncSystem, requestParameter)
+                          .thenInMainThread(
+                              [selfEntityId](IOContent&& content)
+                              {
+                                  if (content.empty())
+                                  {
+                                      return;
+                                  }
+
+                                  CesiumGltf::GltfReader gltfReader;
+                                  auto imageResult = gltfReader.readImage(content);
+                                  if (imageResult.image)
+                                  {
+                                      auto pool = AZ::RPI::ImageSystemInterface::Get()->GetStreamingPool();
+                                      auto size = AZ::RHI::Size(imageResult.image->width, imageResult.image->height, 1); 
+                                      auto image = AZ::RPI::StreamingImage::CreateFromCpuData(
+                                          *pool, AZ::RHI::ImageDimension::Image2D, size, AZ::RHI::Format::R8G8B8A8_UNORM,
+                                          imageResult.image->pixelData.data(), imageResult.image->pixelData.size());
+                                      DynamicUiImageRequestBus::Event(
+                                          selfEntityId, &DynamicUiImageRequestBus::Events::SetImage, image, size);
+                                  }
+                              });
+    }
+
+    void DynamicUiImageComponent::SetImage(AZ::Data::Instance<AZ::RPI::StreamingImage> image, AZ::RHI::Size size)
+    {
+        m_image = std::move(image);
+        m_realImageSize = size;
+        ScaleImageToFit();
+    }
+
+    void DynamicUiImageComponent::SetMaxImageSize(std::uint32_t width, std::uint32_t height)
+    {
+        m_maxSize = AZ::RHI::Size(width, height, 1);
+        ScaleImageToFit();
+    }
+
+    void DynamicUiImageComponent::GetMaxImageSize(std::uint32_t& width, std::uint32_t& height) const
+    {
+        width = m_maxSize.m_width;
+        height = m_maxSize.m_height;
+    }
+
+    void DynamicUiImageComponent::GetResizedImageSize(std::uint32_t &width, std::uint32_t &height) const
+    {
+        width = m_scaledImageSize.m_width;
+        height = m_scaledImageSize.m_height;
+    }
+
+    void DynamicUiImageComponent::Init()
+    {
+    }
+
+    void DynamicUiImageComponent::Activate()
+    {
+        DynamicUiImageRequestBus::Handler::BusConnect(GetEntityId());
+        AZ::TickBus::Handler::BusConnect();
+
+        auto viewportManager = AZ::Interface<AZ::RPI::ViewportContextRequestsInterface>::Get();
+        if (!viewportManager)
+        {
+            return;
+        }
+
+        m_draw2d = AZStd::make_unique<CDraw2d>(viewportManager->GetDefaultViewportContext());
+        m_draw2dHelper = AZStd::make_unique<Draw2dHelper>(m_draw2d.get());
+    }
+
+    void DynamicUiImageComponent::Deactivate()
+    {
+        DynamicUiImageRequestBus::Handler::BusDisconnect();
+        AZ::TickBus::Handler::BusDisconnect();
+    }
+
+    void DynamicUiImageComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
+    {
+        if (m_draw2dHelper)
+        {
+            m_asyncSystem.dispatchMainThreadTasks();
+
+            if (m_image)
+            {
+                UiTransformInterface::RectPoints rectPoints;
+                UiTransformBus::Event(GetEntityId(), &UiTransformBus::Events::GetCanvasSpacePoints, rectPoints);
+                m_draw2dHelper->DrawImage(
+                    m_image, rectPoints.GetAxisAlignedTopLeft(),
+                    AZ::Vector2(static_cast<float>(m_scaledImageSize.m_width), static_cast<float>(m_scaledImageSize.m_height)));
+            }
+        }
+    }
+
+    void DynamicUiImageComponent::ScaleImageToFit()
+    {
+        if (m_realImageSize.m_width <= m_maxSize.m_width && m_realImageSize.m_height <= m_maxSize.m_height)
+        {
+            m_scaledImageSize = m_realImageSize;
+        }
+        else
+        {
+            float scaleWidth = static_cast<float>(m_maxSize.m_width) / static_cast<float>(m_realImageSize.m_width);
+            float scaleHeight = static_cast<float>(m_maxSize.m_height) / static_cast<float>(m_realImageSize.m_height);
+            float scale = AZStd::min(scaleWidth, scaleHeight);
+            m_scaledImageSize.m_width = static_cast<std::uint32_t>(scale * static_cast<float>(m_realImageSize.m_width));
+            m_scaledImageSize.m_height = static_cast<std::uint32_t>(scale * static_cast<float>(m_realImageSize.m_height));
+        }
+    }
+} // namespace Cesium

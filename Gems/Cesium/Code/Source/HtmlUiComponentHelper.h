@@ -15,6 +15,8 @@ namespace Cesium
     private:
         static float CreateHtmlNodeEntities(TidyDoc doc, TidyNode node, const AZ::EntityId& rootElementEntityId, float beginHeight);
 
+        static float CreateImageEntity(const AZStd::string& url, const AZ::EntityId& rootElementEntityId, float beginHeight);
+
         static float CreateTextEntity(const AZStd::string& text, const AZ::EntityId& rootElementEntityId, float beginHeight);
     };
 }
