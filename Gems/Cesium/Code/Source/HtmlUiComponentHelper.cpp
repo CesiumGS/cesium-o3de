@@ -147,7 +147,7 @@ namespace Cesium
             std::uint32_t maxWidth = 0;
             std::uint32_t maxHeight = 0;
             DynamicUiImageRequestBus::Event(imageEntity->GetId(), &DynamicUiImageRequestBus::Events::GetMaxImageSize, maxWidth, maxHeight);
-            height = static_cast<float>(maxHeight);
+            height = static_cast<float>(maxHeight) + 10.0f;
         }
 
         return height;
@@ -177,7 +177,7 @@ namespace Cesium
             UiTextBus::Event(textEntityId, &UiTextBus::Events::SetText, text);
             UiTextBus::Event(textEntityId, &UiTextBus::Events::SetTextAlignment, IDraw2d::HAlign::Left, IDraw2d::VAlign::Top);
             UiTextBus::Event(textEntityId, &UiTextBus::Events::SetWrapText, UiTextInterface::WrapTextSetting::Wrap);
-            UiTextBus::Event(textEntityId, &UiTextBus::Events::SetFontSize, 18.0f);
+            UiTextBus::Event(textEntityId, &UiTextBus::Events::SetFontSize, 15.0f);
 
             if (!text.empty())
             {

@@ -52,7 +52,7 @@ namespace Cesium
 
         AZ::RHI::Size m_realImageSize{ 0, 0, 0 };
         AZ::RHI::Size m_scaledImageSize{ 0, 0, 0 };
-        AZ::RHI::Size m_maxSize{ 200, 60, 0 };
+        AZ::RHI::Size m_maxSize{ 256, 30, 0 };
         CesiumAsync::AsyncSystem m_asyncSystem;
         AZ::Data::Instance<AZ::RPI::StreamingImage> m_image;
         AZStd::unique_ptr<CDraw2d> m_draw2d;

@@ -5,6 +5,8 @@
 #include <Atom/RPI.Public/ViewportContextBus.h>
 #include <Atom/RPI.Public/Image/ImageSystemInterface.h>
 #include <Atom/RPI.Public/Image/StreamingImagePool.h>
+#include <AzCore/std/string/string_view.h>
+#include <AzCore/StringFunc/StringFunc.h>
 
 // Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
 // This only happens with unity build
@@ -59,6 +61,31 @@ namespace Cesium
 
     void DynamicUiImageComponent::LoadImageUrl(const AZStd::string& url)
     {
+        if (AZ::StringFunc::StartsWith(url, "data") && AZ::StringFunc::Contains(url, "base64"))
+        {
+            AZStd::string_view urlView = url;
+            auto separator = urlView.find_first_of(",");
+            auto base64View = url.substr(separator + 1);
+
+            AZStd::vector<AZ::u8> decodeOutput;
+            AZ::StringFunc::Base64::Decode(decodeOutput, base64View.data(), base64View.size());
+
+            CesiumGltf::GltfReader gltfReader;
+            auto imageResult = gltfReader.readImage(
+                gsl::span<const std::byte>(reinterpret_cast<const std::byte*>(decodeOutput.data()), decodeOutput.size()));
+            if (imageResult.image)
+            {
+                auto pool = AZ::RPI::ImageSystemInterface::Get()->GetStreamingPool();
+                auto size = AZ::RHI::Size(imageResult.image->width, imageResult.image->height, 1);
+                auto image = AZ::RPI::StreamingImage::CreateFromCpuData(
+                    *pool, AZ::RHI::ImageDimension::Image2D, size, AZ::RHI::Format::R8G8B8A8_UNORM, imageResult.image->pixelData.data(),
+                    imageResult.image->pixelData.size());
+                SetImage(image, size);
+            }
+
+            return;
+        }
+
         AZ::EntityId selfEntityId = GetEntityId();
         auto& httpManager = CesiumInterface::Get()->GetIOManager(Cesium::IOKind::Http);
         Cesium::IORequestParameter requestParameter{ url, "" };
