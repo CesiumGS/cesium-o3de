@@ -42,8 +42,10 @@ namespace Cesium
     {
     }
 
-    void DynamicUiImageComponent::GetRequiredServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& required)
+    void DynamicUiImageComponent::GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required)
     {
+        required.push_back(AZ_CRC("UiElementService", 0x3dca7ad4));
+        required.push_back(AZ_CRC("UiTransformService", 0x3a838e34));
     }
 
     void DynamicUiImageComponent::GetDependentServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& dependent)
@@ -119,13 +121,11 @@ namespace Cesium
         AZ::TickBus::Handler::BusConnect();
 
         auto viewportManager = AZ::Interface<AZ::RPI::ViewportContextRequestsInterface>::Get();
-        if (!viewportManager)
+        if (viewportManager)
         {
-            return;
+            m_draw2d = AZStd::make_unique<CDraw2d>(viewportManager->GetDefaultViewportContext());
+            m_draw2dHelper = AZStd::make_unique<Draw2dHelper>(m_draw2d.get());
         }
-
-        m_draw2d = AZStd::make_unique<CDraw2d>(viewportManager->GetDefaultViewportContext());
-        m_draw2dHelper = AZStd::make_unique<Draw2dHelper>(m_draw2d.get());
     }
 
     void DynamicUiImageComponent::Deactivate()
@@ -144,26 +144,34 @@ namespace Cesium
             {
                 UiTransformInterface::RectPoints rectPoints;
                 UiTransformBus::Event(GetEntityId(), &UiTransformBus::Events::GetCanvasSpacePoints, rectPoints);
+
+                AZ::Matrix4x4 transform;
+                UiTransformBus::Event(GetEntityId(), &UiTransformBus::Events::GetTransformToCanvasSpace, transform);
+                AZ::Vector3 scale = transform.ExtractScale();
+
                 m_draw2dHelper->DrawImage(
-                    m_image, rectPoints.GetAxisAlignedTopLeft(),
-                    AZ::Vector2(static_cast<float>(m_scaledImageSize.m_width), static_cast<float>(m_scaledImageSize.m_height)));
+                    m_image, rectPoints.TopLeft(),
+                    AZ::Vector2(
+                        scale.GetX() * static_cast<float>(m_scaledImageSize.m_width),
+                        scale.GetY() * static_cast<float>(m_scaledImageSize.m_height)));
             }
         }
     }
 
     void DynamicUiImageComponent::ScaleImageToFit()
     {
-        if (m_realImageSize.m_width <= m_maxSize.m_width && m_realImageSize.m_height <= m_maxSize.m_height)
+        float imgScale = static_cast<float>(m_realImageSize.m_width) / static_cast<float>(m_realImageSize.m_height);
+        float scaleWidth = static_cast<float>(m_maxSize.m_width) / static_cast<float>(m_realImageSize.m_width);
+        float scaleHeight = static_cast<float>(m_maxSize.m_height) / static_cast<float>(m_realImageSize.m_height);
+        if (scaleWidth < scaleHeight)
         {
-            m_scaledImageSize = m_realImageSize;
+            m_scaledImageSize.m_width = static_cast<std::uint32_t>(scaleWidth * static_cast<float>(m_realImageSize.m_width));
+            m_scaledImageSize.m_height = static_cast<std::uint32_t>(1.0f / imgScale * static_cast<float>(m_scaledImageSize.m_width));
         }
         else
         {
-            float scaleWidth = static_cast<float>(m_maxSize.m_width) / static_cast<float>(m_realImageSize.m_width);
-            float scaleHeight = static_cast<float>(m_maxSize.m_height) / static_cast<float>(m_realImageSize.m_height);
-            float scale = AZStd::min(scaleWidth, scaleHeight);
-            m_scaledImageSize.m_width = static_cast<std::uint32_t>(scale * static_cast<float>(m_realImageSize.m_width));
-            m_scaledImageSize.m_height = static_cast<std::uint32_t>(scale * static_cast<float>(m_realImageSize.m_height));
+            m_scaledImageSize.m_height = static_cast<std::uint32_t>(scaleHeight * static_cast<float>(m_realImageSize.m_height));
+            m_scaledImageSize.m_width = static_cast<std::uint32_t>(imgScale * static_cast<float>(m_scaledImageSize.m_height));
         }
     }
 } // namespace Cesium

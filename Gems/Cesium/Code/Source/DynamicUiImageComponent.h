@@ -29,7 +29,7 @@ namespace Cesium
 
         DynamicUiImageComponent();
 
-        void LoadImageUrl(const AZStd::string &url) override;
+        void LoadImageUrl(const AZStd::string& url) override;
 
         void SetImage(AZ::Data::Instance<AZ::RPI::StreamingImage> image, AZ::RHI::Size size) override;
 
@@ -37,7 +37,7 @@ namespace Cesium
 
         void GetMaxImageSize(std::uint32_t& width, std::uint32_t& height) const override;
 
-        void GetResizedImageSize(std::uint32_t &width, std::uint32_t &height) const override;
+        void GetResizedImageSize(std::uint32_t& width, std::uint32_t& height) const override;
 
         void Init() override;
 
@@ -50,9 +50,9 @@ namespace Cesium
 
         void ScaleImageToFit();
 
-        AZ::RHI::Size m_realImageSize{0, 0, 0};
-        AZ::RHI::Size m_scaledImageSize{0, 0, 0};
-        AZ::RHI::Size m_maxSize{200, 50, 0};
+        AZ::RHI::Size m_realImageSize{ 0, 0, 0 };
+        AZ::RHI::Size m_scaledImageSize{ 0, 0, 0 };
+        AZ::RHI::Size m_maxSize{ 200, 60, 0 };
         CesiumAsync::AsyncSystem m_asyncSystem;
         AZ::Data::Instance<AZ::RPI::StreamingImage> m_image;
         AZStd::unique_ptr<CDraw2d> m_draw2d;
