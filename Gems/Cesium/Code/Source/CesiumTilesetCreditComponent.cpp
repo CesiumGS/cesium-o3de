@@ -2,8 +2,10 @@
 #include "HtmlUiComponentHelper.h"
 #include "CesiumSystemComponentBus.h"
 #include <LyShine/Bus/UiCanvasBus.h>
+#include <LyShine/Bus/UiElementBus.h>
 #include <LyShine/Bus/UiCursorBus.h>
 #include <LyShine/Bus/UiCanvasManagerBus.h>
+#include <AzFramework/Input/Devices/Mouse/InputDeviceMouse.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/std/string/string.h>
 
@@ -44,17 +46,20 @@ namespace Cesium
         UiCanvasManagerBus::BroadcastResult(
             m_clickableCanvasEntityId, &UiCanvasManagerBus::Events::LoadCanvas,
             AZStd::string("UICanvas/TilesetCredit/TilesetCredit.uicanvas"));
-        UiCursorBus::Broadcast(&UiCursorBus::Events::IncrementVisibleCounter);
 
-        AZ::Vector2 currentCursorPos;
-        UiCursorBus::BroadcastResult(currentCursorPos, &UiCursorBus::Events::GetUiCursorPosition);
-        UiCanvasBus::Event(m_clickableCanvasEntityId, &UiCanvasBus::Events::ForceActiveInteractable, GetEntityId(), true, currentCursorPos);
+        UiCanvasBus::EventResult(
+            m_clickableRootCanvasEntityId, m_clickableCanvasEntityId, &UiCanvasBus::Events::FindElementEntityIdByName,
+            AZStd::string("Element"));
+
+        UiCursorBus::Broadcast(&UiCursorBus::Events::IncrementVisibleCounter);
+        AzFramework::InputChannelEventListener::BusConnect();
 
         AZ::TickBus::Handler::BusConnect();
     }
 
     void CesiumTilesetCreditComponent::Deactivate()
     {
+        AzFramework::InputChannelEventListener::BusDisconnect();
         AZ::TickBus::Handler::BusDisconnect();
     }
 
@@ -92,5 +97,41 @@ namespace Cesium
         }
 
         creditSystem->startNextFrame();
+    }
+
+    bool CesiumTilesetCreditComponent::OnInputChannelEventFiltered(const AzFramework::InputChannel& inputChannel)
+    {
+        const AzFramework::InputDevice& inputDevice = inputChannel.GetInputDevice();
+        const AzFramework::InputDeviceId& inputDeviceId = inputDevice.GetInputDeviceId();
+        if (AzFramework::InputDeviceMouse::IsMouseDevice(inputDeviceId))
+        {
+            // process mouse inputs
+            AzFramework::InputChannel::State state = inputChannel.GetState();
+            const AzFramework::InputChannelId& inputChannelId = inputChannel.GetInputChannelId();
+            if (state == AzFramework::InputChannel::State::Ended)
+            {
+                if (inputChannelId == AzFramework::InputDeviceMouse::Button::Left)
+                {
+                    AZ::Vector2 mousePos;
+                    UiCursorBus::BroadcastResult(mousePos, &UiCursorBus::Events::GetUiCursorPosition);
+                    AZ::Entity* hitCanvasEntity = nullptr;
+                    UiElementBus::EventResult(
+                        hitCanvasEntity, m_clickableRootCanvasEntityId, &UiElementBus::Events::FindFrontmostChildContainingPoint, mousePos,
+                        true);
+                    if (hitCanvasEntity)
+                    {
+                        m_displayCreditList = true;
+                        UiCanvasBus::Event(m_creditCanvasEntityId, &UiCanvasBus::Events::SetEnabled, true);
+                    }
+                    else
+                    {
+                        m_displayCreditList = false;
+                        UiCanvasBus::Event(m_creditCanvasEntityId, &UiCanvasBus::Events::SetEnabled, false);
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 } // namespace Cesium

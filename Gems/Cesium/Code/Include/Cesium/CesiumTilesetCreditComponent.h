@@ -1,5 +1,6 @@
 #pragma once
 
+#include <AzFramework/Input/Events/InputChannelEventListener.h>
 #include <AzCore/RTTI/ReflectContext.h>
 #include <AzCore/Component/Component.h>
 #include <AzCore/Component/TickBus.h>
@@ -9,6 +10,7 @@ namespace Cesium
     class CesiumTilesetCreditComponent
         : public AZ::Component
         , public AZ::TickBus::Handler
+        , public AzFramework::InputChannelEventListener
     {
     public:
         AZ_COMPONENT(CesiumTilesetCreditComponent, "{4CD6F108-AD91-4443-9BA3-61621660336E}", AZ::Component)
@@ -34,8 +36,11 @@ namespace Cesium
     private:
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
 
+        bool OnInputChannelEventFiltered(const AzFramework::InputChannel& inputChannel) override;
+
         std::size_t m_lastCreditCount{ 0 };
         AZ::EntityId m_clickableCanvasEntityId;
+        AZ::EntityId m_clickableRootCanvasEntityId;
         AZ::EntityId m_creditCanvasEntityId;
         bool m_displayCreditList{ false };
     };

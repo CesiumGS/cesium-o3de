@@ -67,7 +67,6 @@ namespace Cesium
                 if (err >= 0)
                 {
                     CreateHtmlNodeEntities(tdoc, tidyGetRoot(tdoc), rootElementEntityId, 0.0f);
-                    AZ_Printf("Cesium", "%s\n", tidy_errbuf.bp); /* show errors */
                 }
             }
         }
