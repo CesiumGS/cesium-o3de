@@ -3,7 +3,6 @@
 #include <AzCore/RTTI/ReflectContext.h>
 #include <AzCore/Component/Component.h>
 #include <AzCore/Component/TickBus.h>
-#include <AzCore/std/string/string.h>
 
 namespace Cesium
 {
@@ -36,8 +35,8 @@ namespace Cesium
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
 
         std::size_t m_lastCreditCount{ 0 };
-        AZ::EntityId m_canvasEntityId;
-        AZ::EntityId m_rootElementEntityId;
-        AZ::EntityId m_textEntityId;
+        AZ::EntityId m_clickableCanvasEntityId;
+        AZ::EntityId m_creditCanvasEntityId;
+        bool m_displayCreditList{ false };
     };
 }

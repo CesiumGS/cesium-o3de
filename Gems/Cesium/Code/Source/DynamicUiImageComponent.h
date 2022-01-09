@@ -2,6 +2,8 @@
 
 #include "DynamicUiImageComponentBus.h"
 #include <LyShine/Draw2d.h>
+#include <LyShine/Bus/UiElementBus.h>
+#include <LyShine/Bus/UiCanvasBus.h>
 #include <AzCore/Component/TickBus.h>
 #include <AzCore/Component/Component.h>
 #include <AzCore/std/smart_ptr/unique_ptr.h>
@@ -13,6 +15,8 @@ namespace Cesium
         : public AZ::Component
         , public AZ::TickBus::Handler
         , public DynamicUiImageRequestBus::Handler
+        , public UiElementNotificationBus::Handler
+        , public UiCanvasEnabledStateNotificationBus::Handler
     {
     public:
         AZ_COMPONENT(DynamicUiImageComponent, "{002FCB42-3714-4159-9444-73FA60CC1C25}");
@@ -48,8 +52,15 @@ namespace Cesium
     private:
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
 
+        void OnUiElementEnabledChanged(bool isEnabled) override;
+
+        void OnUiElementAndAncestorsEnabledChanged(bool areElementAndAncestorsEnabled) override; 
+
+        void OnCanvasEnabledStateChanged(AZ::EntityId canvasEntityId, bool enabled) override;
+
         void ScaleImageToFit();
 
+        bool m_isEnable{ true };
         AZ::RHI::Size m_realImageSize{ 0, 0, 0 };
         AZ::RHI::Size m_scaledImageSize{ 0, 0, 0 };
         AZ::RHI::Size m_maxSize{ 256, 30, 0 };

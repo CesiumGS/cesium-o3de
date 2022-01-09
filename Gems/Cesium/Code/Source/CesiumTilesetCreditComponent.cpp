@@ -1,8 +1,11 @@
 #include <Cesium/CesiumTilesetCreditComponent.h>
 #include "HtmlUiComponentHelper.h"
 #include "CesiumSystemComponentBus.h"
+#include <LyShine/Bus/UiCanvasBus.h>
+#include <LyShine/Bus/UiCursorBus.h>
 #include <LyShine/Bus/UiCanvasManagerBus.h>
 #include <AzCore/Serialization/SerializeContext.h>
+#include <AzCore/std/string/string.h>
 
 namespace Cesium
 {
@@ -38,6 +41,15 @@ namespace Cesium
 
     void CesiumTilesetCreditComponent::Activate()
     {
+        UiCanvasManagerBus::BroadcastResult(
+            m_clickableCanvasEntityId, &UiCanvasManagerBus::Events::LoadCanvas,
+            AZStd::string("UICanvas/TilesetCredit/TilesetCredit.uicanvas"));
+        UiCursorBus::Broadcast(&UiCursorBus::Events::IncrementVisibleCounter);
+
+        AZ::Vector2 currentCursorPos;
+        UiCursorBus::BroadcastResult(currentCursorPos, &UiCursorBus::Events::GetUiCursorPosition);
+        UiCanvasBus::Event(m_clickableCanvasEntityId, &UiCanvasBus::Events::ForceActiveInteractable, GetEntityId(), true, currentCursorPos);
+
         AZ::TickBus::Handler::BusConnect();
     }
 
@@ -48,6 +60,11 @@ namespace Cesium
 
     void CesiumTilesetCreditComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
     {
+        if (!m_displayCreditList)
+        {
+            return;
+        }
+
         const auto& creditSystem = CesiumInterface::Get()->GetCreditSystem();
 
         const auto& creditToShow = creditSystem->getCreditsToShowThisFrame();
@@ -64,13 +81,13 @@ namespace Cesium
             textCredit += "</ul></body></html>";
 
             // remove the current canvas
-            if (m_canvasEntityId.IsValid())
+            if (m_creditCanvasEntityId.IsValid())
             {
-                UiCanvasManagerBus::Broadcast(&UiCanvasManagerBus::Events::UnloadCanvas, m_canvasEntityId);
-                m_canvasEntityId = AZ::EntityId{};
+                UiCanvasManagerBus::Broadcast(&UiCanvasManagerBus::Events::UnloadCanvas, m_creditCanvasEntityId);
+                m_creditCanvasEntityId = AZ::EntityId{};
             }
 
-            m_canvasEntityId = HtmlUiComponentHelper::CreateHtmlCanvasEntity(textCredit);
+            m_creditCanvasEntityId = HtmlUiComponentHelper::CreateHtmlCanvasEntity(textCredit);
             m_lastCreditCount = creditToShow.size();
         }
 

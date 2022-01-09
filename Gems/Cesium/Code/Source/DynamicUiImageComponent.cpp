@@ -144,6 +144,8 @@ namespace Cesium
 
     void DynamicUiImageComponent::Activate()
     {
+        UiElementNotificationBus::Handler::BusConnect(GetEntityId());
+        UiCanvasEnabledStateNotificationBus::Handler::BusConnect();
         DynamicUiImageRequestBus::Handler::BusConnect(GetEntityId());
         AZ::TickBus::Handler::BusConnect();
 
@@ -163,7 +165,7 @@ namespace Cesium
 
     void DynamicUiImageComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
     {
-        if (m_draw2dHelper)
+        if (m_isEnable && m_draw2dHelper)
         {
             m_asyncSystem.dispatchMainThreadTasks();
 
@@ -182,6 +184,26 @@ namespace Cesium
                         scale.GetX() * static_cast<float>(m_scaledImageSize.m_width),
                         scale.GetY() * static_cast<float>(m_scaledImageSize.m_height)));
             }
+        }
+    }
+
+    void DynamicUiImageComponent::OnUiElementEnabledChanged(bool isEnabled)
+    {
+        m_isEnable = isEnabled;
+    }
+
+    void DynamicUiImageComponent::OnUiElementAndAncestorsEnabledChanged(bool areElementAndAncestorsEnabled)
+    {
+        m_isEnable = areElementAndAncestorsEnabled;
+    }
+
+    void DynamicUiImageComponent::OnCanvasEnabledStateChanged(AZ::EntityId canvasEntityId, bool enabled)
+    {
+        AZ::EntityId currentCanvasEntityId;
+        UiElementBus::EventResult(currentCanvasEntityId, GetEntityId(), &UiElementBus::Events::GetCanvasEntityId);
+        if (canvasEntityId == currentCanvasEntityId)
+        {
+            m_isEnable = enabled;
         }
     }
 
