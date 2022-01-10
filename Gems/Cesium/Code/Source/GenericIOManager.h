@@ -5,6 +5,7 @@
 #include <AzCore/std/containers/vector.h>
 #include <AzCore/std/string/string.h>
 #include <cstddef>
+#include <vector>
 
 namespace Cesium
 {
@@ -14,7 +15,7 @@ namespace Cesium
         AZStd::string m_path;
     };
 
-    using IOContent = AZStd::vector<std::byte>; 
+    using IOContent = std::vector<std::byte>; 
 
     class GenericIOManager
     {
