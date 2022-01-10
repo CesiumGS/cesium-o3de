@@ -178,6 +178,8 @@ namespace Cesium
                 UiTransformBus::Event(GetEntityId(), &UiTransformBus::Events::GetTransformToCanvasSpace, transform);
                 AZ::Vector3 scale = transform.ExtractScale();
 
+                static const int64_t topLayerKey = 0x1000000;
+                m_draw2d->SetSortKey(topLayerKey);
                 m_draw2dHelper->DrawImage(
                     m_image, rectPoints.TopLeft(),
                     AZ::Vector2(

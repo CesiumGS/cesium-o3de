@@ -4,6 +4,7 @@
 #include <LyShine/Bus/UiCanvasManagerBus.h>
 #include <LyShine/Bus/UiCanvasBus.h>
 #include <LyShine/Bus/UiElementBus.h>
+#include <LyShine/Bus/UiImageBus.h>
 #include <LyShine/Bus/UiTextBus.h>
 #include <LyShine/Bus/UiTransform2dBus.h>
 #include <LyShine/Bus/UiInitializationBus.h>
@@ -43,6 +44,8 @@ namespace Cesium
         UiTransform2dBus::Event(
             rootElementEntityId, &UiTransform2dBus::Events::SetOffsets, UiTransform2dInterface::Offsets{ 0.0f, 0.0f, 0.0f, 0.0f });
 
+        // Create background img
+        CreateBackgroundEntity(rootElementEntityId);
 
         // begin parse html
         TidyDoc tdoc;
@@ -118,6 +121,33 @@ namespace Cesium
         }
 
         return height;
+    }
+
+    void HtmlUiComponentHelper::CreateBackgroundEntity(const AZ::EntityId& rootElementEntityId)
+    {        
+        // Create the text element
+        AZ::Entity* backgroundEntity = nullptr;
+        UiElementBus::EventResult(backgroundEntity, rootElementEntityId, &UiElementBus::Events::CreateChildElement, AZStd::string("background"));
+
+        // Set up the text element
+        if (backgroundEntity)
+        {
+            backgroundEntity->Deactivate();
+            backgroundEntity->CreateComponent(LyShine::UiTransform2dComponentUuid);
+            backgroundEntity->CreateComponent(LyShine::UiImageComponentUuid);
+            backgroundEntity->Activate();
+
+            AZ::EntityId backgroundEntityId = backgroundEntity->GetId();
+            UiTransform2dBus::Event(backgroundEntityId, &UiTransform2dBus::Events::SetAnchors, UiTransform2dInterface::Anchors{}, false, false);
+            UiTransform2dBus::Event(backgroundEntityId, &UiTransform2dBus::Events::SetOffsets, UiTransform2dInterface::Offsets{-310.0f, -266.0f, 310.0f, 266.0f});
+            UiTransform2dBus::Event(backgroundEntityId, &UiTransform2dBus::Events::SetPivotAndAdjustOffsets, AZ::Vector2(0.5f));
+
+            UiImageBus::Event(backgroundEntityId, &UiImageBus::Events::SetColor, AZ::Colors::Black);
+            UiImageBus::Event(backgroundEntityId, &UiImageBus::Events::SetAlpha, 0.7f);
+
+            // Trigger all InGamePostActivate
+            UiInitializationBus::Event(backgroundEntityId, &UiInitializationBus::Events::InGamePostActivate);
+        }
     }
 
     float HtmlUiComponentHelper::CreateImageEntity(const AZStd::string& url, const AZ::EntityId& rootElementEntityId, float beginHeight)
