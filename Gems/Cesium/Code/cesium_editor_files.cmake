@@ -4,6 +4,12 @@ set(FILES
     Source/CesiumEditorSystemComponent.h
     Source/MatrixWidget.cpp
     Source/MatrixWidget.h
+    Source/CesiumIonSession.cpp
+    Source/CesiumIonSession.h
+    Source/CesiumIonAssetListWidget.cpp
+    Source/CesiumIonAssetListWidget.h
+    Source/CesiumLevelSettingsEditorComponent.cpp
+    Source/CesiumLevelSettingsEditorComponent.h
     Source/CesiumIonRasterOverlayEditorComponent.cpp
     Source/CesiumIonRasterOverlayEditorComponent.h
     Source/BingRasterOverlayEditorComponent.cpp
@@ -18,4 +24,7 @@ set(FILES
     Source/GeoReferenceTransformEditorComponent.h
     Source/CesiumTilesetEditorComponent.cpp
     Source/CesiumTilesetEditorComponent.h
+    Source/CesiumIonPanelWidget.cpp
+    Source/CesiumIonPanelWidget.h
+    Source/CesiumResources.qrc
 )

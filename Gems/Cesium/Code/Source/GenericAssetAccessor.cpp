@@ -14,7 +14,13 @@ namespace Cesium
         {
             // Hack: We need to add prefix here, so that Cesium Native can compose absolute url from base url and relative url correctly
             m_url = PREFIX + m_url;
-            auto response = std::make_unique<GenericAssetResponse>(200, std::move(m_contentType), std::move(result));
+            std::uint16_t responseStatus = 200;
+            if (result.empty())
+            {
+                responseStatus = 404;
+            }
+
+            auto response = std::make_unique<GenericAssetResponse>(responseStatus, std::move(m_contentType), std::move(result));
             return std::make_shared<GenericAssetRequest>(std::move(m_url), std::move(m_headers), std::move(response));
         }
 

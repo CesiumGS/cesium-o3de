@@ -81,6 +81,7 @@ if(PAL_TRAIT_BUILD_HOST_TOOLS)
         NAME Cesium.Editor.Static STATIC
         NAMESPACE Gem
         AUTOMOC
+        AUTORCC
         FILES_CMAKE
             cesium_editor_files.cmake
         INCLUDE_DIRECTORIES
@@ -91,6 +92,7 @@ if(PAL_TRAIT_BUILD_HOST_TOOLS)
         BUILD_DEPENDENCIES
             PUBLIC
                 AZ::AzToolsFramework
+                Gem::AtomToolsFramework.Static
                 Gem::Cesium.Static
     )
 
@@ -98,6 +100,7 @@ if(PAL_TRAIT_BUILD_HOST_TOOLS)
         NAME Cesium.Editor GEM_MODULE
         NAMESPACE Gem
         AUTOMOC
+        AUTORCC
         OUTPUT_NAME Gem.Cesium.Editor
         FILES_CMAKE
             cesium_editor_shared_files.cmake

@@ -41,7 +41,7 @@ namespace Cesium
             AZ::IO::FileIOStream stream(absolutePath.c_str(), AZ::IO::OpenMode::ModeRead | AZ::IO::OpenMode::ModeBinary);
             if (!stream.IsOpen())
             {
-                m_promise.reject(std::runtime_error("Request failed for file: " + std::string(absolutePath.c_str())));
+                m_promise.resolve(IOContent{});
             }
             else
             {

@@ -7,11 +7,12 @@
 #include "BingRasterOverlayEditorComponent.h"
 #include "CesiumIonRasterOverlayEditorComponent.h"
 #include "TMSRasterOverlayEditorComponent.h"
+#include "CesiumLevelSettingsEditorComponent.h"
+#include "CesiumIonSession.h"
 
 namespace Cesium
 {
-    class CesiumEditorModule
-        : public CesiumModuleInterface
+    class CesiumEditorModule : public CesiumModuleInterface
     {
     public:
         AZ_RTTI(CesiumEditorModule, "{a927ae40-0be8-4c12-b776-f866e93538a0}", CesiumModuleInterface);
@@ -25,7 +26,8 @@ namespace Cesium
             // EditContext. This happens through the [MyComponent]::Reflect() function.
             m_descriptors.insert(
                 m_descriptors.end(),
-                { CesiumEditorSystemComponent::CreateDescriptor(), CesiumTilesetEditorComponent::CreateDescriptor(),
+                { CesiumEditorSystemComponent::CreateDescriptor(), CesiumIonSession::CreateDescriptor(),
+                  CesiumLevelSettingsEditorComponent::CreateDescriptor(), CesiumTilesetEditorComponent::CreateDescriptor(),
                   GeoReferenceTransformEditorComponent::CreateDescriptor(), GeoReferenceCameraControllerEditor::CreateDescriptor(),
                   BingRasterOverlayEditorComponent::CreateDescriptor(), CesiumIonRasterOverlayEditorComponent::CreateDescriptor(),
                   TMSRasterOverlayEditorComponent::CreateDescriptor() });
@@ -37,11 +39,9 @@ namespace Cesium
          */
         AZ::ComponentTypeList GetRequiredSystemComponents() const override
         {
-            return AZ::ComponentTypeList {
-                azrtti_typeid<CesiumEditorSystemComponent>(),
-            };
+            return AZ::ComponentTypeList{ azrtti_typeid<CesiumEditorSystemComponent>(), azrtti_typeid<CesiumIonSession>() };
         }
     };
-}// namespace Cesium
+} // namespace Cesium
 
 AZ_DECLARE_MODULE_CLASS(Gem_Cesium, Cesium::CesiumEditorModule)

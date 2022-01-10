@@ -9,6 +9,7 @@
 #include <Cesium/CesiumIonRasterOverlayComponent.h>
 #include <Cesium/BingRasterOverlayComponent.h>
 #include <Cesium/TMSRasterOverlayComponent.h>
+#include <Cesium/CesiumLevelSettingsComponent.h>
 #include <CesiumSystemComponent.h>
 
 namespace Cesium
@@ -27,11 +28,11 @@ namespace Cesium
             // EditContext. This happens through the [MyComponent]::Reflect() function.
             m_descriptors.insert(
                 m_descriptors.end(),
-                { CesiumSystemComponent::CreateDescriptor(), CesiumTilesetComponent::CreateDescriptor(),
-                  GltfModelComponent::CreateDescriptor(), GeoReferenceTransformComponent::CreateDescriptor(),
-                  GeoReferenceCameraFlyController::CreateDescriptor(), RasterOverlayComponent::CreateDescriptor(),
-                  BingRasterOverlayComponent::CreateDescriptor(), CesiumIonRasterOverlayComponent::CreateDescriptor(),
-                  TMSRasterOverlayComponent::CreateDescriptor() });
+                { CesiumSystemComponent::CreateDescriptor(), CesiumLevelSettingsComponent::CreateDescriptor(),
+                  CesiumTilesetComponent::CreateDescriptor(), GltfModelComponent::CreateDescriptor(),
+                  GeoReferenceTransformComponent::CreateDescriptor(), GeoReferenceCameraFlyController::CreateDescriptor(),
+                  RasterOverlayComponent::CreateDescriptor(), BingRasterOverlayComponent::CreateDescriptor(),
+                  CesiumIonRasterOverlayComponent::CreateDescriptor(), TMSRasterOverlayComponent::CreateDescriptor() });
         }
 
         /**

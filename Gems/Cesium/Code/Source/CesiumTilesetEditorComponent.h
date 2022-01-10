@@ -41,11 +41,8 @@ namespace Cesium
 
         AZ::u32 OnTilesetConfigurationChanged();
 
-        AZ::u32 OnCoordinateTransformEntityChanged();
-
         AZStd::unique_ptr<CesiumTilesetComponent> m_tilesetComponent;
         TilesetConfiguration m_tilesetConfiguration;
         TilesetSource m_tilesetSource;
-        AZ::EntityId m_coordinateTransformEntityId;
     };
 } // namespace Cesium

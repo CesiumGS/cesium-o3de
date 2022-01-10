@@ -24,7 +24,7 @@ namespace Cesium
             .thenImmediately(
                 [](HttpResult&& result) -> std::shared_ptr<CesiumAsync::IAssetRequest>
                 {
-                    return HttpAssetAccessor::CreateO3DEAssetRequest(*result.m_request, *result.m_response);
+                    return HttpAssetAccessor::CreateO3DEAssetRequest(*result.m_request, result.m_response.get());
                 });
     }
 
@@ -43,7 +43,7 @@ namespace Cesium
             .thenImmediately(
                 [](HttpResult&& result) -> std::shared_ptr<CesiumAsync::IAssetRequest>
                 {
-                    return HttpAssetAccessor::CreateO3DEAssetRequest(*result.m_request, *result.m_response);
+                    return HttpAssetAccessor::CreateO3DEAssetRequest(*result.m_request, result.m_response.get());
                 });
     }
 
@@ -96,12 +96,20 @@ namespace Cesium
     }
 
     std::shared_ptr<HttpAssetRequest> HttpAssetAccessor::CreateO3DEAssetRequest(
-        const Aws::Http::HttpRequest& request, Aws::Http::HttpResponse& response)
+        const Aws::Http::HttpRequest& request, Aws::Http::HttpResponse* response)
     {
         std::string method = ConvertMethodToString(request.GetMethod());
         std::string url = request.GetURIString().c_str();
         CesiumAsync::HttpHeaders headers = ConvertToCesiumHeaders(request.GetHeaders());
-        std::unique_ptr<HttpAssetResponse> assetResponse = CreateO3DEAssetResponse(response);
+        std::unique_ptr<HttpAssetResponse> assetResponse;
+        if (response)
+        {
+            assetResponse = CreateO3DEAssetResponse(*response);
+        }
+        else
+        {
+            assetResponse = std::make_unique<HttpAssetResponse>(404, "", CesiumAsync::HttpHeaders{}, IOContent{});
+        }
 
         return std::make_shared<HttpAssetRequest>(std::move(method), std::move(url), std::move(headers), std::move(assetResponse));
     }

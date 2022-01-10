@@ -27,5 +27,7 @@ namespace Cesium
         // AZ::Component
         void Activate() override;
         void Deactivate() override;
+
+        void NotifyRegisterViews() override;
     };
 } // namespace Cesium

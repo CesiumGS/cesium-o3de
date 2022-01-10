@@ -4,7 +4,11 @@
 #include "RasterOverlayRequestBus.h"
 #include "CesiumSystemComponentBus.h"
 #include "MathHelper.h"
+// TODO: remove
 #include <Atom/Feature/Mesh/MeshFeatureProcessorInterface.h>
+#include <Atom/Feature/AuxGeom/AuxGeomFeatureProcessor.h>
+
+#include <Atom/RPI.Public/AuxGeom/AuxGeomDraw.h>
 #include <Atom/RPI.Public/ViewportContext.h>
 #include <Atom/RPI.Public/ViewportContextBus.h>
 #include <Atom/RPI.Public/Scene.h>
@@ -143,6 +147,63 @@ namespace Cesium
         {
             return this->operator()(region.getBoundingRegion());
         }
+    };
+
+    struct CesiumTilesetComponent::BoundingVolumeToAABB
+    {
+        AZ::Aabb operator()(const CesiumGeometry::BoundingSphere& sphere)
+        {
+            glm::dvec3 center = m_transform * glm::dvec4(sphere.getCenter(), 1.0);
+            double uniformScale = glm::max(
+                glm::max(glm::length(glm::dvec3(m_transform[0])), glm::length(glm::dvec3(m_transform[1]))),
+                glm::length(glm::dvec3(m_transform[2])));
+
+            glm::dvec3 minAabb = center - sphere.getRadius() * glm::dvec3(uniformScale);
+            glm::dvec3 maxAabb = center + sphere.getRadius() * glm::dvec3(uniformScale);
+
+            return AZ::Aabb::CreateFromMinMax(
+                AZ::Vector3(static_cast<float>(minAabb.x), static_cast<float>(minAabb.y), static_cast<float>(minAabb.z)),
+                AZ::Vector3(static_cast<float>(maxAabb.x), static_cast<float>(maxAabb.y), static_cast<float>(maxAabb.z)));
+        }
+
+        AZ::Aabb operator()(const CesiumGeometry::OrientedBoundingBox& box)
+        {
+            glm::dvec3 center = m_transform * glm::dvec4(box.getCenter(), 1.0);
+            glm::dmat3 halfLengthsAndOrientation = glm::dmat3(m_transform) * box.getHalfAxes();
+
+            glm::dvec3 minAabb{std::numeric_limits<double>::infinity()};
+            glm::dvec3 maxAabb{-std::numeric_limits<double>::infinity()};
+            static const double Signs[] = { -1.0, 1.0 };
+            for (std::int32_t i = 0; i < 2; i++)
+            {
+                for (std::int32_t j = 0; j < 2; j++)
+                {
+                    for (int32_t k = 0; k < 2; k++)
+                    {
+                        auto corner = center + Signs[i] * halfLengthsAndOrientation[0] + Signs[j] * halfLengthsAndOrientation[1] +
+                            Signs[k] * halfLengthsAndOrientation[2];
+                        minAabb = glm::min(minAabb, corner);
+                        maxAabb = glm::max(maxAabb, corner);
+                    }
+                }
+            }
+
+            return AZ::Aabb::CreateFromMinMax(
+                AZ::Vector3(static_cast<float>(minAabb.x), static_cast<float>(minAabb.y), static_cast<float>(minAabb.z)),
+                AZ::Vector3(static_cast<float>(maxAabb.x), static_cast<float>(maxAabb.y), static_cast<float>(maxAabb.z)));
+        }
+
+        AZ::Aabb operator()(const CesiumGeospatial::BoundingRegion& region)
+        {
+            return this->operator()(region.getBoundingBox());
+        }
+
+        AZ::Aabb operator()(const CesiumGeospatial::BoundingRegionWithLooseFittingHeights& region)
+        {
+            return this->operator()(region.getBoundingRegion().getBoundingBox());
+        }
+
+        glm::dmat4 m_transform;
     };
 
     struct CesiumTilesetComponent::BoundingVolumeTransform
@@ -453,12 +514,8 @@ namespace Cesium
                 return;
             }
 
-            glm::dvec3 ecefBoundingCenter = Cesium3DTilesSelection::getBoundingVolumeCenter(root->getBoundingVolume());
-            glm::dvec3 o3deBoundingCenter = m_coordinateTransformConfig.m_ECEFToO3DE * glm::dvec4(ecefBoundingCenter, 1.0);
-            glm::dmat4 totalO3DETransform =
-                glm::translate(glm::dmat4(1.0), o3deBoundingCenter) * glm::translate(m_O3DETransform, -o3deBoundingCenter);
-            m_renderResourcesPreparer->SetTransform(totalO3DETransform * m_coordinateTransformConfig.m_ECEFToO3DE);
-            m_cameraConfigurations.SetTransform(m_coordinateTransformConfig.m_O3DEToECEF * glm::affineInverse(totalO3DETransform));
+            m_renderResourcesPreparer->SetTransform(m_O3DETransform * m_coordinateTransformConfig.m_ECEFToO3DE);
+            m_cameraConfigurations.SetTransform(m_coordinateTransformConfig.m_O3DEToECEF * glm::affineInverse(m_O3DETransform));
             m_configFlags = m_configFlags & ~ConfigurationDirtyFlags::TransformChange;
         }
 
@@ -500,8 +557,6 @@ namespace Cesium
 
     void CesiumTilesetComponent::Reflect(AZ::ReflectContext* context)
     {
-        TilesetConfiguration::Reflect(context);
-        TilesetSource::Reflect(context);
         ReflectTilesetBoundingVolume(context);
 
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
@@ -511,18 +566,6 @@ namespace Cesium
                 ->Field("TilesetConfiguration", &CesiumTilesetComponent::m_tilesetConfiguration)
                 ->Field("TilesetSource", &CesiumTilesetComponent::m_tilesetSource)
                 ->Field("CoordinateTransformEntityId", &CesiumTilesetComponent::m_coordinateTransformEntityId);
-        }
-
-        if (AZ::BehaviorContext* behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
-        {
-            behaviorContext->EBus<CesiumTilesetRequestBus>("CesiumTilesetRequestBus")
-                ->Attribute(AZ::Script::Attributes::Category, "Cesium/3DTiles")
-                ->Event("SetConfiguration", &CesiumTilesetRequestBus::Events::SetConfiguration)
-                ->Event("GetConfiguration", &CesiumTilesetRequestBus::Events::GetConfiguration)
-                ->Event("SetCoordinateTransform", &CesiumTilesetRequestBus::Events::SetCoordinateTransform)
-                ->Event("GetBoundingVolumeInECEF", &CesiumTilesetRequestBus::Events::GetBoundingVolumeInECEF)
-                ->Event("LoadTileset", &CesiumTilesetRequestBus::Events::LoadTileset)
-                ;
         }
     }
 
@@ -558,14 +601,18 @@ namespace Cesium
     {
         m_impl = AZStd::make_unique<Impl>(GetEntityId(), m_coordinateTransformEntityId, m_tilesetSource);
         AZ::TickBus::Handler::BusConnect();
+        AzFramework::BoundsRequestBus::Handler::BusConnect(GetEntityId());
         CesiumTilesetRequestBus::Handler::BusConnect(GetEntityId());
+        LevelCoordinateTransformNotificationBus::Handler::BusConnect();
     }
 
     void CesiumTilesetComponent::Deactivate()
     {
         m_impl.reset();
         AZ::TickBus::Handler::BusDisconnect();
+        AzFramework::BoundsRequestBus::Handler::BusDisconnect();
         CesiumTilesetRequestBus::Handler::BusDisconnect();
+        LevelCoordinateTransformNotificationBus::Handler::BusDisconnect();
     }
 
     void CesiumTilesetComponent::SetConfiguration(const TilesetConfiguration& configration)
@@ -579,10 +626,44 @@ namespace Cesium
         return m_tilesetConfiguration;
     }
 
-    void CesiumTilesetComponent::SetCoordinateTransform(const AZ::EntityId& coordinateTransformEntityId)
+    void CesiumTilesetComponent::OnCoordinateTransformChange(const AZ::EntityId& coordinateTransformEntityId)
     {
         m_coordinateTransformEntityId = coordinateTransformEntityId;
         m_impl->ConnectCoordinateTransformEntityEvents(m_coordinateTransformEntityId);
+    }
+
+    AZ::Aabb CesiumTilesetComponent::GetWorldBounds()
+    {
+        if (!m_impl->m_tileset)
+        {
+            return AZ::Aabb{};
+        }
+
+        const auto rootTile = m_impl->m_tileset->getRootTile();
+        if (!rootTile)
+        {
+            return AZ::Aabb{};
+        }
+
+        return std::visit(
+            BoundingVolumeToAABB{ m_impl->m_O3DETransform * m_impl->m_coordinateTransformConfig.m_ECEFToO3DE },
+            rootTile->getBoundingVolume());
+    }
+
+    AZ::Aabb CesiumTilesetComponent::GetLocalBounds()
+    {
+        if (!m_impl->m_tileset)
+        {
+            return AZ::Aabb{};
+        }
+
+        const auto rootTile = m_impl->m_tileset->getRootTile();
+        if (!rootTile)
+        {
+            return AZ::Aabb{};
+        }
+
+        return std::visit(BoundingVolumeToAABB{ m_impl->m_coordinateTransformConfig.m_ECEFToO3DE }, rootTile->getBoundingVolume());
     }
 
     TilesetBoundingVolume CesiumTilesetComponent::GetBoundingVolumeInECEF() const
@@ -696,6 +777,31 @@ namespace Cesium
 
             if (!viewStates.empty())
             {
+                // check if the root is visible. If it's not, then we should remove all the cache
+                const auto rootTile = m_impl->m_tileset->getRootTile();
+                if (rootTile)
+                {
+                    bool isTilesetVisible = false;
+                    for (const auto& viewState : viewStates)
+                    {
+                        if (viewState.isBoundingVolumeVisible(rootTile->getBoundingVolume()))
+                        {
+                            isTilesetVisible = true;
+                            break;
+                        }
+                    }
+
+                    if (!isTilesetVisible)
+                    {
+                        m_impl->m_tileset->getOptions().maximumCachedBytes = 0;
+                    }
+                    else
+                    {
+                        m_impl->m_tileset->getOptions().maximumCachedBytes = m_tilesetConfiguration.m_maximumCacheBytes;
+                    }
+                }
+
+                // retrieve tiles are visible in the current frame
                 const Cesium3DTilesSelection::ViewUpdateResult& viewUpdate = m_impl->m_tileset->updateView(viewStates);
 
                 for (Cesium3DTilesSelection::Tile* tile : viewUpdate.tilesToNoLongerRenderThisFrame)
@@ -715,6 +821,12 @@ namespace Cesium
                         m_impl->m_renderResourcesPreparer->SetVisible(renderResources, true);
                     }
                 }
+
+                // TODO: remove
+                AZ::RPI::AuxGeomFeatureProcessorInterface* meshFeatureProcessor =
+                    AZ::RPI::Scene::GetFeatureProcessorForEntity<AZ::RPI::AuxGeomFeatureProcessorInterface>(GetEntityId());
+                auto drawQueue = meshFeatureProcessor->GetDrawQueue();
+                drawQueue->DrawAabb(GetWorldBounds(), AZ::Colors::White, AZ::RPI::AuxGeomDraw::DrawStyle::Line);
             }
         }
     }

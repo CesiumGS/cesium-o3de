@@ -1,8 +1,8 @@
 #pragma once
 
+#include <AzCore/RTTI/ReflectContext.h>
 #include <AzCore/Component/ComponentBus.h>
 #include <AzCore/EBus/Event.h>
-#include <AzCore/Component/EntityId.h>
 #include <glm/glm.hpp>
 
 namespace Cesium
@@ -12,6 +12,8 @@ namespace Cesium
     class GeoReferenceCameraFlyControllerRequest : public AZ::ComponentBus
     {
     public:
+        static void Reflect(AZ::ReflectContext* context);
+
         virtual void SetMouseSensitivity(double mouseSensitivity) = 0;
 
         virtual double GetMouseSensitivity() const = 0;
@@ -23,8 +25,6 @@ namespace Cesium
         virtual void SetMovementSpeed(double movementSpeed) = 0;
 
         virtual double GetMovementSpeed() const = 0;
-
-        virtual void SetCoordinateTransform(const AZ::EntityId& coordinateTransformEntityId) = 0;
 
         virtual void FlyToECEFLocation(const glm::dvec3& location, const glm::dvec3& direction) = 0;
 

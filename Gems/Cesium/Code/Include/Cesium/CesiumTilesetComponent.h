@@ -1,7 +1,9 @@
 #pragma once
 
 #include <Cesium/CesiumTilesetComponentBus.h>
+#include <Cesium/OriginShiftAwareComponentBus.h>
 #include <AzFramework/Viewport/ViewportId.h>
+#include <AzFramework/Visibility/BoundsBus.h>
 #include <AzCore/Component/Component.h>
 #include <AzCore/Component/EntityId.h>
 #include <AzCore/Component/TickBus.h>
@@ -15,7 +17,9 @@ namespace Cesium
         : public AZ::Component
         , public AZ::TickBus::Handler
         , public AZ::EntityBus::Handler
+        , public AzFramework::BoundsRequestBus::Handler
         , public CesiumTilesetRequestBus::Handler
+        , public LevelCoordinateTransformNotificationBus::Handler
     {
     public:
         AZ_COMPONENT(CesiumTilesetComponent, "{56948418-6C82-4DF2-9A8D-C292C22FCBDF}", AZ::Component)
@@ -36,7 +40,11 @@ namespace Cesium
 
         const TilesetConfiguration& GetConfiguration() const override;
 
-        void SetCoordinateTransform(const AZ::EntityId& coordinateTransformEntityId) override;
+        void OnCoordinateTransformChange(const AZ::EntityId& coordinateTransformEntityId) override;
+
+        AZ::Aabb GetWorldBounds() override;
+
+        AZ::Aabb GetLocalBounds() override;
 
         TilesetBoundingVolume GetBoundingVolumeInECEF() const override;
 
@@ -57,6 +65,7 @@ namespace Cesium
 
         class CameraConfigurations;
         struct BoundingVolumeConverter;
+        struct BoundingVolumeToAABB;
         struct BoundingVolumeTransform;
         enum class TilesetBoundingVolumeType;
         struct Impl;

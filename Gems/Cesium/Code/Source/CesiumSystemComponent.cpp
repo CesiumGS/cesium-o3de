@@ -5,6 +5,15 @@
 #include "TaskProcessor.h"
 #include "LocalFileManager.h"
 #include "HttpManager.h"
+#include <Cesium/CesiumTilesetComponentBus.h>
+#include <Cesium/OriginShiftAwareComponentBus.h>
+#include <Cesium/CoordinateTransformComponentBus.h>
+#include <Cesium/GeoReferenceCameraFlyControllerBus.h>
+#include <Cesium/BoundingRegion.h>
+#include <Cesium/BoundingSphere.h>
+#include <Cesium/OrientedBoundingBox.h>
+#include <Cesium/Cartographic.h>
+#include <Cesium/GeospatialHelper.h>
 #include <Cesium/MathReflect.h>
 #include <Cesium3DTilesSelection/registerAllTileContentTypes.h>
 #include <AzCore/Serialization/SerializeContext.h>
@@ -18,6 +27,23 @@ namespace Cesium
     void CesiumSystemComponent::Reflect(AZ::ReflectContext* context)
     {
         MathSerialization::Reflect(context);
+        BoundingRegion::Reflect(context);
+        BoundingSphere::Reflect(context);
+        OrientedBoundingBox::Reflect(context);
+        Cartographic::Reflect(context);
+        GeospatialHelper::Reflect(context);
+
+        TilesetConfiguration::Reflect(context);
+        TilesetSource::Reflect(context);
+        CesiumTilesetRequest::Reflect(context);
+
+        LevelCoordinateTransformRequest::Reflect(context);
+        LevelCoordinateTransformNotification::Reflect(context);
+
+        CoordinateTransformConfiguration::Reflect(context);
+        CoordinateTransformRequest::Reflect(context);
+
+        GeoReferenceCameraFlyControllerRequest::Reflect(context);
 
         if (AZ::SerializeContext* serialize = azrtti_cast<AZ::SerializeContext*>(context))
         {

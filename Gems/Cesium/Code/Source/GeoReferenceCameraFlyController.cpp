@@ -2,6 +2,7 @@
 #include "MathHelper.h"
 #include "GeoReferenceInterpolator.h"
 #include "LinearInterpolator.h"
+#include "Cesium/MathReflect.h"
 #include <Cesium/CoordinateTransformComponentBus.h>
 #include <AzFramework/Input/Devices/Mouse/InputDeviceMouse.h>
 #include <AzFramework/Input/Devices/Keyboard/InputDeviceKeyboard.h>
@@ -23,24 +24,6 @@ namespace Cesium
                 Field("panningSpeed", &GeoReferenceCameraFlyController::m_panningSpeed)->
                 Field("coordinateTransformEntityId", &GeoReferenceCameraFlyController::m_coordinateTransformEntityId)
                 ;
-        }
-
-        if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
-        {
-            AZ::BehaviorAzEventDescription cameraTransitionFlyEventDesc;
-            cameraTransitionFlyEventDesc.m_eventName = "CameraStopFlyEvent";
-            cameraTransitionFlyEventDesc.m_parameterNames.push_back("Destination");
-
-            behaviorContext->EBus<GeoReferenceCameraFlyControllerRequestBus>("GeoReferenceCameraFlyControllerRequestBus")
-                ->Attribute(AZ::Script::Attributes::Category, "Cesium/Camera")
-                ->Event("SetMouseSensitivity", &GeoReferenceCameraFlyControllerRequestBus::Events::SetMouseSensitivity)
-                ->Event("GetMouseSensitivity", &GeoReferenceCameraFlyControllerRequestBus::Events::GetMouseSensitivity)
-                ->Event("SetPanningSpeed", &GeoReferenceCameraFlyControllerRequestBus::Events::SetPanningSpeed)
-                ->Event("GetPanningSpeed", &GeoReferenceCameraFlyControllerRequestBus::Events::GetPanningSpeed)
-                ->Event("SetMovementSpeed", &GeoReferenceCameraFlyControllerRequestBus::Events::SetMovementSpeed)
-                ->Event("GetMovementSpeed", &GeoReferenceCameraFlyControllerRequestBus::Events::GetMovementSpeed)
-                ->Event("SetCoordinateTransform", &GeoReferenceCameraFlyControllerRequestBus::Events::SetCoordinateTransform)
-                ->Event("FlyToECEFLocation", &GeoReferenceCameraFlyControllerRequestBus::Events::FlyToECEFLocation, { AZ::BehaviorParameterOverrides("ECEFLocation"), AZ::BehaviorParameterOverrides("ECEFDirection") });
         }
     }
 
@@ -90,6 +73,7 @@ namespace Cesium
     void GeoReferenceCameraFlyController::Activate()
     {
         GeoReferenceCameraFlyControllerRequestBus::Handler::BusConnect(GetEntityId());
+        LevelCoordinateTransformNotificationBus::Handler::BusConnect();
         AZ::TickBus::Handler::BusConnect();
         AZ::EntityBus::Handler::BusConnect(m_coordinateTransformEntityId);
         AzFramework::InputChannelEventListener::Connect();
@@ -98,6 +82,7 @@ namespace Cesium
     void GeoReferenceCameraFlyController::Deactivate()
     {
         GeoReferenceCameraFlyControllerRequestBus::Handler::BusDisconnect();
+        LevelCoordinateTransformNotificationBus::Handler::BusDisconnect();
         AZ::TickBus::Handler::BusDisconnect();
         AZ::EntityBus::Handler::BusDisconnect();
         AzFramework::InputChannelEventListener::Disconnect();
@@ -136,7 +121,7 @@ namespace Cesium
         return m_movementSpeed;
     }
 
-    void GeoReferenceCameraFlyController::SetCoordinateTransform(const AZ::EntityId& coordinateTransformEntityId)
+    void GeoReferenceCameraFlyController::OnCoordinateTransformChange(const AZ::EntityId& coordinateTransformEntityId)
     {
         // stop any fly and camera movement first
         StopFly();

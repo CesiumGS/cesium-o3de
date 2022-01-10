@@ -195,4 +195,18 @@ namespace Cesium
 
         return nullptr;
     }
+
+    void CesiumTilesetRequest::Reflect(AZ::ReflectContext* context)
+    {
+        if (AZ::BehaviorContext* behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
+        {
+            behaviorContext->EBus<CesiumTilesetRequestBus>("CesiumTilesetRequestBus")
+                ->Attribute(AZ::Script::Attributes::Category, "Cesium/3DTiles")
+                ->Event("SetConfiguration", &CesiumTilesetRequestBus::Events::SetConfiguration)
+                ->Event("GetConfiguration", &CesiumTilesetRequestBus::Events::GetConfiguration)
+                ->Event("GetBoundingVolumeInECEF", &CesiumTilesetRequestBus::Events::GetBoundingVolumeInECEF)
+                ->Event("LoadTileset", &CesiumTilesetRequestBus::Events::LoadTileset)
+                ;
+        }
+    }
 } // namespace Cesium

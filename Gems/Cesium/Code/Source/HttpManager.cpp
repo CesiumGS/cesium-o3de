@@ -46,19 +46,14 @@ namespace Cesium
 
             if (!m_httpRequestParameter.m_body.empty())
             {
-                auto bodyStream = std::make_shared<std::stringstream>(m_httpRequestParameter.m_body.c_str());
-                awsHttpRequest->AddContentBody(std::move(bodyStream));
+                auto body = std::make_shared<Aws::StringStream>();
+                body->write(m_httpRequestParameter.m_body.c_str(), m_httpRequestParameter.m_body.length());
+                awsHttpRequest->AddContentBody(std::move(body));
+                awsHttpRequest->SetContentLength(std::to_string(m_httpRequestParameter.m_body.length()).c_str());
             }
 
             auto awsHttpResponse = m_awsHttpClient->MakeRequest(awsHttpRequest);
-            if (!awsHttpRequest || !awsHttpResponse)
-            {
-                m_promise.reject(std::runtime_error("Request failed for url: " + std::string(m_httpRequestParameter.m_url.c_str())));
-            }
-            else
-            {
-                m_promise.resolve({ awsHttpRequest, awsHttpResponse });
-            }
+            m_promise.resolve({ awsHttpRequest, awsHttpResponse });
         }
 
         std::shared_ptr<Aws::Http::HttpClient> m_awsHttpClient;
@@ -91,13 +86,13 @@ namespace Cesium
                 awsURI, Aws::Http::HttpMethod::HTTP_GET, Aws::Utils::Stream::DefaultResponseStreamFactoryMethod);
 
             auto awsHttpResponse = m_awsHttpClient->MakeRequest(awsHttpRequest);
-            if (!awsHttpRequest || !awsHttpResponse)
+            if (awsHttpResponse)
             {
-                m_promise.reject(std::runtime_error("Request failed for url: " + absoluteUrl));
+                m_promise.resolve(HttpManager::GetResponseBodyContent(*awsHttpResponse));
             }
             else
             {
-                m_promise.resolve(HttpManager::GetResponseBodyContent(*awsHttpResponse));
+                m_promise.resolve(IOContent{});
             }
         }
 
