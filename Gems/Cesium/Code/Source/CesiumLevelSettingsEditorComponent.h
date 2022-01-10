@@ -42,5 +42,6 @@ namespace Cesium
         void OnDefaultCoordinateTransformEntityChanged();
 
         AZ::EntityId m_defaultCoordinateTransformEntityId;
+        bool m_displayTilesetCredit{ true };
     };
 }

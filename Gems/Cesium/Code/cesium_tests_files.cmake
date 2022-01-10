@@ -23,10 +23,14 @@ set(FILES
     Tests/LinearInterpolatorTest.cpp
     Tests/RenderResourcesPreparerTest.cpp
     Tests/CesiumSystemComponentBusTest.cpp
+    Tests/DynamicUiImageComponentBusTest.cpp
+    Tests/DynamicUiImageComponentTest.cpp
+    Tests/HtmlUiComponentHelperTest.cpp
     Tests/GltfModelComponentBusTest.cpp
     Tests/CesiumTilesetComponentBusTest.cpp
     Tests/CoordinateTransformComponentBusTest.cpp
     Tests/OriginShiftAwareComponentBusTest.cpp
+    Tests/CesiumTilesetCreditComponentTest.cpp
     Tests/CesiumTilesetComponentBusTest.cpp
     Tests/GeoReferenceCameraFlyControllerBusTest.cpp
     Tests/RasterOverlayRequestBusTest.cpp

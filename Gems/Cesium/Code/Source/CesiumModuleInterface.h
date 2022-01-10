@@ -1,7 +1,7 @@
 
-#include <AzCore/Memory/SystemAllocator.h>
-#include <AzCore/Module/Module.h>
+#include "DynamicUiImageComponent.h"
 #include <Cesium/CesiumTilesetComponent.h>
+#include <Cesium/CesiumTilesetCreditComponent.h>
 #include <Cesium/GltfModelComponent.h>
 #include <Cesium/GeoReferenceCameraFlyController.h>
 #include <Cesium/GeoReferenceTransformComponent.h>
@@ -11,6 +11,8 @@
 #include <Cesium/TMSRasterOverlayComponent.h>
 #include <Cesium/CesiumLevelSettingsComponent.h>
 #include <CesiumSystemComponent.h>
+#include <AzCore/Memory/SystemAllocator.h>
+#include <AzCore/Module/Module.h>
 
 namespace Cesium
 {
@@ -29,6 +31,7 @@ namespace Cesium
             m_descriptors.insert(
                 m_descriptors.end(),
                 { CesiumSystemComponent::CreateDescriptor(), CesiumLevelSettingsComponent::CreateDescriptor(),
+                  DynamicUiImageComponent::CreateDescriptor(), CesiumTilesetCreditComponent::CreateDescriptor(),
                   CesiumTilesetComponent::CreateDescriptor(), GltfModelComponent::CreateDescriptor(),
                   GeoReferenceTransformComponent::CreateDescriptor(), GeoReferenceCameraFlyController::CreateDescriptor(),
                   RasterOverlayComponent::CreateDescriptor(), BingRasterOverlayComponent::CreateDescriptor(),

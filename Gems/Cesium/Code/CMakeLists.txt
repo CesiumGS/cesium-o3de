@@ -43,12 +43,15 @@ ly_add_target(
             AZ::AzCore
             AZ::AzFramework
             AZ::AWSNativeSDKInit
+            Legacy::CryCommon
             Gem::Atom_RPI.Public
             Gem::Atom_Feature_Common.Static
+            Gem::LyShine.Static
     COMPILE_DEFINITIONS
         PUBLIC
             SPDLOG_COMPILED_LIB
             LIBASYNC_STATIC
+            TIDY_STATIC
 )
 
 # Here add Cesium target, it depends on the Cesium.Static

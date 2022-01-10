@@ -1,5 +1,6 @@
 #include "CesiumLevelSettingsEditorComponent.h"
 #include <Cesium/CesiumLevelSettingsComponent.h>
+#include <Cesium/CesiumTilesetCreditComponent.h>
 #include <AzToolsFramework/Component/EditorComponentAPIBus.h>
 #include <AzToolsFramework/API/ToolsApplicationAPI.h>
 #include <AtomToolsFramework/Viewport/ModularViewportCameraControllerRequestBus.h>
@@ -19,6 +20,7 @@ namespace Cesium
             serializeContext->Class<CesiumLevelSettingsEditorComponent, AZ::Component>()
                 ->Version(0)
                 ->Field("defaultCoordinateTransformEntityId", &CesiumLevelSettingsEditorComponent::m_defaultCoordinateTransformEntityId)
+                ->Field("displayTilesetCredit", &CesiumLevelSettingsEditorComponent::m_displayTilesetCredit)
                 ;
 
             auto editContext = serializeContext->GetEditContext();
@@ -34,8 +36,11 @@ namespace Cesium
                     ->DataElement(
                         AZ::Edit::UIHandlers::Default, &CesiumLevelSettingsEditorComponent::m_defaultCoordinateTransformEntityId,
                         "Default Coordinate Transform Entity", "")
-                    ->Attribute(
-                        AZ::Edit::Attributes::ChangeNotify, &CesiumLevelSettingsEditorComponent::OnDefaultCoordinateTransformEntityChanged);
+                        ->Attribute(
+                            AZ::Edit::Attributes::ChangeNotify, &CesiumLevelSettingsEditorComponent::OnDefaultCoordinateTransformEntityChanged)
+                    ->DataElement(
+                        AZ::Edit::UIHandlers::Default, &CesiumLevelSettingsEditorComponent::m_displayTilesetCredit,
+                        "Display Tileset Credit", "");
             }
         }
     }
@@ -77,10 +82,17 @@ namespace Cesium
 
     void CesiumLevelSettingsEditorComponent::BuildGameEntity(AZ::Entity* gameEntity)
     {
-        auto component = gameEntity->CreateComponent<CesiumLevelSettingsComponent>();
-        component->SetEntity(gameEntity);
-        component->Init();
-        component->SetCoordinateTransform(m_defaultCoordinateTransformEntityId);
+        auto levelSettingsComponent = gameEntity->CreateComponent<CesiumLevelSettingsComponent>();
+        levelSettingsComponent->SetEntity(gameEntity);
+        levelSettingsComponent->Init();
+        levelSettingsComponent->SetCoordinateTransform(m_defaultCoordinateTransformEntityId);
+
+        if (m_displayTilesetCredit)
+        {
+            auto creditComponent = gameEntity->CreateComponent<CesiumTilesetCreditComponent>();
+            creditComponent->SetEntity(gameEntity);
+            creditComponent->Init();
+        }
     }
 
     AZ::EntityId CesiumLevelSettingsEditorComponent::GetCoordinateTransform() const

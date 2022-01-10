@@ -43,6 +43,12 @@ set(FILES
     Source/GltfModel.h
     Source/CesiumSystemComponent.cpp
     Source/CesiumSystemComponent.h
+    Source/DynamicUiImageComponentBus.cpp
+    Source/DynamicUiImageComponentBus.h
+    Source/DynamicUiImageComponent.cpp
+    Source/DynamicUiImageComponent.h
+    Source/HtmlUiComponentHelper.cpp
+    Source/HtmlUiComponentHelper.h
     Source/Interpolator.cpp
     Source/Interpolator.h
     Source/GeoReferenceInterpolator.cpp
@@ -71,6 +77,8 @@ set(FILES
     Include/Cesium/OriginShiftAwareComponentBus.h
     Source/CesiumLevelSettingsComponent.cpp
     Include/Cesium/CesiumLevelSettingsComponent.h
+    Source/CesiumTilesetCreditComponent.cpp
+    Include/Cesium/CesiumTilesetCreditComponent.h
     Source/CesiumTilesetComponentBus.cpp
     Include/Cesium/CesiumTilesetComponentBus.h
     Source/CesiumTilesetComponent.cpp
