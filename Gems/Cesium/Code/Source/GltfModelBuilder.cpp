@@ -19,7 +19,7 @@
 #include <CesiumGltf/Node.h>
 #include <CesiumGltf/MeshPrimitive.h>
 #include <CesiumGltf/Material.h>
-#include <CesiumGltf/GltfReader.h>
+#include <CesiumGltfReader/GltfReader.h>
 
 #ifdef AZ_COMPILER_MSVC
 #pragma pop_macro("OPAQUE")
@@ -41,7 +41,7 @@ namespace Cesium
         GenericIOManager& io, const AZStd::string& filePath, const GltfModelBuilderOption& option, GltfLoadModel& result)
     {
         auto fileContent = io.GetFileContent({ "", filePath });
-        CesiumGltf::GltfReader reader;
+        CesiumGltfReader::GltfReader reader;
         auto load = reader.readModel(gsl::span<const std::byte>(fileContent.data(), fileContent.size()));
         if (load.model)
         {
@@ -177,7 +177,7 @@ namespace Cesium
     }
 
     void GltfModelBuilder::ResolveExternalImages(
-        const AZStd::string& parentPath, const CesiumGltf::GltfReader& gltfReader, CesiumGltf::Model& model, GenericIOManager& io)
+        const AZStd::string& parentPath, const CesiumGltfReader::GltfReader& gltfReader, CesiumGltf::Model& model, GenericIOManager& io)
     {
         for (CesiumGltf::Image& image : model.images)
         {

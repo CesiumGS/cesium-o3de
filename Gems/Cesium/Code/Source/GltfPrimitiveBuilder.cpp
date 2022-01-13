@@ -750,54 +750,45 @@ namespace Cesium
     void GltfTrianglePrimitiveBuilder::CreateCustomAttribute(
         const CesiumGltf::Model& model, const CesiumGltf::Accessor& accessor, const GltfShaderVertexAttribute& customShaderAttribute)
     {
-        switch (accessor.type)
+        if (accessor.type == CesiumGltf::AccessorSpec::Type::SCALAR)
         {
-        case CesiumGltf::AccessorSpec::Type::SCALAR:
-            {
-                CesiumGltf::AccessorView<ComponentType> accessorView{ model, accessor };
-                VertexRawBuffer vertexBuffer;
-                vertexBuffer.m_elementCount = static_cast<std::size_t>(accessorView.size());
-                vertexBuffer.m_format = customShaderAttribute.m_format;
-                CopyAccessorToBuffer(accessorView, vertexBuffer.m_buffer);
+            CesiumGltf::AccessorView<ComponentType> accessorView{ model, accessor };
+            VertexRawBuffer vertexBuffer;
+            vertexBuffer.m_elementCount = static_cast<std::size_t>(accessorView.size());
+            vertexBuffer.m_format = customShaderAttribute.m_format;
+            CopyAccessorToBuffer(accessorView, vertexBuffer.m_buffer);
 
-                m_customAttributes.emplace_back(customShaderAttribute, std::move(vertexBuffer));
-            }
-            break;
-        case CesiumGltf::AccessorSpec::Type::VEC2:
-            {
-                CesiumGltf::AccessorView<glm::vec<2, ComponentType, glm::defaultp>> accessorView{ model, accessor };
-                VertexRawBuffer vertexBuffer;
-                vertexBuffer.m_elementCount = static_cast<std::size_t>(accessorView.size());
-                vertexBuffer.m_format = customShaderAttribute.m_format;
-                CopyAccessorToBuffer(accessorView, vertexBuffer.m_buffer);
+            m_customAttributes.emplace_back(customShaderAttribute, std::move(vertexBuffer));
+        }
+        else if (accessor.type == CesiumGltf::AccessorSpec::Type::VEC2)
+        {
+            CesiumGltf::AccessorView<glm::vec<2, ComponentType, glm::defaultp>> accessorView{ model, accessor };
+            VertexRawBuffer vertexBuffer;
+            vertexBuffer.m_elementCount = static_cast<std::size_t>(accessorView.size());
+            vertexBuffer.m_format = customShaderAttribute.m_format;
+            CopyAccessorToBuffer(accessorView, vertexBuffer.m_buffer);
 
-                m_customAttributes.emplace_back(customShaderAttribute, std::move(vertexBuffer));
-            }
-            break;
-        case CesiumGltf::AccessorSpec::Type::VEC3:
-            {
-                CesiumGltf::AccessorView<glm::vec<3, ComponentType, glm::defaultp>> accessorView{ model, accessor };
-                VertexRawBuffer vertexBuffer;
-                vertexBuffer.m_elementCount = static_cast<std::size_t>(accessorView.size());
-                vertexBuffer.m_format = customShaderAttribute.m_format;
-                CopyAccessorToBuffer(accessorView, vertexBuffer.m_buffer);
+            m_customAttributes.emplace_back(customShaderAttribute, std::move(vertexBuffer));
+        }
+        else if (accessor.type == CesiumGltf::AccessorSpec::Type::VEC3)
+        {
+            CesiumGltf::AccessorView<glm::vec<3, ComponentType, glm::defaultp>> accessorView{ model, accessor };
+            VertexRawBuffer vertexBuffer;
+            vertexBuffer.m_elementCount = static_cast<std::size_t>(accessorView.size());
+            vertexBuffer.m_format = customShaderAttribute.m_format;
+            CopyAccessorToBuffer(accessorView, vertexBuffer.m_buffer);
 
-                m_customAttributes.emplace_back(customShaderAttribute, std::move(vertexBuffer));
-            }
-            break;
-        case CesiumGltf::AccessorSpec::Type::VEC4:
-            {
-                CesiumGltf::AccessorView<glm::vec<4, ComponentType, glm::defaultp>> accessorView{ model, accessor };
-                VertexRawBuffer vertexBuffer;
-                vertexBuffer.m_elementCount = static_cast<std::size_t>(accessorView.size());
-                vertexBuffer.m_format = customShaderAttribute.m_format;
-                CopyAccessorToBuffer(accessorView, vertexBuffer.m_buffer);
+            m_customAttributes.emplace_back(customShaderAttribute, std::move(vertexBuffer));
+        }
+        else if (accessor.type == CesiumGltf::AccessorSpec::Type::VEC4)
+        {
+            CesiumGltf::AccessorView<glm::vec<4, ComponentType, glm::defaultp>> accessorView{ model, accessor };
+            VertexRawBuffer vertexBuffer;
+            vertexBuffer.m_elementCount = static_cast<std::size_t>(accessorView.size());
+            vertexBuffer.m_format = customShaderAttribute.m_format;
+            CopyAccessorToBuffer(accessorView, vertexBuffer.m_buffer);
 
-                m_customAttributes.emplace_back(customShaderAttribute, std::move(vertexBuffer));
-            }
-            break;
-        default:
-            break;
+            m_customAttributes.emplace_back(customShaderAttribute, std::move(vertexBuffer));
         }
     }
 

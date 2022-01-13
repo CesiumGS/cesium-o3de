@@ -102,6 +102,7 @@ namespace Cesium
         m_rasterOverlayComponent->Activate();
         m_rasterOverlayComponent->SetConfiguration(m_configuration);
         m_rasterOverlayComponent->LoadRasterOverlay(m_source);
+        m_rasterOverlayComponent->Deactivate();
     }
 
     void TMSRasterOverlayEditorComponent::Deactivate()

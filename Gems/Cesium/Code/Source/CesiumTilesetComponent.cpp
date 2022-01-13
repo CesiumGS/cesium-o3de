@@ -148,6 +148,11 @@ namespace Cesium
         {
             return this->operator()(region.getBoundingRegion());
         }
+
+        TilesetBoundingVolume operator()(const CesiumGeospatial::S2CellBoundingVolume& s2Volume)
+        {
+            return this->operator()(s2Volume.computeBoundingRegion());
+        }
     };
 
     struct CesiumTilesetComponent::BoundingVolumeToAABB
@@ -204,6 +209,11 @@ namespace Cesium
             return this->operator()(region.getBoundingRegion().getBoundingBox());
         }
 
+        AZ::Aabb operator()(const CesiumGeospatial::S2CellBoundingVolume& s2Volume)
+        {
+            return this->operator()(s2Volume.computeBoundingRegion());
+        }
+
         glm::dmat4 m_transform;
     };
 
@@ -238,6 +248,11 @@ namespace Cesium
         TilesetBoundingVolume operator()(const CesiumGeospatial::BoundingRegionWithLooseFittingHeights& region)
         {
             return this->operator()(region.getBoundingRegion().getBoundingBox());
+        }
+
+        TilesetBoundingVolume operator()(const CesiumGeospatial::S2CellBoundingVolume& s2Volume)
+        {
+            return this->operator()(s2Volume.computeBoundingRegion());
         }
 
         glm::dmat4 m_transform;

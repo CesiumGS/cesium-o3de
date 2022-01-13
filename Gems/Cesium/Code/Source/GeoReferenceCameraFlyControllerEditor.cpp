@@ -68,6 +68,7 @@ namespace Cesium
         controller->SetMouseSensitivity(m_mouseSensitivity);
         controller->SetPanningSpeed(m_panningSpeed);
         controller->SetMovementSpeed(m_movementSpeed);
+        controller->Deactivate();
     }
 
     void GeoReferenceCameraControllerEditor::Init()
