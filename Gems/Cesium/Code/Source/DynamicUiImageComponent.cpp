@@ -16,7 +16,7 @@
 #undef OPAQUE
 #endif
 
-#include <CesiumGltf/GltfReader.h>
+#include <CesiumGltfReader/GltfReader.h>
 
 #ifdef AZ_COMPILER_MSVC
 #pragma pop_macro("OPAQUE")
@@ -70,7 +70,7 @@ namespace Cesium
             AZStd::vector<AZ::u8> decodeOutput;
             AZ::StringFunc::Base64::Decode(decodeOutput, base64View.data(), base64View.size());
 
-            CesiumGltf::GltfReader gltfReader;
+            CesiumGltfReader::GltfReader gltfReader;
             auto imageResult = gltfReader.readImage(
                 gsl::span<const std::byte>(reinterpret_cast<const std::byte*>(decodeOutput.data()), decodeOutput.size()));
             if (imageResult.image)
@@ -98,7 +98,7 @@ namespace Cesium
                                       return;
                                   }
 
-                                  CesiumGltf::GltfReader gltfReader;
+                                  CesiumGltfReader::GltfReader gltfReader;
                                   auto imageResult = gltfReader.readImage(content);
                                   if (imageResult.image)
                                   {
