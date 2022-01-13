@@ -10,6 +10,7 @@
 #include <AzToolsFramework/API/ToolsApplicationAPI.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/EditContext.h>
+#include <AzCore/Math/Transform.h>
 
 namespace Cesium
 {
@@ -237,6 +238,7 @@ namespace Cesium
         georeferenceComponent->Init();
         georeferenceComponent->Activate();
         georeferenceComponent->SetECEFCoordOrigin(m_originAsCartesian);
+        georeferenceComponent->Deactivate();
     }
 
     void GeoReferenceTransformEditorComponent::Init()
@@ -352,7 +354,7 @@ namespace Cesium
                 {
                     AtomToolsFramework::ModularViewportCameraControllerRequestBus::Event(
                         viewportContextPtr->GetId(),
-                        &AtomToolsFramework::ModularViewportCameraControllerRequestBus::Events::SetReferenceFrame,
+                        &AtomToolsFramework::ModularViewportCameraControllerRequestBus::Events::InterpolateToTransform,
                         AZ::Transform::CreateIdentity());
                 });
         }

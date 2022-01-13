@@ -121,6 +121,7 @@ namespace Cesium
         tilesetComponent->Activate();
         tilesetComponent->SetConfiguration(m_tilesetConfiguration);
         tilesetComponent->LoadTileset(m_tilesetSource);
+        tilesetComponent->Deactivate();
     }
 
     void CesiumTilesetEditorComponent::Init()

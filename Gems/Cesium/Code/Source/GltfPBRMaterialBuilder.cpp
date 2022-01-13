@@ -236,7 +236,7 @@ namespace Cesium
 
         if (material.doubleSided)
         {
-            materialCreator.SetPropertyValue(AZ::Name("opacity.doubleSided"), true);
+            materialCreator.SetPropertyValue(AZ::Name("general.doubleSided"), true);
         }
     }
 

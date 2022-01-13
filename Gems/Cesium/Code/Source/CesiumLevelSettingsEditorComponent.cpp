@@ -8,8 +8,7 @@
 #include <Atom/RPI.Public/ViewportContextBus.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/EditContext.h>
-#include <AzCore/Math/Vector3.h>
-#include <AzCore/Math/Quaternion.h>
+#include <AzCore/Math/Transform.h>
 
 namespace Cesium
 {
@@ -115,7 +114,7 @@ namespace Cesium
             [](AZ::RPI::ViewportContextPtr viewportContextPtr) 
             {
                 AtomToolsFramework::ModularViewportCameraControllerRequestBus::Event(
-                    viewportContextPtr->GetId(), &AtomToolsFramework::ModularViewportCameraControllerRequestBus::Events::SetReferenceFrame,
+                    viewportContextPtr->GetId(), &AtomToolsFramework::ModularViewportCameraControllerRequestBus::Events::InterpolateToTransform,
                     AZ::Transform::CreateIdentity());
             });
 
