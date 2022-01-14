@@ -18,7 +18,7 @@ set_target_properties(cesium-native-tests PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_
 set(BUILD_SHARED_LIB OFF)
 set(SUPPORT_CONSOLE_APP OFF)
 set(LIB_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR})
-add_subdirectory(tidy-html5)
+add_subdirectory(TidyHtml5)
 
 # trigger post install script. E.g:
 # - copy License file to Package/CesiumNative

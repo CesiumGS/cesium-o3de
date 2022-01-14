@@ -1,0 +1,6 @@
+[submodule "External/CesiumNative"]
+	path = External/CesiumNative
+	url = git@github.com:CesiumGS/cesium-native.git
+[submodule "External/TidyHtml5"]
+	path = External/TidyHtml5
+	url = git@github.com:htacg/tidy-html5.git
