@@ -27,7 +27,7 @@ git submodule update --init --recursive
 ```
 cd External
 cmake -B Build -S .
-cmake --build Build --config Release --target install
+cmake --build Build --config release --target install
 ```
 
 - Once the build finishes, all the library binaries and headers will be packaged in the `External/Packages/Install` directory. You will need to add this directory to the environment variable `LY_PACKAGE_SERVER_URL`, so that the engine can retrieve those libraries when building your project with the Gem enabled:
