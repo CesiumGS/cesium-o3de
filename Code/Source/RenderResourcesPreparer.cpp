@@ -272,6 +272,10 @@ namespace Cesium
                 GltfModel& model = intrusiveGltfModel->m_model;
                 for (auto& material : model.GetMaterials())
                 {
+                    if (!material.m_material) {
+                        continue;
+                    }
+
                     AZ::Vector4 uvTranslateScale{ static_cast<float>(translation.x), static_cast<float>(translation.y),
                                                   static_cast<float>(scale.x), static_cast<float>(scale.y) };
 
@@ -332,6 +336,10 @@ namespace Cesium
                 GltfModel& model = intrusiveGltfModel->m_model;
                 for (auto& material : model.GetMaterials())
                 {
+                    if (!material.m_material) {
+                        continue;
+                    }
+
                     bool compile = materialBuilder.UnsetRasterForMaterial(layer, material.m_material);
 
                     // it's not guaranteed that the material will be able to compile right away, so we add it to the queue to compile later
