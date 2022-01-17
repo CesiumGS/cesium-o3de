@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Cesium/EBus/CesiumSystemComponentBus.h"
 #include "Cesium/Systems/CesiumSystem.h"
 #include <AzCore/Jobs/JobManager.h>
 #include <AzCore/Jobs/JobContext.h>
@@ -11,6 +12,7 @@ namespace Cesium
 {
     class CesiumSystemComponent
         : public AZ::Component
+        , public CesiumSystemRequestBus::Handler
         , public AZ::TickBus::Handler
     {
     public:

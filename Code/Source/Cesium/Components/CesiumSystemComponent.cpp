@@ -96,11 +96,13 @@ namespace Cesium
 
     void CesiumSystemComponent::Activate()
     {
+        CesiumSystemRequestBus::Handler::BusConnect();
         AZ::TickBus::Handler::BusConnect();
     }
 
     void CesiumSystemComponent::Deactivate()
     {
+        CesiumSystemRequestBus::Handler::BusDisconnect();
         AZ::TickBus::Handler::BusDisconnect();
 
         if (CesiumInterface::Get() == m_cesiumSystem.get())

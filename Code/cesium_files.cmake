@@ -63,6 +63,8 @@ set(FILES
     Source/Cesium/TilesetUtility/RenderResourcesPreparer.h
     Source/Cesium/TilesetUtility/RenderResourcesPreparer.cpp
 
+    Source/Cesium/EBus/CesiumSystemComponentBus.h
+    Source/Cesium/EBus/CesiumSystemComponentBus.cpp
     Source/Cesium/EBus/DynamicUiImageComponentBus.h
     Source/Cesium/EBus/DynamicUiImageComponentBus.cpp
     Source/Cesium/EBus/RasterOverlayRequestBus.h
