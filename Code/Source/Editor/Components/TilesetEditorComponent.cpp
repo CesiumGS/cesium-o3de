@@ -1,4 +1,4 @@
-#include "Editor/Components/CesiumTilesetEditorComponent.h"
+#include "Editor/Components/TilesetEditorComponent.h"
 #include <Cesium/Components/TilesetComponent.h>
 #include <AzToolsFramework/UI/PropertyEditor/PropertyEditorAPI.h>
 #include <AzCore/Serialization/SerializeContext.h>
@@ -6,25 +6,25 @@
 
 namespace Cesium
 {
-    CesiumTilesetEditorComponent::CesiumTilesetEditorComponent()
+    TilesetEditorComponent::TilesetEditorComponent()
     {
     }
 
-    void CesiumTilesetEditorComponent::Reflect(AZ::ReflectContext* context)
+    void TilesetEditorComponent::Reflect(AZ::ReflectContext* context)
     {
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<CesiumTilesetEditorComponent, AZ::Component>()
+            serializeContext->Class<TilesetEditorComponent, AZ::Component>()
                 ->Version(0)
-                ->Field("tilesetConfiguration", &CesiumTilesetEditorComponent::m_tilesetConfiguration)
-                ->Field("tilesetSource", &CesiumTilesetEditorComponent::m_tilesetSource)
+                ->Field("tilesetConfiguration", &TilesetEditorComponent::m_tilesetConfiguration)
+                ->Field("tilesetSource", &TilesetEditorComponent::m_tilesetSource)
                 ;
 
             AZ::EditContext* editContext = serializeContext->GetEditContext();
             if (editContext)
             {
                 editContext
-                    ->Class<CesiumTilesetEditorComponent>(
+                    ->Class<TilesetEditorComponent>(
                         "3D Tiles", "The Tileset component is used to stream and visualize 3D Tiles format")
                     ->ClassElement(AZ::Edit::ClassElements::EditorData, "")
                         ->Attribute(AZ::Edit::Attributes::Category, "Cesium")
@@ -32,12 +32,12 @@ namespace Cesium
                         ->Attribute(AZ::Edit::Attributes::ViewportIcon, "Editor/Icons/Components/Cesium_logo_only.svg")
                         ->Attribute(AZ::Edit::Attributes::AppearsInAddComponentMenu, AZ_CRC("Game", 0x232b318c))
                         ->Attribute(AZ::Edit::Attributes::AutoExpand, true)
-                    ->DataElement(AZ::Edit::UIHandlers::Default, &CesiumTilesetEditorComponent::m_tilesetSource, "Source", "")
+                    ->DataElement(AZ::Edit::UIHandlers::Default, &TilesetEditorComponent::m_tilesetSource, "Source", "")
                         ->Attribute(AZ::Edit::Attributes::Visibility, AZ::Edit::PropertyVisibility::ShowChildrenOnly)
-                        ->Attribute(AZ::Edit::Attributes::ChangeNotify, &CesiumTilesetEditorComponent::OnTilesetSourceChanged)
-                    ->DataElement(AZ::Edit::UIHandlers::Default, &CesiumTilesetEditorComponent::m_tilesetConfiguration, "Configuration", "")
+                        ->Attribute(AZ::Edit::Attributes::ChangeNotify, &TilesetEditorComponent::OnTilesetSourceChanged)
+                    ->DataElement(AZ::Edit::UIHandlers::Default, &TilesetEditorComponent::m_tilesetConfiguration, "Configuration", "")
                         ->Attribute(AZ::Edit::Attributes::Visibility, AZ::Edit::PropertyVisibility::ShowChildrenOnly)
-                        ->Attribute(AZ::Edit::Attributes::ChangeNotify, &CesiumTilesetEditorComponent::OnTilesetConfigurationChanged)
+                        ->Attribute(AZ::Edit::Attributes::ChangeNotify, &TilesetEditorComponent::OnTilesetConfigurationChanged)
                     ;
 
                 editContext->Class<TilesetSource>("TilesetSource", "")
@@ -93,27 +93,27 @@ namespace Cesium
         }
     }
 
-    void CesiumTilesetEditorComponent::GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided)
+    void TilesetEditorComponent::GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided)
     {
         provided.push_back(AZ_CRC_CE("3DTilesEditorService"));
     }
 
-    void CesiumTilesetEditorComponent::GetIncompatibleServices(AZ::ComponentDescriptor::DependencyArrayType& incompatible)
+    void TilesetEditorComponent::GetIncompatibleServices(AZ::ComponentDescriptor::DependencyArrayType& incompatible)
     {
         incompatible.push_back(AZ_CRC_CE("3DTilesEditorService"));
     }
 
-    void CesiumTilesetEditorComponent::GetRequiredServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& required)
+    void TilesetEditorComponent::GetRequiredServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& required)
     {
     }
 
-    void CesiumTilesetEditorComponent::GetDependentServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& dependent)
+    void TilesetEditorComponent::GetDependentServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& dependent)
     {
         dependent.push_back(AZ_CRC("TransformService", 0x8ee22c50));
         dependent.push_back(AZ_CRC_CE("NonUniformScaleService"));
     }
 
-    void CesiumTilesetEditorComponent::BuildGameEntity(AZ::Entity* gameEntity)
+    void TilesetEditorComponent::BuildGameEntity(AZ::Entity* gameEntity)
     {
         auto tilesetComponent = gameEntity->CreateComponent<TilesetComponent>();
         tilesetComponent->SetEntity(gameEntity);
@@ -124,7 +124,7 @@ namespace Cesium
         tilesetComponent->Deactivate();
     }
 
-    void CesiumTilesetEditorComponent::Init()
+    void TilesetEditorComponent::Init()
     {
         AzToolsFramework::Components::EditorComponentBase::Init();
         if (!m_tilesetComponent)
@@ -133,7 +133,7 @@ namespace Cesium
         }
     }
 
-    void CesiumTilesetEditorComponent::Activate()
+    void TilesetEditorComponent::Activate()
     {
         m_tilesetComponent->SetEntity(GetEntity());
         m_tilesetComponent->Init();
@@ -142,13 +142,13 @@ namespace Cesium
         m_tilesetComponent->LoadTileset(m_tilesetSource);
     }
 
-    void CesiumTilesetEditorComponent::Deactivate()
+    void TilesetEditorComponent::Deactivate()
     {
         m_tilesetComponent->Deactivate();
         m_tilesetComponent->SetEntity(nullptr);
     }
 
-    AZ::u32 CesiumTilesetEditorComponent::OnTilesetSourceChanged()
+    AZ::u32 TilesetEditorComponent::OnTilesetSourceChanged()
     {
         if (!m_tilesetComponent)
         {
@@ -159,7 +159,7 @@ namespace Cesium
         return AZ::Edit::PropertyRefreshLevels::None;
     }
 
-    AZ::u32 CesiumTilesetEditorComponent::OnTilesetConfigurationChanged()
+    AZ::u32 TilesetEditorComponent::OnTilesetConfigurationChanged()
     {
         if (!m_tilesetComponent)
         {

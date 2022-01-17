@@ -10,13 +10,13 @@ namespace Cesium
 {
     class TilesetComponent;
 
-    class CesiumTilesetEditorComponent
+    class TilesetEditorComponent
         : public AzToolsFramework::Components::EditorComponentBase
     {
     public:
-        AZ_EDITOR_COMPONENT(CesiumTilesetEditorComponent, "{25978273-7635-415C-ABFE-8364A65B68FC}");
+        AZ_EDITOR_COMPONENT(TilesetEditorComponent, "{25978273-7635-415C-ABFE-8364A65B68FC}");
 
-        CesiumTilesetEditorComponent();
+        TilesetEditorComponent();
 
         static void Reflect(AZ::ReflectContext* context);
 

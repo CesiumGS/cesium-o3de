@@ -119,7 +119,7 @@ namespace Cesium
         const TilesetUrlSource* GetUrl() const;
 
     private:
-        friend class CesiumTilesetEditorComponent;
+        friend class TilesetEditorComponent;
 
         TilesetSourceType m_type;
         TilesetLocalFileSource m_localFile;
@@ -130,7 +130,7 @@ namespace Cesium
     using TilesetLoadedEvent = AZ::Event<>;
     using TilesetUnloadedEvent = AZ::Event<>;
 
-    class CesiumTilesetRequest : public AZ::ComponentBus
+    class TilesetRequest : public AZ::ComponentBus
     {
     public:
         static void Reflect(AZ::ReflectContext* context);
@@ -144,7 +144,7 @@ namespace Cesium
         virtual void LoadTileset(const TilesetSource& source) = 0;
     };
 
-    using TilesetRequestBus = AZ::EBus<CesiumTilesetRequest>;
+    using TilesetRequestBus = AZ::EBus<TilesetRequest>;
 } // namespace Cesium
 
 namespace AZ

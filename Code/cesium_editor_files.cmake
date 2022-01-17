@@ -32,6 +32,6 @@ set(FILES
     Source/Editor/Components/GeoReferenceTransformEditorComponent.cpp
     Source/Editor/Components/TilesetCreditEditorComponent.h
     Source/Editor/Components/TilesetCreditEditorComponent.cpp
-    Source/Editor/Components/CesiumTilesetEditorComponent.h
-    Source/Editor/Components/CesiumTilesetEditorComponent.cpp
+    Source/Editor/Components/TilesetEditorComponent.h
+    Source/Editor/Components/TilesetEditorComponent.cpp
 )

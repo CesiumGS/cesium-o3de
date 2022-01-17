@@ -196,7 +196,7 @@ namespace Cesium
         return nullptr;
     }
 
-    void CesiumTilesetRequest::Reflect(AZ::ReflectContext* context)
+    void TilesetRequest::Reflect(AZ::ReflectContext* context)
     {
         if (AZ::BehaviorContext* behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
         {

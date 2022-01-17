@@ -1,5 +1,5 @@
 #include "Editor/Components/CesiumEditorSystemComponent.h"
-#include "Editor/Components/CesiumTilesetEditorComponent.h"
+#include "Editor/Components/TilesetEditorComponent.h"
 #include "Editor/Components/CesiumIonRasterOverlayEditorComponent.h"
 #include "Editor/Components/GeoReferenceCameraFlyControllerEditor.h"
 #include "Editor/Components/GeoReferenceTransformEditorComponent.h"
@@ -167,7 +167,7 @@ namespace Cesium
                         EditorComponentAPIRequests::AddComponentsOutcome tilesetComponentOutcomes;
                         EditorComponentAPIBus::BroadcastResult(
                             tilesetComponentOutcomes, &EditorComponentAPIBus::Events::AddComponentOfType, tilesetEntityId,
-                            azrtti_typeid<CesiumTilesetEditorComponent>());
+                            azrtti_typeid<TilesetEditorComponent>());
                         if (tilesetComponentOutcomes.IsSuccess())
                         {
                             TilesetCesiumIonSource ionSource;
@@ -236,13 +236,13 @@ namespace Cesium
                             bool hasTilesetComponent = false;
                             EditorComponentAPIBus::BroadcastResult(
                                 hasTilesetComponent, &EditorComponentAPIBus::Events::HasComponentOfType, tilesetEntityId,
-                                azrtti_typeid<CesiumTilesetEditorComponent>());
+                                azrtti_typeid<TilesetEditorComponent>());
 
                             AZStd::vector<AZ::Uuid> componentsToAdd;
                             componentsToAdd.reserve(2);
                             if (!hasTilesetComponent)
                             {
-                                componentsToAdd.emplace_back(azrtti_typeid<CesiumTilesetEditorComponent>());
+                                componentsToAdd.emplace_back(azrtti_typeid<TilesetEditorComponent>());
                             }
                             componentsToAdd.emplace_back(azrtti_typeid<CesiumIonRasterOverlayEditorComponent>());
 
@@ -297,7 +297,7 @@ namespace Cesium
             EditorComponentAPIRequests::AddComponentsOutcome outcomes;
             EditorComponentAPIBus::BroadcastResult(
                 outcomes, &EditorComponentAPIBus::Events::AddComponentOfType, entityId,
-                azrtti_typeid<CesiumTilesetEditorComponent>());
+                azrtti_typeid<TilesetEditorComponent>());
         }
     }
 

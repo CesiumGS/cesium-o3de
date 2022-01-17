@@ -29,7 +29,7 @@ namespace Cesium
 
         TilesetConfiguration::Reflect(context);
         TilesetSource::Reflect(context);
-        CesiumTilesetRequest::Reflect(context);
+        TilesetRequest::Reflect(context);
 
         LevelCoordinateTransformRequest::Reflect(context);
         LevelCoordinateTransformNotification::Reflect(context);
