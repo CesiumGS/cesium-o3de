@@ -6,10 +6,10 @@
 
 namespace Cesium
 {
-    class CesiumLevelSettingsComponent : public AZ::Component, public LevelCoordinateTransformRequestBus::Handler
+    class LevelCoordinateTransformComponent : public AZ::Component, public LevelCoordinateTransformRequestBus::Handler
     {
     public:
-        AZ_COMPONENT(CesiumLevelSettingsComponent, "{B89A6DE7-84E9-4C80-BBCE-4ACCF1F339AC}")
+        AZ_COMPONENT(LevelCoordinateTransformComponent, "{B89A6DE7-84E9-4C80-BBCE-4ACCF1F339AC}")
 
         static void Reflect(AZ::ReflectContext* context);
 

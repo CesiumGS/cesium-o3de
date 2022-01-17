@@ -98,8 +98,8 @@ set(FILES
     Source/Cesium/Components/GeoReferenceTransformComponent.cpp
     Include/Cesium/Components/GeoReferenceCameraFlyController.h
     Source/Cesium/Components/GeoReferenceCameraFlyController.cpp
-    Include/Cesium/Components/CesiumLevelSettingsComponent.h
-    Source/Cesium/Components/CesiumLevelSettingsComponent.cpp
+    Include/Cesium/Components/LevelCoordinateTransformComponent.h
+    Source/Cesium/Components/LevelCoordinateTransformComponent.cpp
     Include/Cesium/Components/CesiumTilesetCreditComponent.h
     Source/Cesium/Components/CesiumTilesetCreditComponent.cpp
     Include/Cesium/Components/GltfModelComponent.h

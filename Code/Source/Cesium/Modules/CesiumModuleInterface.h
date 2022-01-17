@@ -8,7 +8,7 @@
 #include <Cesium/Components/CesiumIonRasterOverlayComponent.h>
 #include <Cesium/Components/BingRasterOverlayComponent.h>
 #include <Cesium/Components/TMSRasterOverlayComponent.h>
-#include <Cesium/Components/CesiumLevelSettingsComponent.h>
+#include <Cesium/Components/LevelCoordinateTransformComponent.h>
 #include "Cesium/Components/DynamicUiImageComponent.h"
 #include "Cesium/Components/CesiumSystemComponent.h"
 #include <AzCore/Memory/SystemAllocator.h>
@@ -30,7 +30,7 @@ namespace Cesium
             // EditContext. This happens through the [MyComponent]::Reflect() function.
             m_descriptors.insert(
                 m_descriptors.end(),
-                { CesiumSystemComponent::CreateDescriptor(), CesiumLevelSettingsComponent::CreateDescriptor(),
+                { CesiumSystemComponent::CreateDescriptor(), LevelCoordinateTransformComponent::CreateDescriptor(),
                   DynamicUiImageComponent::CreateDescriptor(), CesiumTilesetCreditComponent::CreateDescriptor(),
                   CesiumTilesetComponent::CreateDescriptor(), GltfModelComponent::CreateDescriptor(),
                   GeoReferenceTransformComponent::CreateDescriptor(), GeoReferenceCameraFlyController::CreateDescriptor(),

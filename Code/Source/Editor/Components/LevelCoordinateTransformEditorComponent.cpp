@@ -1,5 +1,5 @@
 #include "Editor/Components/LevelCoordinateTransformEditorComponent.h"
-#include <Cesium/Components/CesiumLevelSettingsComponent.h>
+#include <Cesium/Components/LevelCoordinateTransformComponent.h>
 #include <AzToolsFramework/Component/EditorComponentAPIBus.h>
 #include <AzToolsFramework/API/ToolsApplicationAPI.h>
 #include <AtomToolsFramework/Viewport/ModularViewportCameraControllerRequestBus.h>
@@ -77,7 +77,7 @@ namespace Cesium
 
     void LevelCoordinateTransformEditorComponent::BuildGameEntity(AZ::Entity* gameEntity)
     {
-        auto levelCoordinateTransformComponent = gameEntity->CreateComponent<CesiumLevelSettingsComponent>();
+        auto levelCoordinateTransformComponent = gameEntity->CreateComponent<LevelCoordinateTransformComponent>();
         levelCoordinateTransformComponent->SetEntity(gameEntity);
         levelCoordinateTransformComponent->Init();
         levelCoordinateTransformComponent->SetCoordinateTransform(m_defaultCoordinateTransformEntityId);
