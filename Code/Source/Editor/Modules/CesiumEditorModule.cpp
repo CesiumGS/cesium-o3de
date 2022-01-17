@@ -6,7 +6,7 @@
 #include "Editor/Components/BingRasterOverlayEditorComponent.h"
 #include "Editor/Components/CesiumIonRasterOverlayEditorComponent.h"
 #include "Editor/Components/TMSRasterOverlayEditorComponent.h"
-#include "Editor/Components/CesiumLevelSettingsEditorComponent.h"
+#include "Editor/Components/LevelCoordinateTransformEditorComponent.h"
 #include "Cesium/Modules/CesiumModuleInterface.h"
 
 namespace Cesium
@@ -26,7 +26,7 @@ namespace Cesium
             m_descriptors.insert(
                 m_descriptors.end(),
                 { CesiumEditorSystemComponent::CreateDescriptor(),
-                  CesiumLevelSettingsEditorComponent::CreateDescriptor(), CesiumTilesetEditorComponent::CreateDescriptor(),
+                  LevelCoordinateTransformEditorComponent::CreateDescriptor(), CesiumTilesetEditorComponent::CreateDescriptor(),
                   GeoReferenceTransformEditorComponent::CreateDescriptor(), GeoReferenceCameraControllerEditor::CreateDescriptor(),
                   BingRasterOverlayEditorComponent::CreateDescriptor(), CesiumIonRasterOverlayEditorComponent::CreateDescriptor(),
                   TMSRasterOverlayEditorComponent::CreateDescriptor() });

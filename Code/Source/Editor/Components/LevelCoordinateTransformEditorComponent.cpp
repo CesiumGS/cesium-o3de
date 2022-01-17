@@ -1,4 +1,4 @@
-#include "Editor/Components/CesiumLevelSettingsEditorComponent.h"
+#include "Editor/Components/LevelCoordinateTransformEditorComponent.h"
 #include <Cesium/Components/CesiumLevelSettingsComponent.h>
 #include <Cesium/Components/CesiumTilesetCreditComponent.h>
 #include <AzToolsFramework/Component/EditorComponentAPIBus.h>
@@ -12,20 +12,20 @@
 
 namespace Cesium
 {
-    void CesiumLevelSettingsEditorComponent::Reflect(AZ::ReflectContext* context)
+    void LevelCoordinateTransformEditorComponent::Reflect(AZ::ReflectContext* context)
     {
         if (auto serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<CesiumLevelSettingsEditorComponent, AZ::Component>()
+            serializeContext->Class<LevelCoordinateTransformEditorComponent, AZ::Component>()
                 ->Version(0)
-                ->Field("defaultCoordinateTransformEntityId", &CesiumLevelSettingsEditorComponent::m_defaultCoordinateTransformEntityId)
-                ->Field("displayTilesetCredit", &CesiumLevelSettingsEditorComponent::m_displayTilesetCredit)
+                ->Field("defaultCoordinateTransformEntityId", &LevelCoordinateTransformEditorComponent::m_defaultCoordinateTransformEntityId)
+                ->Field("displayTilesetCredit", &LevelCoordinateTransformEditorComponent::m_displayTilesetCredit)
                 ;
 
             auto editContext = serializeContext->GetEditContext();
             if (editContext)
             {
-                editContext->Class<CesiumLevelSettingsEditorComponent>("Level Settings", "")
+                editContext->Class<LevelCoordinateTransformEditorComponent>("Level Coordinate Transform", "")
                     ->ClassElement(AZ::Edit::ClassElements::EditorData, "")
                     ->Attribute(AZ::Edit::Attributes::Category, "Cesium")
                     ->Attribute(AZ::Edit::Attributes::Icon, "Editor/Icons/Components/Cesium_logo_only.svg")
@@ -33,53 +33,53 @@ namespace Cesium
                     ->Attribute(AZ::Edit::Attributes::AppearsInAddComponentMenu, AZ_CRC("Level", 0x9aeacc13))
                     ->Attribute(AZ::Edit::Attributes::AutoExpand, true)
                     ->DataElement(
-                        AZ::Edit::UIHandlers::Default, &CesiumLevelSettingsEditorComponent::m_defaultCoordinateTransformEntityId,
+                        AZ::Edit::UIHandlers::Default, &LevelCoordinateTransformEditorComponent::m_defaultCoordinateTransformEntityId,
                         "Default Coordinate Transform Entity", "")
                         ->Attribute(
-                            AZ::Edit::Attributes::ChangeNotify, &CesiumLevelSettingsEditorComponent::OnDefaultCoordinateTransformEntityChanged)
+                            AZ::Edit::Attributes::ChangeNotify, &LevelCoordinateTransformEditorComponent::OnDefaultCoordinateTransformEntityChanged)
                     ->DataElement(
-                        AZ::Edit::UIHandlers::Default, &CesiumLevelSettingsEditorComponent::m_displayTilesetCredit,
+                        AZ::Edit::UIHandlers::Default, &LevelCoordinateTransformEditorComponent::m_displayTilesetCredit,
                         "Display Tileset Credit", "");
             }
         }
     }
 
-    void CesiumLevelSettingsEditorComponent::GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided)
+    void LevelCoordinateTransformEditorComponent::GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided)
     {
-        provided.push_back(AZ_CRC_CE("CesiumLevelSettingsService"));
+        provided.push_back(AZ_CRC_CE("LevelCoordinateTransformEditorService"));
     }
 
-    void CesiumLevelSettingsEditorComponent::GetIncompatibleServices(AZ::ComponentDescriptor::DependencyArrayType& incompatible)
+    void LevelCoordinateTransformEditorComponent::GetIncompatibleServices(AZ::ComponentDescriptor::DependencyArrayType& incompatible)
     {
-        incompatible.push_back(AZ_CRC_CE("CesiumLevelSettingsService"));
+        incompatible.push_back(AZ_CRC_CE("LevelCoordinateTransformEditorService"));
     }
 
-    void CesiumLevelSettingsEditorComponent::GetRequiredServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& required)
-    {
-    }
-
-    void CesiumLevelSettingsEditorComponent::GetDependentServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& dependent)
+    void LevelCoordinateTransformEditorComponent::GetRequiredServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& required)
     {
     }
 
-    void CesiumLevelSettingsEditorComponent::Init()
+    void LevelCoordinateTransformEditorComponent::GetDependentServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& dependent)
+    {
+    }
+
+    void LevelCoordinateTransformEditorComponent::Init()
     {
         AzToolsFramework::Components::EditorComponentBase::Init();
     }
 
-    void CesiumLevelSettingsEditorComponent::Activate()
+    void LevelCoordinateTransformEditorComponent::Activate()
     {
         LevelCoordinateTransformRequestBus::Handler::BusConnect();
         LevelCoordinateTransformNotificationBus::Broadcast(
             &LevelCoordinateTransformNotificationBus::Events::OnCoordinateTransformChange, m_defaultCoordinateTransformEntityId);
     }
 
-    void CesiumLevelSettingsEditorComponent::Deactivate()
+    void LevelCoordinateTransformEditorComponent::Deactivate()
     {
         LevelCoordinateTransformRequestBus::Handler::BusDisconnect();
     }
 
-    void CesiumLevelSettingsEditorComponent::BuildGameEntity(AZ::Entity* gameEntity)
+    void LevelCoordinateTransformEditorComponent::BuildGameEntity(AZ::Entity* gameEntity)
     {
         auto levelSettingsComponent = gameEntity->CreateComponent<CesiumLevelSettingsComponent>();
         levelSettingsComponent->SetEntity(gameEntity);
@@ -94,12 +94,12 @@ namespace Cesium
         }
     }
 
-    AZ::EntityId CesiumLevelSettingsEditorComponent::GetCoordinateTransform() const
+    AZ::EntityId LevelCoordinateTransformEditorComponent::GetCoordinateTransform() const
     {
         return m_defaultCoordinateTransformEntityId;
     }
 
-    void CesiumLevelSettingsEditorComponent::SetCoordinateTransform(const AZ::EntityId& coordinateTransformEntityId)
+    void LevelCoordinateTransformEditorComponent::SetCoordinateTransform(const AZ::EntityId& coordinateTransformEntityId)
     {
         using namespace AzToolsFramework;
         using namespace AtomToolsFramework;
@@ -124,7 +124,7 @@ namespace Cesium
         undoBatch.MarkEntityDirty(GetEntityId());
     }
 
-    void CesiumLevelSettingsEditorComponent::OnDefaultCoordinateTransformEntityChanged()
+    void LevelCoordinateTransformEditorComponent::OnDefaultCoordinateTransformEntityChanged()
     {
         LevelCoordinateTransformNotificationBus::Broadcast(
             &LevelCoordinateTransformNotificationBus::Events::OnCoordinateTransformChange, m_defaultCoordinateTransformEntityId);

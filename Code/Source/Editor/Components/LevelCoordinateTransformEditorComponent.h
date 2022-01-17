@@ -9,12 +9,12 @@
 
 namespace Cesium
 {
-    class CesiumLevelSettingsEditorComponent final
+    class LevelCoordinateTransformEditorComponent final
         : public AzToolsFramework::Components::EditorComponentBase
         , public LevelCoordinateTransformRequestBus::Handler
     {
     public:
-        AZ_EDITOR_COMPONENT(CesiumLevelSettingsEditorComponent, "{40988450-F52D-4EA7-8A3E-6AF7990446EF}");
+        AZ_EDITOR_COMPONENT(LevelCoordinateTransformEditorComponent, "{40988450-F52D-4EA7-8A3E-6AF7990446EF}");
 
         static void Reflect(AZ::ReflectContext* context);
 

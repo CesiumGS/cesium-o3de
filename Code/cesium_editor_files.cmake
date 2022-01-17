@@ -18,8 +18,8 @@ set(FILES
 
     Source/Editor/Components/CesiumEditorSystemComponent.h
     Source/Editor/Components/CesiumEditorSystemComponent.cpp
-    Source/Editor/Components/CesiumLevelSettingsEditorComponent.h
-    Source/Editor/Components/CesiumLevelSettingsEditorComponent.cpp
+    Source/Editor/Components/LevelCoordinateTransformEditorComponent.h
+    Source/Editor/Components/LevelCoordinateTransformEditorComponent.cpp
     Source/Editor/Components/CesiumIonRasterOverlayEditorComponent.h
     Source/Editor/Components/CesiumIonRasterOverlayEditorComponent.cpp
     Source/Editor/Components/BingRasterOverlayEditorComponent.h
