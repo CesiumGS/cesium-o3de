@@ -80,7 +80,7 @@ namespace Cesium
         Cesium3DTilesSelection::registerAllTileContentTypes();
 
         m_cesiumSystem = AZStd::make_unique<CesiumSystem>();
-        if (CesiumInterface::Get() == m_cesiumSystem.get())
+        if (CesiumInterface::Get() == nullptr)
         {
             CesiumInterface::Register(m_cesiumSystem.get());
         }

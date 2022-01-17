@@ -2,21 +2,21 @@
 
 #include "Editor/Systems/CesiumIonSession.h"
 #include "Editor/EBus/CesiumEditorSystemComponentBus.h"
-#include "Cesium/Components/CesiumSystemComponent.h"
 #include <AzToolsFramework/Entity/EditorEntityContextBus.h>
+#include <AzCore/Component/TickBus.h>
 #include <AzCore/std/smart_ptr/unique_ptr.h>
 
 namespace Cesium
 {
     /// System component for Cesium editor
     class CesiumEditorSystemComponent
-        : public CesiumSystemComponent
+        : public AZ::Component 
+        , public AZ::TickBus::Handler
         , public CesiumEditorSystemRequestBus::Handler
         , private AzToolsFramework::EditorEvents::Bus::Handler
     {
-        using BaseSystemComponent = CesiumSystemComponent;
     public:
-        AZ_COMPONENT(CesiumEditorSystemComponent, "{b5a4a95c-91dc-4728-af8e-6518b2ab77f2}", BaseSystemComponent);
+        AZ_COMPONENT(CesiumEditorSystemComponent, "{b5a4a95c-91dc-4728-af8e-6518b2ab77f2}");
         static void Reflect(AZ::ReflectContext* context);
 
         CesiumEditorSystemComponent();

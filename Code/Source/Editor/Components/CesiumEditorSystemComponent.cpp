@@ -20,9 +20,31 @@ namespace Cesium
         MathDataWidget::Reflect(context);
         if (auto serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<CesiumEditorSystemComponent, CesiumSystemComponent>()
+            serializeContext->Class<CesiumEditorSystemComponent, AZ::Component>()
                 ->Version(0);
         }
+    }
+
+    CesiumEditorSystemComponent::~CesiumEditorSystemComponent() noexcept {
+    }
+
+    void CesiumEditorSystemComponent::GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided)
+    {
+        provided.push_back(AZ_CRC_CE("CesiumEditorService"));
+    }
+
+    void CesiumEditorSystemComponent::GetIncompatibleServices(AZ::ComponentDescriptor::DependencyArrayType& incompatible)
+    {
+        incompatible.push_back(AZ_CRC_CE("CesiumEditorService"));
+    }
+
+    void CesiumEditorSystemComponent::GetRequiredServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& required)
+    {
+        required.push_back(AZ_CRC_CE("CesiumService"));
+    }
+
+    void CesiumEditorSystemComponent::GetDependentServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& dependent)
+    {
     }
 
     CesiumEditorSystemComponent::CesiumEditorSystemComponent() {
@@ -33,58 +55,29 @@ namespace Cesium
         }
     }
 
-    CesiumEditorSystemComponent::~CesiumEditorSystemComponent() noexcept {
-        if (CesiumIonSessionInterface::Get() == m_ionSession.get())
-        {
-            CesiumIonSessionInterface::Unregister(m_ionSession.get());
-        }
-    }
-
-    void CesiumEditorSystemComponent::GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided)
-    {
-        BaseSystemComponent::GetProvidedServices(provided);
-        provided.push_back(AZ_CRC_CE("CesiumEditorService"));
-    }
-
-    void CesiumEditorSystemComponent::GetIncompatibleServices(AZ::ComponentDescriptor::DependencyArrayType& incompatible)
-    {
-        BaseSystemComponent::GetIncompatibleServices(incompatible);
-        incompatible.push_back(AZ_CRC_CE("CesiumEditorService"));
-    }
-
-    void CesiumEditorSystemComponent::GetRequiredServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& required)
-    {
-        BaseSystemComponent::GetRequiredServices(required);
-    }
-
-    void CesiumEditorSystemComponent::GetDependentServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& dependent)
-    {
-        BaseSystemComponent::GetDependentServices(dependent);
-    }
-
     void CesiumEditorSystemComponent::Activate()
     {
-        BaseSystemComponent::Activate();
-
         Q_INIT_RESOURCE(CesiumResources);
         MathDataWidget::RegisterHandlers();
-        CesiumSystemComponent::Activate();
+        CesiumEditorSystemRequestBus::Handler::BusConnect();
         AzToolsFramework::EditorEvents::Bus::Handler::BusConnect();
         AZ::TickBus::Handler::BusConnect();
     }
 
     void CesiumEditorSystemComponent::Deactivate()
     {
+        if (CesiumIonSessionInterface::Get() == m_ionSession.get())
+        {
+            CesiumIonSessionInterface::Unregister(m_ionSession.get());
+        }
+
+        CesiumEditorSystemRequestBus::Handler::BusDisconnect();
         AzToolsFramework::EditorEvents::Bus::Handler::BusDisconnect();
         AZ::TickBus::Handler::BusDisconnect();
-        CesiumSystemComponent::Deactivate();
-
-        BaseSystemComponent::Deactivate();
     }
 
-    void CesiumEditorSystemComponent::OnTick(float deltaTime, AZ::ScriptTimePoint time)
+    void CesiumEditorSystemComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
     {
-        BaseSystemComponent::OnTick(deltaTime, time);
         m_ionSession->Flush();
     }
 

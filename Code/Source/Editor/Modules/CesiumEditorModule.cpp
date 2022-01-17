@@ -38,7 +38,9 @@ namespace Cesium
          */
         AZ::ComponentTypeList GetRequiredSystemComponents() const override
         {
-            return AZ::ComponentTypeList{ azrtti_typeid<CesiumEditorSystemComponent>() };
+            auto componentList = CesiumModuleInterface::GetRequiredSystemComponents();
+            componentList.emplace_back(azrtti_typeid<CesiumEditorSystemComponent>());
+            return componentList;
         }
     };
 } // namespace Cesium
