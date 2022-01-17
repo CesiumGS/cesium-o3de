@@ -1,26 +1,20 @@
-#include "CesiumSystemComponent.h"
-#include "LoggerSink.h"
-#include "HttpAssetAccessor.h"
-#include "GenericAssetAccessor.h"
-#include "TaskProcessor.h"
-#include "LocalFileManager.h"
-#include "HttpManager.h"
-#include <Cesium/CesiumTilesetComponentBus.h>
-#include <Cesium/OriginShiftAwareComponentBus.h>
-#include <Cesium/CoordinateTransformComponentBus.h>
-#include <Cesium/GeoReferenceCameraFlyControllerBus.h>
-#include <Cesium/BoundingRegion.h>
-#include <Cesium/BoundingSphere.h>
-#include <Cesium/OrientedBoundingBox.h>
-#include <Cesium/Cartographic.h>
-#include <Cesium/GeospatialHelper.h>
-#include <Cesium/MathReflect.h>
-#include <Cesium3DTilesSelection/registerAllTileContentTypes.h>
+#include "Cesium/Components/CesiumSystemComponent.h"
+#include <Cesium/EBus/CesiumTilesetComponentBus.h>
+#include <Cesium/EBus/OriginShiftAwareComponentBus.h>
+#include <Cesium/EBus/CoordinateTransformComponentBus.h>
+#include <Cesium/EBus/GeoReferenceCameraFlyControllerBus.h>
+#include <Cesium/Math/BoundingRegion.h>
+#include <Cesium/Math/BoundingSphere.h>
+#include <Cesium/Math/OrientedBoundingBox.h>
+#include <Cesium/Math/Cartographic.h>
+#include <Cesium/Math/GeospatialHelper.h>
+#include <Cesium/Math/MathReflect.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/EditContext.h>
 #include <AzCore/Serialization/EditContextConstants.inl>
 #include <AzCore/std/smart_ptr/make_shared.h>
 #include <AzCore/std/smart_ptr/shared_ptr.h>
+#include <Cesium3DTilesSelection/registerAllTileContentTypes.h>
 
 namespace Cesium
 {
@@ -82,86 +76,18 @@ namespace Cesium
 
     CesiumSystemComponent::CesiumSystemComponent()
     {
-        // initialize IO managers
-        m_httpManager = AZStd::make_unique<HttpManager>();
-        m_localFileManager = AZStd::make_unique<LocalFileManager>();
-
-        // initialize asset accessors
-        m_httpAssetAccessor = std::make_shared<HttpAssetAccessor>(m_httpManager.get());
-        m_localFileAssetAccessor = std::make_shared<GenericAssetAccessor>(m_localFileManager.get(), "");
-
-        // initialize task processor
-        m_taskProcessor = std::make_shared<TaskProcessor>();
-
-        // initialize credit system
-        m_creditSystem = std::make_shared<Cesium3DTilesSelection::CreditSystem>();
-
-        // initialize logger
-        m_logger = spdlog::default_logger();
-        m_logger->sinks().clear();
-        m_logger->sinks().push_back(std::make_shared<LoggerSink>());
-
         // initialize Cesium Native
         Cesium3DTilesSelection::registerAllTileContentTypes();
 
-        if (CesiumInterface::Get() == nullptr)
+        m_cesiumSystem = AZStd::make_unique<CesiumSystem>();
+        if (CesiumInterface::Get() == m_cesiumSystem.get())
         {
-            CesiumInterface::Register(this);
+            CesiumInterface::Register(m_cesiumSystem.get());
         }
     }
 
     CesiumSystemComponent::~CesiumSystemComponent()
     {
-        if (CesiumInterface::Get() == this)
-        {
-            CesiumInterface::Unregister(this);
-        }
-    }
-
-    GenericIOManager& CesiumSystemComponent::GetIOManager(IOKind kind)
-    {
-        switch (kind)
-        {
-        case Cesium::IOKind::LocalFile:
-            return *m_localFileManager;
-        case Cesium::IOKind::Http:
-            return *m_httpManager;
-        default:
-            return *m_httpManager;
-        }
-    }
-
-    const std::shared_ptr<CesiumAsync::IAssetAccessor>& CesiumSystemComponent::GetAssetAccessor(IOKind kind) const
-    {
-        switch (kind)
-        {
-        case Cesium::IOKind::LocalFile:
-            return m_localFileAssetAccessor;
-        case Cesium::IOKind::Http:
-            return m_httpAssetAccessor;
-        default:
-            return m_httpAssetAccessor;
-        }
-    }
-
-    const std::shared_ptr<CesiumAsync::ITaskProcessor>& CesiumSystemComponent::GetTaskProcessor() const
-    {
-        return m_taskProcessor;
-    }
-
-    const std::shared_ptr<spdlog::logger>& CesiumSystemComponent::GetLogger() const
-    {
-        return m_logger;
-    }
-
-    const std::shared_ptr<Cesium3DTilesSelection::CreditSystem>& CesiumSystemComponent::GetCreditSystem() const
-    {
-        return m_creditSystem;
-    }
-
-    const CriticalAssetManager& CesiumSystemComponent::GetCriticalAssetManager() const
-    {
-        return m_criticalAssetManager;
     }
 
     void CesiumSystemComponent::Init()
@@ -170,15 +96,17 @@ namespace Cesium
 
     void CesiumSystemComponent::Activate()
     {
-        CesiumRequestBus::Handler::BusConnect();
         AZ::TickBus::Handler::BusConnect();
     }
 
     void CesiumSystemComponent::Deactivate()
     {
         AZ::TickBus::Handler::BusDisconnect();
-        CesiumRequestBus::Handler::BusDisconnect();
-        m_criticalAssetManager.Shutdown();
+
+        if (CesiumInterface::Get() == m_cesiumSystem.get())
+        {
+            CesiumInterface::Unregister(m_cesiumSystem.get());
+        }
     }
 
     void CesiumSystemComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)

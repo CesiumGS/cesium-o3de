@@ -1,26 +1,16 @@
 #pragma once
 
-#include "CesiumSystemComponentBus.h"
-#include "CriticalAssetManager.h"
-#include <spdlog/logger.h>
-#include <CesiumAsync/ITaskProcessor.h>
-#include <CesiumAsync/IAssetAccessor.h>
+#include "Cesium/Systems/CesiumSystem.h"
 #include <AzCore/Jobs/JobManager.h>
 #include <AzCore/Jobs/JobContext.h>
 #include <AzCore/Component/Component.h>
 #include <AzCore/Component/TickBus.h>
 #include <AzCore/std/smart_ptr/unique_ptr.h>
-#include <memory>
 
 namespace Cesium
 {
-    class LocalFileManager;
-    class HttpManager;
-    class SingleThreadScheduler;
-
     class CesiumSystemComponent
         : public AZ::Component
-        , protected CesiumRequestBus::Handler
         , public AZ::TickBus::Handler
     {
     public:
@@ -40,18 +30,6 @@ namespace Cesium
 
         ~CesiumSystemComponent();
 
-        GenericIOManager& GetIOManager(IOKind kind) override;
-
-        const std::shared_ptr<CesiumAsync::IAssetAccessor>& GetAssetAccessor(IOKind kind) const override;
-
-        const std::shared_ptr<CesiumAsync::ITaskProcessor>& GetTaskProcessor() const override;
-
-        const std::shared_ptr<spdlog::logger>& GetLogger() const override;
-
-        const std::shared_ptr<Cesium3DTilesSelection::CreditSystem>& GetCreditSystem() const override;
-
-        const CriticalAssetManager& GetCriticalAssetManager() const override;
-
     protected:
         void Init() override;
 
@@ -62,14 +40,7 @@ namespace Cesium
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
 
     private:
-        AZStd::unique_ptr<HttpManager> m_httpManager;
-        AZStd::unique_ptr<LocalFileManager> m_localFileManager;
-        std::shared_ptr<CesiumAsync::IAssetAccessor> m_httpAssetAccessor;
-        std::shared_ptr<CesiumAsync::IAssetAccessor> m_localFileAssetAccessor;
-        std::shared_ptr<CesiumAsync::ITaskProcessor> m_taskProcessor;
-        std::shared_ptr<spdlog::logger> m_logger;
-        std::shared_ptr<Cesium3DTilesSelection::CreditSystem> m_creditSystem;
-        CriticalAssetManager m_criticalAssetManager;
+        AZStd::unique_ptr<CesiumSystem> m_cesiumSystem;
     };
 
 } // namespace Cesium

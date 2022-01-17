@@ -1,5 +1,5 @@
-#include "DynamicUiImageComponent.h"
-#include "CesiumSystemComponentBus.h"
+#include "Cesium/Components/DynamicUiImageComponent.h"
+#include "Cesium/Systems/CesiumSystem.h"
 #include <LyShine/Bus/UiTransformBus.h>
 #include <Atom/RPI.Public/ViewportContext.h>
 #include <Atom/RPI.Public/ViewportContextBus.h>

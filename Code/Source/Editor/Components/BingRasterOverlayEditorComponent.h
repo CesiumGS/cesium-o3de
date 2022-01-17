@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Cesium/BingRasterOverlayComponent.h>
+#include <Cesium/Components/BingRasterOverlayComponent.h>
 #include <AzToolsFramework/ToolsComponents/EditorComponentBase.h>
 #include <AzCore/std/smart_ptr/unique_ptr.h>
 

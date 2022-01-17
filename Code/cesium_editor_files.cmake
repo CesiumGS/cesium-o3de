@@ -1,30 +1,35 @@
 
 set(FILES
-    Source/CesiumEditorSystemComponent.cpp
-    Source/CesiumEditorSystemComponent.h
-    Source/MatrixWidget.cpp
-    Source/MatrixWidget.h
-    Source/CesiumIonSession.cpp
-    Source/CesiumIonSession.h
-    Source/CesiumIonAssetListWidget.cpp
-    Source/CesiumIonAssetListWidget.h
-    Source/CesiumLevelSettingsEditorComponent.cpp
-    Source/CesiumLevelSettingsEditorComponent.h
-    Source/CesiumIonRasterOverlayEditorComponent.cpp
-    Source/CesiumIonRasterOverlayEditorComponent.h
-    Source/BingRasterOverlayEditorComponent.cpp
-    Source/BingRasterOverlayEditorComponent.h
-    Source/TMSRasterOverlayEditorComponent.cpp
-    Source/TMSRasterOverlayEditorComponent.h
-    Source/GeoReferenceCameraFlyControllerEditor.cpp
-    Source/GeoReferenceCameraFlyControllerEditor.h
-    Source/MathDataWidget.cpp
-    Source/MathDataWidget.h
-    Source/GeoReferenceTransformEditorComponent.cpp
-    Source/GeoReferenceTransformEditorComponent.h
-    Source/CesiumTilesetEditorComponent.cpp
-    Source/CesiumTilesetEditorComponent.h
-    Source/CesiumIonPanelWidget.cpp
-    Source/CesiumIonPanelWidget.h
-    Source/CesiumResources.qrc
+    Source/Editor/EBus/CesiumEditorSystemComponentBus.h
+    Source/Editor/EBus/CesiumEditorSystemComponentBus.cpp
+
+    Source/Editor/Systems/CesiumIonSession.h
+    Source/Editor/Systems/CesiumIonSession.cpp
+
+    Source/Editor/Widgets/MatrixWidget.h
+    Source/Editor/Widgets/MatrixWidget.cpp
+    Source/Editor/Widgets/MathDataWidget.h
+    Source/Editor/Widgets/MathDataWidget.cpp
+    Source/Editor/Widgets/CesiumIonAssetListWidget.h
+    Source/Editor/Widgets/CesiumIonAssetListWidget.cpp
+    Source/Editor/Widgets/CesiumIonPanelWidget.h
+    Source/Editor/Widgets/CesiumIonPanelWidget.cpp
+    Source/Editor/Widgets/CesiumResources.qrc
+
+    Source/Editor/Components/CesiumEditorSystemComponent.h
+    Source/Editor/Components/CesiumEditorSystemComponent.cpp
+    Source/Editor/Components/CesiumLevelSettingsEditorComponent.h
+    Source/Editor/Components/CesiumLevelSettingsEditorComponent.cpp
+    Source/Editor/Components/CesiumIonRasterOverlayEditorComponent.h
+    Source/Editor/Components/CesiumIonRasterOverlayEditorComponent.cpp
+    Source/Editor/Components/BingRasterOverlayEditorComponent.h
+    Source/Editor/Components/BingRasterOverlayEditorComponent.cpp
+    Source/Editor/Components/TMSRasterOverlayEditorComponent.h
+    Source/Editor/Components/TMSRasterOverlayEditorComponent.cpp
+    Source/Editor/Components/GeoReferenceCameraFlyControllerEditor.h
+    Source/Editor/Components/GeoReferenceCameraFlyControllerEditor.cpp
+    Source/Editor/Components/GeoReferenceTransformEditorComponent.h
+    Source/Editor/Components/GeoReferenceTransformEditorComponent.cpp
+    Source/Editor/Components/CesiumTilesetEditorComponent.h
+    Source/Editor/Components/CesiumTilesetEditorComponent.cpp
 )

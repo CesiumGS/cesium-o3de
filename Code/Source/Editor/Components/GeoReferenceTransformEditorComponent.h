@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Cesium/Cartographic.h>
-#include <Cesium/CoordinateTransformComponentBus.h>
+#include <Cesium/EBus/CoordinateTransformComponentBus.h>
+#include <Cesium/Math/Cartographic.h>
 #include <AzToolsFramework/ToolsComponents/EditorComponentBase.h>
 #include <AzCore/std/smart_ptr/unique_ptr.h>
 

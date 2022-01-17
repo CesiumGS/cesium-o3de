@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Cesium/OriginShiftAwareComponentBus.h>
+#include <Cesium/EBus/OriginShiftAwareComponentBus.h>
 #include <AzCore/Component/EntityId.h>
 #include <AzCore/Component/Component.h>
 

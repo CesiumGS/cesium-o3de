@@ -1,8 +1,8 @@
 #pragma once
 
-#include <Cesium/BoundingSphere.h>
-#include <Cesium/OrientedBoundingBox.h>
-#include <Cesium/BoundingRegion.h>
+#include <Cesium/Math/BoundingSphere.h>
+#include <Cesium/Math/OrientedBoundingBox.h>
+#include <Cesium/Math/BoundingRegion.h>
 #include <AzCore/RTTI/ReflectContext.h>
 #include <AzCore/Component/ComponentBus.h>
 #include <AzCore/EBus/Event.h>

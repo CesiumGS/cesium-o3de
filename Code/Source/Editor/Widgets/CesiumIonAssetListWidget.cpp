@@ -1,4 +1,5 @@
-#include "CesiumIonAssetListWidget.h"
+#include "Editor/Widgets/CesiumIonAssetListWidget.h"
+#include "Editor/EBus/CesiumEditorSystemComponentBus.h"
 #include <AzQtComponents/Components/Widgets/TableView.h>
 #include <AzQtComponents/Components/FilteredSearchWidget.h>
 #include <AzCore/std/smart_ptr/make_shared.h>
@@ -284,10 +285,7 @@ namespace Cesium
             return;
         }
 
-        AZStd::shared_ptr<IonAssetItem> item = AZStd::make_shared<IonAssetItem>();
-        item->m_tilesetName = m_currentAssetName;
-        item->m_tilesetIonAssetId = m_currentAssetId;
-        CesiumIonSessionInterface::Get()->AddTilesetToLevel(item);
+        CesiumEditorSystemRequestBus::Broadcast(&CesiumEditorSystemRequestBus::Events::AddTilesetToLevel, m_currentAssetName, m_currentAssetId, -1);
     }
 
     int CesiumIonAssetDetailWidget::GetCurrentAssetId() const
@@ -307,7 +305,7 @@ namespace Cesium
             return;
         }
 
-        CesiumIonSessionInterface::Get()->AddImageryToLevel(static_cast<std::uint32_t>(m_currentAssetId));
+        CesiumEditorSystemRequestBus::Broadcast(&CesiumEditorSystemRequestBus::Events::AddImageryToLevel, static_cast<std::uint32_t>(m_currentAssetId));
     }
 
     void CesiumIonAssetDetailWidget::ResetAll()

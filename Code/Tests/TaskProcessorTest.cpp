@@ -1,4 +1,4 @@
-#include <TaskProcessor.h>
+#include "Cesium/Systems/TaskProcessor.h"
 #include <AzCore/Jobs/JobContext.h>
 #include <AzCore/Jobs/JobManager.h>
 #include <AzCore/std/parallel/thread.h>

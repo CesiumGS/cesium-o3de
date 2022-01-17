@@ -2,7 +2,7 @@
 
 #if !defined(Q_MOC_RUN)
 
-#include "CesiumIonSession.h"
+#include "Editor/Systems/CesiumIonSession.h"
 #include <AzCore/std/string/string.h>
 #include <CesiumIonClient/Assets.h>
 #include <QWidget>

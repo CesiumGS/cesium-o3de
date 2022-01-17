@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DynamicUiImageComponentBus.h"
+#include "Cesium/EBus/DynamicUiImageComponentBus.h"
 #include <LyShine/Draw2d.h>
 #include <LyShine/Bus/UiElementBus.h>
 #include <LyShine/Bus/UiCanvasBus.h>

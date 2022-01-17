@@ -1,8 +1,8 @@
 #pragma once
 
-#include <Cesium/GeoReferenceCameraFlyControllerBus.h>
-#include <Cesium/OriginShiftAwareComponentBus.h>
-#include <Cesium/CoordinateTransformComponentBus.h>
+#include <Cesium/EBus/GeoReferenceCameraFlyControllerBus.h>
+#include <Cesium/EBUs/OriginShiftAwareComponentBus.h>
+#include <Cesium/EBus/CoordinateTransformComponentBus.h>
 #include <AzFramework/Input/Events/InputChannelEventListener.h>
 #include <AzCore/Component/Component.h>
 #include <AzCore/Component/EntityId.h>

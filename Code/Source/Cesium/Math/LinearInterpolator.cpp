@@ -1,4 +1,4 @@
-#include "LinearInterpolator.h"
+#include "Cesium/Math/LinearInterpolator.h"
 #include <CesiumUtility/Math.h>
 #include <glm/gtx/compatibility.hpp>
 

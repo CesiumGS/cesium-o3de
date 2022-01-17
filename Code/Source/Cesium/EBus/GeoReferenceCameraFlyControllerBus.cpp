@@ -1,4 +1,5 @@
-#include <Cesium/GeoReferenceCameraFlyControllerBus.h>
+#include <Cesium/EBus/GeoReferenceCameraFlyControllerBus.h>
+#include <Cesium/Math/MathReflect.h>
 #include <AzCore/RTTI/BehaviorContext.h>
 
 namespace Cesium

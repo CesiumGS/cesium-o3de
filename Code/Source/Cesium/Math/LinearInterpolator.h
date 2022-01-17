@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Interpolator.h"
+#include "Cesium/Math/Interpolator.h"
 
 namespace Cesium
 {

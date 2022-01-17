@@ -1,6 +1,6 @@
-#include "MathHelper.h"
-#include <CesiumUtility/Math.h>
+#include "Cesium/Math/MathHelper.h"
 #include <AzCore/Math/Quaternion.h>
+#include <CesiumUtility/Math.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 

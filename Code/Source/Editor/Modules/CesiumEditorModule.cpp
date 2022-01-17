@@ -1,14 +1,13 @@
 
-#include <CesiumModuleInterface.h>
-#include "CesiumEditorSystemComponent.h"
-#include "CesiumTilesetEditorComponent.h"
-#include "GeoReferenceTransformEditorComponent.h"
-#include "GeoReferenceCameraFlyControllerEditor.h"
-#include "BingRasterOverlayEditorComponent.h"
-#include "CesiumIonRasterOverlayEditorComponent.h"
-#include "TMSRasterOverlayEditorComponent.h"
-#include "CesiumLevelSettingsEditorComponent.h"
-#include "CesiumIonSession.h"
+#include "Editor/Components/CesiumEditorSystemComponent.h"
+#include "Editor/Components/CesiumTilesetEditorComponent.h"
+#include "Editor/Components/GeoReferenceTransformEditorComponent.h"
+#include "Editor/Components/GeoReferenceCameraFlyControllerEditor.h"
+#include "Editor/Components/BingRasterOverlayEditorComponent.h"
+#include "Editor/Components/CesiumIonRasterOverlayEditorComponent.h"
+#include "Editor/Components/TMSRasterOverlayEditorComponent.h"
+#include "Editor/Components/CesiumLevelSettingsEditorComponent.h"
+#include "Cesium/Modules/CesiumModuleInterface.h"
 
 namespace Cesium
 {
@@ -26,7 +25,7 @@ namespace Cesium
             // EditContext. This happens through the [MyComponent]::Reflect() function.
             m_descriptors.insert(
                 m_descriptors.end(),
-                { CesiumEditorSystemComponent::CreateDescriptor(), CesiumIonSession::CreateDescriptor(),
+                { CesiumEditorSystemComponent::CreateDescriptor(),
                   CesiumLevelSettingsEditorComponent::CreateDescriptor(), CesiumTilesetEditorComponent::CreateDescriptor(),
                   GeoReferenceTransformEditorComponent::CreateDescriptor(), GeoReferenceCameraControllerEditor::CreateDescriptor(),
                   BingRasterOverlayEditorComponent::CreateDescriptor(), CesiumIonRasterOverlayEditorComponent::CreateDescriptor(),
@@ -39,7 +38,7 @@ namespace Cesium
          */
         AZ::ComponentTypeList GetRequiredSystemComponents() const override
         {
-            return AZ::ComponentTypeList{ azrtti_typeid<CesiumEditorSystemComponent>(), azrtti_typeid<CesiumIonSession>() };
+            return AZ::ComponentTypeList{ azrtti_typeid<CesiumEditorSystemComponent>() };
         }
     };
 } // namespace Cesium

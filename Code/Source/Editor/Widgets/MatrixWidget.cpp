@@ -1,4 +1,4 @@
-#include "MatrixWidget.h"
+#include "Editor/Widgets/MatrixWidget.h"
 #include <QGridLayout>
 
 namespace Cesium

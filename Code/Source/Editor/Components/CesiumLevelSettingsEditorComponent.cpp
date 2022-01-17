@@ -1,6 +1,6 @@
-#include "CesiumLevelSettingsEditorComponent.h"
-#include <Cesium/CesiumLevelSettingsComponent.h>
-#include <Cesium/CesiumTilesetCreditComponent.h>
+#include "Editor/Components/CesiumLevelSettingsEditorComponent.h"
+#include <Cesium/Components/CesiumLevelSettingsComponent.h>
+#include <Cesium/Components/CesiumTilesetCreditComponent.h>
 #include <AzToolsFramework/Component/EditorComponentAPIBus.h>
 #include <AzToolsFramework/API/ToolsApplicationAPI.h>
 #include <AtomToolsFramework/Viewport/ModularViewportCameraControllerRequestBus.h>

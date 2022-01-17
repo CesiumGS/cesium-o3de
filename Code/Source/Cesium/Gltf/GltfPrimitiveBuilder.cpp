@@ -1,8 +1,16 @@
-#include "GltfPrimitiveBuilder.h"
-#include "BitangentAndTangentGenerator.h"
-#include "MathHelper.h"
-#include "CesiumSystemComponentBus.h"
-#include "CriticalAssetManager.h"
+#include "Cesium/Gltf/GltfPrimitiveBuilder.h"
+#include "Cesium/Gltf/BitangentAndTangentGenerator.h"
+#include "Cesium/Systems/CesiumSystem.h"
+#include "Cesium/Systems/CriticalAssetManager.h"
+#include "Cesium/Math/MathHelper.h"
+#include <Atom/RPI.Reflect/Model/ModelAsset.h>
+#include <Atom/RPI.Reflect/Buffer/BufferAsset.h>
+#include <Atom/RPI.Reflect/Model/ModelLodAsset.h>
+#include <Atom/RPI.Reflect/Buffer/BufferAssetCreator.h>
+#include <Atom/RPI.Reflect/Model/ModelLodAssetCreator.h>
+#include <Atom/RPI.Reflect/Model/ModelAssetCreator.h>
+#include <AzCore/Asset/AssetCommon.h>
+#include <AzCore/std/limits.h>
 
 // Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
 // This only happens with unity build
@@ -15,20 +23,12 @@
 #include <CesiumGltf/Model.h>
 #include <CesiumGltf/MeshPrimitive.h>
 #include <CesiumGltf/AccessorView.h>
+#include <CesiumUtility/Math.h>
 
 #ifdef AZ_COMPILER_MSVC
 #pragma pop_macro("OPAQUE")
 #endif
 
-#include <CesiumUtility/Math.h>
-#include <Atom/RPI.Reflect/Model/ModelAsset.h>
-#include <Atom/RPI.Reflect/Buffer/BufferAsset.h>
-#include <Atom/RPI.Reflect/Model/ModelLodAsset.h>
-#include <Atom/RPI.Reflect/Buffer/BufferAssetCreator.h>
-#include <Atom/RPI.Reflect/Model/ModelLodAssetCreator.h>
-#include <Atom/RPI.Reflect/Model/ModelAssetCreator.h>
-#include <AzCore/Asset/AssetCommon.h>
-#include <AzCore/std/limits.h>
 #include <cassert>
 #include <cstdint>
 #include <numeric>

@@ -1,4 +1,4 @@
-#include "BitangentAndTangentGenerator.h"
+#include "Cesium/Gltf/BitangentAndTangentGenerator.h"
 #include <mikkelsen/mikktspace.h>
 
 namespace Cesium

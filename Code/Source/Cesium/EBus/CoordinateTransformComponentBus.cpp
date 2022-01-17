@@ -1,5 +1,5 @@
-#include <Cesium/CoordinateTransformComponentBus.h>
-#include <Cesium/MathReflect.h>
+#include <Cesium/EBus/CoordinateTransformComponentBus.h>
+#include <Cesium/Math/MathReflect.h>
 
 namespace Cesium
 {

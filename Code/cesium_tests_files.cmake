@@ -1,55 +1,7 @@
 
 set(FILES
     Tests/CesiumTest.cpp
-    Tests/MathReflectTest.cpp
-    Tests/CartographicTest.cpp
-    Tests/BoundingRegionTest.cpp
-    Tests/OrientedBoundingBoxTest.cpp
-    Tests/BoundingSphereTest.cpp
-    Tests/GeospatialHelperTest.cpp
-    Tests/MathHelperTest.cpp
-    Tests/PlatformInfoTest.cpp
-    Tests/BitangentAndTangentGeneratorTest.cpp
-    Tests/LoggerSinkTest.cpp
-    Tests/GenericIOManagerTest.cpp
     Tests/HttpManagerTest.cpp
-    Tests/LocalFileManagerTest.cpp
-    Tests/CriticalAssetManagerTest.cpp
     Tests/HttpAssetAccessorTest.cpp
-    Tests/GenericAssetAccessorTest.cpp
     Tests/TaskProcessorTest.cpp
-    Tests/InterpolatorTest.cpp
-    Tests/GeoReferenceInterpolatorTest.cpp
-    Tests/LinearInterpolatorTest.cpp
-    Tests/RenderResourcesPreparerTest.cpp
-    Tests/CesiumSystemComponentBusTest.cpp
-    Tests/DynamicUiImageComponentBusTest.cpp
-    Tests/DynamicUiImageComponentTest.cpp
-    Tests/HtmlUiComponentHelperTest.cpp
-    Tests/GltfModelComponentBusTest.cpp
-    Tests/CesiumTilesetComponentBusTest.cpp
-    Tests/CoordinateTransformComponentBusTest.cpp
-    Tests/OriginShiftAwareComponentBusTest.cpp
-    Tests/CesiumTilesetCreditComponentTest.cpp
-    Tests/CesiumTilesetComponentBusTest.cpp
-    Tests/GeoReferenceCameraFlyControllerBusTest.cpp
-    Tests/RasterOverlayRequestBusTest.cpp
-    Tests/GltfLoadContextTest.cpp
-    Tests/GltfPrimitiveBuilderTest.cpp
-    Tests/GltfMaterialBuilderTest.cpp
-    Tests/GltfPBRMaterialBuilderTest.cpp
-    Tests/GltfRasterMaterialBuilderTest.cpp
-    Tests/GltfModelBuilderTest.cpp
-    Tests/GltfModelTest.cpp
-    Tests/WorldCompositionTest.cpp
-    Tests/CesiumLevelSettingsComponentTest.cpp
-    Tests/GeoReferenceTransformComponentTest.cpp
-    Tests/CesiumSystemComponentTest.cpp
-    Tests/GltfModelComponentTest.cpp
-    Tests/CesiumTilesetComponentTest.cpp
-    Tests/GeoReferenceCameraFlyControllerTest.cpp
-    Tests/RasterOverlayComponentTest.cpp
-    Tests/CesiumIonRasterOverlayComponentTest.cpp
-    Tests/BingRasterOverlayComponentTest.cpp
-    Tests/TMSRasterOverlayComponentTest.cpp
 )

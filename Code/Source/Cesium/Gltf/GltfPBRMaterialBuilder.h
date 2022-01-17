@@ -1,7 +1,7 @@
 #pragma once
 
-#include "GltfMaterialBuilder.h"
-#include "GltfLoadContext.h"
+#include "Cesium/Gltf/GltfMaterialBuilder.h"
+#include "Cesium/Gltf/GltfLoadContext.h"
 #include <Atom/RPI.Reflect/Material/MaterialTypeAsset.h>
 #include <AzCore/Asset/AssetCommon.h>
 #include <AzCore/std/containers/unordered_map.h>

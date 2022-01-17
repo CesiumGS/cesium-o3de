@@ -1,5 +1,5 @@
-#include "CesiumTilesetEditorComponent.h"
-#include <Cesium/CesiumTilesetComponent.h>
+#include "Editor/Components/CesiumTilesetEditorComponent.h"
+#include <Cesium/Components/CesiumTilesetComponent.h>
 #include <AzToolsFramework/UI/PropertyEditor/PropertyEditorAPI.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/EditContext.h>

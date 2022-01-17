@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Cesium/Cartographic.h>
+#include <Cesium/Math/Cartographic.h>
 #include <AzCore/std/optional.h>
 #include <AzCore/RTTI/ReflectContext.h>
 #include <AzCore/RTTI/RTTI.h>

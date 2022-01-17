@@ -1,8 +1,8 @@
 #pragma once
 
-#include <Cesium3DTilesSelection/RasterOverlay.h>
 #include <AzCore/EBus/Event.h>
 #include <AzCore/Component/ComponentBus.h>
+#include <Cesium3DTilesSelection/RasterOverlay.h>
 #include <memory>
 
 namespace Cesium

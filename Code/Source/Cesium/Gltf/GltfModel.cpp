@@ -1,5 +1,5 @@
-#include "GltfModel.h"
-#include "GltfLoadContext.h"
+#include "Cesium/Gltf/GltfModel.h"
+#include "Cesium/Gltf/GltfLoadContext.h"
 #include <Atom/RPI.Public/Image/StreamingImage.h>
 #include <AzCore/std/algorithm.h>
 #include <glm/gtc/matrix_transform.hpp>

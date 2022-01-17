@@ -1,5 +1,5 @@
-#include <Cesium/RasterOverlayComponent.h>
-#include "RasterOverlayRequestBus.h"
+#include <Cesium/Components/RasterOverlayComponent.h>
+#include "Cesium/EBus/RasterOverlayRequestBus.h"
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/RTTI/ReflectContext.h>
 #include <AzCore/RTTI/BehaviorContext.h>

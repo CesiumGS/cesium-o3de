@@ -1,4 +1,4 @@
-#include <HttpManager.h>
+#include "Cesium/Systems/HttpManager.h"
 #include <AzCore/Memory/PoolAllocator.h>
 #include <AzCore/UnitTest/TestTypes.h>
 

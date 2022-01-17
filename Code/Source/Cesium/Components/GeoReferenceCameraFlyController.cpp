@@ -1,9 +1,8 @@
-#include <Cesium/GeoReferenceCameraFlyController.h>
-#include "MathHelper.h"
-#include "GeoReferenceInterpolator.h"
-#include "LinearInterpolator.h"
-#include "Cesium/MathReflect.h"
-#include <Cesium/CoordinateTransformComponentBus.h>
+#include <Cesium/Components/GeoReferenceCameraFlyController.h>
+#include "Cesium/Math/MathHelper.h"
+#include "Cesium/Math/GeoReferenceInterpolator.h"
+#include "Cesium/Math/LinearInterpolator.h"
+#include "Cesium/Math/MathReflect.h"
 #include <AzFramework/Input/Devices/Mouse/InputDeviceMouse.h>
 #include <AzFramework/Input/Devices/Keyboard/InputDeviceKeyboard.h>
 #include <AzFramework/Components/CameraBus.h>

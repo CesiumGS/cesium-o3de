@@ -1,4 +1,4 @@
-#include <Cesium/CesiumLevelSettingsComponent.h>
+#include <Cesium/Components/CesiumLevelSettingsComponent.h>
 #include <AzCore/Serialization/SerializeContext.h>
 
 namespace Cesium

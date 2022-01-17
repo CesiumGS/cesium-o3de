@@ -1,7 +1,7 @@
 #pragma once
 
-#include <AzCore/std/containers/vector.h>
 #include <AtomCore/std/containers/array_view.h>
+#include <AzCore/std/containers/vector.h>
 #include <glm/glm.hpp>
 
 namespace Cesium

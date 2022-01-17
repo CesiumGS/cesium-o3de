@@ -1,16 +1,16 @@
 
-#include "DynamicUiImageComponent.h"
-#include <Cesium/CesiumTilesetComponent.h>
-#include <Cesium/CesiumTilesetCreditComponent.h>
-#include <Cesium/GltfModelComponent.h>
-#include <Cesium/GeoReferenceCameraFlyController.h>
-#include <Cesium/GeoReferenceTransformComponent.h>
-#include <Cesium/RasterOverlayComponent.h>
-#include <Cesium/CesiumIonRasterOverlayComponent.h>
-#include <Cesium/BingRasterOverlayComponent.h>
-#include <Cesium/TMSRasterOverlayComponent.h>
-#include <Cesium/CesiumLevelSettingsComponent.h>
-#include <CesiumSystemComponent.h>
+#include <Cesium/Components/CesiumTilesetComponent.h>
+#include <Cesium/Components/CesiumTilesetCreditComponent.h>
+#include <Cesium/Components/GltfModelComponent.h>
+#include <Cesium/Components/GeoReferenceCameraFlyController.h>
+#include <Cesium/Components/GeoReferenceTransformComponent.h>
+#include <Cesium/Components/RasterOverlayComponent.h>
+#include <Cesium/Components/CesiumIonRasterOverlayComponent.h>
+#include <Cesium/Components/BingRasterOverlayComponent.h>
+#include <Cesium/Components/TMSRasterOverlayComponent.h>
+#include <Cesium/Components/CesiumLevelSettingsComponent.h>
+#include "Cesium/Components/DynamicUiImageComponent.h"
+#include "Cesium/Components/CesiumSystemComponent.h"
 #include <AzCore/Memory/SystemAllocator.h>
 #include <AzCore/Module/Module.h>
 

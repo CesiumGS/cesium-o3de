@@ -1,6 +1,6 @@
-#include <Cesium/CesiumTilesetCreditComponent.h>
-#include "HtmlUiComponentHelper.h"
-#include "CesiumSystemComponentBus.h"
+#include <Cesium/Components/CesiumTilesetCreditComponent.h>
+#include "Cesium/Components/HtmlUiComponentHelper.h"
+#include "Cesium/Systems/CesiumSystem.h"
 #include <LyShine/Bus/UiCanvasBus.h>
 #include <LyShine/Bus/UiElementBus.h>
 #include <LyShine/Bus/UiCursorBus.h>

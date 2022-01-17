@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Interpolator.h"
+#include "Cesium/Math/Interpolator.h"
 #include <AzFramework/Components/CameraBus.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>

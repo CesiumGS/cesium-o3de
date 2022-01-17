@@ -1,7 +1,7 @@
 #pragma once
 
-#include "MatrixWidget.h"
-#include <Cesium/MathReflect.h>
+#include "Editor/Widgets/MatrixWidget.h"
+#include <Cesium/Math/MathReflect.h>
 #include <AzToolsFramework/UI/PropertyEditor/PropertyVectorCtrl.hxx>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>

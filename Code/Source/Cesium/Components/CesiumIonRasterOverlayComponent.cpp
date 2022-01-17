@@ -1,10 +1,10 @@
-#include <Cesium/CesiumIonRasterOverlayComponent.h>
-#include "RasterOverlayRequestBus.h"
-#include <Cesium3DTilesSelection/RasterOverlay.h>
-#include <Cesium3DTilesSelection/IonRasterOverlay.h>
+#include <Cesium/Components/CesiumIonRasterOverlayComponent.h>
+#include "Cesium/EBus/RasterOverlayRequestBus.h"
 #include <AzCore/std/optional.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/RTTI/BehaviorContext.h>
+#include <Cesium3DTilesSelection/RasterOverlay.h>
+#include <Cesium3DTilesSelection/IonRasterOverlay.h>
 #include <memory>
 
 namespace Cesium

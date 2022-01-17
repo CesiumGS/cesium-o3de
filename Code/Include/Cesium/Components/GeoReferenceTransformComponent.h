@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Cesium/CoordinateTransformComponentBus.h>
+#include <Cesium/EBus/CoordinateTransformComponentBus.h>
 #include <AzCore/Component/Component.h>
 #include <glm/glm.hpp>
 

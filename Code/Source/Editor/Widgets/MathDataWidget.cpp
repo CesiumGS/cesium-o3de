@@ -1,8 +1,8 @@
-#include "MathDataWidget.h"
-#include <Cesium/OrientedBoundingBox.h>
-#include <Cesium/BoundingSphere.h>
-#include <Cesium/BoundingRegion.h>
-#include <Cesium/Cartographic.h>
+#include "Editor/Widgets/MathDataWidget.h"
+#include <Cesium/Math/OrientedBoundingBox.h>
+#include <Cesium/Math/BoundingSphere.h>
+#include <Cesium/Math/BoundingRegion.h>
+#include <Cesium/Math/Cartographic.h>
 
 namespace Cesium
 {

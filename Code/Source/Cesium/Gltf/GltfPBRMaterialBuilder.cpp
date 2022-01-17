@@ -1,6 +1,11 @@
-#include "GltfPBRMaterialBuilder.h"
-#include "CesiumSystemComponentBus.h"
-#include "CriticalAssetManager.h"
+#include "Cesium/Gltf/GltfPBRMaterialBuilder.h"
+#include "Cesium/Systems/CesiumSystem.h"
+#include "Cesium/Systems/CriticalAssetManager.h"
+#include <Atom/RPI.Reflect/Material/MaterialAssetCreator.h>
+#include <Atom/RPI.Reflect/Material/MaterialAsset.h>
+#include <Atom/RPI.Reflect/Image/StreamingImageAsset.h>
+#include <Atom/RPI.Reflect/Image/StreamingImageAssetCreator.h>
+#include <Atom/RPI.Reflect/Image/ImageMipChainAssetCreator.h>
 
 // Window 10 wingdi.h header defines OPAQUE macro which mess up with CesiumGltf::Material::AlphaMode::OPAQUE.
 // This only happens with unity build
@@ -13,11 +18,6 @@
 
 #include <CesiumGltf/Model.h>
 #include <CesiumGltf/Material.h>
-#include <Atom/RPI.Reflect/Material/MaterialAssetCreator.h>
-#include <Atom/RPI.Reflect/Material/MaterialAsset.h>
-#include <Atom/RPI.Reflect/Image/StreamingImageAsset.h>
-#include <Atom/RPI.Reflect/Image/StreamingImageAssetCreator.h>
-#include <Atom/RPI.Reflect/Image/ImageMipChainAssetCreator.h>
 
 namespace Cesium
 {

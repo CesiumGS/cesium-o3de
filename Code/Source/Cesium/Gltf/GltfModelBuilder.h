@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GltfMaterialBuilder.h"
+#include "Cesium/Gltf/GltfMaterialBuilder.h"
 #include <AzCore/std/string/string.h>
 #include <AzCore/std/smart_ptr/unique_ptr.h>
 #include <glm/glm.hpp>

@@ -1,9 +1,10 @@
-#include <Cesium/GeospatialHelper.h>
+#include <Cesium/Math/GeospatialHelper.h>
+#include <Cesium/Math/MathReflect.h>
+#include <AzCore/RTTI/BehaviorContext.h>
+#include <AzCore/std/smart_ptr/unique_ptr.h>
 #include <CesiumGeospatial/Ellipsoid.h>
 #include <CesiumGeospatial/Cartographic.h>
 #include <CesiumGeospatial/Transforms.h>
-#include <AzCore/RTTI/BehaviorContext.h>
-#include <AzCore/std/smart_ptr/unique_ptr.h>
 
 namespace Cesium
 {

@@ -1,4 +1,4 @@
-#include <Cesium/MathReflect.h>
+#include <Cesium/Math/MathReflect.h>
 #include <AzCore/Serialization/Json/RegistrationContext.h>
 
 namespace Cesium

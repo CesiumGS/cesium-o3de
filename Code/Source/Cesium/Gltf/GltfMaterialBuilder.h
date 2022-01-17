@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GltfLoadContext.h"
+#include "Cesium/Gltf/GltfLoadContext.h"
 #include <AzCore/Asset/AssetCommon.h>
 #include <AzCore/std/containers/unordered_map.h>
 

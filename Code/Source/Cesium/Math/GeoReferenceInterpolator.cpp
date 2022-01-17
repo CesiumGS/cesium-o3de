@@ -1,4 +1,4 @@
-#include "GeoReferenceInterpolator.h"
+#include "Cesium/Math/GeoReferenceInterpolator.h"
 #include <CesiumGeospatial/Transforms.h>
 #include <CesiumGeospatial/Ellipsoid.h>
 #include <CesiumUtility/Math.h>

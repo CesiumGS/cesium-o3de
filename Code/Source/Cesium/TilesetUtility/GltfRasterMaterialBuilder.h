@@ -1,7 +1,7 @@
 #pragma once
 
-#include "GltfPBRMaterialBuilder.h"
-#include "GltfMaterialBuilder.h"
+#include "Cesium/Gltf/GltfPBRMaterialBuilder.h"
+#include "Cesium/Gltf/GltfMaterialBuilder.h"
 #include <Atom/RPI.Public/Material/Material.h>
 #include <Atom/RPI.Reflect/Material/MaterialAsset.h>
 #include <Atom/RPI.Reflect/Image/ImageAsset.h>

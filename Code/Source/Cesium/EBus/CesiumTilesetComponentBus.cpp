@@ -1,4 +1,4 @@
-#include <Cesium/CesiumTilesetComponentBus.h>
+#include <Cesium/EBus/CesiumTilesetComponentBus.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/RTTI/BehaviorContext.h>
 

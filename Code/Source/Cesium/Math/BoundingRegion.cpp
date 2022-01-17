@@ -1,4 +1,4 @@
-#include <Cesium/BoundingRegion.h>
+#include <Cesium/Math/BoundingRegion.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/RTTI/BehaviorContext.h>
 

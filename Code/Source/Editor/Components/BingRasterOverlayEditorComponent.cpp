@@ -1,4 +1,4 @@
-#include "BingRasterOverlayEditorComponent.h"
+#include "Editor/Components/BingRasterOverlayEditorComponent.h"
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/EditContext.h>
 

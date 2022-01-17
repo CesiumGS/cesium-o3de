@@ -1,7 +1,6 @@
 
 
-#include <CesiumModuleInterface.h>
-#include <CesiumSystemComponent.h>
+#include "Cesium/Modules/CesiumModuleInterface.h"
 
 namespace Cesium
 {

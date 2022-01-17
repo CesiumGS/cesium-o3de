@@ -1,7 +1,7 @@
-#include "GltfModelBuilder.h"
-#include "GltfPrimitiveBuilder.h"
-#include "GltfLoadContext.h"
-#include "GenericIOManager.h"
+#include "Cesium/Gltf/GltfModelBuilder.h"
+#include "Cesium/Gltf/GltfPrimitiveBuilder.h"
+#include "Cesium/Gltf/GltfLoadContext.h"
+#include "Cesium/Systems/GenericIOManager.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 

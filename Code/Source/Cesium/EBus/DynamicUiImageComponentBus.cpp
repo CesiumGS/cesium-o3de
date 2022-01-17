@@ -1,1 +1,1 @@
-#include "DynamicUiImageComponentBus.h"
+#include "Cesium/EBus/DynamicUiImageComponentBus.h"

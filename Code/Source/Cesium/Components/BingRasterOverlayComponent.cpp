@@ -1,8 +1,8 @@
-#include <Cesium/BingRasterOverlayComponent.h>
-#include <Cesium3DTilesSelection/RasterOverlay.h>
-#include <Cesium3DTilesSelection/BingMapsRasterOverlay.h>
+#include <Cesium/Components/BingRasterOverlayComponent.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/RTTI/BehaviorContext.h>
+#include <Cesium3DTilesSelection/RasterOverlay.h>
+#include <Cesium3DTilesSelection/BingMapsRasterOverlay.h>
 
 namespace Cesium
 {

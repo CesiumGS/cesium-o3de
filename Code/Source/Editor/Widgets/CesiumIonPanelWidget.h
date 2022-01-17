@@ -1,7 +1,7 @@
 #pragma once
 
 #if !defined(Q_MOC_RUN)
-#include "CesiumIonSession.h"
+#include "Editor/Systems/CesiumIonSession.h"
 #include <AzCore/std/string/string.h>
 #include <AzCore/std/smart_ptr/shared_ptr.h>
 #include <QWidget>
@@ -78,15 +78,10 @@ namespace Cesium
         QLineEdit* m_authorizeTokenText;
 
     private slots:
-        void AddIonTileset(AZStd::shared_ptr<IonAssetItem> item);
-
         void AddBlankTileset();
 
         void AddGeoreference();
 
         void AddGeoreferenceCamera();
-
-    signals:
-        void AddIonTilesetSignal(AZStd::shared_ptr<IonAssetItem> item);
     };
 }

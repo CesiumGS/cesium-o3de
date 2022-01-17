@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Cesium/GltfModelComponentBus.h>
+#include <Cesium/EBus/GltfModelComponentBus.h>
 #include <AzCore/Component/Component.h>
 #include <AzCore/Component/TransformBus.h>
 #include <AzCore/std/smart_ptr/unique_ptr.h>

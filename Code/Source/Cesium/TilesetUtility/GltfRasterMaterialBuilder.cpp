@@ -1,6 +1,6 @@
-#include "GltfRasterMaterialBuilder.h"
-#include "CesiumSystemComponentBus.h"
-#include "CriticalAssetManager.h"
+#include "Cesium/TilesetUtility/GltfRasterMaterialBuilder.h"
+#include "Cesium/Systems/CesiumSystem.h"
+#include "Cesium/Systems/CriticalAssetManager.h"
 #include <Atom/RPI.Reflect/Material/MaterialAssetCreator.h>
 
 namespace Cesium

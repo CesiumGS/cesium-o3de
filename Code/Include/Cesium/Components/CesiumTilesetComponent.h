@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Cesium/CesiumTilesetComponentBus.h>
-#include <Cesium/OriginShiftAwareComponentBus.h>
+#include <Cesium/EBus/CesiumTilesetComponentBus.h>
+#include <Cesium/EBus/OriginShiftAwareComponentBus.h>
 #include <AzFramework/Viewport/ViewportId.h>
 #include <AzFramework/Visibility/BoundsBus.h>
 #include <AzCore/Component/Component.h>

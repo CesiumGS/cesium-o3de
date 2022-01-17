@@ -1,4 +1,4 @@
-#include "PlatformInfo.h"
+#include "Cesium/PlatformInfo/PlatformInfo.h"
 #include <AzCore/PlatformId/PlatformId.h>
 #include <AzCore/Settings/SettingsRegistryImpl.h>
 #include <AzCore/Settings/SettingsRegistryMergeUtils.h>

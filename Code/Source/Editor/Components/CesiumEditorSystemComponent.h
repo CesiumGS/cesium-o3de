@@ -1,13 +1,17 @@
 #pragma once
 
-#include "CesiumSystemComponent.h"
+#include "Editor/Systems/CesiumIonSession.h"
+#include "Editor/EBus/CesiumEditorSystemComponentBus.h"
+#include "Cesium/Components/CesiumSystemComponent.h"
 #include <AzToolsFramework/Entity/EditorEntityContextBus.h>
+#include <AzCore/std/smart_ptr/unique_ptr.h>
 
 namespace Cesium
 {
     /// System component for Cesium editor
     class CesiumEditorSystemComponent
         : public CesiumSystemComponent
+        , public CesiumEditorSystemRequestBus::Handler
         , private AzToolsFramework::EditorEvents::Bus::Handler
     {
         using BaseSystemComponent = CesiumSystemComponent;
@@ -16,7 +20,7 @@ namespace Cesium
         static void Reflect(AZ::ReflectContext* context);
 
         CesiumEditorSystemComponent();
-        ~CesiumEditorSystemComponent();
+        ~CesiumEditorSystemComponent() noexcept;
 
     private:
         static void GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided);
@@ -24,10 +28,30 @@ namespace Cesium
         static void GetRequiredServices(AZ::ComponentDescriptor::DependencyArrayType& required);
         static void GetDependentServices(AZ::ComponentDescriptor::DependencyArrayType& dependent);
 
-        // AZ::Component
         void Activate() override;
+
         void Deactivate() override;
 
+        void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
+
         void NotifyRegisterViews() override;
+
+        AzToolsFramework::EntityIdList GetSelectedEntities() const override;
+
+        void AddTilesetToLevel(
+            const AZStd::string& tilesetName,
+            std::uint32_t tilesetIonAssetId,
+            int imageryIonAssetId
+        ) override;
+
+        void AddImageryToLevel(std::uint32_t ionImageryAssetId) override;
+
+        void AddBlankTilesetToLevel() override;
+
+        void AddGeoreferenceToLevel() override;
+
+        void AddGeoreferenceCameraToLevel() override;
+
+        AZStd::unique_ptr<CesiumIonSession> m_ionSession;
     };
 } // namespace Cesium

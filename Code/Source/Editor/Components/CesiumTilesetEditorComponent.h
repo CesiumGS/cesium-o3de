@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Cesium/CesiumTilesetComponentBus.h>
+#include <Cesium/EBus/CesiumTilesetComponentBus.h>
 #include <AzCore/Component/EntityId.h>
 #include <AzCore/std/string/string.h>
 #include <AzCore/std/smart_ptr/unique_ptr.h>

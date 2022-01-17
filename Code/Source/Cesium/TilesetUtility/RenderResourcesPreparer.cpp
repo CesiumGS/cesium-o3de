@@ -1,7 +1,7 @@
-#include "RenderResourcesPreparer.h"
-#include "GltfModelBuilder.h"
-#include "GltfRasterMaterialBuilder.h"
-#include "GltfLoadContext.h"
+#include "Cesium/TilesetUtility/RenderResourcesPreparer.h"
+#include "Cesium/TilesetUtility/GltfRasterMaterialBuilder.h"
+#include "Cesium/Gltf/GltfModelBuilder.h"
+#include "Cesium/Gltf/GltfLoadContext.h"
 #include <Atom/Feature/Mesh/MeshFeatureProcessorInterface.h>
 #include <Atom/RPI.Reflect/Image/StreamingImageAssetCreator.h>
 #include <Atom/RPI.Reflect/Image/ImageMipChainAssetCreator.h>

@@ -1,5 +1,5 @@
-#include "HtmlUiComponentHelper.h"
-#include "DynamicUiImageComponent.h"
+#include "Cesium/Components/HtmlUiComponentHelper.h"
+#include "Cesium/Components/DynamicUiImageComponent.h"
 #include <LyShine/UiComponentTypes.h>
 #include <LyShine/Bus/UiCanvasManagerBus.h>
 #include <LyShine/Bus/UiCanvasBus.h>

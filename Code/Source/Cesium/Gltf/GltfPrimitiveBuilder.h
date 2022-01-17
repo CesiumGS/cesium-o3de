@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GltfLoadContext.h"
+#include "Cesium/Gltf/GltfLoadContext.h"
 #include <Atom/RHI.Reflect/Format.h>
 #include <AzCore/std/containers/vector.h>
 #include <AzCore/std/containers/array.h>

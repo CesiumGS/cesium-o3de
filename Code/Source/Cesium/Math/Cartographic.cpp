@@ -1,4 +1,4 @@
-#include <Cesium/Cartographic.h>
+#include <Cesium/Math/Cartographic.h>
 #include <AzCore/RTTI/BehaviorContext.h>
 #include <AzCore/Serialization/SerializeContext.h>
 

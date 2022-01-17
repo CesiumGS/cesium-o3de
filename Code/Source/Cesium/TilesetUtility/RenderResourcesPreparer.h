@@ -1,7 +1,6 @@
 #pragma once
 
-#include "GltfModel.h"
-#include <Cesium3DTilesSelection/IPrepareRendererResources.h>
+#include "Cesium/Gltf/GltfModel.h"
 #include <Atom/RPI.Public/Material/Material.h>
 #include <Atom/RPI.Public/Image/StreamingImage.h>
 #include <Atom/RPI.Reflect/Image/StreamingImageAsset.h>
@@ -11,6 +10,7 @@
 #include <AzCore/std/optional.h>
 #include <AzCore/std/containers/vector.h>
 #include <AzCore/std/containers/map.h>
+#include <Cesium3DTilesSelection/IPrepareRendererResources.h>
 #include <glm/glm.hpp>
 
 namespace AZ

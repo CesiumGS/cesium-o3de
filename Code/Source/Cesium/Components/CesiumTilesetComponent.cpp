@@ -1,19 +1,17 @@
-#include <Cesium/CesiumTilesetComponent.h>
-#include <Cesium/CoordinateTransformComponentBus.h>
-#include "RenderResourcesPreparer.h"
-#include "RasterOverlayRequestBus.h"
-#include "CesiumSystemComponentBus.h"
-#include "MathHelper.h"
-// TODO: remove
-#include <Atom/Feature/Mesh/MeshFeatureProcessorInterface.h>
-#include <Atom/Feature/AuxGeom/AuxGeomFeatureProcessor.h>
-
-#include <Atom/RPI.Public/AuxGeom/AuxGeomDraw.h>
+#include <Cesium/Components/CesiumTilesetComponent.h>
+#include <Cesium/EBus/CoordinateTransformComponentBus.h>
+#include "Cesium/EBus/RasterOverlayRequestBus.h"
+#include "Cesium/TilesetUtility/RenderResourcesPreparer.h"
+#include "Cesium/Systems/CesiumSystem.h"
+#include "Cesium/Math/BoundingRegion.h"
+#include "Cesium/Math/BoundingSphere.h"
+#include "Cesium/Math/OrientedBoundingBox.h"
+#include "Cesium/Math/MathHelper.h"
 #include <Atom/RPI.Public/ViewportContext.h>
 #include <Atom/RPI.Public/ViewportContextBus.h>
 #include <Atom/RPI.Public/Scene.h>
-#include <Atom/RPI.Public/Base.h>
 #include <Atom/RPI.Public/View.h>
+#include <Atom/RPI.Public/Base.h>
 #include <AzCore/Component/NonUniformScaleBus.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/RTTI/BehaviorContext.h>
@@ -837,12 +835,6 @@ namespace Cesium
                         m_impl->m_renderResourcesPreparer->SetVisible(renderResources, true);
                     }
                 }
-
-                // TODO: remove
-                AZ::RPI::AuxGeomFeatureProcessorInterface* meshFeatureProcessor =
-                    AZ::RPI::Scene::GetFeatureProcessorForEntity<AZ::RPI::AuxGeomFeatureProcessorInterface>(GetEntityId());
-                auto drawQueue = meshFeatureProcessor->GetDrawQueue();
-                drawQueue->DrawAabb(GetWorldBounds(), AZ::Colors::White, AZ::RPI::AuxGeomDraw::DrawStyle::Line);
             }
         }
     }

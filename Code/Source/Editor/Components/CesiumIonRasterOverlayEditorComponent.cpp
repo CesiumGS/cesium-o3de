@@ -1,4 +1,4 @@
-#include "CesiumIonRasterOverlayEditorComponent.h"
+#include "Editor/Components/CesiumIonRasterOverlayEditorComponent.h"
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/EditContext.h>
 

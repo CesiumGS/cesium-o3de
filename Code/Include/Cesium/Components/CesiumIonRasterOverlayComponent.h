@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Cesium/RasterOverlayComponent.h>
+#include <Cesium/Components/RasterOverlayComponent.h>
 #include <AzCore/std/string/string.h>
 #include <cstdint>
 

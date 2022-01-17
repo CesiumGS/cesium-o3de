@@ -1,9 +1,9 @@
 #pragma once
 
-#include <glm/glm.hpp>
 #include <AzCore/RTTI/RTTI.h>
 #include <AzCore/RTTI/ReflectContext.h>
 #include <AzCore/Memory/SystemAllocator.h>
+#include <glm/glm.hpp>
 
 namespace Cesium
 {

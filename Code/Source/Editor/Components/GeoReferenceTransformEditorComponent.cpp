@@ -1,9 +1,9 @@
-#include "GeoReferenceTransformEditorComponent.h"
-#include <Cesium/GeoReferenceTransformComponent.h>
-#include <Cesium/CesiumTilesetComponentBus.h>
-#include <Cesium/OriginShiftAwareComponentBus.h>
-#include <Cesium/GeospatialHelper.h>
-#include <Cesium/MathReflect.h>
+#include "Editor/Components/GeoReferenceTransformEditorComponent.h"
+#include <Cesium/Components/GeoReferenceTransformComponent.h>
+#include <Cesium/EBus/CesiumTilesetComponentBus.h>
+#include <Cesium/EBus/OriginShiftAwareComponentBus.h>
+#include <Cesium/Math/GeospatialHelper.h>
+#include <Cesium/Math/MathReflect.h>
 #include <AtomToolsFramework/Viewport/ModularViewportCameraControllerRequestBus.h>
 #include <Atom/RPI.Public/ViewportContext.h>
 #include <Atom/RPI.Public/ViewportContextBus.h>

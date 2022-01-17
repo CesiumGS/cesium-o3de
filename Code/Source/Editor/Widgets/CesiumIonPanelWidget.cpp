@@ -1,11 +1,6 @@
-#include "CesiumIonPanelWidget.h"
-#include "CesiumIonAssetListWidget.h"
-#include "CesiumTilesetEditorComponent.h"
-#include "GeoReferenceTransformEditorComponent.h"
-#include "GeoReferenceCameraFlyControllerEditor.h"
-#include <AzToolsFramework/Component/EditorComponentAPIBus.h>
-#include <AzToolsFramework/API/ToolsApplicationAPI.h>
-#include <AzFramework/Components/CameraBus.h>
+#include "Editor/Widgets/CesiumIonPanelWidget.h"
+#include "Editor/Widgets/CesiumIonAssetListWidget.h"
+#include "Editor/EBus/CesiumEditorSystemComponentBus.h"
 #include <QScrollArea>
 #include <QVBoxLayout>
 #include <QAction>
@@ -217,8 +212,6 @@ namespace Cesium
             itemLayout, "Cesium OSM Buildings", "A 3D buildings layer derived from OpenStreetMap covering the entire world.",
             "Cesium OSM Buildings", 96188, -1, row++);
 
-        QObject::connect(this, &CesiumIonPanelWidget::AddIonTilesetSignal, this, &CesiumIonPanelWidget::AddIonTileset);
-
         return widget;
     }
 
@@ -265,17 +258,14 @@ namespace Cesium
         int imageryIonAssetId,
         int row)
     {
-        auto ionItem = AZStd::make_shared<IonAssetItem>();
-        ionItem->m_tilesetName = tilesetName;
-        ionItem->m_tilesetIonAssetId = tilesetIonAssetId;
-        ionItem->m_imageryIonAssetId = imageryIonAssetId;
-
+        AZStd::string strTilesetName = tilesetName;
         IconButton* btn = CreateQuickAddMenuItem(gridLayout, name, tooltip, row++);
         QObject::connect(
             btn, &IconButton::pressed, this,
-            [this, ionItem]()
+            [strTilesetName, tilesetIonAssetId, imageryIonAssetId]()
             {
-                emit AddIonTilesetSignal(ionItem);
+                CesiumEditorSystemRequestBus::Broadcast(
+                    &CesiumEditorSystemRequestBus::Events::AddTilesetToLevel, strTilesetName, tilesetIonAssetId, imageryIonAssetId);
             });
     }
 
@@ -405,50 +395,15 @@ namespace Cesium
         return line;
     }
 
-    void CesiumIonPanelWidget::AddIonTileset(AZStd::shared_ptr<IonAssetItem> item)
-    {
-        CesiumIonSessionInterface::Get()->AddTilesetToLevel(item);
+	void CesiumIonPanelWidget::AddBlankTileset() {
+        CesiumEditorSystemRequestBus::Broadcast(&CesiumEditorSystemRequestBus::Events::AddBlankTilesetToLevel);
     }
 
-    void CesiumIonPanelWidget::AddBlankTileset()
-    {
-        using namespace AzToolsFramework; 
-
-        auto selectedEntities = CesiumIonSessionInterface::Get()->GetSelectedEntities();
-        for (const AZ::EntityId& entityId : selectedEntities)
-        {
-            EditorComponentAPIRequests::AddComponentsOutcome outcomes;
-            EditorComponentAPIBus::BroadcastResult(
-                outcomes, &EditorComponentAPIBus::Events::AddComponentOfType, entityId,
-                azrtti_typeid<CesiumTilesetEditorComponent>());
-        }
+	void CesiumIonPanelWidget::AddGeoreference() {
+        CesiumEditorSystemRequestBus::Broadcast(&CesiumEditorSystemRequestBus::Events::AddGeoreferenceToLevel);
     }
 
-    void CesiumIonPanelWidget::AddGeoreference()
-    {
-        using namespace AzToolsFramework; 
-
-        auto selectedEntities = CesiumIonSessionInterface::Get()->GetSelectedEntities();
-        for (const AZ::EntityId& entityId : selectedEntities)
-        {
-            EditorComponentAPIRequests::AddComponentsOutcome outcomes;
-            EditorComponentAPIBus::BroadcastResult(
-                outcomes, &EditorComponentAPIBus::Events::AddComponentOfType, entityId,
-                azrtti_typeid<GeoReferenceTransformEditorComponent>());
-        }
-    }
-
-    void CesiumIonPanelWidget::AddGeoreferenceCamera()
-    {
-        using namespace AzToolsFramework; 
-
-        auto selectedEntities = CesiumIonSessionInterface::Get()->GetSelectedEntities();
-        for (const AZ::EntityId& entityId : selectedEntities)
-        {
-            AZStd::vector<AZ::Uuid> componentsToAdd{ azrtti_typeid<GeoReferenceCameraControllerEditor>(), EditorCameraComponentTypeId };
-            EditorComponentAPIRequests::AddComponentsOutcome outcomes;
-            EditorComponentAPIBus::BroadcastResult(
-                outcomes, &EditorComponentAPIBus::Events::AddComponentsOfType, entityId, componentsToAdd);
-        }
+	void CesiumIonPanelWidget::AddGeoreferenceCamera() {
+        CesiumEditorSystemRequestBus::Broadcast(&CesiumEditorSystemRequestBus::Events::AddGeoreferenceCameraToLevel);
     }
 } // namespace Cesium
