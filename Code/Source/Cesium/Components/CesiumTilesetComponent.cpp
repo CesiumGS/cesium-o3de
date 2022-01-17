@@ -1,6 +1,6 @@
 #include <Cesium/Components/CesiumTilesetComponent.h>
 #include <Cesium/EBus/CoordinateTransformComponentBus.h>
-#include "Cesium/EBus/RasterOverlayRequestBus.h"
+#include "Cesium/EBus/RasterOverlayContainerBus.h"
 #include "Cesium/TilesetUtility/RenderResourcesPreparer.h"
 #include "Cesium/Systems/CesiumSystem.h"
 #include "Cesium/Math/BoundingRegion.h"

@@ -67,8 +67,8 @@ set(FILES
     Source/Cesium/EBus/CesiumSystemComponentBus.cpp
     Source/Cesium/EBus/DynamicUiImageComponentBus.h
     Source/Cesium/EBus/DynamicUiImageComponentBus.cpp
-    Source/Cesium/EBus/RasterOverlayRequestBus.h
-    Source/Cesium/EBus/RasterOverlayRequestBus.cpp
+    Source/Cesium/EBus/RasterOverlayContainerBus.h
+    Source/Cesium/EBus/RasterOverlayContainerBus.cpp
     Include/Cesium/EBus/CoordinateTransformComponentBus.h
     Source/Cesium/EBus/CoordinateTransformComponentBus.cpp
     Include/Cesium/EBus/LevelCoordinateTransformComponentBus.h

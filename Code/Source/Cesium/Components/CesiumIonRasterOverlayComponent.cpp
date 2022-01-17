@@ -1,5 +1,5 @@
 #include <Cesium/Components/CesiumIonRasterOverlayComponent.h>
-#include "Cesium/EBus/RasterOverlayRequestBus.h"
+#include "Cesium/EBus/RasterOverlayContainerBus.h"
 #include <AzCore/std/optional.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/RTTI/BehaviorContext.h>
