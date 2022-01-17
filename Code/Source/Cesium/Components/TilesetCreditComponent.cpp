@@ -1,4 +1,4 @@
-#include <Cesium/Components/CesiumTilesetCreditComponent.h>
+#include <Cesium/Components/TilesetCreditComponent.h>
 #include "Cesium/Components/HtmlUiComponentHelper.h"
 #include "Cesium/Systems/CesiumSystem.h"
 #include <LyShine/Bus/UiCanvasBus.h>
@@ -11,37 +11,37 @@
 
 namespace Cesium
 {
-    void CesiumTilesetCreditComponent::Reflect(AZ::ReflectContext* context)
+    void TilesetCreditComponent::Reflect(AZ::ReflectContext* context)
     {
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<CesiumTilesetCreditComponent, AZ::Component>()->Version(0);
+            serializeContext->Class<TilesetCreditComponent, AZ::Component>()->Version(0);
         }
     }
 
-    void CesiumTilesetCreditComponent::GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided)
+    void TilesetCreditComponent::GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided)
     {
         provided.push_back(AZ_CRC_CE("3DTilesCreditService"));
     }
 
-    void CesiumTilesetCreditComponent::GetIncompatibleServices(AZ::ComponentDescriptor::DependencyArrayType& incompatible)
+    void TilesetCreditComponent::GetIncompatibleServices(AZ::ComponentDescriptor::DependencyArrayType& incompatible)
     {
         incompatible.push_back(AZ_CRC_CE("3DTilesCreditService"));
     }
 
-    void CesiumTilesetCreditComponent::GetRequiredServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& required)
+    void TilesetCreditComponent::GetRequiredServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& required)
     {
     }
 
-    void CesiumTilesetCreditComponent::GetDependentServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& dependent)
+    void TilesetCreditComponent::GetDependentServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& dependent)
     {
     }
 
-    void CesiumTilesetCreditComponent::Init()
+    void TilesetCreditComponent::Init()
     {
     }
 
-    void CesiumTilesetCreditComponent::Activate()
+    void TilesetCreditComponent::Activate()
     {
         UiCanvasManagerBus::BroadcastResult(
             m_clickableCanvasEntityId, &UiCanvasManagerBus::Events::LoadCanvas,
@@ -57,13 +57,13 @@ namespace Cesium
         AZ::TickBus::Handler::BusConnect();
     }
 
-    void CesiumTilesetCreditComponent::Deactivate()
+    void TilesetCreditComponent::Deactivate()
     {
         AzFramework::InputChannelEventListener::BusDisconnect();
         AZ::TickBus::Handler::BusDisconnect();
     }
 
-    void CesiumTilesetCreditComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
+    void TilesetCreditComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
     {
         if (!m_displayCreditList)
         {
@@ -99,7 +99,7 @@ namespace Cesium
         creditSystem->startNextFrame();
     }
 
-    bool CesiumTilesetCreditComponent::OnInputChannelEventFiltered(const AzFramework::InputChannel& inputChannel)
+    bool TilesetCreditComponent::OnInputChannelEventFiltered(const AzFramework::InputChannel& inputChannel)
     {
         const AzFramework::InputDevice& inputDevice = inputChannel.GetInputDevice();
         const AzFramework::InputDeviceId& inputDeviceId = inputDevice.GetInputDeviceId();

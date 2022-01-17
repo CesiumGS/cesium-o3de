@@ -1,5 +1,5 @@
 #include "Editor/Components/TilesetCreditEditorComponent.h"
-#include <Cesium/Components/CesiumTilesetCreditComponent.h>
+#include <Cesium/Components/TilesetCreditComponent.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/EditContext.h>
 
@@ -48,7 +48,7 @@ namespace Cesium {
 
     void TilesetCreditEditorComponent::BuildGameEntity(AZ::Entity* gameEntity)
     {
-        auto creditComponent = gameEntity->CreateComponent<CesiumTilesetCreditComponent>();
+        auto creditComponent = gameEntity->CreateComponent<TilesetCreditComponent>();
         creditComponent->SetEntity(gameEntity);
         creditComponent->Init();
     }

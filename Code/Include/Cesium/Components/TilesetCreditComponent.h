@@ -7,13 +7,13 @@
 
 namespace Cesium
 {
-    class CesiumTilesetCreditComponent
+    class TilesetCreditComponent
         : public AZ::Component
         , public AZ::TickBus::Handler
         , public AzFramework::InputChannelEventListener
     {
     public:
-        AZ_COMPONENT(CesiumTilesetCreditComponent, "{4CD6F108-AD91-4443-9BA3-61621660336E}", AZ::Component)
+        AZ_COMPONENT(TilesetCreditComponent, "{4CD6F108-AD91-4443-9BA3-61621660336E}", AZ::Component)
 
         static void Reflect(AZ::ReflectContext* context);
 
