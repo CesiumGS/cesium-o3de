@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Cesium/EBus/OriginShiftAwareComponentBus.h>
+#include <Cesium/EBus/LevelCoordinateTransformComponentBus.h>
 #include <AzToolsFramework/ToolsComponents/EditorComponentBase.h>
 #include <AzCore/Interface/Interface.h>
 #include <AzCore/Component/EntityId.h>

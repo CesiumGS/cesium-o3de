@@ -1,7 +1,7 @@
 #include "Editor/Components/GeoReferenceTransformEditorComponent.h"
 #include <Cesium/Components/GeoReferenceTransformComponent.h>
 #include <Cesium/EBus/CesiumTilesetComponentBus.h>
-#include <Cesium/EBus/OriginShiftAwareComponentBus.h>
+#include <Cesium/EBus/LevelCoordinateTransformComponentBus.h>
 #include <Cesium/Math/GeospatialHelper.h>
 #include <Cesium/Math/MathReflect.h>
 #include <AtomToolsFramework/Viewport/ModularViewportCameraControllerRequestBus.h>

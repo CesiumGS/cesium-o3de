@@ -1,4 +1,4 @@
-#include <Cesium/EBus/OriginShiftAwareComponentBus.h>
+#include <Cesium/EBus/LevelCoordinateTransformComponentBus.h>
 #include <AzCore/RTTI/BehaviorContext.h>
 
 namespace Cesium

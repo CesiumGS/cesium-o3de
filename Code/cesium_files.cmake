@@ -71,8 +71,8 @@ set(FILES
     Source/Cesium/EBus/RasterOverlayRequestBus.cpp
     Include/Cesium/EBus/CoordinateTransformComponentBus.h
     Source/Cesium/EBus/CoordinateTransformComponentBus.cpp
-    Include/Cesium/EBus/OriginShiftAwareComponentBus.h
-    Source/Cesium/EBus/OriginShiftAwareComponentBus.cpp
+    Include/Cesium/EBus/LevelCoordinateTransformComponentBus.h
+    Source/Cesium/EBus/LevelCoordinateTransformComponentBus.cpp
     Include/Cesium/EBus/GeoReferenceCameraFlyControllerBus.h
     Source/Cesium/EBus/GeoReferenceCameraFlyControllerBus.cpp
     Include/Cesium/EBus/GltfModelComponentBus.h

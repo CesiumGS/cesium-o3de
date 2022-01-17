@@ -1,6 +1,6 @@
 #include "Cesium/Components/CesiumSystemComponent.h"
 #include <Cesium/EBus/CesiumTilesetComponentBus.h>
-#include <Cesium/EBus/OriginShiftAwareComponentBus.h>
+#include <Cesium/EBus/LevelCoordinateTransformComponentBus.h>
 #include <Cesium/EBus/CoordinateTransformComponentBus.h>
 #include <Cesium/EBus/GeoReferenceCameraFlyControllerBus.h>
 #include <Cesium/Math/BoundingRegion.h>
