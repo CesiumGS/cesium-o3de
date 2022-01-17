@@ -1,4 +1,4 @@
-#include "Editor/Components/CesiumEditorSystemComponent.h"
+#include "Editor/Components/CesiumSystemEditorComponent.h"
 #include "Editor/Components/TilesetEditorComponent.h"
 #include "Editor/Components/CesiumIonRasterOverlayEditorComponent.h"
 #include "Editor/Components/GeoReferenceCameraFlyControllerEditor.h"
@@ -15,39 +15,39 @@
 
 namespace Cesium
 {
-    void CesiumEditorSystemComponent::Reflect(AZ::ReflectContext* context)
+    void CesiumSystemEditorComponent::Reflect(AZ::ReflectContext* context)
     {
         MathDataWidget::Reflect(context);
         if (auto serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<CesiumEditorSystemComponent, AZ::Component>()
+            serializeContext->Class<CesiumSystemEditorComponent, AZ::Component>()
                 ->Version(0);
         }
     }
 
-    CesiumEditorSystemComponent::~CesiumEditorSystemComponent() noexcept {
+    CesiumSystemEditorComponent::~CesiumSystemEditorComponent() noexcept {
     }
 
-    void CesiumEditorSystemComponent::GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided)
+    void CesiumSystemEditorComponent::GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided)
     {
         provided.push_back(AZ_CRC_CE("CesiumEditorService"));
     }
 
-    void CesiumEditorSystemComponent::GetIncompatibleServices(AZ::ComponentDescriptor::DependencyArrayType& incompatible)
+    void CesiumSystemEditorComponent::GetIncompatibleServices(AZ::ComponentDescriptor::DependencyArrayType& incompatible)
     {
         incompatible.push_back(AZ_CRC_CE("CesiumEditorService"));
     }
 
-    void CesiumEditorSystemComponent::GetRequiredServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& required)
+    void CesiumSystemEditorComponent::GetRequiredServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& required)
     {
         required.push_back(AZ_CRC_CE("CesiumService"));
     }
 
-    void CesiumEditorSystemComponent::GetDependentServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& dependent)
+    void CesiumSystemEditorComponent::GetDependentServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& dependent)
     {
     }
 
-    CesiumEditorSystemComponent::CesiumEditorSystemComponent() {
+    CesiumSystemEditorComponent::CesiumSystemEditorComponent() {
         m_ionSession = AZStd::make_unique<CesiumIonSession>();
         if (CesiumIonSessionInterface::Get() == nullptr)
         {
@@ -55,7 +55,7 @@ namespace Cesium
         }
     }
 
-    void CesiumEditorSystemComponent::Activate()
+    void CesiumSystemEditorComponent::Activate()
     {
         Q_INIT_RESOURCE(CesiumResources);
         MathDataWidget::RegisterHandlers();
@@ -64,7 +64,7 @@ namespace Cesium
         AZ::TickBus::Handler::BusConnect();
     }
 
-    void CesiumEditorSystemComponent::Deactivate()
+    void CesiumSystemEditorComponent::Deactivate()
     {
         if (CesiumIonSessionInterface::Get() == m_ionSession.get())
         {
@@ -76,12 +76,12 @@ namespace Cesium
         AZ::TickBus::Handler::BusDisconnect();
     }
 
-    void CesiumEditorSystemComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
+    void CesiumSystemEditorComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
     {
         m_ionSession->Flush();
     }
 
-    void CesiumEditorSystemComponent::NotifyRegisterViews()
+    void CesiumSystemEditorComponent::NotifyRegisterViews()
     {
         AzToolsFramework::ViewPaneOptions cesiumIonPanelOptions;
         cesiumIonPanelOptions.showOnToolsToolbar = true;
@@ -93,7 +93,7 @@ namespace Cesium
         AzToolsFramework::RegisterViewPane<CesiumIonAssetListWidget>(CesiumIonAssetListWidget::WIDGET_NAME, "Cesium", cesiumIonAssetListOptions);
     }
 
-    AzToolsFramework::EntityIdList CesiumEditorSystemComponent::GetSelectedEntities() const
+    AzToolsFramework::EntityIdList CesiumSystemEditorComponent::GetSelectedEntities() const
     {
         using namespace AzToolsFramework;
         EntityIdList selectedEntities;
@@ -111,7 +111,7 @@ namespace Cesium
         return selectedEntities;
     }
 
-    void CesiumEditorSystemComponent::AddTilesetToLevel(const AZStd::string& tilesetName, std::uint32_t tilesetIonAssetId, int imageryIonAssetId)
+    void CesiumSystemEditorComponent::AddTilesetToLevel(const AZStd::string& tilesetName, std::uint32_t tilesetIonAssetId, int imageryIonAssetId)
     {        
         using namespace AzToolsFramework;
         const std::optional<CesiumIonClient::Connection>& connection = CesiumIonSessionInterface::Get()->GetConnection();
@@ -212,7 +212,7 @@ namespace Cesium
                 });
     }
 
-    void CesiumEditorSystemComponent::AddImageryToLevel(std::uint32_t ionImageryAssetId)
+    void CesiumSystemEditorComponent::AddImageryToLevel(std::uint32_t ionImageryAssetId)
     {        
         using namespace AzToolsFramework;
         const std::optional<CesiumIonClient::Connection>& connection = CesiumIonSessionInterface::Get()->GetConnection();
@@ -288,7 +288,7 @@ namespace Cesium
 
     }
 
-    void CesiumEditorSystemComponent::AddBlankTilesetToLevel()
+    void CesiumSystemEditorComponent::AddBlankTilesetToLevel()
     {
         using namespace AzToolsFramework; 
         auto selectedEntities = GetSelectedEntities();
@@ -301,7 +301,7 @@ namespace Cesium
         }
     }
 
-    void CesiumEditorSystemComponent::AddGeoreferenceToLevel()
+    void CesiumSystemEditorComponent::AddGeoreferenceToLevel()
     {
         using namespace AzToolsFramework; 
         auto selectedEntities = GetSelectedEntities();
@@ -314,7 +314,7 @@ namespace Cesium
         }
     }
 
-    void CesiumEditorSystemComponent::AddGeoreferenceCameraToLevel()
+    void CesiumSystemEditorComponent::AddGeoreferenceCameraToLevel()
     {
         using namespace AzToolsFramework; 
 

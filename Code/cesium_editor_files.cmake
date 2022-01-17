@@ -16,8 +16,6 @@ set(FILES
     Source/Editor/Widgets/CesiumIonPanelWidget.cpp
     Source/Editor/Widgets/CesiumResources.qrc
 
-    Source/Editor/Components/CesiumEditorSystemComponent.h
-    Source/Editor/Components/CesiumEditorSystemComponent.cpp
     Source/Editor/Components/LevelCoordinateTransformEditorComponent.h
     Source/Editor/Components/LevelCoordinateTransformEditorComponent.cpp
     Source/Editor/Components/CesiumIonRasterOverlayEditorComponent.h
@@ -34,4 +32,6 @@ set(FILES
     Source/Editor/Components/TilesetCreditEditorComponent.cpp
     Source/Editor/Components/TilesetEditorComponent.h
     Source/Editor/Components/TilesetEditorComponent.cpp
+    Source/Editor/Components/CesiumSystemEditorComponent.h
+    Source/Editor/Components/CesiumSystemEditorComponent.cpp
 )

@@ -9,18 +9,18 @@
 namespace Cesium
 {
     /// System component for Cesium editor
-    class CesiumEditorSystemComponent
+    class CesiumSystemEditorComponent
         : public AZ::Component 
         , public AZ::TickBus::Handler
         , public CesiumEditorSystemRequestBus::Handler
         , private AzToolsFramework::EditorEvents::Bus::Handler
     {
     public:
-        AZ_COMPONENT(CesiumEditorSystemComponent, "{b5a4a95c-91dc-4728-af8e-6518b2ab77f2}");
+        AZ_COMPONENT(CesiumSystemEditorComponent, "{b5a4a95c-91dc-4728-af8e-6518b2ab77f2}");
         static void Reflect(AZ::ReflectContext* context);
 
-        CesiumEditorSystemComponent();
-        ~CesiumEditorSystemComponent() noexcept;
+        CesiumSystemEditorComponent();
+        ~CesiumSystemEditorComponent() noexcept;
 
     private:
         static void GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided);

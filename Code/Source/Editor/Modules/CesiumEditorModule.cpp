@@ -1,5 +1,5 @@
 
-#include "Editor/Components/CesiumEditorSystemComponent.h"
+#include "Editor/Components/CesiumSystemEditorComponent.h"
 #include "Editor/Components/TilesetEditorComponent.h"
 #include "Editor/Components/GeoReferenceTransformEditorComponent.h"
 #include "Editor/Components/GeoReferenceCameraFlyControllerEditor.h"
@@ -26,7 +26,7 @@ namespace Cesium
             // EditContext. This happens through the [MyComponent]::Reflect() function.
             m_descriptors.insert(
                 m_descriptors.end(),
-                { CesiumEditorSystemComponent::CreateDescriptor(), TilesetCreditEditorComponent::CreateDescriptor(),
+                { CesiumSystemEditorComponent::CreateDescriptor(), TilesetCreditEditorComponent::CreateDescriptor(),
                   LevelCoordinateTransformEditorComponent::CreateDescriptor(), TilesetEditorComponent::CreateDescriptor(),
                   GeoReferenceTransformEditorComponent::CreateDescriptor(), GeoReferenceCameraControllerEditor::CreateDescriptor(),
                   BingRasterOverlayEditorComponent::CreateDescriptor(), CesiumIonRasterOverlayEditorComponent::CreateDescriptor(),
@@ -40,7 +40,7 @@ namespace Cesium
         AZ::ComponentTypeList GetRequiredSystemComponents() const override
         {
             auto componentList = CesiumModuleInterface::GetRequiredSystemComponents();
-            componentList.emplace_back(azrtti_typeid<CesiumEditorSystemComponent>());
+            componentList.emplace_back(azrtti_typeid<CesiumSystemEditorComponent>());
             return componentList;
         }
     };
