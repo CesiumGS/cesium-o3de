@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Cesium/EBus/CesiumTilesetComponentBus.h>
+#include <Cesium/EBus/TilesetComponentBus.h>
 #include <Cesium/EBus/LevelCoordinateTransformComponentBus.h>
 #include <AzFramework/Viewport/ViewportId.h>
 #include <AzFramework/Visibility/BoundsBus.h>
@@ -13,16 +13,16 @@
 
 namespace Cesium
 {
-    class CesiumTilesetComponent
+    class TilesetComponent
         : public AZ::Component
         , public AZ::TickBus::Handler
         , public AZ::EntityBus::Handler
         , public AzFramework::BoundsRequestBus::Handler
-        , public CesiumTilesetRequestBus::Handler
+        , public TilesetRequestBus::Handler
         , public LevelCoordinateTransformNotificationBus::Handler
     {
     public:
-        AZ_COMPONENT(CesiumTilesetComponent, "{56948418-6C82-4DF2-9A8D-C292C22FCBDF}", AZ::Component)
+        AZ_COMPONENT(TilesetComponent, "{56948418-6C82-4DF2-9A8D-C292C22FCBDF}", AZ::Component)
 
         static void Reflect(AZ::ReflectContext* context);
 
@@ -34,7 +34,7 @@ namespace Cesium
 
         static void GetDependentServices(AZ::ComponentDescriptor::DependencyArrayType& dependent);
 
-        CesiumTilesetComponent();
+        TilesetComponent();
 
         void SetConfiguration(const TilesetConfiguration& configration) override;
 

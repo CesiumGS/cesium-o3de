@@ -1,4 +1,4 @@
-#include <Cesium/Components/CesiumTilesetComponent.h>
+#include <Cesium/Components/TilesetComponent.h>
 #include <Cesium/EBus/CoordinateTransformComponentBus.h>
 #include "Cesium/EBus/RasterOverlayContainerBus.h"
 #include "Cesium/TilesetUtility/RenderResourcesPreparer.h"
@@ -42,7 +42,7 @@
 
 namespace Cesium
 {
-    class CesiumTilesetComponent::CameraConfigurations
+    class TilesetComponent::CameraConfigurations
     {
     public:
         CameraConfigurations()
@@ -116,7 +116,7 @@ namespace Cesium
         std::vector<Cesium3DTilesSelection::ViewState> m_viewStates;
     };
 
-    struct CesiumTilesetComponent::BoundingVolumeConverter
+    struct TilesetComponent::BoundingVolumeConverter
     {
         TilesetBoundingVolume operator()(const CesiumGeometry::BoundingSphere& sphere)
         {
@@ -153,7 +153,7 @@ namespace Cesium
         }
     };
 
-    struct CesiumTilesetComponent::BoundingVolumeToAABB
+    struct TilesetComponent::BoundingVolumeToAABB
     {
         AZ::Aabb operator()(const CesiumGeometry::BoundingSphere& sphere)
         {
@@ -215,7 +215,7 @@ namespace Cesium
         glm::dmat4 m_transform;
     };
 
-    struct CesiumTilesetComponent::BoundingVolumeTransform
+    struct TilesetComponent::BoundingVolumeTransform
     {
         TilesetBoundingVolume operator()(const CesiumGeometry::BoundingSphere& sphere)
         {
@@ -256,7 +256,7 @@ namespace Cesium
         glm::dmat4 m_transform;
     };
 
-    enum class CesiumTilesetComponent::TilesetBoundingVolumeType
+    enum class TilesetComponent::TilesetBoundingVolumeType
     {
         None,
         BoundingSphere,
@@ -264,7 +264,7 @@ namespace Cesium
         BoundingRegion
     };
 
-    struct CesiumTilesetComponent::Impl
+    struct TilesetComponent::Impl
         : public RasterOverlayContainerRequestBus::Handler
         , private AZ::TransformNotificationBus::Handler
         , private AZ::EntityBus::Handler
@@ -569,84 +569,84 @@ namespace Cesium
         int m_configFlags;
     };
 
-    void CesiumTilesetComponent::Reflect(AZ::ReflectContext* context)
+    void TilesetComponent::Reflect(AZ::ReflectContext* context)
     {
         ReflectTilesetBoundingVolume(context);
 
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<CesiumTilesetComponent, AZ::Component>()
+            serializeContext->Class<TilesetComponent, AZ::Component>()
                 ->Version(0)
-                ->Field("TilesetConfiguration", &CesiumTilesetComponent::m_tilesetConfiguration)
-                ->Field("TilesetSource", &CesiumTilesetComponent::m_tilesetSource)
-                ->Field("CoordinateTransformEntityId", &CesiumTilesetComponent::m_coordinateTransformEntityId);
+                ->Field("TilesetConfiguration", &TilesetComponent::m_tilesetConfiguration)
+                ->Field("TilesetSource", &TilesetComponent::m_tilesetSource)
+                ->Field("CoordinateTransformEntityId", &TilesetComponent::m_coordinateTransformEntityId);
         }
     }
 
-    void CesiumTilesetComponent::GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided)
+    void TilesetComponent::GetProvidedServices(AZ::ComponentDescriptor::DependencyArrayType& provided)
     {
         provided.push_back(AZ_CRC_CE("3DTilesService"));
     }
 
-    void CesiumTilesetComponent::GetIncompatibleServices(AZ::ComponentDescriptor::DependencyArrayType& incompatible)
+    void TilesetComponent::GetIncompatibleServices(AZ::ComponentDescriptor::DependencyArrayType& incompatible)
     {
         incompatible.push_back(AZ_CRC_CE("3DTilesService"));
     }
 
-    void CesiumTilesetComponent::GetRequiredServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& required)
+    void TilesetComponent::GetRequiredServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& required)
     {
     }
 
-    void CesiumTilesetComponent::GetDependentServices(AZ::ComponentDescriptor::DependencyArrayType& dependent)
+    void TilesetComponent::GetDependentServices(AZ::ComponentDescriptor::DependencyArrayType& dependent)
     {
         dependent.push_back(AZ_CRC("TransformService", 0x8ee22c50));
         dependent.push_back(AZ_CRC_CE("NonUniformScaleService"));
     }
 
-    CesiumTilesetComponent::CesiumTilesetComponent()
+    TilesetComponent::TilesetComponent()
     {
     }
 
-    void CesiumTilesetComponent::Init()
+    void TilesetComponent::Init()
     {
     }
 
-    void CesiumTilesetComponent::Activate()
+    void TilesetComponent::Activate()
     {
         m_impl = AZStd::make_unique<Impl>(GetEntityId(), m_coordinateTransformEntityId, m_tilesetSource);
         AZ::TickBus::Handler::BusConnect();
         AzFramework::BoundsRequestBus::Handler::BusConnect(GetEntityId());
-        CesiumTilesetRequestBus::Handler::BusConnect(GetEntityId());
+        TilesetRequestBus::Handler::BusConnect(GetEntityId());
         LevelCoordinateTransformNotificationBus::Handler::BusConnect();
     }
 
-    void CesiumTilesetComponent::Deactivate()
+    void TilesetComponent::Deactivate()
     {
         m_impl.reset();
         AZ::TickBus::Handler::BusDisconnect();
         AzFramework::BoundsRequestBus::Handler::BusDisconnect();
-        CesiumTilesetRequestBus::Handler::BusDisconnect();
+        TilesetRequestBus::Handler::BusDisconnect();
         LevelCoordinateTransformNotificationBus::Handler::BusDisconnect();
     }
 
-    void CesiumTilesetComponent::SetConfiguration(const TilesetConfiguration& configration)
+    void TilesetComponent::SetConfiguration(const TilesetConfiguration& configration)
     {
         m_tilesetConfiguration = configration;
         m_impl->m_configFlags |= Impl::ConfigurationDirtyFlags::TilesetConfigChange;
     }
 
-    const TilesetConfiguration& CesiumTilesetComponent::GetConfiguration() const
+    const TilesetConfiguration& TilesetComponent::GetConfiguration() const
     {
         return m_tilesetConfiguration;
     }
 
-    void CesiumTilesetComponent::OnCoordinateTransformChange(const AZ::EntityId& coordinateTransformEntityId)
+    void TilesetComponent::OnCoordinateTransformChange(const AZ::EntityId& coordinateTransformEntityId)
     {
         m_coordinateTransformEntityId = coordinateTransformEntityId;
         m_impl->ConnectCoordinateTransformEntityEvents(m_coordinateTransformEntityId);
     }
 
-    AZ::Aabb CesiumTilesetComponent::GetWorldBounds()
+    AZ::Aabb TilesetComponent::GetWorldBounds()
     {
         if (!m_impl->m_tileset)
         {
@@ -664,7 +664,7 @@ namespace Cesium
             rootTile->getBoundingVolume());
     }
 
-    AZ::Aabb CesiumTilesetComponent::GetLocalBounds()
+    AZ::Aabb TilesetComponent::GetLocalBounds()
     {
         if (!m_impl->m_tileset)
         {
@@ -680,7 +680,7 @@ namespace Cesium
         return std::visit(BoundingVolumeToAABB{ m_impl->m_coordinateTransformConfig.m_ECEFToO3DE }, rootTile->getBoundingVolume());
     }
 
-    TilesetBoundingVolume CesiumTilesetComponent::GetBoundingVolumeInECEF() const
+    TilesetBoundingVolume TilesetComponent::GetBoundingVolumeInECEF() const
     {
         if (!m_impl->m_tileset)
         {
@@ -704,13 +704,13 @@ namespace Cesium
             rootTile->getBoundingVolume());
     }
 
-    void CesiumTilesetComponent::LoadTileset(const TilesetSource& source)
+    void TilesetComponent::LoadTileset(const TilesetSource& source)
     {
         m_tilesetSource = source;
         m_impl->m_configFlags = Impl::ConfigurationDirtyFlags::AllChange;
     }
 
-    void CesiumTilesetComponent::ReflectTilesetBoundingVolume(AZ::ReflectContext* context)
+    void TilesetComponent::ReflectTilesetBoundingVolume(AZ::ReflectContext* context)
     {
         if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
         {
@@ -778,7 +778,7 @@ namespace Cesium
         }
     }
 
-    void CesiumTilesetComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
+    void TilesetComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
     {
         m_impl->FlushTilesetSourceChange(m_tilesetSource);
         m_impl->FlushTilesetConfigurationChange(m_tilesetConfiguration);

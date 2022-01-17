@@ -1,5 +1,5 @@
 #include "Editor/Components/CesiumTilesetEditorComponent.h"
-#include <Cesium/Components/CesiumTilesetComponent.h>
+#include <Cesium/Components/TilesetComponent.h>
 #include <AzToolsFramework/UI/PropertyEditor/PropertyEditorAPI.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/EditContext.h>
@@ -115,7 +115,7 @@ namespace Cesium
 
     void CesiumTilesetEditorComponent::BuildGameEntity(AZ::Entity* gameEntity)
     {
-        auto tilesetComponent = gameEntity->CreateComponent<CesiumTilesetComponent>();
+        auto tilesetComponent = gameEntity->CreateComponent<TilesetComponent>();
         tilesetComponent->SetEntity(gameEntity);
         tilesetComponent->Init();
         tilesetComponent->Activate();
@@ -129,7 +129,7 @@ namespace Cesium
         AzToolsFramework::Components::EditorComponentBase::Init();
         if (!m_tilesetComponent)
         {
-            m_tilesetComponent = AZStd::make_unique<CesiumTilesetComponent>();
+            m_tilesetComponent = AZStd::make_unique<TilesetComponent>();
         }
     }
 

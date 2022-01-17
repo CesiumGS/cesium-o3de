@@ -1,4 +1,4 @@
-#include <Cesium/EBus/CesiumTilesetComponentBus.h>
+#include <Cesium/EBus/TilesetComponentBus.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/RTTI/BehaviorContext.h>
 
@@ -200,12 +200,12 @@ namespace Cesium
     {
         if (AZ::BehaviorContext* behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
         {
-            behaviorContext->EBus<CesiumTilesetRequestBus>("CesiumTilesetRequestBus")
+            behaviorContext->EBus<TilesetRequestBus>("TilesetRequestBus")
                 ->Attribute(AZ::Script::Attributes::Category, "Cesium/3DTiles")
-                ->Event("SetConfiguration", &CesiumTilesetRequestBus::Events::SetConfiguration)
-                ->Event("GetConfiguration", &CesiumTilesetRequestBus::Events::GetConfiguration)
-                ->Event("GetBoundingVolumeInECEF", &CesiumTilesetRequestBus::Events::GetBoundingVolumeInECEF)
-                ->Event("LoadTileset", &CesiumTilesetRequestBus::Events::LoadTileset)
+                ->Event("SetConfiguration", &TilesetRequestBus::Events::SetConfiguration)
+                ->Event("GetConfiguration", &TilesetRequestBus::Events::GetConfiguration)
+                ->Event("GetBoundingVolumeInECEF", &TilesetRequestBus::Events::GetBoundingVolumeInECEF)
+                ->Event("LoadTileset", &TilesetRequestBus::Events::LoadTileset)
                 ;
         }
     }

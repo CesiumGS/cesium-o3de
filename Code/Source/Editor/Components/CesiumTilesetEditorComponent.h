@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Cesium/EBus/CesiumTilesetComponentBus.h>
+#include <Cesium/EBus/TilesetComponentBus.h>
 #include <AzCore/Component/EntityId.h>
 #include <AzCore/std/string/string.h>
 #include <AzCore/std/smart_ptr/unique_ptr.h>
@@ -8,7 +8,7 @@
 
 namespace Cesium
 {
-    class CesiumTilesetComponent;
+    class TilesetComponent;
 
     class CesiumTilesetEditorComponent
         : public AzToolsFramework::Components::EditorComponentBase
@@ -41,7 +41,7 @@ namespace Cesium
 
         AZ::u32 OnTilesetConfigurationChanged();
 
-        AZStd::unique_ptr<CesiumTilesetComponent> m_tilesetComponent;
+        AZStd::unique_ptr<TilesetComponent> m_tilesetComponent;
         TilesetConfiguration m_tilesetConfiguration;
         TilesetSource m_tilesetSource;
     };

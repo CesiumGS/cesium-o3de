@@ -1,5 +1,5 @@
 
-#include <Cesium/Components/CesiumTilesetComponent.h>
+#include <Cesium/Components/TilesetComponent.h>
 #include <Cesium/Components/TilesetCreditComponent.h>
 #include <Cesium/Components/GltfModelComponent.h>
 #include <Cesium/Components/GeoReferenceCameraFlyController.h>
@@ -32,7 +32,7 @@ namespace Cesium
                 m_descriptors.end(),
                 { CesiumSystemComponent::CreateDescriptor(), LevelCoordinateTransformComponent::CreateDescriptor(),
                   DynamicUiImageComponent::CreateDescriptor(), TilesetCreditComponent::CreateDescriptor(),
-                  CesiumTilesetComponent::CreateDescriptor(), GltfModelComponent::CreateDescriptor(),
+                  TilesetComponent::CreateDescriptor(), GltfModelComponent::CreateDescriptor(),
                   GeoReferenceTransformComponent::CreateDescriptor(), GeoReferenceCameraFlyController::CreateDescriptor(),
                   RasterOverlayComponent::CreateDescriptor(), BingRasterOverlayComponent::CreateDescriptor(),
                   CesiumIonRasterOverlayComponent::CreateDescriptor(), TMSRasterOverlayComponent::CreateDescriptor() });

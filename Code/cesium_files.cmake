@@ -77,8 +77,8 @@ set(FILES
     Source/Cesium/EBus/GeoReferenceCameraFlyControllerBus.cpp
     Include/Cesium/EBus/GltfModelComponentBus.h
     Source/Cesium/EBus/GltfModelComponentBus.cpp
-    Include/Cesium/EBus/CesiumTilesetComponentBus.h
-    Source/Cesium/EBus/CesiumTilesetComponentBus.cpp
+    Include/Cesium/EBus/TilesetComponentBus.h
+    Source/Cesium/EBus/TilesetComponentBus.cpp
 
     Source/Cesium/Components/CesiumSystemComponent.h
     Source/Cesium/Components/CesiumSystemComponent.cpp
@@ -104,7 +104,7 @@ set(FILES
     Source/Cesium/Components/TilesetCreditComponent.cpp
     Include/Cesium/Components/GltfModelComponent.h
     Source/Cesium/Components/GltfModelComponent.cpp
-    Include/Cesium/Components/CesiumTilesetComponent.h
-    Source/Cesium/Components/CesiumTilesetComponent.cpp
+    Include/Cesium/Components/TilesetComponent.h
+    Source/Cesium/Components/TilesetComponent.cpp
 )
 

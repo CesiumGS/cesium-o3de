@@ -144,7 +144,7 @@ namespace Cesium
         virtual void LoadTileset(const TilesetSource& source) = 0;
     };
 
-    using CesiumTilesetRequestBus = AZ::EBus<CesiumTilesetRequest>;
+    using TilesetRequestBus = AZ::EBus<CesiumTilesetRequest>;
 } // namespace Cesium
 
 namespace AZ

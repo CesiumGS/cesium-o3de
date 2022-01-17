@@ -1,6 +1,6 @@
 #include "Editor/Components/GeoReferenceTransformEditorComponent.h"
 #include <Cesium/Components/GeoReferenceTransformComponent.h>
-#include <Cesium/EBus/CesiumTilesetComponentBus.h>
+#include <Cesium/EBus/TilesetComponentBus.h>
 #include <Cesium/EBus/LevelCoordinateTransformComponentBus.h>
 #include <Cesium/Math/GeospatialHelper.h>
 #include <Cesium/Math/MathReflect.h>
@@ -87,7 +87,7 @@ namespace Cesium
         m_originChanged = true;
 
         TilesetBoundingVolume boundingVolume = AZStd::monostate{};
-        CesiumTilesetRequestBus::EventResult(boundingVolume, m_sampledEntityId, &CesiumTilesetRequestBus::Handler::GetBoundingVolumeInECEF);
+        TilesetRequestBus::EventResult(boundingVolume, m_sampledEntityId, &TilesetRequestBus::Handler::GetBoundingVolumeInECEF);
         if (auto sphere = AZStd::get_if<BoundingSphere>(&boundingVolume))
         {
             m_originAsCartesian = sphere->m_center;
