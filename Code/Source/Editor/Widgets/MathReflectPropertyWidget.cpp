@@ -1,4 +1,4 @@
-#include "Editor/Widgets/MathDataWidget.h"
+#include "Editor/Widgets/MathReflectPropertyWidget.h"
 #include <Cesium/Math/OrientedBoundingBox.h>
 #include <Cesium/Math/BoundingSphere.h>
 #include <Cesium/Math/BoundingRegion.h>
@@ -6,7 +6,7 @@
 
 namespace Cesium
 {
-    void MathDataWidget::Reflect(AZ::ReflectContext* context)
+    void MathReflectPropertyWidget::Reflect(AZ::ReflectContext* context)
     {
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
@@ -63,7 +63,7 @@ namespace Cesium
         }
     }
 
-    void MathDataWidget::RegisterHandlers()
+    void MathReflectPropertyWidget::RegisterHandlers()
     {
         RegisterHandler(aznew DVector2PropertyHandler());
         RegisterHandler(aznew DVector3PropertyHandler());
@@ -74,7 +74,7 @@ namespace Cesium
         RegisterHandler(aznew DMatrix4PropertyHandler());
     }
 
-    void MathDataWidget::RegisterHandler(AzToolsFramework::PropertyHandlerBase* handle)
+    void MathReflectPropertyWidget::RegisterHandler(AzToolsFramework::PropertyHandlerBase* handle)
     {
         using namespace AzToolsFramework;
 

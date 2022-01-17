@@ -1,9 +1,9 @@
-#include "Editor/Widgets/MatrixWidget.h"
+#include "Editor/Widgets/MatrixInputWidget.h"
 #include <QGridLayout>
 
 namespace Cesium
 {
-    MatrixInput::MatrixInput(QWidget* parent, std::size_t numOfCols, std::size_t numOfRows)
+    MatrixInputWidget::MatrixInputWidget(QWidget* parent, std::size_t numOfCols, std::size_t numOfRows)
         : QWidget(parent)
     {
         // Set up Qt layout
@@ -18,20 +18,20 @@ namespace Cesium
         {
             m_colElements[col] = new AzQtComponents::VectorInput(this, static_cast<int>(numOfRows));
             m_colElements[col]->setDecimals(15);
-            connect(m_colElements[col], &AzQtComponents::VectorInput::valueChanged, this, &MatrixInput::valueChanged);
-            connect(m_colElements[col], &AzQtComponents::VectorInput::editingFinished, this, &MatrixInput::editingFinished);
+            connect(m_colElements[col], &AzQtComponents::VectorInput::valueChanged, this, &MatrixInputWidget::valueChanged);
+            connect(m_colElements[col], &AzQtComponents::VectorInput::editingFinished, this, &MatrixInputWidget::editingFinished);
             layout->addWidget(m_colElements[col]);
         }
 
         pLayout->addLayout(layout, 0, 0);
     }
 
-    void MatrixInput::setValuebyIndex(std::size_t col, std::size_t row, double value)
+    void MatrixInputWidget::setValuebyIndex(std::size_t col, std::size_t row, double value)
     {
         m_colElements[col]->setValuebyIndex(value, static_cast<int>(row));
     }
 
-    void MatrixInput::setMinimum(double value)
+    void MatrixInputWidget::setMinimum(double value)
     {
         for (auto vectorInput : m_colElements)
         {
@@ -39,7 +39,7 @@ namespace Cesium
         }
     }
 
-    void MatrixInput::setMaximum(double value)
+    void MatrixInputWidget::setMaximum(double value)
     {
         for (auto vectorInput : m_colElements)
         {
@@ -47,17 +47,17 @@ namespace Cesium
         }
     }
 
-    QWidget* MatrixInput::GetFirstInTabOrder()
+    QWidget* MatrixInputWidget::GetFirstInTabOrder()
     {
         return m_colElements[0];
     }
 
-    QWidget* MatrixInput::GetLastInTabOrder()
+    QWidget* MatrixInputWidget::GetLastInTabOrder()
     {
         return m_colElements.back();
     }
 
-    void MatrixInput::UpdateTabOrder()
+    void MatrixInputWidget::UpdateTabOrder()
     {
         for (int i = 0; i < m_colElements.size() - 1; i++)
         {

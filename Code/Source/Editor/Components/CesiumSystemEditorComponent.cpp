@@ -5,7 +5,7 @@
 #include "Editor/Components/GeoReferenceTransformEditorComponent.h"
 #include "Editor/Widgets/CesiumIonPanelWidget.h"
 #include "Editor/Widgets/CesiumIonAssetListWidget.h"
-#include "Editor/Widgets/MathDataWidget.h"
+#include "Editor/Widgets/MathReflectPropertyWidget.h"
 #include <Editor/EditorSettingsAPIBus.h>
 #include <AzFramework/Components/CameraBus.h>
 #include <AzToolsFramework/Component/EditorComponentAPIBus.h>
@@ -17,7 +17,7 @@ namespace Cesium
 {
     void CesiumSystemEditorComponent::Reflect(AZ::ReflectContext* context)
     {
-        MathDataWidget::Reflect(context);
+        MathReflectPropertyWidget::Reflect(context);
         if (auto serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
             serializeContext->Class<CesiumSystemEditorComponent, AZ::Component>()
@@ -58,7 +58,7 @@ namespace Cesium
     void CesiumSystemEditorComponent::Activate()
     {
         Q_INIT_RESOURCE(CesiumResources);
-        MathDataWidget::RegisterHandlers();
+        MathReflectPropertyWidget::RegisterHandlers();
         CesiumEditorSystemRequestBus::Handler::BusConnect();
         AzToolsFramework::EditorEvents::Bus::Handler::BusConnect();
         AZ::TickBus::Handler::BusConnect();

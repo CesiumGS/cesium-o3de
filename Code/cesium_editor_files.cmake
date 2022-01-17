@@ -6,10 +6,10 @@ set(FILES
     Source/Editor/Systems/CesiumIonSession.h
     Source/Editor/Systems/CesiumIonSession.cpp
 
-    Source/Editor/Widgets/MatrixWidget.h
-    Source/Editor/Widgets/MatrixWidget.cpp
-    Source/Editor/Widgets/MathDataWidget.h
-    Source/Editor/Widgets/MathDataWidget.cpp
+    Source/Editor/Widgets/MatrixInputWidget.h
+    Source/Editor/Widgets/MatrixInputWidget.cpp
+    Source/Editor/Widgets/MathReflectPropertyWidget.h
+    Source/Editor/Widgets/MathReflectPropertyWidget.cpp
     Source/Editor/Widgets/CesiumIonAssetListWidget.h
     Source/Editor/Widgets/CesiumIonAssetListWidget.cpp
     Source/Editor/Widgets/CesiumIonPanelWidget.h

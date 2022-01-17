@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Editor/Widgets/MatrixWidget.h"
+#include "Editor/Widgets/MatrixInputWidget.h"
 #include <Cesium/Math/MathReflect.h>
 #include <AzToolsFramework/UI/PropertyEditor/PropertyVectorCtrl.hxx>
 #include <glm/glm.hpp>
@@ -8,7 +8,7 @@
 
 namespace Cesium
 {
-    struct MathDataWidget
+    struct MathReflectPropertyWidget
     {
         static void Reflect(AZ::ReflectContext *context);
 
@@ -98,7 +98,7 @@ namespace Cesium
 
     template <typename TypeBeingHandled>
     class DoubleMatrixPropertyHandlerBase
-        : public AzToolsFramework::PropertyHandler<TypeBeingHandled, MatrixInput>
+        : public AzToolsFramework::PropertyHandler<TypeBeingHandled, MatrixInputWidget>
     {
     public:
         DoubleMatrixPropertyHandlerBase(std::size_t numOfCols, std::size_t numOfRows)
@@ -117,32 +117,32 @@ namespace Cesium
             return true;
         }
 
-        QWidget* GetFirstInTabOrder(MatrixInput* widget) override
+        QWidget* GetFirstInTabOrder(MatrixInputWidget* widget) override
         {
             return widget->GetFirstInTabOrder();
         }
 
-        QWidget* GetLastInTabOrder(MatrixInput* widget) override
+        QWidget* GetLastInTabOrder(MatrixInputWidget* widget) override
         {
             return widget->GetLastInTabOrder();
         }
 
-        void UpdateWidgetInternalTabbing(MatrixInput* widget) override
+        void UpdateWidgetInternalTabbing(MatrixInputWidget* widget) override
         {
             widget->UpdateTabOrder();
         }
 
         QWidget* CreateGUI(QWidget* parent) override
         {
-            auto newCtrl = new MatrixInput(parent, m_numOfCols, m_numOfCols);
+            auto newCtrl = new MatrixInputWidget(parent, m_numOfCols, m_numOfCols);
             QObject::connect(
-                newCtrl, &MatrixInput::valueChanged, newCtrl,
+                newCtrl, &MatrixInputWidget::valueChanged, newCtrl,
                 [newCtrl]()
                 {
                     EBUS_EVENT(AzToolsFramework::PropertyEditorGUIMessages::Bus, RequestWrite, newCtrl);
                 });
             newCtrl->connect(
-                newCtrl, &MatrixInput::editingFinished,
+                newCtrl, &MatrixInputWidget::editingFinished,
                 [newCtrl]()
                 {
                     AzToolsFramework::PropertyEditorGUIMessages::Bus::Broadcast(
@@ -155,11 +155,11 @@ namespace Cesium
             return newCtrl;
         }
 
-        void ConsumeAttribute(MatrixInput*, AZ::u32, AzToolsFramework::PropertyAttributeReader*, const char*) override
+        void ConsumeAttribute(MatrixInputWidget*, AZ::u32, AzToolsFramework::PropertyAttributeReader*, const char*) override
         {
         }
 
-        void WriteGUIValuesIntoProperty(size_t, MatrixInput* GUI, TypeBeingHandled& instance, AzToolsFramework::InstanceDataNode*) override
+        void WriteGUIValuesIntoProperty(size_t, MatrixInputWidget* GUI, TypeBeingHandled& instance, AzToolsFramework::InstanceDataNode*) override
         {
             AZStd::vector<AzQtComponents::VectorInput*>& colElements = GUI->getColElements();
             TypeBeingHandled actualValue = instance;
@@ -178,7 +178,7 @@ namespace Cesium
             instance = actualValue;
         }
 
-        bool ReadValuesIntoGUI(size_t, MatrixInput* GUI, const TypeBeingHandled& instance, AzToolsFramework::InstanceDataNode*) override
+        bool ReadValuesIntoGUI(size_t, MatrixInputWidget* GUI, const TypeBeingHandled& instance, AzToolsFramework::InstanceDataNode*) override
         {
             GUI->blockSignals(true);
 
