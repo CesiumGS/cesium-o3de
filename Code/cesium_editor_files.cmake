@@ -30,6 +30,8 @@ set(FILES
     Source/Editor/Components/GeoReferenceCameraFlyControllerEditor.cpp
     Source/Editor/Components/GeoReferenceTransformEditorComponent.h
     Source/Editor/Components/GeoReferenceTransformEditorComponent.cpp
+    Source/Editor/Components/TilesetCreditEditorComponent.h
+    Source/Editor/Components/TilesetCreditEditorComponent.cpp
     Source/Editor/Components/CesiumTilesetEditorComponent.h
     Source/Editor/Components/CesiumTilesetEditorComponent.cpp
 )

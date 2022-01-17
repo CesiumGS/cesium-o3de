@@ -1,19 +1,18 @@
 #pragma once
 
-#include <Cesium/EBus/LevelCoordinateTransformComponentBus.h>
 #include <AzToolsFramework/ToolsComponents/EditorComponentBase.h>
+#include <AzCore/Interface/Interface.h>
 #include <AzCore/Component/EntityId.h>
 #include <AzCore/RTTI/ReflectContext.h>
 #include <AzCore/RTTI/RTTI.h>
 
 namespace Cesium
 {
-    class LevelCoordinateTransformEditorComponent final
+    class TilesetCreditEditorComponent final
         : public AzToolsFramework::Components::EditorComponentBase
-        , public LevelCoordinateTransformRequestBus::Handler
     {
     public:
-        AZ_EDITOR_COMPONENT(LevelCoordinateTransformEditorComponent, "{40988450-F52D-4EA7-8A3E-6AF7990446EF}");
+        AZ_EDITOR_COMPONENT(TilesetCreditEditorComponent, "{3C3A71AF-6B35-4FAE-AD1D-0D21ABF6B7A5}");
 
         static void Reflect(AZ::ReflectContext* context);
 
@@ -25,21 +24,6 @@ namespace Cesium
 
         static void GetDependentServices(AZ::ComponentDescriptor::DependencyArrayType& dependent);
 
-        void Init() override;
-
-        void Activate() override;
-
-        void Deactivate() override;
-
         void BuildGameEntity(AZ::Entity* gameEntity) override;
-
-        AZ::EntityId GetCoordinateTransform() const override;
-
-        void SetCoordinateTransform(const AZ::EntityId& coordinateTransformEntityId) override;
-
-    private:
-        void OnDefaultCoordinateTransformEntityChanged();
-
-        AZ::EntityId m_defaultCoordinateTransformEntityId;
     };
 }
