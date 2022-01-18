@@ -378,18 +378,30 @@ namespace Cesium
 
         void LoadTilesetFromLocalFile(const TilesetLocalFileSource& source)
         {
+            if (source.m_filePath.empty()) {
+                return;
+            }
+
             Cesium3DTilesSelection::TilesetExternals externals = CreateTilesetExternal(IOKind::LocalFile);
             m_tileset = AZStd::make_unique<Cesium3DTilesSelection::Tileset>(externals, source.m_filePath.c_str());
         }
 
         void LoadTilesetFromUrl(const TilesetUrlSource& source)
         {
+            if (source.m_url.empty()) {
+                return;
+            }
+
             Cesium3DTilesSelection::TilesetExternals externals = CreateTilesetExternal(IOKind::Http);
             m_tileset = AZStd::make_unique<Cesium3DTilesSelection::Tileset>(externals, source.m_url.c_str());
         }
 
         void LoadTilesetFromCesiumIon(const TilesetCesiumIonSource& source)
         {
+            if (source.m_cesiumIonAssetToken.empty()) {
+                return;
+            }
+
             Cesium3DTilesSelection::TilesetExternals externals = CreateTilesetExternal(IOKind::Http);
             m_tileset = AZStd::make_unique<Cesium3DTilesSelection::Tileset>(
                 externals, source.m_cesiumIonAssetId, source.m_cesiumIonAssetToken.c_str());

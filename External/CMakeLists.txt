@@ -15,8 +15,8 @@ set(CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_PREFIX}/lib/${CMAKE_SYSTEM_NAME})
 add_subdirectory(CesiumNative)
 set_target_properties(cesium-native-tests PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
 
-set(BUILD_SHARED_LIB OFF)
-set(SUPPORT_CONSOLE_APP OFF)
+set(BUILD_SHARED_LIB OFF CACHE BOOL "Override build shared for TidyHtml5" FORCE)
+set(SUPPORT_CONSOLE_APP OFF CACHE BOOL "Override build console app for TidyHtml5" FORCE)
 set(LIB_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR})
 add_subdirectory(TidyHtml5)
 
