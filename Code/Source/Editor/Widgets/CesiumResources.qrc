@@ -1,0 +1,23 @@
+<!DOCTYPE RCC><RCC version="1.0">
+    <qresource prefix="/Cesium">
+        <file alias="Cesium_logo_only.svg">../../../../Assets/Editor/Icons/Components/Cesium_logo_only.svg</file>
+        <file alias="Cesium_light_color.svg">../../../../Assets/Editor/Icons/Logo/Cesium_light_color.svg</file>
+
+        <file alias="book-reader-solid.svg">../../../../Assets/Editor/Icons/FontAwesome/book-reader-solid.svg</file>
+        <file alias="book-reader-solid-active.svg">../../../../Assets/Editor/Icons/FontAwesome/book-reader-solid-active.svg</file>
+
+        <file alias="cloud-upload-alt-solid.svg">../../../../Assets/Editor/Icons/FontAwesome/cloud-upload-alt-solid.svg</file>
+        <file alias="cloud-upload-alt-solid-active.svg">../../../../Assets/Editor/Icons/FontAwesome/cloud-upload-alt-solid-active.svg</file>
+
+        <file alias="hands-helping-solid.svg">../../../../Assets/Editor/Icons/FontAwesome/hands-helping-solid.svg</file>
+        <file alias="hands-helping-solid-active.svg">../../../../Assets/Editor/Icons/FontAwesome/hands-helping-solid-active.svg</file>
+
+        <file alias="plus-solid.svg">../../../../Assets/Editor/Icons/FontAwesome/plus-solid.svg</file>
+        <file alias="plus-solid-active.svg">../../../../Assets/Editor/Icons/FontAwesome/plus-solid-active.svg</file>
+
+        <file alias="sign-out-alt-solid.svg">../../../../Assets/Editor/Icons/FontAwesome/sign-out-alt-solid.svg</file>
+        <file alias="sign-out-alt-solid-active.svg">../../../../Assets/Editor/Icons/FontAwesome/sign-out-alt-solid-active.svg</file>
+
+        <file alias="sync-alt-solid.svg">../../../../Assets/Editor/Icons/FontAwesome/sync-alt-solid.svg</file>
+    </qresource>
+</RCC>

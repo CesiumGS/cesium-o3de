@@ -1,4 +1,4 @@
 
 set(FILES
-    Source/CesiumEditorModule.cpp
+    Source/Editor/Modules/CesiumEditorModule.cpp
 )

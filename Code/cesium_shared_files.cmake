@@ -1,4 +1,5 @@
 
 set(FILES
-    Source/CesiumModule.cpp
+    Source/Cesium/Modules/CesiumModuleInterface.h
+    Source/Cesium/Modules/CesiumModule.cpp
 )

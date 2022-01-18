@@ -1,8 +1,8 @@
-#include <HttpAssetAccessor.h>
-#include <HttpManager.h>
-#include <CesiumAsync/AsyncSystem.h>
+#include "Cesium/Systems/HttpAssetAccessor.h"
+#include "Cesium/Systems/HttpManager.h"
 #include <AzCore/Memory/PoolAllocator.h>
 #include <AzCore/UnitTest/TestTypes.h>
+#include <CesiumAsync/AsyncSystem.h>
 
 class HttpAssetAccessorTest : public UnitTest::AllocatorsTestFixture
 {
