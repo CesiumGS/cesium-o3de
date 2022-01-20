@@ -69,6 +69,8 @@ set(FILES
     Source/Cesium/EBus/DynamicUiImageComponentBus.cpp
     Source/Cesium/EBus/RasterOverlayContainerBus.h
     Source/Cesium/EBus/RasterOverlayContainerBus.cpp
+    Include/Cesium/EBus/OriginShiftComponentBus.h
+    Source/Cesium/EBus/OriginShiftComponentBus.cpp
     Include/Cesium/EBus/CoordinateTransformComponentBus.h
     Source/Cesium/EBus/CoordinateTransformComponentBus.cpp
     Include/Cesium/EBus/LevelCoordinateTransformComponentBus.h
@@ -94,6 +96,8 @@ set(FILES
     Source/Cesium/Components/BingRasterOverlayComponent.cpp
     Include/Cesium/Components/TMSRasterOverlayComponent.h
     Source/Cesium/Components/TMSRasterOverlayComponent.cpp
+    Include/Cesium/Components/OriginShiftComponent.h
+    Source/Cesium/Components/OriginShiftComponent.cpp
     Include/Cesium/Components/GeoReferenceTransformComponent.h
     Source/Cesium/Components/GeoReferenceTransformComponent.cpp
     Include/Cesium/Components/GeoReferenceCameraFlyController.h
