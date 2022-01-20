@@ -43,3 +43,19 @@ cmake --build Build --config release --target install
 - Open the O3DE project manager, click on `Add Existing Gem` in the `Configure Gems` panel 
 - Select the cloned directory containing the Cesium Gem
 - In the `Configure Gems` panel, enable the `Cesium Gem`
+
+### **Getting Started**
+
+#### **Add Georeference**
+- Before being able to view 3D Tiles in the global scale, you will need to setup georeference entity for the level. The entity will place the engine coordinate origin to be at a particular place on the globe. It ensures that objects near the viewer can be represented very precisely. Below is the instruction to add georeference to the level:
+  + In the level entity, which is the very top entity in the `Entity Outliner`, click on `Add Component`, then search for and add the `Level Coordinate Transform` component to the entity
+  + Then, right click on the level entity and choose `Create entity`. For the newly-created entity, add `Georeference` component into it.
+  + Within the `Georeference` component, you can use ECEF cartesian or cartographic to specify where on the globe you want to place the O3DE coordinate origin. For example, if you want to the O3DE coordinate origin to be at New York City, in the `Origin` group, choose `Cartographic` type. Then, enter `Longitude` to be -73.99 deg, `Latitude` to be 40.736 deg, and `Height` to be 20.0 m. Finally, click on `Set As Level Georeference`. Every entity that you add to the editor will have the position relative to this coordinate, or relative to the New York City area.
+  + You can have multiple georeference entities in the scene, but at most there is only one active georeference at a time. You can specify which georeference entity to be an active georeference in the level by clicking `Set As Level Georeference` in the UI of `Georeference` component. To view which georeference entity is currently active, click on Level entity, and this info is saved in the `Level Coordinate Transform` component. 
+
+#### **Add Cesium World Terrain**
+- In the Entity Outliner, righ click and choose `Create Entity`. Please make sure that this entity is highlighted in the Entity Outliner, so that we can add Cesium World Terrain `3D Tile` component to this entity
+- Click on the Cesium logo in the tool bar menu to open Cesium Ion panel.
+- In the Cesium Ion panel, login to your Cesium Ion account to see Cesium World Terrain
+- Once successfully login to your account, you will see `Quick Add Cesium Ion Assets` with the option to add Cesium World Terrain with different imageries.
+- Click the plus symbol to add 3D tile component to the currently highlighted entity.
