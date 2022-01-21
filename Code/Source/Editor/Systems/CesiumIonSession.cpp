@@ -121,7 +121,7 @@ namespace Cesium
         this->m_isConnecting = true;
 
         CesiumIonClient::Connection::authorize(
-            this->m_asyncSystem, this->m_assetAccessor, "Cesium for Unreal", 190, "/cesium-for-unreal/oauth2/callback",
+            this->m_asyncSystem, this->m_assetAccessor, "Cesium for O3DE", 296, "/cesium-for-o3de/oauth2/callback",
             { "assets:list", "assets:read", "profile:read", "tokens:read", "tokens:write", "geocode" },
             [this](const std::string& url)
             {
