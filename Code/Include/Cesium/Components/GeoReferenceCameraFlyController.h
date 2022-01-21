@@ -106,5 +106,7 @@ namespace Cesium
         glm::dvec3 m_cameraMovement;
         bool m_cameraRotateUpdate;
         bool m_cameraMoveUpdate;
+
+        static constexpr double ORIGIN_SHIFT_DISTANCE = 10000.0;
     };
 } // namespace Cesium

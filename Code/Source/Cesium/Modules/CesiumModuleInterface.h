@@ -31,9 +31,10 @@ namespace Cesium
             // EditContext. This happens through the [MyComponent]::Reflect() function.
             m_descriptors.insert(
                 m_descriptors.end(),
-                { CesiumSystemComponent::CreateDescriptor(), OriginShiftAnchorComponent::CreateDescriptor(),
-                  LevelCoordinateTransformComponent::CreateDescriptor(), DynamicUiImageComponent::CreateDescriptor(),
-                  TilesetCreditComponent::CreateDescriptor(), TilesetComponent::CreateDescriptor(), GltfModelComponent::CreateDescriptor(),
+                { CesiumSystemComponent::CreateDescriptor(), OriginShiftComponent::CreateDescriptor(),
+                  OriginShiftAnchorComponent::CreateDescriptor(), LevelCoordinateTransformComponent::CreateDescriptor(),
+                  DynamicUiImageComponent::CreateDescriptor(), TilesetCreditComponent::CreateDescriptor(),
+                  TilesetComponent::CreateDescriptor(), GltfModelComponent::CreateDescriptor(),
                   GeoReferenceTransformComponent::CreateDescriptor(), GeoReferenceCameraFlyController::CreateDescriptor(),
                   RasterOverlayComponent::CreateDescriptor(), BingRasterOverlayComponent::CreateDescriptor(),
                   CesiumIonRasterOverlayComponent::CreateDescriptor(), TMSRasterOverlayComponent::CreateDescriptor() });
