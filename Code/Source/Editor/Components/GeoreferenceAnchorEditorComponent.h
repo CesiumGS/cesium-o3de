@@ -1,14 +1,15 @@
 #pragma once
 
+#include <Cesium/Components/GeoreferenceAnchorComponent.h>
 #include <AzToolsFramework/ToolsComponents/EditorComponentBase.h>
 #include <glm/glm.hpp>
 
 namespace Cesium
 {
-    class OriginShiftEditorComponent : public AzToolsFramework::Components::EditorComponentBase
+    class GeoreferenceAnchorEditorComponent : public AzToolsFramework::Components::EditorComponentBase
     {
     public:
-        AZ_EDITOR_COMPONENT(OriginShiftEditorComponent, "{F4D6A82E-E6C6-464E-98FB-5E7AF89D0198}");
+        AZ_EDITOR_COMPONENT(GeoreferenceAnchorEditorComponent, "{7AB3E249-581D-49C5-B738-58DFE8155C9C}");
 
         static void Reflect(AZ::ReflectContext* context);
 
@@ -20,7 +21,7 @@ namespace Cesium
 
         static void GetDependentServices(AZ::ComponentDescriptor::DependencyArrayType& dependent);
 
-        OriginShiftEditorComponent();
+        GeoreferenceAnchorEditorComponent();
 
         void BuildGameEntity(AZ::Entity* gameEntity) override;
 
@@ -31,6 +32,9 @@ namespace Cesium
 
         void Deactivate() override;
 
-        glm::dvec3 m_origin{0.0};
+        AZ::u32 OnCoordinateChange();
+
+        GeoreferenceAnchorComponent m_georeferenceAnchorComponent;
+        glm::dvec3 m_o3dePosition{0.0};
     };
 }

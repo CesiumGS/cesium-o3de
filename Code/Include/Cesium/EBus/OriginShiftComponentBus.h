@@ -48,7 +48,7 @@ namespace Cesium
             {
                 AZ::EBusConnectionPolicy<Bus>::Connect(busPtr, context, handler, connectLock, id);
 
-                glm::dvec3 origin;
+                glm::dvec3 origin{0.0};
                 OriginShiftRequestBus::BroadcastResult(origin, &OriginShiftRequestBus::Events::GetOrigin);
                 handler->OnOriginShifting(origin);
             }
@@ -62,14 +62,4 @@ namespace Cesium
     };
 
     using OriginShiftNotificationBus = AZ::EBus<OriginShiftNotification, OriginShiftNotificationEBusTraits>;
-
-    class OriginShiftAnchorRequest : public AZ::ComponentBus
-    {
-    public:
-        virtual glm::dvec3 GetCoordinate() const = 0;
-
-        virtual void SetCoordinate(const glm::dvec3& coord) = 0;
-    };
-
-    using OriginShiftAnchorRequestBus = AZ::EBus<OriginShiftAnchorRequest>;
 } // namespace Cesium

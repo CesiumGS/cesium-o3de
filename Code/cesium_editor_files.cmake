@@ -18,6 +18,8 @@ set(FILES
 
     Source/Editor/Components/OriginShiftEditorComponent.h
     Source/Editor/Components/OriginShiftEditorComponent.cpp
+    Source/Editor/Components/GeoreferenceAnchorEditorComponent.h
+    Source/Editor/Components/GeoreferenceAnchorEditorComponent.cpp
     Source/Editor/Components/LevelCoordinateTransformEditorComponent.h
     Source/Editor/Components/LevelCoordinateTransformEditorComponent.cpp
     Source/Editor/Components/CesiumIonRasterOverlayEditorComponent.h
