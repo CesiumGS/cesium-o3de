@@ -1,7 +1,6 @@
 #pragma once
 
-#include <Cesium/EBus/CoordinateTransformComponentBus.h>
-#include <Cesium/Math/Cartographic.h>
+#include "Editor/Components/ECEFPickerComponentHelper.h"
 #include <AzToolsFramework/ToolsComponents/EditorComponentBase.h>
 #include <AzCore/std/smart_ptr/unique_ptr.h>
 
@@ -11,55 +10,6 @@ namespace Cesium
 
     class GeoReferenceTransformEditorComponent : public AzToolsFramework::Components::EditorComponentBase
     {
-        enum class OriginType
-        {
-            Cartesian,
-            Cartographic,
-        };
-
-        enum class SampleOriginMethod
-        {
-            EntityCoordinate,
-            CameraPosition
-        };
-
-        struct DegreeCartographic final
-        {
-            AZ_RTTI(DegreeCartographic, "{477784B5-7A3D-4721-88CD-99A147BABFB0}");
-            AZ_CLASS_ALLOCATOR(DegreeCartographic, AZ::SystemAllocator, 0);
-
-            static void Reflect(AZ::ReflectContext* context);
-
-            DegreeCartographic();
-
-            DegreeCartographic(double longitude, double latitude, double height);
-
-            double m_longitude;
-            double m_latitude;
-            double m_height;
-        };
-
-        struct SampleOriginGroup final
-        {
-            AZ_RTTI(SampleOriginGroup, "{F8AAE323-83AC-4B8B-8BB8-D3CD27DD85E2}");
-            AZ_CLASS_ALLOCATOR(SampleOriginGroup, AZ::SystemAllocator, 0);
-
-            static void Reflect(AZ::ReflectContext* context);
-
-            void OnOriginAsEntityCoordinateChanged();
-
-            void OnOriginAsCameraPosition();
-
-            bool UseOriginAsCameraPosition();
-
-            bool UseOriginAsEntityCoordinate();
-
-            SampleOriginMethod m_sampleOriginMethod;
-            AZ::EntityId m_sampledEntityId;
-            glm::dvec3 m_originAsCartesian{0.0};
-            bool m_originChanged{ false };
-        };
-
     public:
         AZ_EDITOR_COMPONENT(GeoReferenceTransformEditorComponent, "{FAA94692-4A4E-45AD-8225-EF8BE81CB949}");
 
@@ -84,24 +34,12 @@ namespace Cesium
 
         void Deactivate() override;
 
-        AZ::u32 OnOriginAsCartesianChanged();
-
-        AZ::u32 OnOriginAsCartographicChanged();
-
-        AZ::u32 OnSampleOriginChanged();
-
         void OnSetAsLevelGeoreferencePressed();
 
         void MoveViewportsToOrigin();
 
-        bool UseOriginAsCartesian();
-
-        bool UseOriginAsCartographic();
-
         AZStd::unique_ptr<GeoReferenceTransformComponent> m_georeferenceComponent;
-        OriginType m_originType;
-        glm::dvec3 m_originAsCartesian{0.0};
-        DegreeCartographic m_originAsCartographic{};
-        SampleOriginGroup m_sampleOriginGroup;
+        ECEFPickerComponentHelper m_ecefPicker;
+        ECEFPositionChangeEvent::Handler m_positionChangeHandler;
     };
 } // namespace Cesium

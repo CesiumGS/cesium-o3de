@@ -16,6 +16,8 @@ set(FILES
     Source/Editor/Widgets/CesiumIonPanelWidget.cpp
     Source/Editor/Widgets/CesiumResources.qrc
 
+    Source/Editor/Components/ECEFPickerComponentHelper.h
+    Source/Editor/Components/ECEFPickerComponentHelper.cpp
     Source/Editor/Components/OriginShiftEditorComponent.h
     Source/Editor/Components/OriginShiftEditorComponent.cpp
     Source/Editor/Components/GeoreferenceAnchorEditorComponent.h

@@ -3,6 +3,7 @@
 #include "Editor/Components/CesiumIonRasterOverlayEditorComponent.h"
 #include "Editor/Components/GeoReferenceCameraFlyControllerEditor.h"
 #include "Editor/Components/GeoReferenceTransformEditorComponent.h"
+#include "Editor/Components/ECEFPickerComponentHelper.h"
 #include "Editor/Widgets/CesiumIonPanelWidget.h"
 #include "Editor/Widgets/CesiumIonAssetListWidget.h"
 #include "Editor/Widgets/MathReflectPropertyWidget.h"
@@ -18,6 +19,7 @@ namespace Cesium
     void CesiumSystemEditorComponent::Reflect(AZ::ReflectContext* context)
     {
         MathReflectPropertyWidget::Reflect(context);
+        ECEFPickerComponentHelper::Reflect(context);
         if (auto serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
             serializeContext->Class<CesiumSystemEditorComponent, AZ::Component>()
