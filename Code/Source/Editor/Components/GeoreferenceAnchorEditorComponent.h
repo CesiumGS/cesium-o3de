@@ -3,11 +3,14 @@
 #include "Editor/Components/ECEFPickerComponentHelper.h"
 #include <Cesium/Components/GeoreferenceAnchorComponent.h>
 #include <AzToolsFramework/ToolsComponents/EditorComponentBase.h>
+#include <AzCore/Component/TransformBus.h>
 #include <glm/glm.hpp>
 
 namespace Cesium
 {
-    class GeoreferenceAnchorEditorComponent : public AzToolsFramework::Components::EditorComponentBase
+    class GeoreferenceAnchorEditorComponent 
+        : public AzToolsFramework::Components::EditorComponentBase
+        , public AZ::TransformNotificationBus::Handler
     {
     public:
         AZ_EDITOR_COMPONENT(GeoreferenceAnchorEditorComponent, "{7AB3E249-581D-49C5-B738-58DFE8155C9C}");
@@ -33,10 +36,15 @@ namespace Cesium
 
         void Deactivate() override;
 
+        void PlaceWorldOriginHere();
+
+        void OnTransformChanged(const AZ::Transform&, const AZ::Transform& world) override;
+
         GeoreferenceAnchorComponent m_georeferenceAnchorComponent;
         ECEFPickerComponentHelper m_ecefPicker;
         glm::dvec3 m_o3dePosition{0.0};
 
+        bool m_selfTransform{ false };
         ECEFPositionChangeEvent::Handler m_positionChangeHandler;
     };
 }

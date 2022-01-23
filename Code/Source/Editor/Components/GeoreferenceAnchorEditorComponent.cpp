@@ -1,8 +1,13 @@
 #include "Editor/Components/GeoreferenceAnchorEditorComponent.h"
+#include <Cesium/EBus/OriginShiftComponentBus.h>
 #include <Cesium/EBus/CoordinateTransformComponentBus.h>
 #include <Cesium/EBus/LevelCoordinateTransformComponentBus.h>
 #include <Cesium/Math/MathReflect.h>
+#include <Cesium/Math/MathHelper.h>
 #include <AzToolsFramework/API/ToolsApplicationAPI.h>
+#include <AtomToolsFramework/Viewport/ModularViewportCameraControllerRequestBus.h>
+#include <Atom/RPI.Public/ViewportContext.h>
+#include <Atom/RPI.Public/ViewportContextBus.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/EditContext.h>
 
@@ -29,6 +34,10 @@ namespace Cesium
                         ->Attribute(AZ::Edit::Attributes::ViewportIcon, "Editor/Icons/Components/Cesium_logo_only.svg")
                         ->Attribute(AZ::Edit::Attributes::AppearsInAddComponentMenu, AZ_CRC("Game", 0x232b318c))
                         ->Attribute(AZ::Edit::Attributes::AutoExpand, true)
+                    ->UIElement(AZ::Edit::UIHandlers::Button, "Place World Origin Here", "")
+                        ->Attribute(AZ::Edit::Attributes::NameLabelOverride, "")
+                        ->Attribute(AZ::Edit::Attributes::ButtonText, "Place World Origin Here")
+                        ->Attribute(AZ::Edit::Attributes::ChangeNotify, &GeoreferenceAnchorEditorComponent::PlaceWorldOriginHere)
                     ->DataElement(AZ::Edit::UIHandlers::Default, &GeoreferenceAnchorEditorComponent::m_ecefPicker, "Anchor", "")
                     ;
             }
@@ -98,6 +107,8 @@ namespace Cesium
         m_georeferenceAnchorComponent.SetCoordinate(m_o3dePosition);
 
         m_positionChangeHandler.Connect(m_ecefPicker.m_onPositionChangeEvent);
+
+        AZ::TransformNotificationBus::Handler::BusConnect(GetEntityId());
     }
 
     void GeoreferenceAnchorEditorComponent::Deactivate()
@@ -105,5 +116,29 @@ namespace Cesium
         m_positionChangeHandler.Disconnect();
         m_georeferenceAnchorComponent.Deactivate();
         m_georeferenceAnchorComponent.SetEntity(nullptr);
+
+        AZ::TransformNotificationBus::Handler::BusDisconnect();
+    }
+
+    void GeoreferenceAnchorEditorComponent::PlaceWorldOriginHere()
+    {
+        OriginShiftRequestBus::Broadcast(&OriginShiftRequestBus::Events::SetOrigin, m_o3dePosition);
+    }
+
+    void GeoreferenceAnchorEditorComponent::OnTransformChanged(const AZ::Transform& local, const AZ::Transform&)
+    {
+        if (m_selfTransform)
+        {
+            m_selfTransform = false;
+            return;
+        }
+
+        m_selfTransform = true;
+        AzToolsFramework::ScopedUndoBatch undoBatch("Change Anchor Position");
+        glm::dvec3 origin{ 0.0 };
+        OriginShiftRequestBus::BroadcastResult(origin, &OriginShiftRequestBus::Events::GetOrigin);
+        m_o3dePosition = origin + MathHelper::ToDVec3(local.GetTranslation());
+        m_georeferenceAnchorComponent.SetCoordinate(m_o3dePosition);
+        undoBatch.MarkEntityDirty(GetEntityId());
     }
 }

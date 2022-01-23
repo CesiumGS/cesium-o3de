@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Cesium/Components/OriginShiftComponent.h>
 #include <AzToolsFramework/ToolsComponents/EditorComponentBase.h>
 #include <glm/glm.hpp>
 
@@ -31,6 +32,7 @@ namespace Cesium
 
         void Deactivate() override;
 
+        OriginShiftComponent m_originShiftComponent;
         glm::dvec3 m_origin{0.0};
     };
 }
