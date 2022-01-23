@@ -102,7 +102,7 @@ namespace Cesium
             static_cast<float>(enuToO3DE.x), static_cast<float>(enuToO3DE.y), static_cast<float>(enuToO3DE.z),
             static_cast<float>(enuToO3DE.w));
         AZ::Transform azTransform = AZ::Transform::CreateFromQuaternionAndTranslation(azRotation, azTranslation);
-        AZ::TransformBus::Event(GetEntityId(), &AZ::TransformBus::Events::SetLocalTM, azTransform);
+        AZ::TransformBus::Event(GetEntityId(), &AZ::TransformBus::Events::SetWorldTM, azTransform);
     }
 
 	void GeoreferenceAnchorComponent::OnCoordinateTransformChange(const AZ::EntityId& coordinateTransformEntityId)

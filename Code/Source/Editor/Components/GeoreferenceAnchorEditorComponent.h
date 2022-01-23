@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Editor/Components/ECEFPickerComponentHelper.h"
 #include <Cesium/Components/GeoreferenceAnchorComponent.h>
 #include <AzToolsFramework/ToolsComponents/EditorComponentBase.h>
 #include <glm/glm.hpp>
@@ -32,9 +33,10 @@ namespace Cesium
 
         void Deactivate() override;
 
-        AZ::u32 OnCoordinateChange();
-
         GeoreferenceAnchorComponent m_georeferenceAnchorComponent;
+        ECEFPickerComponentHelper m_ecefPicker;
         glm::dvec3 m_o3dePosition{0.0};
+
+        ECEFPositionChangeEvent::Handler m_positionChangeHandler;
     };
 }
