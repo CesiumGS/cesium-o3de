@@ -54,14 +54,10 @@ namespace Cesium
 
     void OriginShiftEditorComponent::BuildGameEntity(AZ::Entity* gameEntity)
     {
-        m_originShiftComponent.Deactivate();
-
         auto originShiftComponent = gameEntity->CreateComponent<OriginShiftComponent>();
         originShiftComponent->SetEntity(gameEntity);
         originShiftComponent->Init();
-        originShiftComponent->Activate();
         originShiftComponent->SetOrigin(m_origin);
-        originShiftComponent->Deactivate();
     }
 
     void OriginShiftEditorComponent::Init()
