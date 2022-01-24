@@ -1,6 +1,9 @@
 #include "Editor/Components/OriginShiftEditorComponent.h"
-#include <Cesium/Components/OriginShiftComponent.h>
 #include <Cesium/Math/MathReflect.h>
+#include <AzToolsFramework/API/ToolsApplicationAPI.h>
+#include <AtomToolsFramework/Viewport/ModularViewportCameraControllerRequestBus.h>
+#include <Atom/RPI.Public/ViewportContext.h>
+#include <Atom/RPI.Public/ViewportContextBus.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/EditContext.h>
 
@@ -66,15 +69,61 @@ namespace Cesium
 
     void OriginShiftEditorComponent::Activate()
     {
-        m_originShiftComponent.SetEntity(GetEntity());
-        m_originShiftComponent.Init();
-        m_originShiftComponent.Activate();
-        m_originShiftComponent.SetOrigin(m_origin);
+        OriginShiftRequestBus::Handler::BusConnect();
+        OriginShiftNotificationBus::Broadcast(&OriginShiftNotificationBus::Events::OnOriginShifting, m_origin);
     }
 
     void OriginShiftEditorComponent::Deactivate()
     {
-        m_originShiftComponent.Deactivate();
-        m_originShiftComponent.SetEntity(nullptr);
+        OriginShiftRequestBus::Handler::BusDisconnect();
+    }
+
+    glm::dvec3 OriginShiftEditorComponent::GetOrigin() const
+    {
+        return m_origin;
+    }
+
+    void OriginShiftEditorComponent::SetOrigin(const glm::dvec3& origin)
+    {
+        using namespace AzToolsFramework;
+        ScopedUndoBatch undoBatch("Change World Origin");
+
+        m_origin = origin;
+        OriginShiftNotificationBus::Broadcast(&OriginShiftNotificationBus::Events::OnOriginShifting, m_origin);
+
+        PropertyEditorGUIMessages::Bus::Broadcast(
+            &PropertyEditorGUIMessages::RequestRefresh, PropertyModificationRefreshLevel::Refresh_AttributesAndValues);
+        undoBatch.MarkEntityDirty(GetEntityId());
+
+        MoveCameraToOrigin();
+    }
+
+    void OriginShiftEditorComponent::ShiftOrigin(const glm::dvec3& shiftAmount)
+    {
+        using namespace AzToolsFramework;
+		ScopedUndoBatch undoBatch("Change World Origin");
+
+        m_origin += shiftAmount;
+        OriginShiftNotificationBus::Broadcast(&OriginShiftNotificationBus::Events::OnOriginShifting, m_origin);
+
+        PropertyEditorGUIMessages::Bus::Broadcast(
+            &PropertyEditorGUIMessages::RequestRefresh, PropertyModificationRefreshLevel::Refresh_AttributesAndValues);
+        undoBatch.MarkEntityDirty(GetEntityId());
+
+        MoveCameraToOrigin();
+    }
+
+    void OriginShiftEditorComponent::MoveCameraToOrigin()
+    {
+        using namespace AtomToolsFramework;
+        auto viewportContextManager = AZ::Interface<AZ::RPI::ViewportContextRequestsInterface>::Get();
+        viewportContextManager->EnumerateViewportContexts(
+            [](AZ::RPI::ViewportContextPtr viewportContextPtr)
+            {
+                AtomToolsFramework::ModularViewportCameraControllerRequestBus::Event(
+                    viewportContextPtr->GetId(),
+                    &AtomToolsFramework::ModularViewportCameraControllerRequestBus::Events::InterpolateToTransform,
+                    AZ::Transform::CreateIdentity());
+            });
     }
 } // namespace Cesium

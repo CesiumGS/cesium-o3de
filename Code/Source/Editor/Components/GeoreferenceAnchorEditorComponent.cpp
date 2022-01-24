@@ -3,9 +3,6 @@
 #include <Cesium/Math/MathReflect.h>
 #include <Cesium/Math/MathHelper.h>
 #include <AzToolsFramework/API/ToolsApplicationAPI.h>
-#include <AtomToolsFramework/Viewport/ModularViewportCameraControllerRequestBus.h>
-#include <Atom/RPI.Public/ViewportContext.h>
-#include <Atom/RPI.Public/ViewportContextBus.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/EditContext.h>
 

@@ -1,12 +1,15 @@
 #pragma once
 
+#include <Cesium/EBus/OriginShiftComponentBus.h>
 #include <Cesium/Components/OriginShiftComponent.h>
 #include <AzToolsFramework/ToolsComponents/EditorComponentBase.h>
 #include <glm/glm.hpp>
 
 namespace Cesium
 {
-    class OriginShiftEditorComponent : public AzToolsFramework::Components::EditorComponentBase
+    class OriginShiftEditorComponent 
+        : public AzToolsFramework::Components::EditorComponentBase
+        , public OriginShiftRequestBus::Handler
     {
     public:
         AZ_EDITOR_COMPONENT(OriginShiftEditorComponent, "{F4D6A82E-E6C6-464E-98FB-5E7AF89D0198}");
@@ -32,7 +35,14 @@ namespace Cesium
 
         void Deactivate() override;
 
-        OriginShiftComponent m_originShiftComponent;
+        glm::dvec3 GetOrigin() const override;
+
+        void SetOrigin(const glm::dvec3& origin) override;
+
+        void ShiftOrigin(const glm::dvec3& shiftAmount) override;
+
+        void MoveCameraToOrigin();
+
         glm::dvec3 m_origin{0.0};
     };
 }
