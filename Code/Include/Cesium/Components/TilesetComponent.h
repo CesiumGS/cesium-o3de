@@ -15,7 +15,6 @@ namespace Cesium
     class TilesetComponent
         : public AZ::Component
         , public AZ::TickBus::Handler
-        , public AZ::EntityBus::Handler
         , public AzFramework::BoundsRequestBus::Handler
         , public TilesetRequestBus::Handler
     {

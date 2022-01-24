@@ -280,8 +280,9 @@ namespace Cesium
 
         Impl(const AZ::EntityId& selfEntity, const TilesetSource& tilesetSource)
             : m_selfEntity{selfEntity}
-            , m_absO3DETransform{ 1.0 }
-            , m_O3DETransform{ 1.0 }
+            , m_relTransform{ 1.0 }
+            , m_absTransform{ 1.0 }
+            , m_transform{ 1.0 }
             , m_origin{ 0.0 }
             , m_configFlags{ ConfigurationDirtyFlags::None }
         {
@@ -400,8 +401,9 @@ namespace Cesium
 
         void SetWorldTransform(const AZ::Transform& world, const AZ::Vector3& nonUniformScale)
         {
-            m_O3DETransform = MathHelper::ConvertTransformAndScaleToDMat4(world, nonUniformScale);
+            m_transform = MathHelper::ConvertTransformAndScaleToDMat4(world, nonUniformScale);
             m_configFlags |= ConfigurationDirtyFlags::TransformChange;
+            FlushTransformChange();
         }
 
         void SetNonUniformScale(const AZ::Vector3& scale)
@@ -489,9 +491,10 @@ namespace Cesium
 
             glm::dmat4 originTranslate = glm::translate(glm::dmat4(1.0), -m_origin); 
             glm::dvec3 center = Cesium3DTilesSelection::getBoundingVolumeCenter(root->getBoundingVolume());
-            m_absO3DETransform = glm::translate(originTranslate, center) * glm::translate(m_O3DETransform, -center);
-            m_renderResourcesPreparer->SetTransform(m_absO3DETransform);
-            m_cameraConfigurations.SetTransform(glm::affineInverse(m_absO3DETransform));
+            m_absTransform = glm::translate(glm::dmat4(1.0), center) * glm::translate(m_transform, -center);
+            m_relTransform = originTranslate * m_absTransform;
+            m_renderResourcesPreparer->SetTransform(m_relTransform);
+            m_cameraConfigurations.SetTransform(glm::affineInverse(m_relTransform));
             m_configFlags = m_configFlags & ~ConfigurationDirtyFlags::TransformChange;
         }
 
@@ -525,8 +528,9 @@ namespace Cesium
         RasterOverlayContainerLoadedEvent m_tilesetLoadedEvent;
         RasterOverlayContainerLoadedEvent m_tilesetUnloadedEvent;
         AZ::NonUniformScaleChangedEvent::Handler m_nonUniformScaleChangedHandler;
-        glm::dmat4 m_absO3DETransform;
-        glm::dmat4 m_O3DETransform;
+        glm::dmat4 m_relTransform;
+        glm::dmat4 m_absTransform;
+        glm::dmat4 m_transform;
         glm::dvec3 m_origin;
         int m_configFlags;
     };
@@ -613,7 +617,7 @@ namespace Cesium
         }
 
         return std::visit(
-            BoundingVolumeToAABB{ m_impl->m_absO3DETransform },
+            BoundingVolumeToAABB{ m_impl->m_relTransform },
             rootTile->getBoundingVolume());
     }
 
@@ -646,13 +650,8 @@ namespace Cesium
             return AZStd::monostate{};
         }
 
-        if (MathHelper::IsIdentityMatrix(m_impl->m_O3DETransform))
-        {
-            return std::visit(BoundingVolumeConverter{}, rootTile->getBoundingVolume());
-        }
-
         return std::visit(
-            BoundingVolumeTransform{ m_impl->m_absO3DETransform },
+            BoundingVolumeTransform{ m_impl->m_absTransform },
             rootTile->getBoundingVolume());
     }
 
