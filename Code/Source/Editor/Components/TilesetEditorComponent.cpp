@@ -1,5 +1,12 @@
 #include "Editor/Components/TilesetEditorComponent.h"
 #include <Cesium/Components/TilesetComponent.h>
+#include <Cesium/EBus/OriginShiftComponentBus.h>
+#include <Cesium/Math/Cartographic.h>
+#include <Cesium/Math/GeospatialHelper.h>
+#include <Cesium/Math/OrientedBoundingBox.h>
+#include <Cesium/Math/BoundingRegion.h>
+#include <Cesium/Math/BoundingSphere.h>
+#include <Cesium/Math/MathReflect.h>
 #include <AzToolsFramework/UI/PropertyEditor/PropertyEditorAPI.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/EditContext.h>
@@ -32,6 +39,10 @@ namespace Cesium
                         ->Attribute(AZ::Edit::Attributes::ViewportIcon, "Editor/Icons/Components/Cesium_logo_only.svg")
                         ->Attribute(AZ::Edit::Attributes::AppearsInAddComponentMenu, AZ_CRC("Game", 0x232b318c))
                         ->Attribute(AZ::Edit::Attributes::AutoExpand, true)
+                    ->UIElement(AZ::Edit::UIHandlers::Button, "Place World Origin Here", "")
+                        ->Attribute(AZ::Edit::Attributes::NameLabelOverride, "")
+                        ->Attribute(AZ::Edit::Attributes::ButtonText, "Place World Origin Here")
+                        ->Attribute(AZ::Edit::Attributes::ChangeNotify, &TilesetEditorComponent::PlaceWorldOriginHere)
                     ->DataElement(AZ::Edit::UIHandlers::Default, &TilesetEditorComponent::m_tilesetSource, "Source", "")
                         ->Attribute(AZ::Edit::Attributes::Visibility, AZ::Edit::PropertyVisibility::ShowChildrenOnly)
                         ->Attribute(AZ::Edit::Attributes::ChangeNotify, &TilesetEditorComponent::OnTilesetSourceChanged)
@@ -168,5 +179,34 @@ namespace Cesium
 
         m_tilesetComponent->SetConfiguration(m_tilesetConfiguration);
         return AZ::Edit::PropertyRefreshLevels::None;
+    }
+
+    void TilesetEditorComponent::PlaceWorldOriginHere()
+    {
+        if (!m_tilesetComponent)
+        {
+            return;
+        }
+
+        glm::dvec3 origin{0.0};
+        TilesetBoundingVolume boundingVolume = m_tilesetComponent->GetBoundingVolumeInECEF();
+        if (auto sphere = AZStd::get_if<BoundingSphere>(&boundingVolume))
+        {
+            origin = sphere->m_center;
+        }
+        else if (auto obb = AZStd::get_if<OrientedBoundingBox>(&boundingVolume))
+        {
+            origin = obb->m_center;
+        }
+        else if (auto region = AZStd::get_if<BoundingRegion>(&boundingVolume))
+        {
+            auto cartoCenter = Cartographic(
+                (region->m_east + region->m_west) / 2.0, (region->m_north + region->m_south) / 2.0,
+                (region->m_minHeight + region->m_maxHeight) / 2.0);
+            auto center = GeospatialHelper::CartographicToECEFCartesian(cartoCenter);
+            origin = center;
+        }
+
+        OriginShiftRequestBus::Broadcast(&OriginShiftRequestBus::Events::SetOrigin, origin);
     }
 } // namespace Cesium

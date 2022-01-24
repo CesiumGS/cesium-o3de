@@ -41,6 +41,8 @@ namespace Cesium
 
         AZ::u32 OnTilesetConfigurationChanged();
 
+        void PlaceWorldOriginHere();
+
         AZStd::unique_ptr<TilesetComponent> m_tilesetComponent;
         TilesetConfiguration m_tilesetConfiguration;
         TilesetSource m_tilesetSource;
