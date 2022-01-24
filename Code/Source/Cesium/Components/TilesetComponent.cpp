@@ -1,4 +1,5 @@
 #include <Cesium/Components/TilesetComponent.h>
+#include <Cesium/EBus/OriginShiftComponentBus.h>
 #include <Cesium/EBus/CoordinateTransformComponentBus.h>
 #include "Cesium/EBus/RasterOverlayContainerBus.h"
 #include "Cesium/TilesetUtility/RenderResourcesPreparer.h"
@@ -268,6 +269,7 @@ namespace Cesium
         : public RasterOverlayContainerRequestBus::Handler
         , private AZ::TransformNotificationBus::Handler
         , private AZ::EntityBus::Handler
+        , private OriginShiftNotificationBus::Handler
     {
         enum ConfigurationDirtyFlags
         {
@@ -281,6 +283,7 @@ namespace Cesium
         Impl(const AZ::EntityId& selfEntity, const AZ::EntityId& coordinateTransformEntityId, const TilesetSource& tilesetSource)
             : m_selfEntity{selfEntity}
             , m_O3DETransform{ 1.0 }
+            , m_origin{ 0.0 }
             , m_configFlags{ ConfigurationDirtyFlags::None }
         {
             m_cesiumTransformChangeHandler = TransformChangeEvent::Handler(
@@ -317,10 +320,12 @@ namespace Cesium
             ConnectCoordinateTransformEntityEvents(coordinateTransformEntityId);
 
             RasterOverlayContainerRequestBus::Handler::BusConnect(m_selfEntity);
+            OriginShiftNotificationBus::Handler::BusConnect();
         }
 
         ~Impl() noexcept
         {
+            OriginShiftNotificationBus::Handler::BusDisconnect();
             RasterOverlayContainerRequestBus::Handler::BusDisconnect();
             AZ::TransformNotificationBus::Handler::BusDisconnect();
             m_nonUniformScaleChangedHandler.Disconnect();
@@ -471,6 +476,13 @@ namespace Cesium
             SetWorldTransform(world, worldScale);
         }
 
+		void OnOriginShifting(const glm::dvec3& origin)
+        {
+            m_origin = origin;
+            m_configFlags |= ConfigurationDirtyFlags::TransformChange;
+            FlushTransformChange();
+        }
+
         void ResetO3DEAndCoordinateTransform()
         {
             m_O3DETransform = glm::dmat4(1.0);
@@ -540,8 +552,9 @@ namespace Cesium
                 return;
             }
 
-            m_renderResourcesPreparer->SetTransform(m_O3DETransform * m_coordinateTransformConfig.m_ECEFToO3DE);
-            m_cameraConfigurations.SetTransform(m_coordinateTransformConfig.m_O3DEToECEF * glm::affineInverse(m_O3DETransform));
+            glm::dmat4 totalO3DETransform = glm::translate(glm::dmat4(1.0), -m_origin) * m_O3DETransform;
+            m_renderResourcesPreparer->SetTransform(totalO3DETransform * m_coordinateTransformConfig.m_ECEFToO3DE);
+            m_cameraConfigurations.SetTransform(m_coordinateTransformConfig.m_O3DEToECEF * glm::affineInverse(totalO3DETransform));
             m_configFlags = m_configFlags & ~ConfigurationDirtyFlags::TransformChange;
         }
 
@@ -578,6 +591,7 @@ namespace Cesium
         AZ::NonUniformScaleChangedEvent::Handler m_nonUniformScaleChangedHandler;
         CoordinateTransformConfiguration m_coordinateTransformConfig;
         glm::dmat4 m_O3DETransform;
+        glm::dvec3 m_origin;
         int m_configFlags;
     };
 
