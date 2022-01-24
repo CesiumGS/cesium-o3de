@@ -1,7 +1,5 @@
 #include "Editor/Components/GeoreferenceAnchorEditorComponent.h"
 #include <Cesium/EBus/OriginShiftComponentBus.h>
-#include <Cesium/EBus/CoordinateTransformComponentBus.h>
-#include <Cesium/EBus/LevelCoordinateTransformComponentBus.h>
 #include <Cesium/Math/MathReflect.h>
 #include <Cesium/Math/MathHelper.h>
 #include <AzToolsFramework/API/ToolsApplicationAPI.h>
@@ -67,20 +65,10 @@ namespace Cesium
     GeoreferenceAnchorEditorComponent::GeoreferenceAnchorEditorComponent()
     {
         m_positionChangeHandler = ECEFPositionChangeEvent::Handler(
-            [this](glm::dvec3 ecefPosition)
+            [this](glm::dvec3 position)
             {
                 AzToolsFramework::ScopedUndoBatch undoBatch("Change Anchor Position");
-
-                AZ::EntityId levelGeoreferenceEntityId;
-                LevelCoordinateTransformRequestBus::BroadcastResult(
-                    levelGeoreferenceEntityId, &LevelCoordinateTransformRequestBus::Events::GetCoordinateTransform);
-
-                glm::dmat4 ECEFToO3DE{ 1.0 };
-                CoordinateTransformRequestBus::EventResult(
-                    ECEFToO3DE, levelGeoreferenceEntityId, &CoordinateTransformRequestBus::Events::ECEFToO3DE);
-
-                m_o3dePosition = ECEFToO3DE * glm::dvec4(ecefPosition, 1.0);
-                m_georeferenceAnchorComponent.SetCoordinate(m_o3dePosition);
+                m_georeferenceAnchorComponent.SetCoordinate(position);
                 undoBatch.MarkEntityDirty(GetEntityId());
             });
     }

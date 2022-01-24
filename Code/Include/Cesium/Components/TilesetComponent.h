@@ -1,7 +1,6 @@
 #pragma once
 
 #include <Cesium/EBus/TilesetComponentBus.h>
-#include <Cesium/EBus/LevelCoordinateTransformComponentBus.h>
 #include <AzFramework/Viewport/ViewportId.h>
 #include <AzFramework/Visibility/BoundsBus.h>
 #include <AzCore/Component/Component.h>
@@ -19,7 +18,6 @@ namespace Cesium
         , public AZ::EntityBus::Handler
         , public AzFramework::BoundsRequestBus::Handler
         , public TilesetRequestBus::Handler
-        , public LevelCoordinateTransformNotificationBus::Handler
     {
     public:
         AZ_COMPONENT(TilesetComponent, "{56948418-6C82-4DF2-9A8D-C292C22FCBDF}", AZ::Component)
@@ -39,8 +37,6 @@ namespace Cesium
         void SetConfiguration(const TilesetConfiguration& configration) override;
 
         const TilesetConfiguration& GetConfiguration() const override;
-
-        void OnCoordinateTransformChange(const AZ::EntityId& coordinateTransformEntityId) override;
 
         AZ::Aabb GetWorldBounds() override;
 
@@ -73,6 +69,5 @@ namespace Cesium
         AZStd::unique_ptr<Impl> m_impl;
         TilesetConfiguration m_tilesetConfiguration;
         TilesetSource m_tilesetSource;
-        AZ::EntityId m_coordinateTransformEntityId;
     };
 } // namespace Cesium

@@ -73,10 +73,6 @@ set(FILES
     Source/Cesium/EBus/OriginShiftComponentBus.cpp
     Include/Cesium/EBus/OriginShiftAnchorComponentBus.h
     Source/Cesium/EBus/OriginShiftAnchorComponentBus.cpp
-    Include/Cesium/EBus/CoordinateTransformComponentBus.h
-    Source/Cesium/EBus/CoordinateTransformComponentBus.cpp
-    Include/Cesium/EBus/LevelCoordinateTransformComponentBus.h
-    Source/Cesium/EBus/LevelCoordinateTransformComponentBus.cpp
     Include/Cesium/EBus/GeoReferenceCameraFlyControllerBus.h
     Source/Cesium/EBus/GeoReferenceCameraFlyControllerBus.cpp
     Include/Cesium/EBus/GltfModelComponentBus.h
@@ -102,12 +98,8 @@ set(FILES
     Source/Cesium/Components/OriginShiftComponent.cpp
     Include/Cesium/Components/GeoreferenceAnchorComponent.h
     Source/Cesium/Components/GeoreferenceAnchorComponent.cpp
-    Include/Cesium/Components/GeoReferenceTransformComponent.h
-    Source/Cesium/Components/GeoReferenceTransformComponent.cpp
     Include/Cesium/Components/GeoReferenceCameraFlyController.h
     Source/Cesium/Components/GeoReferenceCameraFlyController.cpp
-    Include/Cesium/Components/LevelCoordinateTransformComponent.h
-    Source/Cesium/Components/LevelCoordinateTransformComponent.cpp
     Include/Cesium/Components/TilesetCreditComponent.h
     Source/Cesium/Components/TilesetCreditComponent.cpp
     Include/Cesium/Components/GltfModelComponent.h

@@ -2,7 +2,6 @@
 #include "Editor/Components/TilesetEditorComponent.h"
 #include "Editor/Components/CesiumIonRasterOverlayEditorComponent.h"
 #include "Editor/Components/GeoReferenceCameraFlyControllerEditor.h"
-#include "Editor/Components/GeoReferenceTransformEditorComponent.h"
 #include "Editor/Components/ECEFPickerComponentHelper.h"
 #include "Editor/Widgets/CesiumIonPanelWidget.h"
 #include "Editor/Widgets/CesiumIonAssetListWidget.h"
@@ -305,15 +304,15 @@ namespace Cesium
 
     void CesiumSystemEditorComponent::AddGeoreferenceToLevel()
     {
-        using namespace AzToolsFramework; 
-        auto selectedEntities = GetSelectedEntities();
-        for (const AZ::EntityId& entityId : selectedEntities)
-        {
-            EditorComponentAPIRequests::AddComponentsOutcome outcomes;
-            EditorComponentAPIBus::BroadcastResult(
-                outcomes, &EditorComponentAPIBus::Events::AddComponentOfType, entityId,
-                azrtti_typeid<GeoReferenceTransformEditorComponent>());
-        }
+        //using namespace AzToolsFramework; 
+        //auto selectedEntities = GetSelectedEntities();
+        //for (const AZ::EntityId& entityId : selectedEntities)
+        //{
+        //    EditorComponentAPIRequests::AddComponentsOutcome outcomes;
+        //    EditorComponentAPIBus::BroadcastResult(
+        //        outcomes, &EditorComponentAPIBus::Events::AddComponentOfType, entityId,
+        //        azrtti_typeid<GeoReferenceTransformEditorComponent>());
+        //}
     }
 
     void CesiumSystemEditorComponent::AddGeoreferenceCameraToLevel()

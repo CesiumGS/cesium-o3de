@@ -1,7 +1,6 @@
 #include "Editor/Components/ECEFPickerComponentHelper.h"
 #include <Cesium/EBus/TilesetComponentBus.h>
-#include <Cesium/EBus/CoordinateTransformComponentBus.h>
-#include <Cesium/EBus/LevelCoordinateTransformComponentBus.h>
+#include <Cesium/EBus/OriginShiftComponentBus.h>
 #include <Cesium/Math/GeospatialHelper.h>
 #include <Cesium/Math/Cartographic.h>
 #include <Cesium/Math/MathReflect.h>
@@ -157,14 +156,6 @@ namespace Cesium
             auto center = GeospatialHelper::CartographicToECEFCartesian(cartoCenter);
             m_position = center;
         }
-        else
-        {
-            // not a tileset, then try to see if it's another geoereference
-            CoordinateTransformConfiguration transformConfig{};
-            CoordinateTransformRequestBus::EventResult(
-                transformConfig, m_sampledEntityId, &CoordinateTransformRequestBus::Events::GetConfiguration);
-            m_position = transformConfig.m_origin;
-        }
 
 		OnPositionAsCartesianChanged();
 
@@ -177,19 +168,11 @@ namespace Cesium
         auto defaultViewportContext = viewportContextManager->GetDefaultViewportContext();
         if (defaultViewportContext)
         {
+            glm::dvec3 origin{ 0.0 };
+            OriginShiftRequestBus::BroadcastResult(origin, &OriginShiftRequestBus::Events::GetOrigin);
             AZ::Transform cameraTransform = defaultViewportContext->GetCameraTransform();
             AZ::Vector3 cameraPosition = cameraTransform.GetTranslation();
-            glm::dvec4 o3deCameraPosition = glm::dvec4(cameraPosition.GetX(), cameraPosition.GetY(), cameraPosition.GetZ(), 1.0);
-
-            AZ::EntityId levelEntityId;
-            LevelCoordinateTransformRequestBus::BroadcastResult(
-                levelEntityId, &LevelCoordinateTransformRequestBus::Events::GetCoordinateTransform);
-
-            CoordinateTransformConfiguration transformconfig;
-            CoordinateTransformRequestBus::EventResult(
-                transformconfig, levelEntityId, &CoordinateTransformRequestBus::Events::GetConfiguration);
-
-            m_position = transformconfig.m_O3DEToECEF * o3deCameraPosition;
+            m_position = origin + glm::dvec3(cameraPosition.GetX(), cameraPosition.GetY(), cameraPosition.GetZ());
             OnPositionAsCartesianChanged();
         }
 

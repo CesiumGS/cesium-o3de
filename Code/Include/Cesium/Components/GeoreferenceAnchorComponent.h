@@ -2,8 +2,6 @@
 
 #include <Cesium/EBus/OriginShiftAnchorComponentBus.h>
 #include <Cesium/EBus/OriginShiftComponentBus.h>
-#include <Cesium/EBus/LevelCoordinateTransformComponentBus.h>
-#include <Cesium/EBus/CoordinateTransformComponentBus.h>
 #include <AzCore/Component/Component.h>
 
 namespace Cesium
@@ -12,7 +10,6 @@ namespace Cesium
         : public AZ::Component
         , public OriginShiftAnchorRequestBus::Handler
         , public OriginShiftNotificationBus::Handler
-        , public LevelCoordinateTransformNotificationBus::Handler
     {
     public:
         AZ_COMPONENT(GeoreferenceAnchorComponent, "{3386F43E-BD07-4ACA-9307-676B0CD53BBB}", AZ::Component)
@@ -43,13 +40,8 @@ namespace Cesium
 
         void OnOriginShifting(const glm::dvec3& origin) override;
 
-        void OnCoordinateTransformChange(const AZ::EntityId& coordinateTransformEntityId) override;
-
     private:
         // configuration
-        AZ::EntityId m_coordinateTransformEntityId;
-        glm::dvec3 m_o3dePosition{ 0.0 };
-
-        TransformChangeEvent::Handler m_coordinateTransformChangeHandler;
+        glm::dvec3 m_position{ 0.0 };
     };
 }

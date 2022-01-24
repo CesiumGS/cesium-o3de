@@ -1,7 +1,5 @@
 #include "Cesium/Components/CesiumSystemComponent.h"
 #include <Cesium/EBus/TilesetComponentBus.h>
-#include <Cesium/EBus/LevelCoordinateTransformComponentBus.h>
-#include <Cesium/EBus/CoordinateTransformComponentBus.h>
 #include <Cesium/EBus/GeoReferenceCameraFlyControllerBus.h>
 #include <Cesium/Math/BoundingRegion.h>
 #include <Cesium/Math/BoundingSphere.h>
@@ -30,12 +28,6 @@ namespace Cesium
         TilesetConfiguration::Reflect(context);
         TilesetSource::Reflect(context);
         TilesetRequest::Reflect(context);
-
-        LevelCoordinateTransformRequest::Reflect(context);
-        LevelCoordinateTransformNotification::Reflect(context);
-
-        CoordinateTransformConfiguration::Reflect(context);
-        CoordinateTransformRequest::Reflect(context);
 
         GeoReferenceCameraFlyControllerRequest::Reflect(context);
 
