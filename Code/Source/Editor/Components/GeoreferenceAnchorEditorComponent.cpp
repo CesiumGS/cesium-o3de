@@ -120,9 +120,9 @@ namespace Cesium
 
         m_selfTransform = true;
         AzToolsFramework::ScopedUndoBatch undoBatch("Change Anchor Position");
-        glm::dvec3 origin{ 0.0 };
-        OriginShiftRequestBus::BroadcastResult(origin, &OriginShiftRequestBus::Events::GetOrigin);
-        m_o3dePosition = origin + MathHelper::ToDVec3(local.GetTranslation());
+        glm::dmat4 originReferenceFrame{ 1.0 };
+        OriginShiftRequestBus::BroadcastResult(originReferenceFrame, &OriginShiftRequestBus::Events::GetOriginReferenceFrame);
+        m_o3dePosition = glm::inverse(originReferenceFrame) * MathHelper::ToDVec4(local.GetTranslation(), 1.0);
         m_georeferenceAnchorComponent.SetCoordinate(m_o3dePosition);
         undoBatch.MarkEntityDirty(GetEntityId());
     }

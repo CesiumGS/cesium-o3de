@@ -6,7 +6,9 @@
 
 namespace Cesium
 {
-    class OriginShiftComponent : public AZ::Component, public OriginShiftRequestBus::Handler
+    class OriginShiftComponent
+        : public AZ::Component
+        , public OriginShiftRequestBus::Handler
     {
     public:
         AZ_COMPONENT(OriginShiftComponent, "{3CB44347-183B-4295-99F8-C89A33BA7BE6}", AZ::Component)
@@ -29,13 +31,17 @@ namespace Cesium
 
         using AZ::Component::SetEntity;
 
-        glm::dvec3 GetOrigin() const override;
+        glm::dmat4 GetOriginReferenceFrame() const override;
+
+        void SetRotation(const glm::dmat3& rotation) override;
 
         void SetOrigin(const glm::dvec3& origin) override;
 
         void ShiftOrigin(const glm::dvec3& shiftAmount) override;
 
-	private:
+    private:
         glm::dvec3 m_origin{ 0.0 };
+        glm::dmat3 m_rotation{ 1.0 };
+        glm::dmat4 m_originReferenceFrame{ 1.0 };
     };
 } // namespace Cesium

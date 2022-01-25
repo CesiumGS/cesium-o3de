@@ -68,18 +68,20 @@ namespace Cesium
     {
         m_position = pos;
 
-        glm::dvec3 origin{0.0};
-        OriginShiftRequestBus::BroadcastResult(origin, &OriginShiftRequestBus::Events::GetOrigin);
-        OnOriginShifting(origin);
+        glm::dmat4 originReferenceFrame{1.0};
+        OriginShiftRequestBus::BroadcastResult(originReferenceFrame, &OriginShiftRequestBus::Events::GetOriginReferenceFrame);
+        OnOriginShifting(originReferenceFrame);
     }
 
-    void GeoreferenceAnchorComponent::OnOriginShifting(const glm::dvec3& origin)
+    void GeoreferenceAnchorComponent::OnOriginShifting(const glm::dmat4& originReferenceFrame)
     {
-        glm::dquat enu = glm::dquat(CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(m_position));
-        glm::dvec3 shift = m_position - origin;
+        glm::dmat4 enu = originReferenceFrame * CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(m_position);
+        glm::dquat enuRotation = glm::dquat(enu);
+        glm::dvec3 shift = enu[3];
         AZ::Vector3 azTranslation = AZ::Vector3(static_cast<float>(shift.x), static_cast<float>(shift.y), static_cast<float>(shift.z));
-        AZ::Quaternion azRotation =
-            AZ::Quaternion(static_cast<float>(enu.x), static_cast<float>(enu.y), static_cast<float>(enu.z), static_cast<float>(enu.w));
+        AZ::Quaternion azRotation = AZ::Quaternion(
+            static_cast<float>(enuRotation.x), static_cast<float>(enuRotation.y), static_cast<float>(enuRotation.z),
+            static_cast<float>(enuRotation.w));
         AZ::Transform azTransform = AZ::Transform::CreateFromQuaternionAndTranslation(azRotation, azTranslation);
         AZ::TransformBus::Event(GetEntityId(), &AZ::TransformBus::Events::SetWorldTM, azTransform);
     }

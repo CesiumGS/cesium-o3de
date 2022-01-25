@@ -11,6 +11,8 @@ namespace Cesium
             serializeContext->Class<OriginShiftComponent, AZ::Component>()
                 ->Version(0)
                 ->Field("Origin", &OriginShiftComponent::m_origin)
+                ->Field("Rotation", &OriginShiftComponent::m_rotation)
+                ->Field("OriginReferenceFrame", &OriginShiftComponent::m_originReferenceFrame)
                 ;
         }
     }
@@ -40,7 +42,7 @@ namespace Cesium
     void OriginShiftComponent::Activate()
     {
         OriginShiftRequestBus::Handler::BusConnect();
-        OriginShiftNotificationBus::Broadcast(&OriginShiftNotificationBus::Events::OnOriginShifting, m_origin);
+        OriginShiftNotificationBus::Broadcast(&OriginShiftNotificationBus::Events::OnOriginShifting, m_originReferenceFrame);
     }
 
     void OriginShiftComponent::Deactivate()
@@ -48,20 +50,29 @@ namespace Cesium
         OriginShiftRequestBus::Handler::BusDisconnect();
     }
 
-    glm::dvec3 OriginShiftComponent::GetOrigin() const
+    glm::dmat4 OriginShiftComponent::GetOriginReferenceFrame() const
     {
-        return m_origin;
+        return m_originReferenceFrame;
+    }
+
+    void OriginShiftComponent::SetRotation(const glm::dmat3& rotation)
+    {
+        m_rotation = rotation;
+        m_originReferenceFrame = glm::translate(glm::dmat4(m_rotation), -m_origin);
+        OriginShiftNotificationBus::Broadcast(&OriginShiftNotificationBus::Events::OnOriginShifting, m_originReferenceFrame);
     }
 
     void OriginShiftComponent::SetOrigin(const glm::dvec3& origin)
     {
         m_origin = origin;
-        OriginShiftNotificationBus::Broadcast(&OriginShiftNotificationBus::Events::OnOriginShifting, m_origin);
+        m_originReferenceFrame = glm::translate(glm::dmat4(m_rotation), -m_origin);
+        OriginShiftNotificationBus::Broadcast(&OriginShiftNotificationBus::Events::OnOriginShifting, m_originReferenceFrame);
     }
 
     void OriginShiftComponent::ShiftOrigin(const glm::dvec3& shiftAmount)
     {
         m_origin += shiftAmount;
-        OriginShiftNotificationBus::Broadcast(&OriginShiftNotificationBus::Events::OnOriginShifting, m_origin);
+        m_originReferenceFrame = glm::translate(glm::dmat4(m_rotation), -m_origin);
+        OriginShiftNotificationBus::Broadcast(&OriginShiftNotificationBus::Events::OnOriginShifting, m_originReferenceFrame);
     }
 } // namespace Cesium

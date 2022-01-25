@@ -283,7 +283,7 @@ namespace Cesium
             , m_relTransform{ 1.0 }
             , m_absTransform{ 1.0 }
             , m_transform{ 1.0 }
-            , m_origin{ 0.0 }
+            , m_originReferenceFrame{ 1.0 }
             , m_configFlags{ ConfigurationDirtyFlags::None }
         {
             m_nonUniformScaleChangedHandler = AZ::NonUniformScaleChangedEvent::Handler(
@@ -420,9 +420,9 @@ namespace Cesium
             SetWorldTransform(world, worldScale);
         }
 
-		void OnOriginShifting(const glm::dvec3& origin)
+		void OnOriginShifting(const glm::dmat4& originReferenceFrame)
         {
-            m_origin = origin;
+            m_originReferenceFrame = originReferenceFrame;
             m_configFlags |= ConfigurationDirtyFlags::TransformChange;
             FlushTransformChange();
         }
@@ -489,10 +489,9 @@ namespace Cesium
                 return;
             }
 
-            glm::dmat4 originTranslate = glm::translate(glm::dmat4(1.0), -m_origin); 
             glm::dvec3 center = Cesium3DTilesSelection::getBoundingVolumeCenter(root->getBoundingVolume());
             m_absTransform = glm::translate(glm::dmat4(1.0), center) * glm::translate(m_transform, -center);
-            m_relTransform = originTranslate * m_absTransform;
+            m_relTransform = m_originReferenceFrame * m_absTransform;
             m_renderResourcesPreparer->SetTransform(m_relTransform);
             m_cameraConfigurations.SetTransform(glm::affineInverse(m_relTransform));
             m_configFlags = m_configFlags & ~ConfigurationDirtyFlags::TransformChange;
@@ -531,7 +530,7 @@ namespace Cesium
         glm::dmat4 m_relTransform;
         glm::dmat4 m_absTransform;
         glm::dmat4 m_transform;
-        glm::dvec3 m_origin;
+        glm::dmat4 m_originReferenceFrame;
         int m_configFlags;
     };
 

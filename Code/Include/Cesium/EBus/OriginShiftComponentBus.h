@@ -9,7 +9,9 @@ namespace Cesium
     class OriginShiftRequest : public AZ::ComponentBus
     {
     public:
-        virtual glm::dvec3 GetOrigin() const = 0;
+        virtual glm::dmat4 GetOriginReferenceFrame() const = 0;
+
+        virtual void SetRotation(const glm::dmat3& rotation) = 0;
 
         virtual void SetOrigin(const glm::dvec3& origin) = 0;
 
@@ -28,7 +30,7 @@ namespace Cesium
     class OriginShiftNotification : public AZ::ComponentBus
     {
     public:
-        virtual void OnOriginShifting(const glm::dvec3& origin) = 0;
+        virtual void OnOriginShifting(const glm::dmat4& originReferenceFrame) = 0;
     };
 
     class OriginShiftNotificationEBusTraits
@@ -48,9 +50,9 @@ namespace Cesium
             {
                 AZ::EBusConnectionPolicy<Bus>::Connect(busPtr, context, handler, connectLock, id);
 
-                glm::dvec3 origin{0.0};
-                OriginShiftRequestBus::BroadcastResult(origin, &OriginShiftRequestBus::Events::GetOrigin);
-                handler->OnOriginShifting(origin);
+                glm::dmat4 originReferenceFrame{1.0};
+                OriginShiftRequestBus::BroadcastResult(originReferenceFrame, &OriginShiftRequestBus::Events::GetOriginReferenceFrame);
+                handler->OnOriginShifting(originReferenceFrame);
             }
         };
 
