@@ -17,6 +17,7 @@ namespace Cesium
             serializeContext->Class<OriginShiftEditorComponent, AZ::Component>()
                 ->Version(0)
                 ->Field("origin", &OriginShiftEditorComponent::m_origin)
+                ->Field("rotation", &OriginShiftEditorComponent::m_rotation)
                 ->Field("originReferenceFrame", &OriginShiftEditorComponent::m_originReferenceFrame)
                 ;
 
@@ -62,8 +63,7 @@ namespace Cesium
         auto originShiftComponent = gameEntity->CreateComponent<OriginShiftComponent>();
         originShiftComponent->SetEntity(gameEntity);
         originShiftComponent->Init();
-        originShiftComponent->SetRotation(glm::dmat3(m_originReferenceFrame));
-        originShiftComponent->SetOrigin(m_origin);
+        originShiftComponent->SetOriginAndRotation(m_origin, m_rotation);
     }
 
     void OriginShiftEditorComponent::Init()
@@ -81,24 +81,9 @@ namespace Cesium
         OriginShiftRequestBus::Handler::BusDisconnect();
     }
 
-    glm::dmat4 OriginShiftEditorComponent::GetOriginReferenceFrame() const
+    const glm::dmat4& OriginShiftEditorComponent::GetOriginReferenceFrame() const
     {
         return m_originReferenceFrame;
-    }
-
-    void OriginShiftEditorComponent::SetRotation(const glm::dmat3& rotation)
-    {
-        using namespace AzToolsFramework;
-        ScopedUndoBatch undoBatch("Change World Origin");
-
-		m_originReferenceFrame = glm::translate(glm::dmat4(rotation), -m_origin);
-        OriginShiftNotificationBus::Broadcast(&OriginShiftNotificationBus::Events::OnOriginShifting, m_originReferenceFrame);
-
-        PropertyEditorGUIMessages::Bus::Broadcast(
-            &PropertyEditorGUIMessages::RequestRefresh, PropertyModificationRefreshLevel::Refresh_AttributesAndValues);
-        undoBatch.MarkEntityDirty(GetEntityId());
-
-        MoveCameraToOrigin();
     }
 
     void OriginShiftEditorComponent::SetOrigin(const glm::dvec3& origin)
@@ -107,7 +92,7 @@ namespace Cesium
         ScopedUndoBatch undoBatch("Change World Origin");
 
         m_origin = origin;
-		m_originReferenceFrame = glm::inverse(CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(m_origin));
+        m_originReferenceFrame = glm::translate(glm::dmat4(m_rotation), -m_origin);
         OriginShiftNotificationBus::Broadcast(&OriginShiftNotificationBus::Events::OnOriginShifting, m_originReferenceFrame);
 
         PropertyEditorGUIMessages::Bus::Broadcast(
@@ -123,7 +108,24 @@ namespace Cesium
 		ScopedUndoBatch undoBatch("Change World Origin");
 
         m_origin += shiftAmount;
-		m_originReferenceFrame = glm::inverse(CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(m_origin));
+        m_originReferenceFrame = glm::translate(glm::dmat4(m_rotation), -m_origin);
+        OriginShiftNotificationBus::Broadcast(&OriginShiftNotificationBus::Events::OnOriginShifting, m_originReferenceFrame);
+
+        PropertyEditorGUIMessages::Bus::Broadcast(
+            &PropertyEditorGUIMessages::RequestRefresh, PropertyModificationRefreshLevel::Refresh_AttributesAndValues);
+        undoBatch.MarkEntityDirty(GetEntityId());
+
+        MoveCameraToOrigin();
+    }
+
+    void OriginShiftEditorComponent::SetOriginAndRotation(const glm::dvec3& origin, const glm::dmat3& rotation)
+    {
+        using namespace AzToolsFramework;
+        ScopedUndoBatch undoBatch("Change World Origin");
+
+		m_origin = origin;
+        m_rotation = rotation;
+        m_originReferenceFrame = glm::translate(glm::dmat4(m_rotation), -m_origin);
         OriginShiftNotificationBus::Broadcast(&OriginShiftNotificationBus::Events::OnOriginShifting, m_originReferenceFrame);
 
         PropertyEditorGUIMessages::Bus::Broadcast(

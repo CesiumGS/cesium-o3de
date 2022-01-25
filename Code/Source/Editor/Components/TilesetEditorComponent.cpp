@@ -10,6 +10,7 @@
 #include <AzToolsFramework/UI/PropertyEditor/PropertyEditorAPI.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/EditContext.h>
+#include <CesiumGeospatial/Transforms.h>
 
 namespace Cesium
 {
@@ -207,6 +208,8 @@ namespace Cesium
             origin = center;
         }
 
-        OriginShiftRequestBus::Broadcast(&OriginShiftRequestBus::Events::SetOrigin, origin);
+        OriginShiftRequestBus::Broadcast(
+            &OriginShiftRequestBus::Events::SetOriginAndRotation, origin,
+            glm::dmat3(glm::inverse(CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(origin))));
     }
 } // namespace Cesium

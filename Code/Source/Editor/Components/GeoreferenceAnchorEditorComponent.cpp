@@ -5,6 +5,7 @@
 #include <AzToolsFramework/API/ToolsApplicationAPI.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/EditContext.h>
+#include <CesiumGeospatial/Transforms.h>
 
 namespace Cesium
 {
@@ -107,7 +108,9 @@ namespace Cesium
 
     void GeoreferenceAnchorEditorComponent::PlaceWorldOriginHere()
     {
-        OriginShiftRequestBus::Broadcast(&OriginShiftRequestBus::Events::SetOrigin, m_o3dePosition);
+        OriginShiftRequestBus::Broadcast(
+            &OriginShiftRequestBus::Events::SetOriginAndRotation, m_o3dePosition,
+            glm::dmat3(glm::inverse(CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(m_o3dePosition))));
     }
 
     void GeoreferenceAnchorEditorComponent::OnTransformChanged(const AZ::Transform& local, const AZ::Transform&)

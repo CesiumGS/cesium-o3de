@@ -9,13 +9,13 @@ namespace Cesium
     class OriginShiftRequest : public AZ::ComponentBus
     {
     public:
-        virtual glm::dmat4 GetOriginReferenceFrame() const = 0;
-
-        virtual void SetRotation(const glm::dmat3& rotation) = 0;
+        virtual const glm::dmat4& GetOriginReferenceFrame() const = 0;
 
         virtual void SetOrigin(const glm::dvec3& origin) = 0;
 
         virtual void ShiftOrigin(const glm::dvec3& shiftAmount) = 0;
+
+        virtual void SetOriginAndRotation(const glm::dvec3& origin, const glm::dmat3& rotation) = 0;
     };
 
     class OriginShiftRequestEBusTraits

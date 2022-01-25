@@ -31,13 +31,13 @@ namespace Cesium
 
         using AZ::Component::SetEntity;
 
-        glm::dmat4 GetOriginReferenceFrame() const override;
-
-        void SetRotation(const glm::dmat3& rotation) override;
+        const glm::dmat4& GetOriginReferenceFrame() const override;
 
         void SetOrigin(const glm::dvec3& origin) override;
 
         void ShiftOrigin(const glm::dvec3& shiftAmount) override;
+
+        void SetOriginAndRotation(const glm::dvec3& origin, const glm::dmat3& rotation) override;
 
     private:
         glm::dvec3 m_origin{ 0.0 };

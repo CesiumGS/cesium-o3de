@@ -35,9 +35,9 @@ namespace Cesium
 
         void Deactivate() override;
 
-        glm::dmat4 GetOriginReferenceFrame() const override;
+		void SetOriginAndRotation(const glm::dvec3& origin, const glm::dmat3& rotation) override;
 
-        void SetRotation(const glm::dmat3& rotation) override;
+        const glm::dmat4& GetOriginReferenceFrame() const override;
 
         void SetOrigin(const glm::dvec3& origin) override;
 
@@ -45,7 +45,8 @@ namespace Cesium
 
         void MoveCameraToOrigin();
 
-        glm::dvec3 m_origin{0.0};
+        glm::dvec3 m_origin{ 0.0 };
+        glm::dmat3 m_rotation{ 1.0 };
         glm::dmat4 m_originReferenceFrame{ 1.0 };
     };
 }
