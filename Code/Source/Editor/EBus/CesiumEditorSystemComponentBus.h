@@ -20,8 +20,6 @@ namespace Cesium {
 
         virtual void AddBlankTilesetToLevel() = 0;
 
-        virtual void AddGeoreferenceToLevel() = 0;
-
         virtual void AddGeoreferenceCameraToLevel() = 0;
     };
 

@@ -48,8 +48,6 @@ namespace Cesium
 
         void AddBlankTilesetToLevel() override;
 
-        void AddGeoreferenceToLevel() override;
-
         void AddGeoreferenceCameraToLevel() override;
 
         AZStd::unique_ptr<CesiumIonSession> m_ionSession;

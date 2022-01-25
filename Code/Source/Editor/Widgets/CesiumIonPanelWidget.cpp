@@ -167,9 +167,6 @@ namespace Cesium
             "An empty tileset that can be configured to show Cesium ion assets or tilesets from other sources.", row++);
         QObject::connect(addBlankTileset, &IconButton::pressed, this, &CesiumIonPanelWidget::AddBlankTileset);
 
-        IconButton* addGeoreference = CreateQuickAddMenuItem(itemLayout, "Georeference Component", "", row++);
-        QObject::connect(addGeoreference, &IconButton::pressed, this, &CesiumIonPanelWidget::AddGeoreference);
-
         IconButton* addGeoreferenceCamera = CreateQuickAddMenuItem(
             itemLayout, "Georeference Camera Controller Component", "A camera that can be used to intuitively navigate in a geospatial environment.",
             row++);
@@ -397,10 +394,6 @@ namespace Cesium
 
 	void CesiumIonPanelWidget::AddBlankTileset() {
         CesiumEditorSystemRequestBus::Broadcast(&CesiumEditorSystemRequestBus::Events::AddBlankTilesetToLevel);
-    }
-
-	void CesiumIonPanelWidget::AddGeoreference() {
-        CesiumEditorSystemRequestBus::Broadcast(&CesiumEditorSystemRequestBus::Events::AddGeoreferenceToLevel);
     }
 
 	void CesiumIonPanelWidget::AddGeoreferenceCamera() {

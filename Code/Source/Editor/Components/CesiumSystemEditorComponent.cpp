@@ -302,19 +302,6 @@ namespace Cesium
         }
     }
 
-    void CesiumSystemEditorComponent::AddGeoreferenceToLevel()
-    {
-        //using namespace AzToolsFramework; 
-        //auto selectedEntities = GetSelectedEntities();
-        //for (const AZ::EntityId& entityId : selectedEntities)
-        //{
-        //    EditorComponentAPIRequests::AddComponentsOutcome outcomes;
-        //    EditorComponentAPIBus::BroadcastResult(
-        //        outcomes, &EditorComponentAPIBus::Events::AddComponentOfType, entityId,
-        //        azrtti_typeid<GeoReferenceTransformEditorComponent>());
-        //}
-    }
-
     void CesiumSystemEditorComponent::AddGeoreferenceCameraToLevel()
     {
         using namespace AzToolsFramework; 
