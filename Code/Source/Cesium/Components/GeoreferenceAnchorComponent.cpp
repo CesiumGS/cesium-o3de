@@ -68,14 +68,14 @@ namespace Cesium
     {
         m_position = pos;
 
-        glm::dmat4 originReferenceFrame{1.0};
-        OriginShiftRequestBus::BroadcastResult(originReferenceFrame, &OriginShiftRequestBus::Events::GetOriginReferenceFrame);
-        OnOriginShifting(originReferenceFrame);
+        glm::dmat4 absToRelWorld{1.0};
+        OriginShiftRequestBus::BroadcastResult(absToRelWorld, &OriginShiftRequestBus::Events::GetAbsToRelWorld);
+        OnOriginShifting(absToRelWorld);
     }
 
-    void GeoreferenceAnchorComponent::OnOriginShifting(const glm::dmat4& originReferenceFrame)
+    void GeoreferenceAnchorComponent::OnOriginShifting(const glm::dmat4& absToRelWorld)
     {
-        glm::dmat4 enu = originReferenceFrame * CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(m_position);
+        glm::dmat4 enu = absToRelWorld * CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(m_position);
         glm::dquat enuRotation = glm::dquat(enu);
         glm::dvec3 shift = enu[3];
         AZ::Vector3 azTranslation = AZ::Vector3(static_cast<float>(shift.x), static_cast<float>(shift.y), static_cast<float>(shift.z));

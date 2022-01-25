@@ -168,11 +168,11 @@ namespace Cesium
         auto defaultViewportContext = viewportContextManager->GetDefaultViewportContext();
         if (defaultViewportContext)
         {
-            glm::dmat4 originReferenceFrame{ 1.0 };
-            OriginShiftRequestBus::BroadcastResult(originReferenceFrame, &OriginShiftRequestBus::Events::GetOriginReferenceFrame);
+            glm::dmat4 relToAbsWorld{ 1.0 };
+            OriginShiftRequestBus::BroadcastResult(relToAbsWorld, &OriginShiftRequestBus::Events::GetRelToAbsWorld);
             AZ::Transform cameraTransform = defaultViewportContext->GetCameraTransform();
             AZ::Vector3 cameraPosition = cameraTransform.GetTranslation();
-            m_position = glm::inverse(originReferenceFrame) * glm::dvec4(cameraPosition.GetX(), cameraPosition.GetY(), cameraPosition.GetZ(), 1.0);
+            m_position = relToAbsWorld * glm::dvec4(cameraPosition.GetX(), cameraPosition.GetY(), cameraPosition.GetZ(), 1.0);
             OnPositionAsCartesianChanged();
         }
 

@@ -204,43 +204,46 @@ namespace Cesium
 
     void GeoReferenceCameraFlyController::ProcessNoFlyState()
     {
-        //if (m_cameraRotateUpdate || m_cameraMoveUpdate)
-        //{
-        //    // Get camera current world transform
-        //    AZ::Transform relativeCameraTransform = AZ::Transform::CreateIdentity();
-        //    AZ::TransformBus::EventResult(relativeCameraTransform, GetEntityId(), &AZ::TransformBus::Events::GetWorldTM);
+        if (m_cameraRotateUpdate || m_cameraMoveUpdate)
+        {
+            // Get camera current world transform
+            AZ::Transform relativeCameraTransform = AZ::Transform::CreateIdentity();
+            AZ::TransformBus::EventResult(relativeCameraTransform, GetEntityId(), &AZ::TransformBus::Events::GetWorldTM);
 
-        //    // calculate ENU
-        //    glm::dvec3 origin{ 0.0 };
-        //    OriginShiftRequestBus::BroadcastResult(origin, &OriginShiftRequestBus::Events::GetOrigin);
-        //    glm::dvec4 currentPosition = glm::dvec4(origin + MathHelper::ToDVec3(relativeCameraTransform.GetTranslation()), 1.0);
-        //    glm::dmat4 enu = CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(currentPosition);
+            // calculate ENU
+            glm::dmat4 absToRelWorld{ 1.0 };
+            glm::dmat4 relToAbsWorld{ 1.0 };
+            OriginShiftRequestBus::BroadcastResult(absToRelWorld, &OriginShiftRequestBus::Events::GetAbsToRelWorld);
+            OriginShiftRequestBus::BroadcastResult(relToAbsWorld, &OriginShiftRequestBus::Events::GetRelToAbsWorld);
+            glm::dvec4 currentPosition = relToAbsWorld * MathHelper::ToDVec4(relativeCameraTransform.GetTranslation(), 1.0);
+            glm::dmat4 enu = absToRelWorld * CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(currentPosition);
 
-        //    // calculate new camera orientation, adjust for ENU coordinate
-        //    glm::dquat totalRotationQuat = glm::dquat(enu) * glm::dquat(glm::dvec3(m_cameraPitch, 0.0, m_cameraHead));
-        //    relativeCameraTransform.SetRotation(AZ::Quaternion(
-        //        static_cast<float>(totalRotationQuat.x), static_cast<float>(totalRotationQuat.y), static_cast<float>(totalRotationQuat.z),
-        //        static_cast<float>(totalRotationQuat.w)));
+            // calculate new camera orientation, adjust for ENU coordinate
+            glm::dquat totalRotationQuat = glm::dquat(enu) * glm::dquat(glm::dvec3(m_cameraPitch, 0.0, m_cameraHead));
+            relativeCameraTransform.SetRotation(AZ::Quaternion(
+                static_cast<float>(totalRotationQuat.x), static_cast<float>(totalRotationQuat.y), static_cast<float>(totalRotationQuat.z),
+                static_cast<float>(totalRotationQuat.w)));
 
-        //    // calculate camera position
-        //    glm::dvec3 moveX = m_cameraMovement.x * MathHelper::ToDVec3(relativeCameraTransform.GetBasisX());
-        //    glm::dvec3 moveY = m_cameraMovement.y * MathHelper::ToDVec3(relativeCameraTransform.GetBasisY());
-        //    glm::dvec3 moveZ = m_cameraMovement.z * MathHelper::ToDVec3(relativeCameraTransform.GetBasisZ());
-        //    glm::dvec3 newPosition = MathHelper::ToDVec3(relativeCameraTransform.GetTranslation()) + moveX + moveY + moveZ;
-        //    if (glm::abs(newPosition.x) < ORIGIN_SHIFT_DISTANCE && glm::abs(newPosition.y) < ORIGIN_SHIFT_DISTANCE &&
-        //        glm::abs(newPosition.z) < ORIGIN_SHIFT_DISTANCE)
-        //    {
-        //        relativeCameraTransform.SetTranslation(
-        //            AZ::Vector3{ static_cast<float>(newPosition.x), static_cast<float>(newPosition.y), static_cast<float>(newPosition.z) });
-        //    }
-        //    else
-        //    {
-        //        relativeCameraTransform.SetTranslation(AZ::Vector3{ 0.0f });
-        //        OriginShiftRequestBus::Broadcast(&OriginShiftRequestBus::Events::ShiftOrigin, newPosition);
-        //    }
+            // calculate camera position
+            glm::dvec3 moveX = m_cameraMovement.x * MathHelper::ToDVec3(relativeCameraTransform.GetBasisX());
+            glm::dvec3 moveY = m_cameraMovement.y * MathHelper::ToDVec3(relativeCameraTransform.GetBasisY());
+            glm::dvec3 moveZ = m_cameraMovement.z * MathHelper::ToDVec3(relativeCameraTransform.GetBasisZ());
+            glm::dvec3 newPosition = MathHelper::ToDVec3(relativeCameraTransform.GetTranslation()) + moveX + moveY + moveZ;
+            if (glm::abs(newPosition.x) < ORIGIN_SHIFT_DISTANCE && glm::abs(newPosition.y) < ORIGIN_SHIFT_DISTANCE &&
+                glm::abs(newPosition.z) < ORIGIN_SHIFT_DISTANCE)
+            {
+                relativeCameraTransform.SetTranslation(
+                    AZ::Vector3{ static_cast<float>(newPosition.x), static_cast<float>(newPosition.y), static_cast<float>(newPosition.z) });
+            }
+            else
+            {
+                glm::dvec3 shiftOrigin = relToAbsWorld * glm::dvec4(newPosition, 0.0);
+                relativeCameraTransform.SetTranslation(AZ::Vector3{ 0.0f });
+                OriginShiftRequestBus::Broadcast(&OriginShiftRequestBus::Events::ShiftOrigin, shiftOrigin);
+            }
 
-        //    AZ::TransformBus::Event(GetEntityId(), &AZ::TransformBus::Events::SetWorldTM, relativeCameraTransform);
-        //}
+            AZ::TransformBus::Event(GetEntityId(), &AZ::TransformBus::Events::SetWorldTM, relativeCameraTransform);
+        }
     }
 
     bool GeoReferenceCameraFlyController::OnInputChannelEventFiltered(const AzFramework::InputChannel& inputChannel)

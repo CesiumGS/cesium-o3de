@@ -38,7 +38,7 @@ namespace Cesium
 
         void SetCoordinate(const glm::dvec3& pos) override;
 
-        void OnOriginShifting(const glm::dmat4& originReferenceFrame) override;
+        void OnOriginShifting(const glm::dmat4& absToRelWorld) override;
 
     private:
         // configuration
