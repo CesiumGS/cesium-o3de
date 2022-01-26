@@ -67,6 +67,12 @@ namespace Cesium
 
     void GeoReferenceCameraFlyController::Activate()
     {
+		AZ::Transform relativeCameraTransform = AZ::Transform::CreateIdentity();
+		AZ::TransformBus::EventResult(relativeCameraTransform, GetEntityId(), &AZ::TransformBus::Events::GetWorldTM);
+		AZ::Vector3 eulerAngles = relativeCameraTransform.GetEulerRadians();
+		m_cameraPitch = eulerAngles.GetX();
+		m_cameraHead = eulerAngles.GetZ();
+
         GeoReferenceCameraFlyControllerRequestBus::Handler::BusConnect(GetEntityId());
         AZ::TickBus::Handler::BusConnect();
         AzFramework::InputChannelEventListener::Connect();
@@ -132,16 +138,8 @@ namespace Cesium
         glm::dmat4 absCameraTransform =
             relToAbsWorld * MathHelper::ConvertTransformAndScaleToDMat4(relCameraTransform, AZ::Vector3::CreateOne());
         glm::dvec3 absCameraPosition = absCameraTransform[3];
-        if (m_ecefPositionInterpolator)
-        {
-            m_ecefPositionInterpolator = AZStd::make_unique<GeoReferenceInterpolator>(
-                absCameraPosition, absCameraTransform[1], location, direction, absCameraTransform, cameraConfiguration);
-        }
-        else
-        {
-            m_ecefPositionInterpolator =
-                AZStd::make_unique<LinearInterpolator>(absCameraPosition, absCameraTransform[1], location, direction);
-        }
+		m_ecefPositionInterpolator = AZStd::make_unique<GeoReferenceInterpolator>(
+			absCameraPosition, absCameraTransform[1], location, direction, absCameraTransform, cameraConfiguration);
 
         // transition to the new state
         m_cameraFlyState = CameraFlyState::MidFly;
@@ -188,7 +186,8 @@ namespace Cesium
             glm::abs(relativeCameraPosition.z) < ORIGIN_SHIFT_DISTANCE)
         {
             cameraTransform.SetTranslation(AZ::Vector3(
-                static_cast<float>(cameraPosition.x), static_cast<float>(cameraPosition.y), static_cast<float>(cameraPosition.z)));
+                static_cast<float>(relativeCameraPosition.x), static_cast<float>(relativeCameraPosition.y),
+                static_cast<float>(relativeCameraPosition.z)));
         }
         else
         {
@@ -237,15 +236,16 @@ namespace Cesium
             {
                 relativeCameraTransform.SetTranslation(
                     AZ::Vector3{ static_cast<float>(newPosition.x), static_cast<float>(newPosition.y), static_cast<float>(newPosition.z) });
+                AZ::TransformBus::Event(GetEntityId(), &AZ::TransformBus::Events::SetWorldTM, relativeCameraTransform);
             }
             else
             {
                 glm::dvec3 shiftOrigin = relToAbsWorld * glm::dvec4(newPosition, 0.0);
                 relativeCameraTransform.SetTranslation(AZ::Vector3{ 0.0f });
+                AZ::TransformBus::Event(GetEntityId(), &AZ::TransformBus::Events::SetWorldTM, relativeCameraTransform);
                 OriginShiftRequestBus::Broadcast(&OriginShiftRequestBus::Events::ShiftOrigin, shiftOrigin);
             }
 
-            AZ::TransformBus::Event(GetEntityId(), &AZ::TransformBus::Events::SetWorldTM, relativeCameraTransform);
         }
     }
 
