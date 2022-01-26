@@ -112,38 +112,39 @@ namespace Cesium
         return m_movementSpeed;
     }
 
-    void GeoReferenceCameraFlyController::FlyToECEFLocation([[maybe_unused]] const glm::dvec3& location, [[maybe_unused]] const glm::dvec3& direction)
+    void GeoReferenceCameraFlyController::FlyToECEFLocation(
+        [[maybe_unused]] const glm::dvec3& location, [[maybe_unused]] const glm::dvec3& direction)
     {
-        //// Get camera current O3DE world transform to calculate its ECEF position and orientation
-        //AZ::Transform azO3DECameraTransform = AZ::Transform::CreateIdentity();
-        //AZ::TransformBus::EventResult(azO3DECameraTransform, GetEntityId(), &AZ::TransformBus::Events::GetWorldTM);
+        // Get camera current O3DE world transform to calculate its ECEF position and orientation
+        AZ::Transform relCameraTransform = AZ::Transform::CreateIdentity();
+        AZ::TransformBus::EventResult(relCameraTransform, GetEntityId(), &AZ::TransformBus::Events::GetWorldTM);
 
-        //// Get camera configuration for the interpolator
-        //Camera::Configuration cameraConfiguration;
-        //Camera::CameraRequestBus::EventResult(
-        //    cameraConfiguration, GetEntityId(), &Camera::CameraRequestBus::Events::GetCameraConfiguration);
+        // Get camera configuration for the interpolator
+        Camera::Configuration cameraConfiguration;
+        Camera::CameraRequestBus::EventResult(
+            cameraConfiguration, GetEntityId(), &Camera::CameraRequestBus::Events::GetCameraConfiguration);
 
-        //// Get current origin
-        //glm::dvec3 origin{ 0.0 };
-        //OriginShiftRequestBus::BroadcastResult(origin, &OriginShiftRequestBus::Events::GetOrigin);
+        // Get current origin
+        glm::dmat4 relToAbsWorld{ 1.0 };
+        OriginShiftRequestBus::BroadcastResult(relToAbsWorld, &OriginShiftRequestBus::Events::GetRelToAbsWorld);
 
-        //// Get the current ecef position and orientation of the camera
-        //glm::dmat4 o3deCameraTransform = MathHelper::ConvertTransformAndScaleToDMat4(azO3DECameraTransform, AZ::Vector3::CreateOne());
-        //o3deCameraTransform[3] += glm::dvec4(origin, 0.0);
-        //glm::dvec3 o3deCameraPosition = o3deCameraTransform[3];
-        //if (m_ecefPositionInterpolator)
-        //{
-        //    m_ecefPositionInterpolator = AZStd::make_unique<GeoReferenceInterpolator>(
-        //        o3deCameraPosition, o3deCameraTransform[1], location, direction, o3deCameraTransform, cameraConfiguration);
-        //}
-        //else
-        //{
-        //    m_ecefPositionInterpolator =
-        //        AZStd::make_unique<LinearInterpolator>(o3deCameraPosition, o3deCameraTransform[1], location, direction);
-        //}
+        // Get the current ecef position and orientation of the camera
+        glm::dmat4 absCameraTransform =
+            relToAbsWorld * MathHelper::ConvertTransformAndScaleToDMat4(relCameraTransform, AZ::Vector3::CreateOne());
+        glm::dvec3 absCameraPosition = absCameraTransform[3];
+        if (m_ecefPositionInterpolator)
+        {
+            m_ecefPositionInterpolator = AZStd::make_unique<GeoReferenceInterpolator>(
+                absCameraPosition, absCameraTransform[1], location, direction, absCameraTransform, cameraConfiguration);
+        }
+        else
+        {
+            m_ecefPositionInterpolator =
+                AZStd::make_unique<LinearInterpolator>(absCameraPosition, absCameraTransform[1], location, direction);
+        }
 
-        //// transition to the new state
-        //m_cameraFlyState = CameraFlyState::MidFly;
+        // transition to the new state
+        m_cameraFlyState = CameraFlyState::MidFly;
     }
 
     void GeoReferenceCameraFlyController::BindCameraStopFlyEventHandler(CameraStopFlyEvent::Handler& handler)
@@ -168,38 +169,40 @@ namespace Cesium
 
     void GeoReferenceCameraFlyController::ProcessMidFlyState([[maybe_unused]] float deltaTime)
     {
-        //assert(m_ecefPositionInterpolator != nullptr);
-        //m_ecefPositionInterpolator->Update(deltaTime);
-        //glm::dvec3 cameraPosition = m_ecefPositionInterpolator->GetCurrentPosition();
-        //glm::dquat cameraOrientation = m_ecefPositionInterpolator->GetCurrentOrientation();
+        assert(m_ecefPositionInterpolator != nullptr);
+        m_ecefPositionInterpolator->Update(deltaTime);
+        glm::dvec3 cameraPosition = m_ecefPositionInterpolator->GetCurrentPosition();
+        glm::dquat cameraOrientation = m_ecefPositionInterpolator->GetCurrentOrientation();
 
-        //// find camera relative position. Move origin if its relative position is over 10000.0
-        //glm::dvec3 origin{ 0.0 };
-        //OriginShiftRequestBus::BroadcastResult(origin, &OriginShiftRequestBus::Events::GetOrigin);
-        //glm::dvec3 relativeCameraPosition = cameraPosition - origin;
+        // find camera relative position. Move origin if its relative position is over 10000.0
+        glm::dmat4 absToRelWorld{ 1.0 };
+        OriginShiftRequestBus::BroadcastResult(absToRelWorld, &OriginShiftRequestBus::Events::GetAbsToRelWorld);
+        glm::dvec3 relativeCameraPosition = absToRelWorld * glm::dvec4(cameraPosition, 1.0);
+        glm::dquat relativeCameraOrientation = glm::dquat(absToRelWorld) * cameraOrientation;
 
-        //AZ::Transform cameraTransform = AZ::Transform::CreateIdentity();
-        //cameraTransform.SetRotation(AZ::Quaternion(
-        //    static_cast<float>(cameraOrientation.x), static_cast<float>(cameraOrientation.y), static_cast<float>(cameraOrientation.z),
-        //    static_cast<float>(cameraOrientation.w)));
-        //if (glm::abs(relativeCameraPosition.x) < ORIGIN_SHIFT_DISTANCE && glm::abs(relativeCameraPosition.y) < ORIGIN_SHIFT_DISTANCE &&
-        //    glm::abs(relativeCameraPosition.z) < ORIGIN_SHIFT_DISTANCE)
-        //{
-        //    cameraTransform.SetTranslation(AZ::Vector3(
-        //        static_cast<float>(cameraPosition.x), static_cast<float>(cameraPosition.y), static_cast<float>(cameraPosition.z)));
-        //}
-        //else
-        //{
-        //    cameraTransform.SetTranslation(AZ::Vector3(0.0));
-        //}
+        AZ::Transform cameraTransform = AZ::Transform::CreateIdentity();
+        cameraTransform.SetRotation(AZ::Quaternion(
+            static_cast<float>(relativeCameraOrientation.x), static_cast<float>(relativeCameraOrientation.y),
+            static_cast<float>(relativeCameraOrientation.z), static_cast<float>(relativeCameraOrientation.w)));
+        if (glm::abs(relativeCameraPosition.x) < ORIGIN_SHIFT_DISTANCE && glm::abs(relativeCameraPosition.y) < ORIGIN_SHIFT_DISTANCE &&
+            glm::abs(relativeCameraPosition.z) < ORIGIN_SHIFT_DISTANCE)
+        {
+            cameraTransform.SetTranslation(AZ::Vector3(
+                static_cast<float>(cameraPosition.x), static_cast<float>(cameraPosition.y), static_cast<float>(cameraPosition.z)));
+        }
+        else
+        {
+			cameraTransform.SetTranslation(AZ::Vector3{ 0.0f });
+			OriginShiftRequestBus::Broadcast(&OriginShiftRequestBus::Events::SetOrigin, cameraPosition);
+        }
 
-        //AZ::TransformBus::Event(GetEntityId(), &AZ::TransformBus::Events::SetWorldTM, cameraTransform);
+        AZ::TransformBus::Event(GetEntityId(), &AZ::TransformBus::Events::SetWorldTM, cameraTransform);
 
-        //// if the interpolator stops updating, then we transition to the end state
-        //if (m_ecefPositionInterpolator->IsStop())
-        //{
-        //    StopFly();
-        //}
+        // if the interpolator stops updating, then we transition to the end state
+        if (m_ecefPositionInterpolator->IsStop())
+        {
+            StopFly();
+        }
     }
 
     void GeoReferenceCameraFlyController::ProcessNoFlyState()
