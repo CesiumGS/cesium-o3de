@@ -20,11 +20,11 @@ namespace Cesium
     {
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<GeoReferenceCameraFlyController, AZ::Component>()->Version(0)->
-                Field("mouseSensitivity", &GeoReferenceCameraFlyController::m_mouseSensitivity)->
-                Field("movementSpeed", &GeoReferenceCameraFlyController::m_movementSpeed)->
-                Field("panningSpeed", &GeoReferenceCameraFlyController::m_panningSpeed)
-                ;
+            serializeContext->Class<GeoReferenceCameraFlyController, AZ::Component>()
+                ->Version(0)
+                ->Field("mouseSensitivity", &GeoReferenceCameraFlyController::m_mouseSensitivity)
+                ->Field("movementSpeed", &GeoReferenceCameraFlyController::m_movementSpeed)
+                ->Field("panningSpeed", &GeoReferenceCameraFlyController::m_panningSpeed);
         }
     }
 
@@ -49,7 +49,7 @@ namespace Cesium
     }
 
     GeoReferenceCameraFlyController::GeoReferenceCameraFlyController()
-        : m_cameraFlyState{CameraFlyState::NoFly}
+        : m_cameraFlyState{ CameraFlyState::NoFly }
         , m_mouseSensitivity{ 1.0 }
         , m_movementSpeed{ 1.0 }
         , m_panningSpeed{ 1.0 }
@@ -67,11 +67,11 @@ namespace Cesium
 
     void GeoReferenceCameraFlyController::Activate()
     {
-		AZ::Transform relativeCameraTransform = AZ::Transform::CreateIdentity();
-		AZ::TransformBus::EventResult(relativeCameraTransform, GetEntityId(), &AZ::TransformBus::Events::GetWorldTM);
-		AZ::Vector3 eulerAngles = relativeCameraTransform.GetEulerRadians();
-		m_cameraPitch = eulerAngles.GetX();
-		m_cameraHead = eulerAngles.GetZ();
+        AZ::Transform relativeCameraTransform = AZ::Transform::CreateIdentity();
+        AZ::TransformBus::EventResult(relativeCameraTransform, GetEntityId(), &AZ::TransformBus::Events::GetWorldTM);
+        AZ::Vector3 eulerAngles = relativeCameraTransform.GetEulerRadians();
+        m_cameraPitch = eulerAngles.GetX();
+        m_cameraHead = eulerAngles.GetZ();
 
         GeoReferenceCameraFlyControllerRequestBus::Handler::BusConnect(GetEntityId());
         AZ::TickBus::Handler::BusConnect();
@@ -186,8 +186,8 @@ namespace Cesium
         }
         else
         {
-			cameraTransform.SetTranslation(AZ::Vector3{ 0.0f });
-			OriginShiftRequestBus::Broadcast(&OriginShiftRequestBus::Events::SetOrigin, cameraPosition);
+            cameraTransform.SetTranslation(AZ::Vector3{ 0.0f });
+            OriginShiftRequestBus::Broadcast(&OriginShiftRequestBus::Events::SetOrigin, cameraPosition);
         }
 
         AZ::TransformBus::Event(GetEntityId(), &AZ::TransformBus::Events::SetWorldTM, cameraTransform);
@@ -226,12 +226,15 @@ namespace Cesium
             glm::dvec3 newPosition = MathHelper::ToDVec3(relativeCameraTransform.GetTranslation()) + move;
 
             // reset camera pitch and head
-            glm::dvec3 absNewPosition = relToAbsWorld * glm::dvec4(newPosition, 1.0);
-            glm::dmat4 newEnu = CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(absNewPosition);
-            auto cameraDir = glm::inverse(newEnu) * relToAbsWorld * MathHelper::ToDVec4(relativeCameraTransform.GetBasisY(), 0.0);
-            glm::dvec3 pitchHeadRoll = MathHelper::CalculatePitchRollHead(cameraDir);
-            m_cameraPitch = pitchHeadRoll.x;
-            m_cameraHead = pitchHeadRoll.z;
+            if (m_cameraPitch > -CesiumUtility::Math::PI_OVER_TWO && m_cameraPitch < CesiumUtility::Math::PI_OVER_TWO)
+            {
+                glm::dvec3 absNewPosition = relToAbsWorld * glm::dvec4(newPosition, 1.0);
+                glm::dmat4 newEnu = CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(absNewPosition);
+                auto cameraDir = glm::inverse(newEnu) * relToAbsWorld * totalRotation[1];
+                glm::dvec3 pitchHeadRoll = MathHelper::CalculatePitchRollHead(cameraDir);
+                m_cameraPitch = pitchHeadRoll.x;
+                m_cameraHead = pitchHeadRoll.z;
+            }
 
             if (glm::abs(newPosition.x) < ORIGIN_SHIFT_DISTANCE && glm::abs(newPosition.y) < ORIGIN_SHIFT_DISTANCE &&
                 glm::abs(newPosition.z) < ORIGIN_SHIFT_DISTANCE)
@@ -282,6 +285,7 @@ namespace Cesium
             else if (m_cameraRotateUpdate && inputChannelId == AzFramework::InputDeviceMouse::Movement::Y)
             {
                 m_cameraPitch += glm::radians(-inputValue / 360.0 * m_mouseSensitivity);
+                m_cameraPitch = glm::clamp(m_cameraPitch, -CesiumUtility::Math::PI_OVER_TWO, CesiumUtility::Math::PI_OVER_TWO);
             }
             else if (inputChannelId == AzFramework::InputDeviceMouse::Button::Right)
             {
