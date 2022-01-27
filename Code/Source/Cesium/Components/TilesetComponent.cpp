@@ -662,6 +662,11 @@ namespace Cesium
 
     void TilesetComponent::ReflectTilesetBoundingVolume(AZ::ReflectContext* context)
     {
+        if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
+        {
+            serializeContext->Class<TilesetBoundingVolume>()->Version(0);
+        }
+
         if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
         {
             auto getType = [](TilesetBoundingVolume* source)
