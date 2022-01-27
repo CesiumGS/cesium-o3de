@@ -19,6 +19,8 @@ namespace Cesium
 
         static bool IsIdentityMatrix(const glm::dmat4& mat);
 
+        static glm::dvec3 CalculatePitchRollHead(const glm::dvec3& direction);
+
         static std::size_t Align(std::size_t location, std::size_t align);
     };
 } // namespace Cesium

@@ -125,11 +125,6 @@ namespace Cesium
         AZ::Transform relCameraTransform = AZ::Transform::CreateIdentity();
         AZ::TransformBus::EventResult(relCameraTransform, GetEntityId(), &AZ::TransformBus::Events::GetWorldTM);
 
-        // Get camera configuration for the interpolator
-        Camera::Configuration cameraConfiguration;
-        Camera::CameraRequestBus::EventResult(
-            cameraConfiguration, GetEntityId(), &Camera::CameraRequestBus::Events::GetCameraConfiguration);
-
         // Get current origin
         glm::dmat4 relToAbsWorld{ 1.0 };
         OriginShiftRequestBus::BroadcastResult(relToAbsWorld, &OriginShiftRequestBus::Events::GetRelToAbsWorld);
@@ -138,8 +133,8 @@ namespace Cesium
         glm::dmat4 absCameraTransform =
             relToAbsWorld * MathHelper::ConvertTransformAndScaleToDMat4(relCameraTransform, AZ::Vector3::CreateOne());
         glm::dvec3 absCameraPosition = absCameraTransform[3];
-		m_ecefPositionInterpolator = AZStd::make_unique<GeoReferenceInterpolator>(
-			absCameraPosition, absCameraTransform[1], location, direction, absCameraTransform, cameraConfiguration);
+        m_ecefPositionInterpolator =
+            AZStd::make_unique<GeoReferenceInterpolator>(absCameraPosition, absCameraTransform[1], location, direction);
 
         // transition to the new state
         m_cameraFlyState = CameraFlyState::MidFly;
@@ -353,9 +348,15 @@ namespace Cesium
             glm::dvec3 ecefCurrentPosition = m_ecefPositionInterpolator->GetCurrentPosition();
             AZ::Transform worldTM{};
             AZ::TransformBus::EventResult(worldTM, GetEntityId(), &AZ::TransformBus::Events::GetWorldTM);
-            AZ::Vector3 worldOrientation = worldTM.GetRotation().GetEulerRadians();
-            m_cameraPitch = worldOrientation.GetX();
-            m_cameraHead = worldOrientation.GetZ();
+
+            glm::dmat4 relToAbsWorld{ 1.0 };
+            OriginShiftRequestBus::BroadcastResult(relToAbsWorld, &OriginShiftRequestBus::Events::GetRelToAbsWorld);
+            auto cameraDir = glm::inverse(CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(ecefCurrentPosition)) * relToAbsWorld *
+                MathHelper::ToDVec4(worldTM.GetBasisY(), 0.0);
+            glm::dvec3 pitchHeadRoll = MathHelper::CalculatePitchRollHead(cameraDir);
+            m_cameraPitch = pitchHeadRoll.x;
+            m_cameraHead = pitchHeadRoll.z;
+
             m_ecefPositionInterpolator = nullptr;
             m_stopFlyEvent.Signal(ecefCurrentPosition);
 
