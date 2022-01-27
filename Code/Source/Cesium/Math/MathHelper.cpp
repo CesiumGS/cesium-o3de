@@ -77,13 +77,11 @@ namespace Cesium
     {
         glm::dvec3 pitchRollHead{};
 
-        // calculate pitch
-        pitchRollHead.x = CesiumUtility::Math::PI_OVER_TWO - glm::acos(direction.z);
-
-        // calculate head
-        if (!CesiumUtility::Math::equalsEpsilon(direction.z, 1.0, CesiumUtility::Math::EPSILON14))
+        glm::dvec3 normalizeDirection = glm::normalize(direction);
+		pitchRollHead.x = CesiumUtility::Math::PI_OVER_TWO - glm::acos(normalizeDirection.z);
+        if (!CesiumUtility::Math::equalsEpsilon(normalizeDirection.z, 1.0, CesiumUtility::Math::EPSILON14))
         {
-            pitchRollHead.z = glm::atan(direction.y, direction.x) - CesiumUtility::Math::PI_OVER_TWO;
+            pitchRollHead.z = glm::atan(normalizeDirection.y, normalizeDirection.x) - CesiumUtility::Math::PI_OVER_TWO;
         }
 
         return pitchRollHead;

@@ -213,19 +213,26 @@ namespace Cesium
             OriginShiftRequestBus::BroadcastResult(absToRelWorld, &OriginShiftRequestBus::Events::GetAbsToRelWorld);
             OriginShiftRequestBus::BroadcastResult(relToAbsWorld, &OriginShiftRequestBus::Events::GetRelToAbsWorld);
             glm::dvec4 currentPosition = relToAbsWorld * MathHelper::ToDVec4(relativeCameraTransform.GetTranslation(), 1.0);
-            glm::dmat4 enu = absToRelWorld * CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(currentPosition);
-
-            // calculate new camera orientation, adjust for ENU coordinate
-            glm::dquat totalRotationQuat = glm::dquat(enu) * glm::dquat(glm::dvec3(m_cameraPitch, 0.0, m_cameraHead));
+            glm::dmat4 enu = CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(currentPosition) *
+                glm::dmat4(glm::dquat(glm::dvec3(m_cameraPitch, 0.0, m_cameraHead)));
+            glm::dmat4 totalRotation = absToRelWorld * enu;
+            glm::dquat totalRotationQuat{ totalRotation };
             relativeCameraTransform.SetRotation(AZ::Quaternion(
                 static_cast<float>(totalRotationQuat.x), static_cast<float>(totalRotationQuat.y), static_cast<float>(totalRotationQuat.z),
                 static_cast<float>(totalRotationQuat.w)));
 
             // calculate camera position
-            glm::dvec3 moveX = m_cameraMovement.x * MathHelper::ToDVec3(relativeCameraTransform.GetBasisX());
-            glm::dvec3 moveY = m_cameraMovement.y * MathHelper::ToDVec3(relativeCameraTransform.GetBasisY());
-            glm::dvec3 moveZ = m_cameraMovement.z * MathHelper::ToDVec3(relativeCameraTransform.GetBasisZ());
-            glm::dvec3 newPosition = MathHelper::ToDVec3(relativeCameraTransform.GetTranslation()) + moveX + moveY + moveZ;
+            glm::dvec3 move = totalRotation * glm::dvec4(m_cameraMovement, 0.0);
+            glm::dvec3 newPosition = MathHelper::ToDVec3(relativeCameraTransform.GetTranslation()) + move;
+
+            // reset camera pitch and head
+            glm::dvec3 absNewPosition = relToAbsWorld * glm::dvec4(newPosition, 1.0);
+            glm::dmat4 newEnu = CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(absNewPosition);
+            auto cameraDir = glm::inverse(newEnu) * relToAbsWorld * MathHelper::ToDVec4(relativeCameraTransform.GetBasisY(), 0.0);
+            glm::dvec3 pitchHeadRoll = MathHelper::CalculatePitchRollHead(cameraDir);
+            m_cameraPitch = pitchHeadRoll.x;
+            m_cameraHead = pitchHeadRoll.z;
+
             if (glm::abs(newPosition.x) < ORIGIN_SHIFT_DISTANCE && glm::abs(newPosition.y) < ORIGIN_SHIFT_DISTANCE &&
                 glm::abs(newPosition.z) < ORIGIN_SHIFT_DISTANCE)
             {
@@ -240,7 +247,6 @@ namespace Cesium
                 AZ::TransformBus::Event(GetEntityId(), &AZ::TransformBus::Events::SetWorldTM, relativeCameraTransform);
                 OriginShiftRequestBus::Broadcast(&OriginShiftRequestBus::Events::ShiftOrigin, shiftOrigin);
             }
-
         }
     }
 
