@@ -14,8 +14,8 @@ namespace Cesium
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
             serializeContext->Class<GeoreferenceAnchorEditorComponent, AZ::Component>()->Version(0)
-                ->Field("ecefPicker", &GeoreferenceAnchorEditorComponent::m_ecefPicker)
-                ->Field("o3dePosition", &GeoreferenceAnchorEditorComponent::m_o3dePosition)
+                ->Field("ECEFPicker", &GeoreferenceAnchorEditorComponent::m_ecefPicker)
+                ->Field("O3DEPosition", &GeoreferenceAnchorEditorComponent::m_o3dePosition)
                 ;
 
             AZ::EditContext* editContext = serializeContext->GetEditContext();

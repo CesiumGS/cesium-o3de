@@ -16,10 +16,10 @@ namespace Cesium
         {
             serializeContext->Class<OriginShiftEditorComponent, AZ::Component>()
                 ->Version(0)
-                ->Field("origin", &OriginShiftEditorComponent::m_origin)
-                ->Field("rotation", &OriginShiftEditorComponent::m_rotation)
-                ->Field("absToRelWorld", &OriginShiftEditorComponent::m_absToRelWorld)
-                ->Field("relToAbsWorld", &OriginShiftEditorComponent::m_relToAbsWorld)
+                ->Field("Origin", &OriginShiftEditorComponent::m_origin)
+                ->Field("Rotation", &OriginShiftEditorComponent::m_rotation)
+                ->Field("AbsToRelWorld", &OriginShiftEditorComponent::m_absToRelWorld)
+                ->Field("RelToAbsWorld", &OriginShiftEditorComponent::m_relToAbsWorld)
                 ;
 
             auto editContext = serializeContext->GetEditContext();

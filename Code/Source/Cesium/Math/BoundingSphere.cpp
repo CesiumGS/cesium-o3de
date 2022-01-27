@@ -11,16 +11,16 @@ namespace Cesium
         {
             serializeContext->Class<BoundingSphere>()
                 ->Version(0)
-                ->Field("center", &BoundingSphere::m_center)
-                ->Field("radius", &BoundingSphere::m_radius);
+                ->Field("Center", &BoundingSphere::m_center)
+                ->Field("Radius", &BoundingSphere::m_radius);
         }
 
         if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
         {
             behaviorContext->Class<BoundingSphere>("BoundingSphere")
                 ->Attribute(AZ::Script::Attributes::Category, "Cesium/Math")
-                ->Property("center", BehaviorValueProperty(&BoundingSphere::m_center))
-                ->Property("radius", BehaviorValueProperty(&BoundingSphere::m_radius))
+                ->Property("Center", BehaviorValueProperty(&BoundingSphere::m_center))
+                ->Property("Radius", BehaviorValueProperty(&BoundingSphere::m_radius))
             ;
         }
     }

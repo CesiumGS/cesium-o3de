@@ -24,8 +24,8 @@ namespace Cesium
         {
             serializeContext->Class<TilesetEditorComponent, AZ::Component>()
                 ->Version(0)
-                ->Field("tilesetConfiguration", &TilesetEditorComponent::m_tilesetConfiguration)
-                ->Field("tilesetSource", &TilesetEditorComponent::m_tilesetSource)
+                ->Field("TilesetConfiguration", &TilesetEditorComponent::m_tilesetConfiguration)
+                ->Field("TilesetSource", &TilesetEditorComponent::m_tilesetSource)
                 ;
 
             AZ::EditContext* editContext = serializeContext->GetEditContext();

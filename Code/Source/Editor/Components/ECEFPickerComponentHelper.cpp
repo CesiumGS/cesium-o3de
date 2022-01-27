@@ -19,9 +19,9 @@ namespace Cesium
         {
             serializeContext->Class<DegreeCartographic>()
                 ->Version(0)
-                ->Field("longitude", &DegreeCartographic::m_longitude)
-                ->Field("latitude", &DegreeCartographic::m_latitude)
-                ->Field("height", &DegreeCartographic::m_height);
+                ->Field("Longitude", &DegreeCartographic::m_longitude)
+                ->Field("Latitude", &DegreeCartographic::m_latitude)
+                ->Field("Height", &DegreeCartographic::m_height);
 
             AZ::EditContext* editContext = serializeContext->GetEditContext();
             if (editContext)
@@ -66,11 +66,11 @@ namespace Cesium
         {
             serializeContext->Class<ECEFPickerComponentHelper>()
                 ->Version(0)
-                ->Field("sampleOriginMethod", &ECEFPickerComponentHelper::m_samplePositionMethod)
-                ->Field("sampledEntityId", &ECEFPickerComponentHelper::m_sampledEntityId)
-                ->Field("positionType", &ECEFPickerComponentHelper::m_positionType)
-                ->Field("position", &ECEFPickerComponentHelper::m_position)
-                ->Field("cartographic", &ECEFPickerComponentHelper::m_cartographic)
+                ->Field("SampleOriginMethod", &ECEFPickerComponentHelper::m_samplePositionMethod)
+                ->Field("SampledEntityId", &ECEFPickerComponentHelper::m_sampledEntityId)
+                ->Field("PositionType", &ECEFPickerComponentHelper::m_positionType)
+                ->Field("Position", &ECEFPickerComponentHelper::m_position)
+                ->Field("Cartographic", &ECEFPickerComponentHelper::m_cartographic)
                 ;
 
             AZ::EditContext* editContext = serializeContext->GetEditContext();

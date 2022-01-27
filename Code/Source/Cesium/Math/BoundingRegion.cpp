@@ -10,12 +10,12 @@ namespace Cesium
         {
             serializeContext->Class<BoundingRegion>()
                 ->Version(0)
-                ->Field("west", &BoundingRegion::m_west)
-                ->Field("south", &BoundingRegion::m_south)
-                ->Field("east", &BoundingRegion::m_east)
-                ->Field("north", &BoundingRegion::m_north)
-                ->Field("minHeight", &BoundingRegion::m_minHeight)
-                ->Field("maxHeight", &BoundingRegion::m_maxHeight)
+                ->Field("West", &BoundingRegion::m_west)
+                ->Field("South", &BoundingRegion::m_south)
+                ->Field("East", &BoundingRegion::m_east)
+                ->Field("North", &BoundingRegion::m_north)
+                ->Field("MinHeight", &BoundingRegion::m_minHeight)
+                ->Field("MaxHeight", &BoundingRegion::m_maxHeight)
                 ;
         }
 
@@ -23,12 +23,12 @@ namespace Cesium
         {
             behaviorContext->Class<BoundingRegion>("BoundingRegion")
                 ->Attribute(AZ::Script::Attributes::Category, "Cesium/Math")
-                ->Property("west", BehaviorValueProperty(&BoundingRegion::m_west))
-                ->Property("south", BehaviorValueProperty(&BoundingRegion::m_south))
-                ->Property("east", BehaviorValueProperty(&BoundingRegion::m_east))
-                ->Property("north", BehaviorValueProperty(&BoundingRegion::m_north))
-                ->Property("minHeight", BehaviorValueProperty(&BoundingRegion::m_minHeight))
-                ->Property("maxHeight", BehaviorValueProperty(&BoundingRegion::m_maxHeight))
+                ->Property("West", BehaviorValueProperty(&BoundingRegion::m_west))
+                ->Property("South", BehaviorValueProperty(&BoundingRegion::m_south))
+                ->Property("East", BehaviorValueProperty(&BoundingRegion::m_east))
+                ->Property("North", BehaviorValueProperty(&BoundingRegion::m_north))
+                ->Property("MinHeight", BehaviorValueProperty(&BoundingRegion::m_minHeight))
+                ->Property("MaxHeight", BehaviorValueProperty(&BoundingRegion::m_maxHeight))
                 ;
             ;
         }

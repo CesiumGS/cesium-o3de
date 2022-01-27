@@ -721,10 +721,10 @@ namespace Cesium
 
             behaviorContext->Class<TilesetBoundingVolume>("TilesetBoundingVolume")
                 ->Attribute(AZ::Script::Attributes::Category, "Cesium/3DTiles")
-                ->Property("type", getType, nullptr)
-                ->Property("boundingSphere", getBoundingSphere, nullptr)
-                ->Property("orientedBoundingBox", getOBB, nullptr)
-                ->Property("boundingRegion", getBoundingRegion, nullptr);
+                ->Property("Type", getType, nullptr)
+                ->Property("BoundingSphere", getBoundingSphere, nullptr)
+                ->Property("OrientedBoundingBox", getOBB, nullptr)
+                ->Property("BoundingRegion", getBoundingRegion, nullptr);
         }
     }
 

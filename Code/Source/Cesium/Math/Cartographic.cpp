@@ -10,18 +10,18 @@ namespace Cesium
         {
             serializeContext->Class<Cartographic>()
                 ->Version(0)
-                ->Field("longitude", &Cartographic::m_longitude)
-                ->Field("latitude", &Cartographic::m_latitude)
-                ->Field("height", &Cartographic::m_height);
+                ->Field("Longitude", &Cartographic::m_longitude)
+                ->Field("Latitude", &Cartographic::m_latitude)
+                ->Field("Height", &Cartographic::m_height);
         }
 
         if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
         {
             behaviorContext->Class<Cartographic>("Cartographic")
                 ->Attribute(AZ::Script::Attributes::Category, "Cesium/Math")
-                ->Property("longitude", BehaviorValueProperty(&Cartographic::m_longitude))
-                ->Property("latitude", BehaviorValueProperty(&Cartographic::m_latitude))
-                ->Property("height", BehaviorValueProperty(&Cartographic::m_height))
+                ->Property("Longitude", BehaviorValueProperty(&Cartographic::m_longitude))
+                ->Property("Latitude", BehaviorValueProperty(&Cartographic::m_latitude))
+                ->Property("Height", BehaviorValueProperty(&Cartographic::m_height))
             ;
         }
     }

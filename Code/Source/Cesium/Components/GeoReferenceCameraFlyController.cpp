@@ -22,9 +22,9 @@ namespace Cesium
         {
             serializeContext->Class<GeoReferenceCameraFlyController, AZ::Component>()
                 ->Version(0)
-                ->Field("mouseSensitivity", &GeoReferenceCameraFlyController::m_mouseSensitivity)
-                ->Field("movementSpeed", &GeoReferenceCameraFlyController::m_movementSpeed)
-                ->Field("panningSpeed", &GeoReferenceCameraFlyController::m_panningSpeed);
+                ->Field("MouseSensitivity", &GeoReferenceCameraFlyController::m_mouseSensitivity)
+                ->Field("MovementSpeed", &GeoReferenceCameraFlyController::m_movementSpeed)
+                ->Field("PanningSpeed", &GeoReferenceCameraFlyController::m_panningSpeed);
         }
     }
 
