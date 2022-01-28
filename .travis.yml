@@ -5,7 +5,7 @@ jobs:
     name: Windows
     os: windows
     before_install:
-    - wget "http://o3debinaries.org/main/Latest/Windows/o3de_installer_2111_2.exe" -O o3de_installer_2112_2.exe
+    - wget -nv "http://o3debinaries.org/main/Latest/Windows/o3de_installer_2111_2.exe" -O o3de_installer_2112_2.exe
     - ./o3de_installer_2111_2.exe -quiet
     install:
     - choco install 7zip.portable
