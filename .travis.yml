@@ -11,7 +11,7 @@ jobs:
     - pip3 install --upgrade pip
     - pip3 install awscli
     - pip3 install httpie
-    - wget "https://o3debinaries.org/main/Latest/Windows/o3de_installer_2111_2.exe"
+    - wget "http://o3debinaries.org/main/Latest/Windows/o3de_installer_2111_2.exe"
     - ./o3de_installer_2111_2.exe -quiet
     before_script:
     - export CESIUM_O3DE_VERSION=$(git describe)
