@@ -4,6 +4,9 @@ jobs:
   - stage: Build OS Packages
     name: Windows
     os: windows
+    before_install:
+    - wget "http://o3debinaries.org/main/Latest/Windows/o3de_installer_2111_2.exe" -O o3de_installer_2112_2.exe
+    - ./o3de_installer_2111_2.exe -quiet
     install:
     - choco install 7zip.portable
     - choco install python --version 3.9.2
@@ -11,8 +14,6 @@ jobs:
     - pip3 install --upgrade pip
     - pip3 install awscli
     - pip3 install httpie
-    - wget "http://o3debinaries.org/main/Latest/Windows/o3de_installer_2111_2.exe"
-    - ./o3de_installer_2111_2.exe -quiet
     before_script:
     - export CESIUM_O3DE_VERSION=$(git describe)
     - export BUILD_CESIUM_O3DE_PACKAGE_NAME=CesiumForO3DE-${TRAVIS_OS_NAME}-${CESIUM_O3DE_VERSION}
