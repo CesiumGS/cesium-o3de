@@ -3,6 +3,7 @@
 #include <Cesium/EBus/OriginShiftAnchorComponentBus.h>
 #include <Cesium/EBus/OriginShiftComponentBus.h>
 #include <AzCore/Component/Component.h>
+#include <AzCore/Component/TransformBus.h>
 
 namespace Cesium
 {
@@ -10,6 +11,7 @@ namespace Cesium
         : public AZ::Component
         , public OriginShiftAnchorRequestBus::Handler
         , public OriginShiftNotificationBus::Handler
+        , public AZ::TransformNotificationBus::Handler
     {
     public:
         AZ_COMPONENT(GeoreferenceAnchorComponent, "{3386F43E-BD07-4ACA-9307-676B0CD53BBB}", AZ::Component)
@@ -41,7 +43,11 @@ namespace Cesium
         void OnOriginShifting(const glm::dmat4& absToRelWorld) override;
 
     private:
+        void OnTransformChanged(const AZ::Transform&, const AZ::Transform& world);
+
         // configuration
         glm::dvec3 m_position{ 0.0 };
+
+        bool m_selfTransform{ true };
     };
 }

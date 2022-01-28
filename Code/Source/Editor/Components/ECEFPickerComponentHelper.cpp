@@ -116,6 +116,12 @@ namespace Cesium
         return m_position;
     }
 
+    void ECEFPickerComponentHelper::SetPosition(const glm::dvec3& position)
+    {
+        m_position = position;
+        OnPositionAsCartesianChanged();
+    }
+
     bool ECEFPickerComponentHelper::UseEntityCoordinateSampleMethod() const
     {
         return m_samplePositionMethod == SamplePositionMethod::EntityCoordinate;

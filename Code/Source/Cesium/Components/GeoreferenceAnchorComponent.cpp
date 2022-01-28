@@ -1,5 +1,6 @@
 #include <Cesium/Components/GeoreferenceAnchorComponent.h>
 #include <Cesium/Math/MathReflect.h>
+#include <Cesium/Math/MathHelper.h>
 #include <AzCore/Component/TransformBus.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <CesiumGeospatial/Transforms.h>
@@ -51,12 +52,14 @@ namespace Cesium
     {
         OriginShiftNotificationBus::Handler::BusConnect();
         OriginShiftAnchorRequestBus::Handler::BusConnect(GetEntityId());
+        AZ::TransformNotificationBus::Handler::BusConnect(GetEntityId());
     }
 
     void GeoreferenceAnchorComponent::Deactivate()
     {
         OriginShiftNotificationBus::Handler::BusDisconnect();
         OriginShiftAnchorRequestBus::Handler::BusDisconnect();
+        AZ::TransformNotificationBus::Handler::BusDisconnect();
     }
 
     glm::dvec3 GeoreferenceAnchorComponent::GetCoordinate() const
@@ -75,6 +78,7 @@ namespace Cesium
 
     void GeoreferenceAnchorComponent::OnOriginShifting(const glm::dmat4& absToRelWorld)
     {
+        m_selfTransform = true;
         glm::dmat4 enu = absToRelWorld * CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(m_position);
         glm::dquat enuRotation = glm::dquat(enu);
         glm::dvec3 shift = enu[3];
@@ -84,5 +88,18 @@ namespace Cesium
             static_cast<float>(enuRotation.w));
         AZ::Transform azTransform = AZ::Transform::CreateFromQuaternionAndTranslation(azRotation, azTranslation);
         AZ::TransformBus::Event(GetEntityId(), &AZ::TransformBus::Events::SetWorldTM, azTransform);
+    }
+
+    void GeoreferenceAnchorComponent::OnTransformChanged(const AZ::Transform&, const AZ::Transform& world)
+    {
+        if (m_selfTransform)
+        {
+            m_selfTransform = false;
+            return;
+        }
+
+        glm::dmat4 relToAbsWorld{ 1.0 };
+        OriginShiftRequestBus::BroadcastResult(relToAbsWorld, &OriginShiftRequestBus::Events::GetRelToAbsWorld);
+        SetCoordinate(relToAbsWorld * MathHelper::ToDVec4(world.GetTranslation(), 1.0));
     }
 }

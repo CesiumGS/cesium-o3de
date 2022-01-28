@@ -49,6 +49,8 @@ namespace Cesium
 
 		glm::dvec3 GetPosition() const;
 
+		void SetPosition(const glm::dvec3& position);
+
         ECEFPositionChangeEvent m_onPositionChangeEvent;
 
 	private:

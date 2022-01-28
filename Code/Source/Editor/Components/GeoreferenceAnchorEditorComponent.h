@@ -42,9 +42,8 @@ namespace Cesium
 
         GeoreferenceAnchorComponent m_georeferenceAnchorComponent;
         ECEFPickerComponentHelper m_ecefPicker;
-        glm::dvec3 m_o3dePosition{0.0};
 
-        bool m_selfTransform{ false };
+        bool m_selfUpdateEcefPicker{ true };
         ECEFPositionChangeEvent::Handler m_positionChangeHandler;
     };
 }

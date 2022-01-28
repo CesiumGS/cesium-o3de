@@ -15,7 +15,6 @@ namespace Cesium
         {
             serializeContext->Class<GeoreferenceAnchorEditorComponent, AZ::Component>()->Version(0)
                 ->Field("ECEFPicker", &GeoreferenceAnchorEditorComponent::m_ecefPicker)
-                ->Field("O3DEPosition", &GeoreferenceAnchorEditorComponent::m_o3dePosition)
                 ;
 
             AZ::EditContext* editContext = serializeContext->GetEditContext();
@@ -65,6 +64,12 @@ namespace Cesium
         m_positionChangeHandler = ECEFPositionChangeEvent::Handler(
             [this](glm::dvec3 position)
             {
+                if (m_selfUpdateEcefPicker)
+                {
+                    m_selfUpdateEcefPicker = false;
+                    return;
+                }
+
                 AzToolsFramework::ScopedUndoBatch undoBatch("Change Anchor Position");
                 m_georeferenceAnchorComponent.SetCoordinate(position);
                 undoBatch.MarkEntityDirty(GetEntityId());
@@ -77,7 +82,7 @@ namespace Cesium
         georeferenceAnchorComponent->SetEntity(gameEntity);
         georeferenceAnchorComponent->Init();
         georeferenceAnchorComponent->Activate();
-        georeferenceAnchorComponent->SetCoordinate(m_o3dePosition);
+        georeferenceAnchorComponent->SetCoordinate(m_ecefPicker.GetPosition());
         georeferenceAnchorComponent->Deactivate();
     }
 
@@ -90,7 +95,7 @@ namespace Cesium
         m_georeferenceAnchorComponent.SetEntity(GetEntity());
         m_georeferenceAnchorComponent.Init();
         m_georeferenceAnchorComponent.Activate();
-        m_georeferenceAnchorComponent.SetCoordinate(m_o3dePosition);
+        m_georeferenceAnchorComponent.SetCoordinate(m_ecefPicker.GetPosition());
 
         m_positionChangeHandler.Connect(m_ecefPicker.m_onPositionChangeEvent);
 
@@ -108,25 +113,17 @@ namespace Cesium
 
     void GeoreferenceAnchorEditorComponent::PlaceWorldOriginHere()
     {
+        glm::dvec3 position = m_ecefPicker.GetPosition();
         OriginShiftRequestBus::Broadcast(
-            &OriginShiftRequestBus::Events::SetOriginAndRotation, m_o3dePosition,
-            glm::dmat3(glm::inverse(CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(m_o3dePosition))));
+            &OriginShiftRequestBus::Events::SetOriginAndRotation, position,
+            glm::dmat3(glm::inverse(CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(position))));
     }
 
-    void GeoreferenceAnchorEditorComponent::OnTransformChanged(const AZ::Transform& local, const AZ::Transform&)
+    void GeoreferenceAnchorEditorComponent::OnTransformChanged(const AZ::Transform&, const AZ::Transform&)
     {
-        if (m_selfTransform)
-        {
-            m_selfTransform = false;
-            return;
-        }
-
-        m_selfTransform = true;
         AzToolsFramework::ScopedUndoBatch undoBatch("Change Anchor Position");
-        glm::dmat4 relToAbsWorld{ 1.0 };
-        OriginShiftRequestBus::BroadcastResult(relToAbsWorld, &OriginShiftRequestBus::Events::GetRelToAbsWorld);
-        m_o3dePosition = relToAbsWorld * MathHelper::ToDVec4(local.GetTranslation(), 1.0);
-        m_georeferenceAnchorComponent.SetCoordinate(m_o3dePosition);
+        m_selfUpdateEcefPicker = true;
+        m_ecefPicker.SetPosition(m_georeferenceAnchorComponent.GetCoordinate());
         undoBatch.MarkEntityDirty(GetEntityId());
     }
 }
