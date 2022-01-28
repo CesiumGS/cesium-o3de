@@ -5,7 +5,7 @@ jobs:
     name: Windows
     os: windows
     before_install:
-    - curl "http://o3debinaries.org/main/Latest/Windows/o3de_installer_2111_2.exe" --output o3de_installer_2112_2.exe
+    - curl "http://o3debinaries.org/main/Latest/Windows/o3de_installer_2111_2.exe" --output o3de_installer_2111_2.exe
     - sleep 30
     - md5sum o3de_installer_2111_2.exe
     - ./o3de_installer_2111_2.exe -quiet
