@@ -9,11 +9,16 @@
 #include "Editor/Widgets/MathReflectPropertyWidget.h"
 #include <Cesium/Math/GeospatialHelper.h>
 #include <Editor/EditorSettingsAPIBus.h>
+#include <AzToolsFramework/API/EditorCameraBus.h>
 #include <AzToolsFramework/Component/EditorComponentAPIBus.h>
 #include <AzToolsFramework/API/ViewPaneOptions.h>
 #include <AzToolsFramework/API/ToolsApplicationAPI.h>
+#include <Atom/RPI.Public/ViewportContext.h>
+#include <Atom/RPI.Public/ViewportContextBus.h>
+#include <AzFramework/Viewport/CameraState.h>
 #include <AzFramework/Components/CameraBus.h>
 #include <AzCore/Serialization/SerializeContext.h>
+#include <AzCore/Math/MatrixUtils.h>
 #include <CesiumGeospatial/Transforms.h>
 #include <glm/glm.hpp>
 
@@ -348,6 +353,20 @@ namespace Cesium
 				azrtti_typeid<OriginShiftEditorComponent>());
 
             PlaceOriginAtPosition(GeospatialHelper::CartographicToECEFCartesian(Cartographic(glm::radians(-73.99), glm::radians(40.736), 20.0)));
+        }
+
+        bool resultCameraState = false;
+        AzFramework::CameraState cameraState{};
+        Camera::EditorCameraRequestBus::BroadcastResult(resultCameraState, &Camera::EditorCameraRequestBus::Events::GetActiveCameraState, cameraState);
+        if (resultCameraState)
+        {
+            auto viewportContextManager = AZ::Interface<AZ::RPI::ViewportContextRequestsInterface>::Get();
+            auto defaultViewContext = viewportContextManager->GetDefaultViewportContext();
+            AZ::Matrix4x4 clipMatrix;
+            AZ::MakePerspectiveFovMatrixRH(
+                clipMatrix, cameraState.m_fovOrZoom, cameraState.m_viewportSize.GetX() / cameraState.m_viewportSize.GetY(),
+                cameraState.m_nearClip, 10000000.0f, true);
+            defaultViewContext->SetCameraProjectionMatrix(clipMatrix);
         }
     }
 } // namespace Cesium
