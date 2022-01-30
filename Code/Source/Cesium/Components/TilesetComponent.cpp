@@ -1,23 +1,15 @@
 #include <Cesium/Components/TilesetComponent.h>
 #include "Cesium/EBus/RasterOverlayContainerBus.h"
 #include "Cesium/TilesetUtility/RenderResourcesPreparer.h"
+#include "Cesium/TilesetUtility/TilesetCameraConfigurations.h" 
 #include "Cesium/Systems/CesiumSystem.h"
-#include "Cesium/Math/BoundingRegion.h"
-#include "Cesium/Math/BoundingSphere.h"
-#include "Cesium/Math/OrientedBoundingBox.h"
-#include "Cesium/Math/MathHelper.h"
-#include "Cesium/Math/MathReflect.h" 
-#include <Atom/RPI.Public/ViewportContext.h>
-#include <Atom/RPI.Public/ViewportContextBus.h>
+#include "Cesium/Math/BoundingVolumeConverters.h"
+#include <Cesium/Math/MathHelper.h>
+#include <Cesium/Math/MathReflect.h> 
 #include <Atom/RPI.Public/Scene.h>
-#include <Atom/RPI.Public/View.h>
-#include <Atom/RPI.Public/Base.h>
-#include <AzCore/Component/NonUniformScaleBus.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/RTTI/BehaviorContext.h>
 #include <AzCore/JSON/rapidjson.h>
-#include <AzCore/std/algorithm.h>
-#include <AzCore/std/containers/vector.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 #include <vector>
@@ -33,7 +25,6 @@
 #include <Cesium3DTilesSelection/Tileset.h>
 #include <Cesium3DTilesSelection/TilesetExternals.h>
 #include <Cesium3DTilesSelection/RasterOverlay.h>
-#include <Cesium3DTilesSelection/ViewState.h>
 
 #ifdef AZ_COMPILER_MSVC
 #pragma pop_macro("OPAQUE")
@@ -41,220 +32,6 @@
 
 namespace Cesium
 {
-    class TilesetComponent::CameraConfigurations
-    {
-    public:
-        CameraConfigurations()
-            : m_transform{ 1.0 }
-        {
-        }
-
-        void SetTransform(const glm::dmat4& transform)
-        {
-            m_transform = transform;
-        }
-
-        const glm::dmat4& GetTransform() const
-        {
-            return m_transform;
-        }
-
-        const std::vector<Cesium3DTilesSelection::ViewState>& UpdateAndGetViewStates()
-        {
-            m_viewStates.clear();
-            auto viewportManager = AZ::Interface<AZ::RPI::ViewportContextRequestsInterface>::Get();
-            if (!viewportManager)
-            {
-                return m_viewStates;
-            }
-
-            viewportManager->EnumerateViewportContexts(
-                [this](AZ::RPI::ViewportContextPtr viewportContextPtr) mutable
-                {
-                    AzFramework::WindowSize windowSize = viewportContextPtr->GetViewportSize();
-                    if (windowSize.m_width == 0 || windowSize.m_height == 0)
-                    {
-                        return;
-                    }
-
-                    m_viewStates.emplace_back(GetViewState(viewportContextPtr, m_transform));
-                });
-
-            return m_viewStates;
-        }
-
-    private:
-        static Cesium3DTilesSelection::ViewState GetViewState(
-            const AZ::RPI::ViewportContextPtr& viewportContextPtr, const glm::dmat4& transform)
-        {
-            // Get o3de camera configuration
-            AZ::RPI::ViewPtr view = viewportContextPtr->GetDefaultView();
-            AZ::Transform o3deCameraTransform = view->GetCameraTransform();
-            AZ::Vector3 o3deCameraFwd = o3deCameraTransform.GetBasis(1);
-            AZ::Vector3 o3deCameraUp = o3deCameraTransform.GetBasis(2);
-            AZ::Vector3 o3deCameraPosition = o3deCameraTransform.GetTranslation();
-
-            // Convert o3de coordinate to cesium coordinate
-            glm::dvec3 position =
-                transform * glm::dvec4{ o3deCameraPosition.GetX(), o3deCameraPosition.GetY(), o3deCameraPosition.GetZ(), 1.0 };
-            glm::dvec3 direction = transform * glm::dvec4{ o3deCameraFwd.GetX(), o3deCameraFwd.GetY(), o3deCameraFwd.GetZ(), 0.0 };
-            glm::dvec3 up = transform * glm::dvec4{ o3deCameraUp.GetX(), o3deCameraUp.GetY(), o3deCameraUp.GetZ(), 0.0 };
-            direction = glm::normalize(direction);
-            up = glm::normalize(up);
-
-            const auto& projectMatrix = view->GetViewToClipMatrix();
-            AzFramework::WindowSize windowSize = viewportContextPtr->GetViewportSize();
-            glm::dvec2 viewportSize{ windowSize.m_width, windowSize.m_height };
-            double aspect = viewportSize.x / viewportSize.y;
-            double verticalFov = 2.0 * glm::atan(1.0 / projectMatrix.GetElement(1, 1));
-            double horizontalFov = 2.0 * glm::atan(glm::tan(verticalFov * 0.5) * aspect);
-            return Cesium3DTilesSelection::ViewState::create(position, direction, up, viewportSize, horizontalFov, verticalFov);
-        }
-
-        glm::dmat4 m_transform;
-        std::vector<Cesium3DTilesSelection::ViewState> m_viewStates;
-    };
-
-    struct TilesetComponent::BoundingVolumeConverter
-    {
-        TilesetBoundingVolume operator()(const CesiumGeometry::BoundingSphere& sphere)
-        {
-            return BoundingSphere{ sphere.getCenter(), sphere.getRadius() };
-        }
-
-        TilesetBoundingVolume operator()(const CesiumGeometry::OrientedBoundingBox& box)
-        {
-            const glm::dvec3& center = box.getCenter();
-            const glm::dmat3& halfLengthsAndOrientation = box.getHalfAxes();
-            glm::dvec3 halfLength{ glm::length(halfLengthsAndOrientation[0]), glm::length(halfLengthsAndOrientation[1]),
-                                   glm::length(halfLengthsAndOrientation[2]) };
-            glm::dmat3 orientation{ halfLengthsAndOrientation[0] / halfLength.x, halfLengthsAndOrientation[1] / halfLength.y,
-                                    halfLengthsAndOrientation[2] / halfLength.z };
-            return OrientedBoundingBox{ center, glm::dquat(orientation), halfLength };
-        }
-
-        TilesetBoundingVolume operator()(const CesiumGeospatial::BoundingRegion& region)
-        {
-            const CesiumGeospatial::GlobeRectangle& rectangle = region.getRectangle();
-            return BoundingRegion(
-                rectangle.getWest(), rectangle.getSouth(), rectangle.getEast(), rectangle.getNorth(), region.getMinimumHeight(),
-                region.getMaximumHeight());
-        }
-
-        TilesetBoundingVolume operator()(const CesiumGeospatial::BoundingRegionWithLooseFittingHeights& region)
-        {
-            return this->operator()(region.getBoundingRegion());
-        }
-
-        TilesetBoundingVolume operator()(const CesiumGeospatial::S2CellBoundingVolume& s2Volume)
-        {
-            return this->operator()(s2Volume.computeBoundingRegion());
-        }
-    };
-
-    struct TilesetComponent::BoundingVolumeToAABB
-    {
-        AZ::Aabb operator()(const CesiumGeometry::BoundingSphere& sphere)
-        {
-            glm::dvec3 center = m_transform * glm::dvec4(sphere.getCenter(), 1.0);
-            double uniformScale = glm::max(
-                glm::max(glm::length(glm::dvec3(m_transform[0])), glm::length(glm::dvec3(m_transform[1]))),
-                glm::length(glm::dvec3(m_transform[2])));
-
-            glm::dvec3 minAabb = center - sphere.getRadius() * glm::dvec3(uniformScale);
-            glm::dvec3 maxAabb = center + sphere.getRadius() * glm::dvec3(uniformScale);
-
-            return AZ::Aabb::CreateFromMinMax(
-                AZ::Vector3(static_cast<float>(minAabb.x), static_cast<float>(minAabb.y), static_cast<float>(minAabb.z)),
-                AZ::Vector3(static_cast<float>(maxAabb.x), static_cast<float>(maxAabb.y), static_cast<float>(maxAabb.z)));
-        }
-
-        AZ::Aabb operator()(const CesiumGeometry::OrientedBoundingBox& box)
-        {
-            glm::dvec3 center = m_transform * glm::dvec4(box.getCenter(), 1.0);
-            glm::dmat3 halfLengthsAndOrientation = glm::dmat3(m_transform) * box.getHalfAxes();
-
-            glm::dvec3 minAabb{std::numeric_limits<double>::infinity()};
-            glm::dvec3 maxAabb{-std::numeric_limits<double>::infinity()};
-            static const double Signs[] = { -1.0, 1.0 };
-            for (std::int32_t i = 0; i < 2; i++)
-            {
-                for (std::int32_t j = 0; j < 2; j++)
-                {
-                    for (int32_t k = 0; k < 2; k++)
-                    {
-                        auto corner = center + Signs[i] * halfLengthsAndOrientation[0] + Signs[j] * halfLengthsAndOrientation[1] +
-                            Signs[k] * halfLengthsAndOrientation[2];
-                        minAabb = glm::min(minAabb, corner);
-                        maxAabb = glm::max(maxAabb, corner);
-                    }
-                }
-            }
-
-            return AZ::Aabb::CreateFromMinMax(
-                AZ::Vector3(static_cast<float>(minAabb.x), static_cast<float>(minAabb.y), static_cast<float>(minAabb.z)),
-                AZ::Vector3(static_cast<float>(maxAabb.x), static_cast<float>(maxAabb.y), static_cast<float>(maxAabb.z)));
-        }
-
-        AZ::Aabb operator()(const CesiumGeospatial::BoundingRegion& region)
-        {
-            return this->operator()(region.getBoundingBox());
-        }
-
-        AZ::Aabb operator()(const CesiumGeospatial::BoundingRegionWithLooseFittingHeights& region)
-        {
-            return this->operator()(region.getBoundingRegion().getBoundingBox());
-        }
-
-        AZ::Aabb operator()(const CesiumGeospatial::S2CellBoundingVolume& s2Volume)
-        {
-            return this->operator()(s2Volume.computeBoundingRegion());
-        }
-
-        glm::dmat4 m_transform;
-    };
-
-    struct TilesetComponent::BoundingVolumeTransform
-    {
-        TilesetBoundingVolume operator()(const CesiumGeometry::BoundingSphere& sphere)
-        {
-            glm::dvec3 center = m_transform * glm::dvec4(sphere.getCenter(), 1.0);
-            double uniformScale = glm::max(
-                glm::max(glm::length(glm::dvec3(m_transform[0])), glm::length(glm::dvec3(m_transform[1]))),
-                glm::length(glm::dvec3(m_transform[2])));
-
-            return BoundingSphere{ center, sphere.getRadius() * uniformScale };
-        }
-
-        TilesetBoundingVolume operator()(const CesiumGeometry::OrientedBoundingBox& box)
-        {
-            glm::dvec3 center = m_transform * glm::dvec4(box.getCenter(), 1.0);
-            glm::dmat3 halfLengthsAndOrientation = glm::dmat3(m_transform) * box.getHalfAxes();
-            glm::dvec3 halfLength{ glm::length(halfLengthsAndOrientation[0]), glm::length(halfLengthsAndOrientation[1]),
-                                   glm::length(halfLengthsAndOrientation[2]) };
-            glm::dmat3 orientation{ halfLengthsAndOrientation[0] / halfLength.x, halfLengthsAndOrientation[1] / halfLength.y,
-                                    halfLengthsAndOrientation[2] / halfLength.z };
-            return OrientedBoundingBox{ center, glm::dquat(orientation), halfLength };
-        }
-
-        TilesetBoundingVolume operator()(const CesiumGeospatial::BoundingRegion& region)
-        {
-            return this->operator()(region.getBoundingBox());
-        }
-
-        TilesetBoundingVolume operator()(const CesiumGeospatial::BoundingRegionWithLooseFittingHeights& region)
-        {
-            return this->operator()(region.getBoundingRegion().getBoundingBox());
-        }
-
-        TilesetBoundingVolume operator()(const CesiumGeospatial::S2CellBoundingVolume& s2Volume)
-        {
-            return this->operator()(s2Volume.computeBoundingRegion());
-        }
-
-        glm::dmat4 m_transform;
-    };
-
     struct TilesetComponent::Impl
         : public RasterOverlayContainerRequestBus::Handler
     {
@@ -478,7 +255,7 @@ namespace Cesium
         }
 
         AZ::EntityId m_selfEntity;
-        CameraConfigurations m_cameraConfigurations;
+        TilesetCameraConfigurations m_cameraConfigurations;
         std::shared_ptr<RenderResourcesPreparer> m_renderResourcesPreparer;
         AZStd::unique_ptr<Cesium3DTilesSelection::Tileset> m_tileset;
         TilesetLoadedEvent m_tilesetLoadedEvent;

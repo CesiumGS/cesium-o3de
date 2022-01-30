@@ -2,12 +2,9 @@
 
 #include <Cesium/EBus/TilesetComponentBus.h>
 #include <Cesium/EBus/OriginShiftComponentBus.h>
-#include <AzFramework/Viewport/ViewportId.h>
 #include <AzFramework/Visibility/BoundsBus.h>
 #include <AzCore/Component/Component.h>
-#include <AzCore/Component/EntityId.h>
 #include <AzCore/Component/TickBus.h>
-#include <AzCore/Component/EntityBus.h>
 #include <AzCore/std/smart_ptr/unique_ptr.h>
 
 namespace Cesium
@@ -69,14 +66,8 @@ namespace Cesium
 
 		void OnOriginShifting(const glm::dmat4& absToRelWorld) override;
 
-        class CameraConfigurations;
-        struct BoundingVolumeConverter;
-        struct BoundingVolumeToAABB;
-        struct BoundingVolumeTransform;
         struct Impl;
-
         AZStd::unique_ptr<Impl> m_impl;
-
         TilesetConfiguration m_tilesetConfiguration;
         TilesetSource m_tilesetSource;
         glm::dmat4 m_transform{1.0};

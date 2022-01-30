@@ -13,6 +13,8 @@ set(FILES
     Source/Cesium/Math/BoundingSphere.cpp
     Include/Cesium/Math/TilesetBoundingVolume.h
     Source/Cesium/Math/TilesetBoundingVolume.cpp
+    Source/Cesium/Math/BoundingVolumeConverters.h
+    Source/Cesium/Math/BoundingVolumeConverters.cpp
     Include/Cesium/Math/MathReflect.h
     Source/Cesium/Math/MathReflect.cpp
     Include/Cesium/Math/GeospatialHelper.h
@@ -60,6 +62,8 @@ set(FILES
     Source/Cesium/Gltf/GltfModelBuilder.h
     Source/Cesium/Gltf/GltfModelBuilder.cpp
 
+    Source/Cesium/TilesetUtility/TilesetCameraConfigurations.h
+    Source/Cesium/TilesetUtility/TilesetCameraConfigurations.cpp
     Source/Cesium/TilesetUtility/GltfRasterMaterialBuilder.h
     Source/Cesium/TilesetUtility/GltfRasterMaterialBuilder.cpp
     Source/Cesium/TilesetUtility/RenderResourcesPreparer.h
