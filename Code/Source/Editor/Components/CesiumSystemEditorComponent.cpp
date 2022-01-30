@@ -355,6 +355,7 @@ namespace Cesium
             PlaceOriginAtPosition(GeospatialHelper::CartographicToECEFCartesian(Cartographic(glm::radians(-73.99), glm::radians(40.736), 20.0)));
         }
 
+        // set editor camera far clip
         bool resultCameraState = false;
         AzFramework::CameraState cameraState{};
         Camera::EditorCameraRequestBus::BroadcastResult(resultCameraState, &Camera::EditorCameraRequestBus::Events::GetActiveCameraState, cameraState);
