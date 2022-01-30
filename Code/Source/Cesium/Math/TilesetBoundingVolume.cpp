@@ -34,15 +34,15 @@ namespace Cesium
 
     TilesetBoundingVolumeType TilesetBoundingVolumeUtil::GetType(const TilesetBoundingVolume& volume)
     {
-        if (std::get_if<BoundingSphere>(&volume))
+        if (std::holds_alternative<BoundingSphere>(volume))
         {
             return TilesetBoundingVolumeType::BoundingSphere; 
         }
-        else if (std::get_if<OrientedBoundingBox>(&volume))
+        else if (std::holds_alternative<OrientedBoundingBox>(volume))
         {
             return TilesetBoundingVolumeType::OrientedBoundingBox; 
         }
-        else if (std::get_if<BoundingRegion>(&volume))
+        else if (std::holds_alternative<BoundingRegion>(volume))
         {
             return TilesetBoundingVolumeType::BoundingRegion; 
         }
