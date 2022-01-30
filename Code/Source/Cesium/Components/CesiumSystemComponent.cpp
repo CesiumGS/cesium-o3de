@@ -1,6 +1,7 @@
 #include "Cesium/Components/CesiumSystemComponent.h"
 #include <Cesium/EBus/TilesetComponentBus.h>
 #include <Cesium/EBus/GeoReferenceCameraFlyControllerBus.h>
+#include <Cesium/Math/TilesetBoundingVolume.h>
 #include <Cesium/Math/BoundingRegion.h>
 #include <Cesium/Math/BoundingSphere.h>
 #include <Cesium/Math/OrientedBoundingBox.h>
@@ -22,6 +23,7 @@ namespace Cesium
         BoundingRegion::Reflect(context);
         BoundingSphere::Reflect(context);
         OrientedBoundingBox::Reflect(context);
+        TilesetBoundingVolumeUtil::Reflect(context);
         Cartographic::Reflect(context);
         GeospatialHelper::Reflect(context);
 

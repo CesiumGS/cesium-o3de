@@ -11,6 +11,8 @@ set(FILES
     Source/Cesium/Math/BoundingRegion.cpp
     Include/Cesium/Math/BoundingSphere.h
     Source/Cesium/Math/BoundingSphere.cpp
+    Include/Cesium/Math/TilesetBoundingVolume.h
+    Source/Cesium/Math/TilesetBoundingVolume.cpp
     Include/Cesium/Math/MathReflect.h
     Source/Cesium/Math/MathReflect.cpp
     Include/Cesium/Math/GeospatialHelper.h

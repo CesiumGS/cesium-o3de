@@ -1,13 +1,13 @@
 #pragma once
 
 #include <Cesium/EBus/TilesetComponentBus.h>
+#include <Cesium/EBus/OriginShiftComponentBus.h>
 #include <AzFramework/Viewport/ViewportId.h>
 #include <AzFramework/Visibility/BoundsBus.h>
 #include <AzCore/Component/Component.h>
 #include <AzCore/Component/EntityId.h>
 #include <AzCore/Component/TickBus.h>
 #include <AzCore/Component/EntityBus.h>
-#include <AzCore/Component/TransformBus.h>
 #include <AzCore/std/smart_ptr/unique_ptr.h>
 
 namespace Cesium
@@ -17,6 +17,7 @@ namespace Cesium
         , public AZ::TickBus::Handler
         , public AzFramework::BoundsRequestBus::Handler
         , public TilesetRequestBus::Handler
+        , public OriginShiftNotificationBus::Handler
     {
     public:
         AZ_COMPONENT(TilesetComponent, "{56948418-6C82-4DF2-9A8D-C292C22FCBDF}", AZ::Component)
@@ -41,9 +42,19 @@ namespace Cesium
 
         AZ::Aabb GetLocalBounds() override;
 
+        TilesetBoundingVolume GetRootBoundingVolumeInECEF() const override;
+
         TilesetBoundingVolume GetBoundingVolumeInECEF() const override;
 
         void LoadTileset(const TilesetSource& source) override;
+
+        const glm::dmat4* GetRootTransform() const override;
+
+        const glm::dmat4& GetTransform() const override;
+
+        void ApplyTransformToRoot(const glm::dmat4& transform) override;
+
+        void BindTilesetLoadedHandler(TilesetLoadedEvent::Handler& handler) override;
 
         void Init() override;
 
@@ -54,19 +65,20 @@ namespace Cesium
         using AZ::Component::SetEntity;
 
     private:
-        static void ReflectTilesetBoundingVolume(AZ::ReflectContext* context);
-
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
+
+		void OnOriginShifting(const glm::dmat4& absToRelWorld) override;
 
         class CameraConfigurations;
         struct BoundingVolumeConverter;
         struct BoundingVolumeToAABB;
         struct BoundingVolumeTransform;
-        enum class TilesetBoundingVolumeType;
         struct Impl;
 
         AZStd::unique_ptr<Impl> m_impl;
+
         TilesetConfiguration m_tilesetConfiguration;
         TilesetSource m_tilesetSource;
+        glm::dmat4 m_transform{1.0};
     };
 } // namespace Cesium

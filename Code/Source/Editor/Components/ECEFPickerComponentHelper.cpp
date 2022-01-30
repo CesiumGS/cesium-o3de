@@ -1,6 +1,7 @@
 #include "Editor/Components/ECEFPickerComponentHelper.h"
 #include <Cesium/EBus/TilesetComponentBus.h>
 #include <Cesium/EBus/OriginShiftComponentBus.h>
+#include <Cesium/Math/TilesetBoundingVolume.h>
 #include <Cesium/Math/GeospatialHelper.h>
 #include <Cesium/Math/Cartographic.h>
 #include <Cesium/Math/MathReflect.h>
@@ -144,25 +145,9 @@ namespace Cesium
 
     AZ::u32 ECEFPickerComponentHelper::SamplePositionOfEntity()
     {
-        TilesetBoundingVolume boundingVolume = AZStd::monostate{};
+        TilesetBoundingVolume boundingVolume = std::monostate{};
         TilesetRequestBus::EventResult(boundingVolume, m_sampledEntityId, &TilesetRequestBus::Handler::GetBoundingVolumeInECEF);
-        if (auto sphere = AZStd::get_if<BoundingSphere>(&boundingVolume))
-        {
-            m_position = sphere->m_center;
-        }
-        else if (auto obb = AZStd::get_if<OrientedBoundingBox>(&boundingVolume))
-        {
-            m_position = obb->m_center;
-        }
-        else if (auto region = AZStd::get_if<BoundingRegion>(&boundingVolume))
-        {
-            auto cartoCenter = Cartographic(
-                (region->m_east + region->m_west) / 2.0, (region->m_north + region->m_south) / 2.0,
-                (region->m_minHeight + region->m_maxHeight) / 2.0);
-            auto center = GeospatialHelper::CartographicToECEFCartesian(cartoCenter);
-            m_position = center;
-        }
-
+        m_position = TilesetBoundingVolumeUtil::GetCenter(boundingVolume);
 		OnPositionAsCartesianChanged();
 
         return AZ::Edit::PropertyRefreshLevels::ValuesOnly;

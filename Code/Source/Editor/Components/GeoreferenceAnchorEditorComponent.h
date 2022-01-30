@@ -43,7 +43,7 @@ namespace Cesium
         GeoreferenceAnchorComponent m_georeferenceAnchorComponent;
         ECEFPickerComponentHelper m_ecefPicker;
 
-        bool m_selfUpdateEcefPicker{ true };
+        bool m_selfUpdateEcefPicker{ false };
         ECEFPositionChangeEvent::Handler m_positionChangeHandler;
     };
 }

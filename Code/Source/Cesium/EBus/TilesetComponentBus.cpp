@@ -206,6 +206,9 @@ namespace Cesium
                 ->Event("GetConfiguration", &TilesetRequestBus::Events::GetConfiguration)
                 ->Event("GetBoundingVolumeInECEF", &TilesetRequestBus::Events::GetBoundingVolumeInECEF)
                 ->Event("LoadTileset", &TilesetRequestBus::Events::LoadTileset)
+                ->Event("GetRootTransform", &TilesetRequestBus::Events::GetRootTransform)
+                ->Event("GetTransform", &TilesetRequestBus::Events::GetTransform)
+                ->Event("ApplyTransformToRoot", &TilesetRequestBus::Events::ApplyTransformToRoot)
                 ;
         }
     }
