@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Editor/Components/ECEFPickerComponentHelper.h"
 #include <Cesium/EBus/OriginShiftComponentBus.h>
 #include <Cesium/Components/OriginShiftComponent.h>
 #include <AzToolsFramework/ToolsComponents/EditorComponentBase.h>
@@ -45,13 +46,15 @@ namespace Cesium
 
         void ShiftOrigin(const glm::dvec3& shiftAmount) override;
 
-        void UpdateTransform();
+        void UpdateTransform(const glm::dvec3& position);
 
         void MoveCameraToOrigin();
 
-        glm::dvec3 m_origin{ 0.0 };
+        ECEFPickerComponentHelper m_ecefPicker;
         glm::dmat3 m_rotation{ 1.0 };
         glm::dmat4 m_absToRelWorld{ 1.0 };
         glm::dmat4 m_relToAbsWorld{ 1.0 };
+
+        ECEFPositionChangeEvent::Handler m_onOriginChangeHandler;
     };
 }

@@ -64,12 +64,6 @@ namespace Cesium
         m_positionChangeHandler = ECEFPositionChangeEvent::Handler(
             [this](glm::dvec3 position)
             {
-                if (m_selfUpdateEcefPicker)
-                {
-                    m_selfUpdateEcefPicker = false;
-                    return;
-                }
-
                 AzToolsFramework::ScopedUndoBatch undoBatch("Change Anchor Position");
                 m_georeferenceAnchorComponent.SetPosition(position);
                 undoBatch.MarkEntityDirty(GetEntityId());
@@ -120,8 +114,7 @@ namespace Cesium
     void GeoreferenceAnchorEditorComponent::OnTransformChanged(const AZ::Transform&, const AZ::Transform&)
     {
         AzToolsFramework::ScopedUndoBatch undoBatch("Change Anchor Position");
-        m_selfUpdateEcefPicker = true;
-        m_ecefPicker.SetPosition(m_georeferenceAnchorComponent.GetPosition());
+        m_ecefPicker.SetPosition(m_georeferenceAnchorComponent.GetPosition(), m_positionChangeHandler);
         undoBatch.MarkEntityDirty(GetEntityId());
     }
 }

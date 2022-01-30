@@ -123,6 +123,13 @@ namespace Cesium
         OnPositionAsCartesianChanged();
     }
 
+    void ECEFPickerComponentHelper::SetPosition(const glm::dvec3& position, ECEFPositionChangeEvent::Handler& excludeHandler)
+    {
+        excludeHandler.Disconnect();
+        SetPosition(position);
+        excludeHandler.Connect(m_onPositionChangeEvent);
+    }
+
     bool ECEFPickerComponentHelper::UseEntityCoordinateSampleMethod() const
     {
         return m_samplePositionMethod == SamplePositionMethod::EntityCoordinate;

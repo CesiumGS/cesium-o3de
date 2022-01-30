@@ -7,6 +7,7 @@
 #include "Editor/Widgets/CesiumIonPanelWidget.h"
 #include "Editor/Widgets/CesiumIonAssetListWidget.h"
 #include "Editor/Widgets/MathReflectPropertyWidget.h"
+#include <Cesium/Math/GeospatialHelper.h>
 #include <Editor/EditorSettingsAPIBus.h>
 #include <AzToolsFramework/Component/EditorComponentAPIBus.h>
 #include <AzToolsFramework/API/ViewPaneOptions.h>
@@ -345,6 +346,8 @@ namespace Cesium
 			AzToolsFramework::EditorComponentAPIBus::BroadcastResult(
 				originShiftOutcome, &AzToolsFramework::EditorComponentAPIBus::Events::AddComponentOfType, levelEntityId,
 				azrtti_typeid<OriginShiftEditorComponent>());
+
+            PlaceOriginAtPosition(GeospatialHelper::CartographicToECEFCartesian(Cartographic(glm::radians(-73.99), glm::radians(40.736), 20.0)));
         }
     }
 } // namespace Cesium

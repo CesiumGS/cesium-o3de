@@ -16,7 +16,7 @@ namespace Cesium
         {
             serializeContext->Class<OriginShiftEditorComponent, AZ::Component>()
                 ->Version(0)
-                ->Field("Origin", &OriginShiftEditorComponent::m_origin)
+                ->Field("ECEFPicker", &OriginShiftEditorComponent::m_ecefPicker)
                 ->Field("Rotation", &OriginShiftEditorComponent::m_rotation)
                 ->Field("AbsToRelWorld", &OriginShiftEditorComponent::m_absToRelWorld)
                 ->Field("RelToAbsWorld", &OriginShiftEditorComponent::m_relToAbsWorld)
@@ -32,7 +32,7 @@ namespace Cesium
                     ->Attribute(AZ::Edit::Attributes::ViewportIcon, "Editor/Icons/Components/Cesium_logo_only.svg")
                     ->Attribute(AZ::Edit::Attributes::AppearsInAddComponentMenu, AZ_CRC("Level", 0x9aeacc13))
                     ->Attribute(AZ::Edit::Attributes::AutoExpand, true)
-                    ->DataElement(AZ::Edit::UIHandlers::Default, &OriginShiftEditorComponent::m_origin, "Origin", "");
+                    ->DataElement(AZ::Edit::UIHandlers::Default, &OriginShiftEditorComponent::m_ecefPicker, "Origin", "");
             }
         }
     }
@@ -57,6 +57,11 @@ namespace Cesium
 
     OriginShiftEditorComponent::OriginShiftEditorComponent()
     {
+        m_onOriginChangeHandler = ECEFPositionChangeEvent::Handler(
+            [this](glm::dvec3 position)
+            {
+                SetOriginAndRotation(position, glm::inverse(CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(position)));
+            });
     }
 
     void OriginShiftEditorComponent::BuildGameEntity(AZ::Entity* gameEntity)
@@ -64,7 +69,7 @@ namespace Cesium
         auto originShiftComponent = gameEntity->CreateComponent<OriginShiftComponent>();
         originShiftComponent->SetEntity(gameEntity);
         originShiftComponent->Init();
-        originShiftComponent->SetOriginAndRotation(m_origin, m_rotation);
+        originShiftComponent->SetOriginAndRotation(m_ecefPicker.GetPosition(), m_rotation);
     }
 
     void OriginShiftEditorComponent::Init()
@@ -75,10 +80,13 @@ namespace Cesium
     {
         OriginShiftRequestBus::Handler::BusConnect();
         OriginShiftNotificationBus::Broadcast(&OriginShiftNotificationBus::Events::OnOriginShifting, m_absToRelWorld);
+
+        m_onOriginChangeHandler.Connect(m_ecefPicker.m_onPositionChangeEvent);
     }
 
     void OriginShiftEditorComponent::Deactivate()
     {
+        m_onOriginChangeHandler.Disconnect();
         OriginShiftRequestBus::Handler::BusDisconnect();
     }
 
@@ -87,8 +95,7 @@ namespace Cesium
         using namespace AzToolsFramework;
         ScopedUndoBatch undoBatch("Change World Origin");
 
-        m_origin = origin;
-        UpdateTransform();
+        UpdateTransform(origin);
 
         PropertyEditorGUIMessages::Bus::Broadcast(
             &PropertyEditorGUIMessages::RequestRefresh, PropertyModificationRefreshLevel::Refresh_AttributesAndValues);
@@ -102,8 +109,7 @@ namespace Cesium
         using namespace AzToolsFramework;
 		ScopedUndoBatch undoBatch("Change World Origin");
 
-        m_origin += shiftAmount;
-		UpdateTransform();
+		UpdateTransform(m_ecefPicker.GetPosition() + shiftAmount);
 
         PropertyEditorGUIMessages::Bus::Broadcast(
             &PropertyEditorGUIMessages::RequestRefresh, PropertyModificationRefreshLevel::Refresh_AttributesAndValues);
@@ -117,9 +123,8 @@ namespace Cesium
         using namespace AzToolsFramework;
         ScopedUndoBatch undoBatch("Change World Origin");
 
-		m_origin = origin;
         m_rotation = rotation;
-        UpdateTransform();
+        UpdateTransform(origin);
 
         PropertyEditorGUIMessages::Bus::Broadcast(
             &PropertyEditorGUIMessages::RequestRefresh, PropertyModificationRefreshLevel::Refresh_AttributesAndValues);
@@ -152,9 +157,10 @@ namespace Cesium
             });
     }
 
-	void OriginShiftEditorComponent::UpdateTransform()
+	void OriginShiftEditorComponent::UpdateTransform(const glm::dvec3& position)
     {
-        m_absToRelWorld = glm::translate(glm::dmat4(m_rotation), -m_origin);
+		m_ecefPicker.SetPosition(position, m_onOriginChangeHandler);
+        m_absToRelWorld = glm::translate(glm::dmat4(m_rotation), -position);
         m_relToAbsWorld = glm::inverse(m_absToRelWorld);
         OriginShiftNotificationBus::Broadcast(&OriginShiftNotificationBus::Events::OnOriginShifting, m_absToRelWorld);
     }

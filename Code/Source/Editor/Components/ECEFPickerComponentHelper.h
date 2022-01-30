@@ -51,6 +51,8 @@ namespace Cesium
 
 		void SetPosition(const glm::dvec3& position);
 
+		void SetPosition(const glm::dvec3& position, ECEFPositionChangeEvent::Handler& excludeHandler);
+
         ECEFPositionChangeEvent m_onPositionChangeEvent;
 
 	private:
