@@ -3,15 +3,18 @@
 #include "Editor/Components/CesiumIonRasterOverlayEditorComponent.h"
 #include "Editor/Components/GeoReferenceCameraFlyControllerEditor.h"
 #include "Editor/Components/ECEFPickerComponentHelper.h"
+#include "Editor/Components/OriginShiftEditorComponent.h"
 #include "Editor/Widgets/CesiumIonPanelWidget.h"
 #include "Editor/Widgets/CesiumIonAssetListWidget.h"
 #include "Editor/Widgets/MathReflectPropertyWidget.h"
 #include <Editor/EditorSettingsAPIBus.h>
-#include <AzFramework/Components/CameraBus.h>
 #include <AzToolsFramework/Component/EditorComponentAPIBus.h>
 #include <AzToolsFramework/API/ViewPaneOptions.h>
 #include <AzToolsFramework/API/ToolsApplicationAPI.h>
+#include <AzFramework/Components/CameraBus.h>
 #include <AzCore/Serialization/SerializeContext.h>
+#include <CesiumGeospatial/Transforms.h>
+#include <glm/glm.hpp>
 
 namespace Cesium
 {
@@ -63,6 +66,7 @@ namespace Cesium
         CesiumEditorSystemRequestBus::Handler::BusConnect();
         AzToolsFramework::EditorEvents::Bus::Handler::BusConnect();
         AZ::TickBus::Handler::BusConnect();
+        AzToolsFramework::Prefab::PrefabPublicNotificationBus::Handler::BusConnect();
     }
 
     void CesiumSystemEditorComponent::Deactivate()
@@ -75,6 +79,7 @@ namespace Cesium
         CesiumEditorSystemRequestBus::Handler::BusDisconnect();
         AzToolsFramework::EditorEvents::Bus::Handler::BusDisconnect();
         AZ::TickBus::Handler::BusDisconnect();
+        AzToolsFramework::Prefab::PrefabPublicNotificationBus::Handler::BusDisconnect();
     }
 
     void CesiumSystemEditorComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
@@ -316,4 +321,30 @@ namespace Cesium
         }
     }
 
+    void CesiumSystemEditorComponent::PlaceOriginAtPosition(const glm::dvec3& position)
+    {
+        OriginShiftRequestBus::Broadcast(
+            &OriginShiftRequestBus::Events::SetOriginAndRotation, position,
+            glm::dmat3(glm::inverse(CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(position))));
+    }
+
+	void CesiumSystemEditorComponent::OnPrefabInstancePropagationEnd()
+    {
+        // Add origin shift to level
+		AZ::EntityId levelEntityId{};
+		AzToolsFramework::ToolsApplicationRequestBus::BroadcastResult(
+			levelEntityId, &AzToolsFramework::ToolsApplicationRequestBus::Events::GetCurrentLevelEntityId);
+
+        bool hasOriginShiftComponent = false;
+        AzToolsFramework::EditorComponentAPIBus::BroadcastResult(
+            hasOriginShiftComponent, &AzToolsFramework::EditorComponentAPIBus::Events::HasComponentOfType, levelEntityId,
+            azrtti_typeid<OriginShiftEditorComponent>());
+        if (!hasOriginShiftComponent)
+        {
+			AzToolsFramework::EditorComponentAPIRequests::AddComponentsOutcome originShiftOutcome;
+			AzToolsFramework::EditorComponentAPIBus::BroadcastResult(
+				originShiftOutcome, &AzToolsFramework::EditorComponentAPIBus::Events::AddComponentOfType, levelEntityId,
+				azrtti_typeid<OriginShiftEditorComponent>());
+        }
+    }
 } // namespace Cesium

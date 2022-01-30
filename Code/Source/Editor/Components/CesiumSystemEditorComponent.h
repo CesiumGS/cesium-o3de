@@ -2,6 +2,7 @@
 
 #include "Editor/Systems/CesiumIonSession.h"
 #include "Editor/EBus/CesiumEditorSystemComponentBus.h"
+#include <AzToolsFramework/Prefab/PrefabPublicNotificationBus.h>
 #include <AzToolsFramework/Entity/EditorEntityContextBus.h>
 #include <AzCore/Component/TickBus.h>
 #include <AzCore/std/smart_ptr/unique_ptr.h>
@@ -14,6 +15,7 @@ namespace Cesium
         , public AZ::TickBus::Handler
         , public CesiumEditorSystemRequestBus::Handler
         , private AzToolsFramework::EditorEvents::Bus::Handler
+        , public AzToolsFramework::Prefab::PrefabPublicNotificationBus::Handler
     {
     public:
         AZ_COMPONENT(CesiumSystemEditorComponent, "{b5a4a95c-91dc-4728-af8e-6518b2ab77f2}");
@@ -49,6 +51,10 @@ namespace Cesium
         void AddBlankTilesetToLevel() override;
 
         void AddGeoreferenceCameraToLevel() override;
+
+        void PlaceOriginAtPosition(const glm::dvec3& position) override;
+
+		void OnPrefabInstancePropagationEnd() override;
 
         AZStd::unique_ptr<CesiumIonSession> m_ionSession;
     };

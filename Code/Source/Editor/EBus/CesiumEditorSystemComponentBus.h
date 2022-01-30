@@ -4,6 +4,7 @@
 #include <AzCore/Component/ComponentBus.h>
 #include <AzCore/std/string/string.h>
 #include <cstdint>
+#include <glm/glm.hpp>
 
 namespace Cesium {
     class CesiumEditorSystemRequest : public AZ::ComponentBus {
@@ -15,6 +16,8 @@ namespace Cesium {
             std::uint32_t tilesetIonAssetId,
             int imageryIonAssetId
         ) = 0;
+
+        virtual void PlaceOriginAtPosition(const glm::dvec3& position) = 0;
 
         virtual void AddImageryToLevel(std::uint32_t ionImageryAssetId) = 0;
 

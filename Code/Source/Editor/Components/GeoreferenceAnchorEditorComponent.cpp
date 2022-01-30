@@ -1,5 +1,5 @@
 #include "Editor/Components/GeoreferenceAnchorEditorComponent.h"
-#include <Cesium/EBus/OriginShiftComponentBus.h>
+#include "Editor/EBus/CesiumEditorSystemComponentBus.h"
 #include <Cesium/Math/MathReflect.h>
 #include <Cesium/Math/MathHelper.h>
 #include <AzToolsFramework/API/ToolsApplicationAPI.h>
@@ -114,9 +114,7 @@ namespace Cesium
     void GeoreferenceAnchorEditorComponent::PlaceWorldOriginHere()
     {
         glm::dvec3 position = m_ecefPicker.GetPosition();
-        OriginShiftRequestBus::Broadcast(
-            &OriginShiftRequestBus::Events::SetOriginAndRotation, position,
-            glm::dmat3(glm::inverse(CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(position))));
+        CesiumEditorSystemRequestBus::Broadcast(&CesiumEditorSystemRequestBus::Events::PlaceOriginAtPosition, position);
     }
 
     void GeoreferenceAnchorEditorComponent::OnTransformChanged(const AZ::Transform&, const AZ::Transform&)

@@ -1,6 +1,6 @@
 #include "Editor/Components/TilesetEditorComponent.h"
+#include "Editor/EBus/CesiumEditorSystemComponentBus.h"
 #include <Cesium/Components/TilesetComponent.h>
-#include <Cesium/EBus/OriginShiftComponentBus.h>
 #include <Cesium/Math/TilesetBoundingVolume.h>
 #include <Cesium/Math/GeospatialHelper.h>
 #include <Cesium/Math/Cartographic.h>
@@ -225,9 +225,7 @@ namespace Cesium
         }
 
         glm::dvec3 origin = TilesetBoundingVolumeUtil::GetCenter(m_tilesetComponent->GetBoundingVolumeInECEF());
-        OriginShiftRequestBus::Broadcast(
-            &OriginShiftRequestBus::Events::SetOriginAndRotation, origin,
-            glm::dmat3(glm::inverse(CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(origin))));
+        CesiumEditorSystemRequestBus::Broadcast(&CesiumEditorSystemRequestBus::Events::PlaceOriginAtPosition, origin);
     }
 
     void TilesetEditorComponent::OnTransformChanged(const AZ::Transform&, const AZ::Transform& world)
