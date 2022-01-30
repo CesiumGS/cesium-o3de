@@ -8,9 +8,9 @@ namespace Cesium
     class OriginShiftAnchorRequest : public AZ::ComponentBus
     {
     public:
-        virtual glm::dvec3 GetCoordinate() const = 0;
+        virtual glm::dvec3 GetPosition() const = 0;
 
-        virtual void SetCoordinate(const glm::dvec3& coord) = 0;
+        virtual void SetPosition(const glm::dvec3& pos) = 0;
     };
 
     using OriginShiftAnchorRequestBus = AZ::EBus<OriginShiftAnchorRequest>;

@@ -71,7 +71,7 @@ namespace Cesium
                 }
 
                 AzToolsFramework::ScopedUndoBatch undoBatch("Change Anchor Position");
-                m_georeferenceAnchorComponent.SetCoordinate(position);
+                m_georeferenceAnchorComponent.SetPosition(position);
                 undoBatch.MarkEntityDirty(GetEntityId());
             });
     }
@@ -82,7 +82,7 @@ namespace Cesium
         georeferenceAnchorComponent->SetEntity(gameEntity);
         georeferenceAnchorComponent->Init();
         georeferenceAnchorComponent->Activate();
-        georeferenceAnchorComponent->SetCoordinate(m_ecefPicker.GetPosition());
+        georeferenceAnchorComponent->SetPosition(m_ecefPicker.GetPosition());
         georeferenceAnchorComponent->Deactivate();
     }
 
@@ -95,7 +95,7 @@ namespace Cesium
         m_georeferenceAnchorComponent.SetEntity(GetEntity());
         m_georeferenceAnchorComponent.Init();
         m_georeferenceAnchorComponent.Activate();
-        m_georeferenceAnchorComponent.SetCoordinate(m_ecefPicker.GetPosition());
+        m_georeferenceAnchorComponent.SetPosition(m_ecefPicker.GetPosition());
 
         m_positionChangeHandler.Connect(m_ecefPicker.m_onPositionChangeEvent);
 
@@ -123,7 +123,7 @@ namespace Cesium
     {
         AzToolsFramework::ScopedUndoBatch undoBatch("Change Anchor Position");
         m_selfUpdateEcefPicker = true;
-        m_ecefPicker.SetPosition(m_georeferenceAnchorComponent.GetCoordinate());
+        m_ecefPicker.SetPosition(m_georeferenceAnchorComponent.GetPosition());
         undoBatch.MarkEntityDirty(GetEntityId());
     }
 }

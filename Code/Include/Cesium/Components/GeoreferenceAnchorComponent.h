@@ -36,9 +36,9 @@ namespace Cesium
 
         using AZ::Component::SetEntity;
 
-        glm::dvec3 GetCoordinate() const override;
+        glm::dvec3 GetPosition() const override;
 
-        void SetCoordinate(const glm::dvec3& pos) override;
+        void SetPosition(const glm::dvec3& pos) override;
 
         void OnOriginShifting(const glm::dmat4& absToRelWorld) override;
 

@@ -62,12 +62,12 @@ namespace Cesium
         AZ::TransformNotificationBus::Handler::BusDisconnect();
     }
 
-    glm::dvec3 GeoreferenceAnchorComponent::GetCoordinate() const
+    glm::dvec3 GeoreferenceAnchorComponent::GetPosition() const
     {
         return m_position;
     }
 
-    void GeoreferenceAnchorComponent::SetCoordinate(const glm::dvec3& pos)
+    void GeoreferenceAnchorComponent::SetPosition(const glm::dvec3& pos)
     {
         m_position = pos;
 
@@ -100,6 +100,6 @@ namespace Cesium
 
         glm::dmat4 relToAbsWorld{ 1.0 };
         OriginShiftRequestBus::BroadcastResult(relToAbsWorld, &OriginShiftRequestBus::Events::GetRelToAbsWorld);
-        SetCoordinate(relToAbsWorld * MathHelper::ToDVec4(world.GetTranslation(), 1.0));
+        SetPosition(relToAbsWorld * MathHelper::ToDVec4(world.GetTranslation(), 1.0));
     }
 }
