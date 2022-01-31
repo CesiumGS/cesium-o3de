@@ -111,14 +111,13 @@ namespace Cesium
         EntityIdList selectedEntities;
         ToolsApplicationRequestBus::BroadcastResult(
             selectedEntities, &AzToolsFramework::ToolsApplicationRequestBus::Events::GetSelectedEntities);
-        if (selectedEntities.empty())
-        {
-            AZ::EntityId levelEntityId{};
-            AzToolsFramework::ToolsApplicationRequestBus::BroadcastResult(
-                levelEntityId, &AzToolsFramework::ToolsApplicationRequestBus::Events::GetCurrentLevelEntityId);
 
-            selectedEntities.emplace_back(levelEntityId);
-        }
+		AZ::EntityId levelEntityId{};
+		AzToolsFramework::ToolsApplicationRequestBus::BroadcastResult(
+			levelEntityId, &AzToolsFramework::ToolsApplicationRequestBus::Events::GetCurrentLevelEntityId);
+
+        selectedEntities.erase(
+                    AZStd::remove(selectedEntities.begin(), selectedEntities.end(), levelEntityId), selectedEntities.end());
 
         return selectedEntities;
     }
