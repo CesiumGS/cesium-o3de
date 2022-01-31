@@ -9,19 +9,23 @@ namespace Cesium
 {
     AZ::SettingsRegistryInterface::FixedValueString PlatformInfo::GetEngineVersion()
     {
-        auto registry = AZ::SettingsRegistry::Get();
-        if (registry != nullptr)
+        AZ::SettingsRegistryInterface::FixedValueString engineVersion;
+        auto engineSettingsPath = AZ::IO::FixedMaxPath{ AZ::Utils::GetEnginePath() } / "engine.json";
+        if (AZ::IO::SystemFile::Exists(engineSettingsPath.c_str()))
         {
-            AZ::SettingsRegistryInterface::FixedValueString engineVersionKey{ AZ::SettingsRegistryMergeUtils::EngineSettingsRootKey };
-            engineVersionKey += "/O3DEVersion";
-            AZ::SettingsRegistryInterface::FixedValueString settingsValue;
-            if (registry->Get(settingsValue, engineVersionKey))
+            AZ::SettingsRegistryImpl settingsRegistry;
+            if (settingsRegistry.MergeSettingsFile(
+                    engineSettingsPath.Native(), AZ::SettingsRegistryInterface::Format::JsonMergePatch,
+                    AZ::SettingsRegistryMergeUtils::EngineSettingsRootKey))
             {
-                return settingsValue;
+                settingsRegistry.Get(
+                    engineVersion,
+                    AZ::SettingsRegistryInterface::FixedValueString(AZ::SettingsRegistryMergeUtils::EngineSettingsRootKey) +
+                        "/O3DEVersion");
             }
         }
 
-        return "Unknown";
+        return engineVersion;
     }
 
     AZ::SettingsRegistryInterface::FixedValueString PlatformInfo::GetPlatformName()
