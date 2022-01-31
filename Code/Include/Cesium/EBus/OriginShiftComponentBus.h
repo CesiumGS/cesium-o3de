@@ -1,5 +1,6 @@
 #pragma once
 
+#include <AzCore/RTTI/ReflectContext.h>
 #include <AzCore/Component/ComponentBus.h>
 #include <glm/glm.hpp>
 #include <cstdint>
@@ -9,6 +10,8 @@ namespace Cesium
     class OriginShiftRequest : public AZ::ComponentBus
     {
     public:
+        static void Reflect(AZ::ReflectContext* reflectContext);
+
         virtual const glm::dmat4& GetAbsToRelWorld() const = 0;
 
         virtual const glm::dmat4& GetRelToAbsWorld() const = 0;
@@ -32,6 +35,8 @@ namespace Cesium
     class OriginShiftNotification : public AZ::ComponentBus
     {
     public:
+        static void Reflect(AZ::ReflectContext* reflectContext);
+
         virtual void OnOriginShifting(const glm::dmat4& absToRelWorld) = 0;
     };
 

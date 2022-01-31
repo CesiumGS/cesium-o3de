@@ -205,6 +205,7 @@ namespace Cesium
                 ->Attribute(AZ::Script::Attributes::Category, "Cesium/3DTiles")
                 ->Event("SetConfiguration", &TilesetRequestBus::Events::SetConfiguration)
                 ->Event("GetConfiguration", &TilesetRequestBus::Events::GetConfiguration)
+                ->Event("GetRootBoundingVolumeInECEF", &TilesetRequestBus::Events::GetRootBoundingVolumeInECEF)
                 ->Event("GetBoundingVolumeInECEF", &TilesetRequestBus::Events::GetBoundingVolumeInECEF)
                 ->Event("LoadTileset", &TilesetRequestBus::Events::LoadTileset)
                 ->Event("GetRootTransform", &TilesetRequestBus::Events::GetRootTransform)

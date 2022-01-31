@@ -1,6 +1,8 @@
 #include "Cesium/Components/CesiumSystemComponent.h"
 #include <Cesium/EBus/TilesetComponentBus.h>
 #include <Cesium/EBus/GeoReferenceCameraFlyControllerBus.h>
+#include <Cesium/EBus/OriginShiftComponentBus.h>
+#include <Cesium/EBus/OriginShiftAnchorComponentBus.h>
 #include <Cesium/Math/TilesetBoundingVolume.h>
 #include <Cesium/Math/BoundingRegion.h>
 #include <Cesium/Math/BoundingSphere.h>
@@ -32,6 +34,11 @@ namespace Cesium
         TilesetRequest::Reflect(context);
 
         GeoReferenceCameraFlyControllerRequest::Reflect(context);
+
+        OriginShiftRequest::Reflect(context);
+        OriginShiftNotification::Reflect(context);
+
+        OriginShiftAnchorRequest::Reflect(context);
 
         if (AZ::SerializeContext* serialize = azrtti_cast<AZ::SerializeContext*>(context))
         {
