@@ -262,7 +262,7 @@ namespace Cesium
             [strTilesetName, tilesetIonAssetId, imageryIonAssetId]()
             {
                 CesiumEditorSystemRequestBus::Broadcast(
-                    &CesiumEditorSystemRequestBus::Events::AddTilesetToLevel, strTilesetName, tilesetIonAssetId, imageryIonAssetId);
+                    &CesiumEditorSystemRequestBus::Events::AddTilesetToLevel, strTilesetName, tilesetIonAssetId, imageryIonAssetId, false);
             });
     }
 
@@ -393,10 +393,10 @@ namespace Cesium
     }
 
 	void CesiumIonPanelWidget::AddBlankTileset() {
-        CesiumEditorSystemRequestBus::Broadcast(&CesiumEditorSystemRequestBus::Events::AddBlankTilesetToLevel);
+        CesiumEditorSystemRequestBus::Broadcast(&CesiumEditorSystemRequestBus::Events::AddBlankTilesetToLevel, false);
     }
 
 	void CesiumIonPanelWidget::AddGeoreferenceCamera() {
-        CesiumEditorSystemRequestBus::Broadcast(&CesiumEditorSystemRequestBus::Events::AddGeoreferenceCameraToLevel);
+        CesiumEditorSystemRequestBus::Broadcast(&CesiumEditorSystemRequestBus::Events::AddGeoreferenceCameraToLevel, false);
     }
 } // namespace Cesium

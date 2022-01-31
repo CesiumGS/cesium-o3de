@@ -11,7 +11,7 @@ namespace Cesium
 {
     /// System component for Cesium editor
     class CesiumSystemEditorComponent
-        : public AZ::Component 
+        : public AZ::Component
         , public AZ::TickBus::Handler
         , public CesiumEditorSystemRequestBus::Handler
         , private AzToolsFramework::EditorEvents::Bus::Handler
@@ -38,23 +38,20 @@ namespace Cesium
 
         void NotifyRegisterViews() override;
 
-        AzToolsFramework::EntityIdList GetSelectedEntities() const override;
+        AzToolsFramework::EntityIdList GetSelectedEntities(bool addToExistingEntity) const;
 
         void AddTilesetToLevel(
-            const AZStd::string& tilesetName,
-            std::uint32_t tilesetIonAssetId,
-            int imageryIonAssetId
-        ) override;
+            const AZStd::string& tilesetName, std::uint32_t tilesetIonAssetId, int imageryIonAssetId, bool addToExistingEntity) override;
 
-        void AddImageryToLevel(std::uint32_t ionImageryAssetId) override;
+        void AddImageryToLevel(std::uint32_t ionImageryAssetId, bool addToExistingEntity) override;
 
-        void AddBlankTilesetToLevel() override;
+        void AddBlankTilesetToLevel(bool addToExistingEntity) override;
 
-        void AddGeoreferenceCameraToLevel() override;
+        void AddGeoreferenceCameraToLevel(bool addToExistingEntity) override;
 
         void PlaceOriginAtPosition(const glm::dvec3& position) override;
 
-		void OnPrefabInstancePropagationEnd() override;
+        void OnPrefabInstancePropagationEnd() override;
 
         AZStd::unique_ptr<CesiumIonSession> m_ionSession;
     };
