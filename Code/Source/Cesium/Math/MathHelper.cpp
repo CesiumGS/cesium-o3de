@@ -73,6 +73,20 @@ namespace Cesium
         return true;
     }
 
+    glm::dvec3 MathHelper::CalculatePitchRollHead(const glm::dvec3& direction)
+    {
+        glm::dvec3 pitchRollHead{};
+
+        glm::dvec3 normalizeDirection = glm::normalize(direction);
+		pitchRollHead.x = CesiumUtility::Math::PI_OVER_TWO - glm::acos(normalizeDirection.z);
+        if (!CesiumUtility::Math::equalsEpsilon(normalizeDirection.z, 1.0, CesiumUtility::Math::EPSILON14))
+        {
+            pitchRollHead.z = glm::atan(normalizeDirection.y, normalizeDirection.x) - CesiumUtility::Math::PI_OVER_TWO;
+        }
+
+        return pitchRollHead;
+    }
+
     std::size_t MathHelper::Align(std::size_t location, std::size_t align)
     {
         assert(((0 != align) && !(align & (align - 1))) && "non-power of 2 alignment");

@@ -1,4 +1,7 @@
 #include <Cesium/Math/MathReflect.h>
+#include <AzCore/Math/Vector2.h>
+#include <AzCore/Math/Vector3.h>
+#include <AzCore/Math/Vector4.h>
 #include <AzCore/Serialization/Json/RegistrationContext.h>
 
 namespace Cesium
@@ -219,6 +222,8 @@ namespace Cesium
                 {
                     return VecType{ c };
                 });
+
+        ReflectGlmVector(*classBuilder);
     }
 
     void MathSerialization::ReflectGlmQuatBehavior(AZ::BehaviorContext* behaviorContext)
@@ -400,6 +405,126 @@ namespace Cesium
                 {
                     return lhs == rhs;
                 });
+    }
+
+    void MathSerialization::ReflectGlmVector(AZ::BehaviorContext::ClassBuilder<glm::dvec2>& builder)
+    {
+        builder
+            .Method(
+                "Create",
+                [](double x, double y)
+                {
+                    return glm::dvec2(x, y);
+                },
+                { AZ::BehaviorParameterOverrides("X"), AZ::BehaviorParameterOverrides("Y") })
+            ->Method(
+                "CreateFromDVector3",
+                [](const glm::dvec3& v)
+                {
+                    return glm::dvec2(v);
+                })
+            ->Method(
+                "CreateFromDVector4",
+                [](const glm::dvec4& v)
+                {
+                    return glm::dvec2(v);
+                })
+            ->Method(
+                "CreateFromO3DEVector2",
+                [](const AZ::Vector2 &v)
+                {
+                    return glm::dvec2(v.GetX(), v.GetY());
+                })
+            ->Method(
+                "CreateFromO3DEVector3",
+                [](const AZ::Vector3& v)
+                {
+                    return glm::dvec2(v.GetX(), v.GetY());
+                })
+            ->Method(
+                "CreateFromO3DEVector4",
+                [](const AZ::Vector4& v)
+                {
+                    return glm::dvec2(v.GetX(), v.GetY());
+                })
+       ;
+    }
+
+    void MathSerialization::ReflectGlmVector(AZ::BehaviorContext::ClassBuilder<glm::dvec3>& builder)
+    {
+        builder
+            .Method(
+                "Create",
+                [](double x, double y, double z)
+                {
+                    return glm::dvec3(x, y, z);
+                },
+                { AZ::BehaviorParameterOverrides("X"), AZ::BehaviorParameterOverrides("Y"), AZ::BehaviorParameterOverrides("Z") })
+            ->Method(
+                "CreateFromDVector2",
+                [](const glm::dvec2& v, double z)
+                {
+                    return glm::dvec3(v, z);
+                },
+                { AZ::BehaviorParameterOverrides("DVector2"), AZ::BehaviorParameterOverrides("Z") })
+            ->Method(
+                "CreateFromDVector4",
+                [](const glm::dvec4& v)
+                {
+                    return glm::dvec3(v);
+                })
+            ->Method(
+                "CreateFromO3DEVector2",
+                [](const AZ::Vector2 &v, double z)
+                {
+                    return glm::dvec3(v.GetX(), v.GetY(), z);
+                }, 
+                { AZ::BehaviorParameterOverrides("Vector2"), AZ::BehaviorParameterOverrides("Z") })
+            ->Method(
+                "CreateFromO3DEVector3",
+                [](const AZ::Vector3& v)
+                {
+                    return glm::dvec3(v.GetX(), v.GetY(), v.GetZ());
+                })
+            ->Method(
+                "CreateFromO3DEVector4",
+                [](const AZ::Vector4& v)
+                {
+                    return glm::dvec3(v.GetX(), v.GetY(), v.GetZ());
+                })
+       ;
+    }
+
+    void MathSerialization::ReflectGlmVector(AZ::BehaviorContext::ClassBuilder<glm::dvec4>& builder)
+    {
+        builder
+            .Method(
+                "Create",
+                [](double x, double y, double z, double w)
+                {
+                    return glm::dvec4(x, y, z, w);
+                },
+                { AZ::BehaviorParameterOverrides("X"), AZ::BehaviorParameterOverrides("Y"), AZ::BehaviorParameterOverrides("Z"), AZ::BehaviorParameterOverrides("W") })
+            ->Method(
+                "CreateFromDVector3",
+                [](const glm::dvec3& v, double w)
+                {
+                    return glm::dvec4(v, w);
+                },
+                { AZ::BehaviorParameterOverrides("DVector3"), AZ::BehaviorParameterOverrides("W") })
+            ->Method(
+                "CreateFromO3DEVector3",
+                [](const AZ::Vector3& v, double w)
+                {
+                    return glm::dvec4(v.GetX(), v.GetY(), v.GetZ(), w);
+                })
+            ->Method(
+                "CreateFromO3DEVector4",
+                [](const AZ::Vector4& v)
+                {
+                    return glm::dvec4(v.GetX(), v.GetY(), v.GetZ(), v.GetW());
+                })
+       ;
     }
 
     template<typename MatType>

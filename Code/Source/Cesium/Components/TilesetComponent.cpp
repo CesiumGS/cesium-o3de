@@ -1,24 +1,15 @@
 #include <Cesium/Components/TilesetComponent.h>
-#include <Cesium/EBus/CoordinateTransformComponentBus.h>
 #include "Cesium/EBus/RasterOverlayContainerBus.h"
 #include "Cesium/TilesetUtility/RenderResourcesPreparer.h"
+#include "Cesium/TilesetUtility/TilesetCameraConfigurations.h" 
 #include "Cesium/Systems/CesiumSystem.h"
-#include "Cesium/Math/BoundingRegion.h"
-#include "Cesium/Math/BoundingSphere.h"
-#include "Cesium/Math/OrientedBoundingBox.h"
-#include "Cesium/Math/MathHelper.h"
-#include <Atom/RPI.Public/ViewportContext.h>
-#include <Atom/RPI.Public/ViewportContextBus.h>
+#include "Cesium/Math/BoundingVolumeConverters.h"
+#include <Cesium/Math/MathHelper.h>
+#include <Cesium/Math/MathReflect.h> 
 #include <Atom/RPI.Public/Scene.h>
-#include <Atom/RPI.Public/View.h>
-#include <Atom/RPI.Public/Base.h>
-#include <AzCore/Component/NonUniformScaleBus.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/RTTI/BehaviorContext.h>
 #include <AzCore/JSON/rapidjson.h>
-#include <AzCore/std/algorithm.h>
-#include <AzCore/std/containers/vector.h>
-#include <AzCore/std/containers/variant.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_inverse.hpp>
 #include <vector>
@@ -34,7 +25,6 @@
 #include <Cesium3DTilesSelection/Tileset.h>
 #include <Cesium3DTilesSelection/TilesetExternals.h>
 #include <Cesium3DTilesSelection/RasterOverlay.h>
-#include <Cesium3DTilesSelection/ViewState.h>
 
 #ifdef AZ_COMPILER_MSVC
 #pragma pop_macro("OPAQUE")
@@ -42,232 +32,8 @@
 
 namespace Cesium
 {
-    class TilesetComponent::CameraConfigurations
-    {
-    public:
-        CameraConfigurations()
-            : m_transform{ 1.0 }
-        {
-        }
-
-        void SetTransform(const glm::dmat4& transform)
-        {
-            m_transform = transform;
-        }
-
-        const glm::dmat4& GetTransform() const
-        {
-            return m_transform;
-        }
-
-        const std::vector<Cesium3DTilesSelection::ViewState>& UpdateAndGetViewStates()
-        {
-            m_viewStates.clear();
-            auto viewportManager = AZ::Interface<AZ::RPI::ViewportContextRequestsInterface>::Get();
-            if (!viewportManager)
-            {
-                return m_viewStates;
-            }
-
-            viewportManager->EnumerateViewportContexts(
-                [this](AZ::RPI::ViewportContextPtr viewportContextPtr) mutable
-                {
-                    AzFramework::WindowSize windowSize = viewportContextPtr->GetViewportSize();
-                    if (windowSize.m_width == 0 || windowSize.m_height == 0)
-                    {
-                        return;
-                    }
-
-                    m_viewStates.emplace_back(GetViewState(viewportContextPtr, m_transform));
-                });
-
-            return m_viewStates;
-        }
-
-    private:
-        static Cesium3DTilesSelection::ViewState GetViewState(
-            const AZ::RPI::ViewportContextPtr& viewportContextPtr, const glm::dmat4& transform)
-        {
-            // Get o3de camera configuration
-            AZ::RPI::ViewPtr view = viewportContextPtr->GetDefaultView();
-            AZ::Transform o3deCameraTransform = view->GetCameraTransform();
-            AZ::Vector3 o3deCameraFwd = o3deCameraTransform.GetBasis(1);
-            AZ::Vector3 o3deCameraUp = o3deCameraTransform.GetBasis(2);
-            AZ::Vector3 o3deCameraPosition = o3deCameraTransform.GetTranslation();
-
-            // Convert o3de coordinate to cesium coordinate
-            glm::dvec3 position =
-                transform * glm::dvec4{ o3deCameraPosition.GetX(), o3deCameraPosition.GetY(), o3deCameraPosition.GetZ(), 1.0 };
-            glm::dvec3 direction = transform * glm::dvec4{ o3deCameraFwd.GetX(), o3deCameraFwd.GetY(), o3deCameraFwd.GetZ(), 0.0 };
-            glm::dvec3 up = transform * glm::dvec4{ o3deCameraUp.GetX(), o3deCameraUp.GetY(), o3deCameraUp.GetZ(), 0.0 };
-            direction = glm::normalize(direction);
-            up = glm::normalize(up);
-
-            const auto& projectMatrix = view->GetViewToClipMatrix();
-            AzFramework::WindowSize windowSize = viewportContextPtr->GetViewportSize();
-            glm::dvec2 viewportSize{ windowSize.m_width, windowSize.m_height };
-            double aspect = viewportSize.x / viewportSize.y;
-            double verticalFov = 2.0 * glm::atan(1.0 / projectMatrix.GetElement(1, 1));
-            double horizontalFov = 2.0 * glm::atan(glm::tan(verticalFov * 0.5) * aspect);
-            return Cesium3DTilesSelection::ViewState::create(position, direction, up, viewportSize, horizontalFov, verticalFov);
-        }
-
-        glm::dmat4 m_transform;
-        std::vector<Cesium3DTilesSelection::ViewState> m_viewStates;
-    };
-
-    struct TilesetComponent::BoundingVolumeConverter
-    {
-        TilesetBoundingVolume operator()(const CesiumGeometry::BoundingSphere& sphere)
-        {
-            return BoundingSphere{ sphere.getCenter(), sphere.getRadius() };
-        }
-
-        TilesetBoundingVolume operator()(const CesiumGeometry::OrientedBoundingBox& box)
-        {
-            const glm::dvec3& center = box.getCenter();
-            const glm::dmat3& halfLengthsAndOrientation = box.getHalfAxes();
-            glm::dvec3 halfLength{ glm::length(halfLengthsAndOrientation[0]), glm::length(halfLengthsAndOrientation[1]),
-                                   glm::length(halfLengthsAndOrientation[2]) };
-            glm::dmat3 orientation{ halfLengthsAndOrientation[0] / halfLength.x, halfLengthsAndOrientation[1] / halfLength.y,
-                                    halfLengthsAndOrientation[2] / halfLength.z };
-            return OrientedBoundingBox{ center, glm::dquat(orientation), halfLength };
-        }
-
-        TilesetBoundingVolume operator()(const CesiumGeospatial::BoundingRegion& region)
-        {
-            const CesiumGeospatial::GlobeRectangle& rectangle = region.getRectangle();
-            return BoundingRegion(
-                rectangle.getWest(), rectangle.getSouth(), rectangle.getEast(), rectangle.getNorth(), region.getMinimumHeight(),
-                region.getMaximumHeight());
-        }
-
-        TilesetBoundingVolume operator()(const CesiumGeospatial::BoundingRegionWithLooseFittingHeights& region)
-        {
-            return this->operator()(region.getBoundingRegion());
-        }
-
-        TilesetBoundingVolume operator()(const CesiumGeospatial::S2CellBoundingVolume& s2Volume)
-        {
-            return this->operator()(s2Volume.computeBoundingRegion());
-        }
-    };
-
-    struct TilesetComponent::BoundingVolumeToAABB
-    {
-        AZ::Aabb operator()(const CesiumGeometry::BoundingSphere& sphere)
-        {
-            glm::dvec3 center = m_transform * glm::dvec4(sphere.getCenter(), 1.0);
-            double uniformScale = glm::max(
-                glm::max(glm::length(glm::dvec3(m_transform[0])), glm::length(glm::dvec3(m_transform[1]))),
-                glm::length(glm::dvec3(m_transform[2])));
-
-            glm::dvec3 minAabb = center - sphere.getRadius() * glm::dvec3(uniformScale);
-            glm::dvec3 maxAabb = center + sphere.getRadius() * glm::dvec3(uniformScale);
-
-            return AZ::Aabb::CreateFromMinMax(
-                AZ::Vector3(static_cast<float>(minAabb.x), static_cast<float>(minAabb.y), static_cast<float>(minAabb.z)),
-                AZ::Vector3(static_cast<float>(maxAabb.x), static_cast<float>(maxAabb.y), static_cast<float>(maxAabb.z)));
-        }
-
-        AZ::Aabb operator()(const CesiumGeometry::OrientedBoundingBox& box)
-        {
-            glm::dvec3 center = m_transform * glm::dvec4(box.getCenter(), 1.0);
-            glm::dmat3 halfLengthsAndOrientation = glm::dmat3(m_transform) * box.getHalfAxes();
-
-            glm::dvec3 minAabb{std::numeric_limits<double>::infinity()};
-            glm::dvec3 maxAabb{-std::numeric_limits<double>::infinity()};
-            static const double Signs[] = { -1.0, 1.0 };
-            for (std::int32_t i = 0; i < 2; i++)
-            {
-                for (std::int32_t j = 0; j < 2; j++)
-                {
-                    for (int32_t k = 0; k < 2; k++)
-                    {
-                        auto corner = center + Signs[i] * halfLengthsAndOrientation[0] + Signs[j] * halfLengthsAndOrientation[1] +
-                            Signs[k] * halfLengthsAndOrientation[2];
-                        minAabb = glm::min(minAabb, corner);
-                        maxAabb = glm::max(maxAabb, corner);
-                    }
-                }
-            }
-
-            return AZ::Aabb::CreateFromMinMax(
-                AZ::Vector3(static_cast<float>(minAabb.x), static_cast<float>(minAabb.y), static_cast<float>(minAabb.z)),
-                AZ::Vector3(static_cast<float>(maxAabb.x), static_cast<float>(maxAabb.y), static_cast<float>(maxAabb.z)));
-        }
-
-        AZ::Aabb operator()(const CesiumGeospatial::BoundingRegion& region)
-        {
-            return this->operator()(region.getBoundingBox());
-        }
-
-        AZ::Aabb operator()(const CesiumGeospatial::BoundingRegionWithLooseFittingHeights& region)
-        {
-            return this->operator()(region.getBoundingRegion().getBoundingBox());
-        }
-
-        AZ::Aabb operator()(const CesiumGeospatial::S2CellBoundingVolume& s2Volume)
-        {
-            return this->operator()(s2Volume.computeBoundingRegion());
-        }
-
-        glm::dmat4 m_transform;
-    };
-
-    struct TilesetComponent::BoundingVolumeTransform
-    {
-        TilesetBoundingVolume operator()(const CesiumGeometry::BoundingSphere& sphere)
-        {
-            glm::dvec3 center = m_transform * glm::dvec4(sphere.getCenter(), 1.0);
-            double uniformScale = glm::max(
-                glm::max(glm::length(glm::dvec3(m_transform[0])), glm::length(glm::dvec3(m_transform[1]))),
-                glm::length(glm::dvec3(m_transform[2])));
-
-            return BoundingSphere{ center, sphere.getRadius() * uniformScale };
-        }
-
-        TilesetBoundingVolume operator()(const CesiumGeometry::OrientedBoundingBox& box)
-        {
-            glm::dvec3 center = m_transform * glm::dvec4(box.getCenter(), 1.0);
-            glm::dmat3 halfLengthsAndOrientation = glm::dmat3(m_transform) * box.getHalfAxes();
-            glm::dvec3 halfLength{ glm::length(halfLengthsAndOrientation[0]), glm::length(halfLengthsAndOrientation[1]),
-                                   glm::length(halfLengthsAndOrientation[2]) };
-            glm::dmat3 orientation{ halfLengthsAndOrientation[0] / halfLength.x, halfLengthsAndOrientation[1] / halfLength.y,
-                                    halfLengthsAndOrientation[2] / halfLength.z };
-            return OrientedBoundingBox{ center, glm::dquat(orientation), halfLength };
-        }
-
-        TilesetBoundingVolume operator()(const CesiumGeospatial::BoundingRegion& region)
-        {
-            return this->operator()(region.getBoundingBox());
-        }
-
-        TilesetBoundingVolume operator()(const CesiumGeospatial::BoundingRegionWithLooseFittingHeights& region)
-        {
-            return this->operator()(region.getBoundingRegion().getBoundingBox());
-        }
-
-        TilesetBoundingVolume operator()(const CesiumGeospatial::S2CellBoundingVolume& s2Volume)
-        {
-            return this->operator()(s2Volume.computeBoundingRegion());
-        }
-
-        glm::dmat4 m_transform;
-    };
-
-    enum class TilesetComponent::TilesetBoundingVolumeType
-    {
-        None,
-        BoundingSphere,
-        OrientedBoundingBox,
-        BoundingRegion
-    };
-
     struct TilesetComponent::Impl
         : public RasterOverlayContainerRequestBus::Handler
-        , private AZ::TransformNotificationBus::Handler
-        , private AZ::EntityBus::Handler
     {
         enum ConfigurationDirtyFlags
         {
@@ -278,43 +44,17 @@ namespace Cesium
             AllChange = TilesetConfigChange | SourceChange | TransformChange
         };
 
-        Impl(const AZ::EntityId& selfEntity, const AZ::EntityId& coordinateTransformEntityId, const TilesetSource& tilesetSource)
+        Impl(const AZ::EntityId& selfEntity, const TilesetSource& tilesetSource)
             : m_selfEntity{selfEntity}
-            , m_O3DETransform{ 1.0 }
+            , m_absToRelWorld{ 1.0 }
             , m_configFlags{ ConfigurationDirtyFlags::None }
+            , m_tilesetLoaded{ false }
         {
-            m_cesiumTransformChangeHandler = TransformChangeEvent::Handler(
-                [this](const CoordinateTransformConfiguration& configuration) mutable
-                {
-                    this->m_coordinateTransformConfig = configuration;
-                    this->m_configFlags |= ConfigurationDirtyFlags::TransformChange;
-                });
-
-            m_nonUniformScaleChangedHandler = AZ::NonUniformScaleChangedEvent::Handler(
-                [this](const AZ::Vector3& scale)
-                {
-                    this->SetNonUniformScale(scale);
-                });
-
             // mark all configs to be dirty so that tileset will be updated with the current config accordingly
             m_configFlags = Impl::ConfigurationDirtyFlags::AllChange;
 
             // load tileset source
             LoadTileset(tilesetSource);
-
-            // Set the O3DE transform first before any transformation from Cesium coord to O3DE coordinate
-            AZ::Transform worldTransform = AZ::Transform::CreateIdentity();
-            AZ::TransformBus::EventResult(worldTransform, m_selfEntity, &AZ::TransformBus::Events::GetWorldTM);
-            AZ::Vector3 worldScale = AZ::Vector3::CreateOne();
-            AZ::NonUniformScaleRequestBus::EventResult(worldScale, m_selfEntity, &AZ::NonUniformScaleRequestBus::Events::GetScale);
-            SetWorldTransform(worldTransform, worldScale);
-
-            AZ::NonUniformScaleRequestBus::Event(
-                m_selfEntity, &AZ::NonUniformScaleRequests::RegisterScaleChangedEvent, m_nonUniformScaleChangedHandler);
-            AZ::TransformNotificationBus::Handler::BusConnect(m_selfEntity);
-
-            // set cesium transform to convert from Cesium Coord to O3DE
-            ConnectCoordinateTransformEntityEvents(coordinateTransformEntityId);
 
             RasterOverlayContainerRequestBus::Handler::BusConnect(m_selfEntity);
         }
@@ -322,13 +62,9 @@ namespace Cesium
         ~Impl() noexcept
         {
             RasterOverlayContainerRequestBus::Handler::BusDisconnect();
-            AZ::TransformNotificationBus::Handler::BusDisconnect();
-            m_nonUniformScaleChangedHandler.Disconnect();
-            m_tilesetUnloadedEvent.Signal();
+            m_rasterOverlayContainerUnloadedEvent.Signal();
             m_tileset.reset();
             m_renderResourcesPreparer.reset();
-            DisconnectCoordinateTransformEntityEvents();
-            ResetO3DEAndCoordinateTransform();
         }
 
         void LoadTileset(const TilesetSource& tilesetSource)
@@ -336,7 +72,9 @@ namespace Cesium
             TilesetSourceType type = tilesetSource.GetType();
             if (type != TilesetSourceType::None)
             {
-                m_tilesetUnloadedEvent.Signal();
+                m_tilesetLoaded = false;
+                m_rasterOverlayContainerUnloadedEvent.Signal();
+                m_tileset.reset();
             }
 
             switch (type)
@@ -356,7 +94,7 @@ namespace Cesium
 
             if (type != TilesetSourceType::None)
             {
-                m_tilesetLoadedEvent.Signal();
+                m_rasterOverlayContainerLoadedEvent.Signal();
             }
         }
 
@@ -407,77 +145,6 @@ namespace Cesium
                 externals, source.m_cesiumIonAssetId, source.m_cesiumIonAssetToken.c_str());
         }
 
-        void OnEntityActivated(const AZ::EntityId& coordinateTransformEntityId) override {
-            // this function is needed because coordinateTransformEntityId can be initialized after tileset entity. In that case,
-            // the coordinate transform component will not receive any request from this tileset entity when this entity is activated.
-            // So we have to listen to the event when coordinateTransformEntityId is activated to transform the tileset correctly 
-            m_cesiumTransformChangeHandler.Disconnect();
-
-            CoordinateTransformConfiguration config;
-            if (coordinateTransformEntityId.IsValid())
-            {
-                CoordinateTransformRequestBus::EventResult(
-                    config, coordinateTransformEntityId, &CoordinateTransformRequestBus::Events::GetConfiguration);
-
-                CoordinateTransformRequestBus::Event(
-                    coordinateTransformEntityId, &CoordinateTransformRequestBus::Events::BindTransformChangeEventHandler,
-                    m_cesiumTransformChangeHandler);
-            }
-
-            m_coordinateTransformConfig = config;
-            m_configFlags |= ConfigurationDirtyFlags::TransformChange;
-        }
-
-        void OnEntityDeactivated([[maybe_unused]] const AZ::EntityId& coordinateTransformEntityId) override {
-            m_cesiumTransformChangeHandler.Disconnect();
-            m_coordinateTransformConfig = CoordinateTransformConfiguration{};
-            m_configFlags |= ConfigurationDirtyFlags::TransformChange;
-        }
-
-        void ConnectCoordinateTransformEntityEvents(const AZ::EntityId& coordinateTransformEntityId)
-        {
-            DisconnectCoordinateTransformEntityEvents();
-            if (coordinateTransformEntityId.IsValid())
-            {
-                AZ::EntityBus::Handler::BusConnect(coordinateTransformEntityId);
-            }
-        }
-
-        void DisconnectCoordinateTransformEntityEvents()
-        {
-            AZ::EntityBus::Handler::BusDisconnect(); // disconnect the current coordinate transform entity
-            m_cesiumTransformChangeHandler.Disconnect();
-            m_coordinateTransformConfig = CoordinateTransformConfiguration{};
-            m_configFlags |= ConfigurationDirtyFlags::TransformChange;
-        }
-
-        void SetWorldTransform(const AZ::Transform& world, const AZ::Vector3& nonUniformScale)
-        {
-            m_O3DETransform = MathHelper::ConvertTransformAndScaleToDMat4(world, nonUniformScale);
-            m_configFlags |= ConfigurationDirtyFlags::TransformChange;
-        }
-
-        void SetNonUniformScale(const AZ::Vector3& scale)
-        {
-            AZ::Transform worldTransform;
-            AZ::TransformBus::EventResult(worldTransform, m_selfEntity, &AZ::TransformBus::Events::GetWorldTM);
-            SetWorldTransform(worldTransform, scale);
-        }
-
-        void OnTransformChanged(const AZ::Transform&, const AZ::Transform& world) override
-        {
-            AZ::Vector3 worldScale = AZ::Vector3::CreateOne();
-            AZ::NonUniformScaleRequestBus::EventResult(worldScale, m_selfEntity, &AZ::NonUniformScaleRequestBus::Events::GetScale);
-            SetWorldTransform(world, worldScale);
-        }
-
-        void ResetO3DEAndCoordinateTransform()
-        {
-            m_O3DETransform = glm::dmat4(1.0);
-            m_coordinateTransformConfig = CoordinateTransformConfiguration{};
-            m_configFlags |= ConfigurationDirtyFlags::TransformChange;
-        }
-
         bool AddRasterOverlay(std::unique_ptr<Cesium3DTilesSelection::RasterOverlay>& rasterOverlay) override
         {
             if (m_tileset)
@@ -503,12 +170,12 @@ namespace Cesium
 
         void BindContainerLoadedEvent(RasterOverlayContainerLoadedEvent::Handler& handler) override
         {
-            handler.Connect(m_tilesetLoadedEvent);
+            handler.Connect(m_rasterOverlayContainerLoadedEvent);
         }
 
         void BindContainerUnloadedEvent(RasterOverlayContainerUnloadedEvent::Handler& handler) override
         {
-            handler.Connect(m_tilesetUnloadedEvent);
+            handler.Connect(m_rasterOverlayContainerUnloadedEvent);
         }
 
         void FlushTilesetSourceChange(const TilesetSource &source)
@@ -522,7 +189,7 @@ namespace Cesium
             m_configFlags = m_configFlags & ~ConfigurationDirtyFlags::SourceChange;
         }
 
-        void FlushTransformChange()
+        void FlushTransformChange(const glm::dmat4& rootTransform)
         {
             if ((m_configFlags & ConfigurationDirtyFlags::TransformChange) != ConfigurationDirtyFlags::TransformChange)
             {
@@ -540,8 +207,9 @@ namespace Cesium
                 return;
             }
 
-            m_renderResourcesPreparer->SetTransform(m_O3DETransform * m_coordinateTransformConfig.m_ECEFToO3DE);
-            m_cameraConfigurations.SetTransform(m_coordinateTransformConfig.m_O3DEToECEF * glm::affineInverse(m_O3DETransform));
+            glm::dmat4 relTransform = m_absToRelWorld * rootTransform;
+            m_renderResourcesPreparer->SetTransform(relTransform);
+            m_cameraConfigurations.SetTransform(glm::affineInverse(relTransform));
             m_configFlags = m_configFlags & ~ConfigurationDirtyFlags::TransformChange;
         }
 
@@ -568,30 +236,46 @@ namespace Cesium
             m_configFlags = m_configFlags & ~ConfigurationDirtyFlags::TilesetConfigChange;
         }
 
+        void NotifyTilesetLoaded()
+        {
+            if (m_tilesetLoaded)
+            {
+                return;
+            }
+
+            if (m_tileset)
+            {
+                auto root = m_tileset->getRootTile();
+                if (root)
+                {
+                    m_tilesetLoadedEvent.Signal();
+                    m_tilesetLoaded = true;
+                }
+            }
+        }
+
         AZ::EntityId m_selfEntity;
-        CameraConfigurations m_cameraConfigurations;
+        TilesetCameraConfigurations m_cameraConfigurations;
         std::shared_ptr<RenderResourcesPreparer> m_renderResourcesPreparer;
         AZStd::unique_ptr<Cesium3DTilesSelection::Tileset> m_tileset;
-        RasterOverlayContainerLoadedEvent m_tilesetLoadedEvent;
-        RasterOverlayContainerLoadedEvent m_tilesetUnloadedEvent;
-        TransformChangeEvent::Handler m_cesiumTransformChangeHandler;
-        AZ::NonUniformScaleChangedEvent::Handler m_nonUniformScaleChangedHandler;
-        CoordinateTransformConfiguration m_coordinateTransformConfig;
-        glm::dmat4 m_O3DETransform;
+        TilesetLoadedEvent m_tilesetLoadedEvent;
+        RasterOverlayContainerLoadedEvent m_rasterOverlayContainerLoadedEvent;
+        RasterOverlayContainerUnloadedEvent m_rasterOverlayContainerUnloadedEvent;
+        glm::dmat4 m_absToRelWorld;
         int m_configFlags;
+        bool m_tilesetLoaded;
     };
 
     void TilesetComponent::Reflect(AZ::ReflectContext* context)
     {
-        ReflectTilesetBoundingVolume(context);
-
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
             serializeContext->Class<TilesetComponent, AZ::Component>()
                 ->Version(0)
                 ->Field("TilesetConfiguration", &TilesetComponent::m_tilesetConfiguration)
                 ->Field("TilesetSource", &TilesetComponent::m_tilesetSource)
-                ->Field("CoordinateTransformEntityId", &TilesetComponent::m_coordinateTransformEntityId);
+                ->Field("Transform", &TilesetComponent::m_transform)
+                ;
         }
     }
 
@@ -625,11 +309,11 @@ namespace Cesium
 
     void TilesetComponent::Activate()
     {
-        m_impl = AZStd::make_unique<Impl>(GetEntityId(), m_coordinateTransformEntityId, m_tilesetSource);
+        m_impl = AZStd::make_unique<Impl>(GetEntityId(), m_tilesetSource);
         AZ::TickBus::Handler::BusConnect();
         AzFramework::BoundsRequestBus::Handler::BusConnect(GetEntityId());
+		OriginShiftNotificationBus::Handler::BusConnect();
         TilesetRequestBus::Handler::BusConnect(GetEntityId());
-        LevelCoordinateTransformNotificationBus::Handler::BusConnect();
     }
 
     void TilesetComponent::Deactivate()
@@ -637,8 +321,8 @@ namespace Cesium
         m_impl.reset();
         AZ::TickBus::Handler::BusDisconnect();
         AzFramework::BoundsRequestBus::Handler::BusDisconnect();
+		OriginShiftNotificationBus::Handler::BusDisconnect();
         TilesetRequestBus::Handler::BusDisconnect();
-        LevelCoordinateTransformNotificationBus::Handler::BusDisconnect();
     }
 
     void TilesetComponent::SetConfiguration(const TilesetConfiguration& configration)
@@ -650,12 +334,6 @@ namespace Cesium
     const TilesetConfiguration& TilesetComponent::GetConfiguration() const
     {
         return m_tilesetConfiguration;
-    }
-
-    void TilesetComponent::OnCoordinateTransformChange(const AZ::EntityId& coordinateTransformEntityId)
-    {
-        m_coordinateTransformEntityId = coordinateTransformEntityId;
-        m_impl->ConnectCoordinateTransformEntityEvents(m_coordinateTransformEntityId);
     }
 
     AZ::Aabb TilesetComponent::GetWorldBounds()
@@ -672,7 +350,7 @@ namespace Cesium
         }
 
         return std::visit(
-            BoundingVolumeToAABB{ m_impl->m_O3DETransform * m_impl->m_coordinateTransformConfig.m_ECEFToO3DE },
+            BoundingVolumeToAABB{ m_impl->m_absToRelWorld * m_transform },
             rootTile->getBoundingVolume());
     }
 
@@ -689,30 +367,45 @@ namespace Cesium
             return AZ::Aabb{};
         }
 
-        return std::visit(BoundingVolumeToAABB{ m_impl->m_coordinateTransformConfig.m_ECEFToO3DE }, rootTile->getBoundingVolume());
+        return std::visit(BoundingVolumeToAABB{ glm::dmat4{1.0} }, rootTile->getBoundingVolume());
+    }
+
+	TilesetBoundingVolume TilesetComponent::GetRootBoundingVolumeInECEF() const
+    {
+        if (!m_impl->m_tileset)
+        {
+            return std::monostate{};
+        }
+
+        const auto rootTile = m_impl->m_tileset->getRootTile();
+        if (!rootTile)
+        {
+            return std::monostate{};
+        }
+
+        return std::visit(BoundingVolumeConverter{}, rootTile->getBoundingVolume());
     }
 
     TilesetBoundingVolume TilesetComponent::GetBoundingVolumeInECEF() const
     {
         if (!m_impl->m_tileset)
         {
-            return AZStd::monostate{};
+            return std::monostate{};
         }
 
         const auto rootTile = m_impl->m_tileset->getRootTile();
         if (!rootTile)
         {
-            return AZStd::monostate{};
+            return std::monostate{};
         }
 
-        if (MathHelper::IsIdentityMatrix(m_impl->m_O3DETransform))
+        if (MathHelper::IsIdentityMatrix(m_transform))
         {
             return std::visit(BoundingVolumeConverter{}, rootTile->getBoundingVolume());
         }
 
         return std::visit(
-            BoundingVolumeTransform{ m_impl->m_coordinateTransformConfig.m_O3DEToECEF * m_impl->m_O3DETransform *
-                                     m_impl->m_coordinateTransformConfig.m_ECEFToO3DE },
+            BoundingVolumeTransform{ m_transform },
             rootTile->getBoundingVolume());
     }
 
@@ -722,79 +415,43 @@ namespace Cesium
         m_impl->m_configFlags = Impl::ConfigurationDirtyFlags::AllChange;
     }
 
-    void TilesetComponent::ReflectTilesetBoundingVolume(AZ::ReflectContext* context)
+	const glm::dmat4* TilesetComponent::GetRootTransform() const
     {
-        if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
+        if (m_impl->m_tileset)
         {
-            auto getType = [](TilesetBoundingVolume* source)
+            auto root = m_impl->m_tileset->getRootTile();
+            if (root)
             {
-                if (source->index() == 1)
-                {
-                    return static_cast<int>(TilesetBoundingVolumeType::BoundingSphere);
-                }
-
-                if (source->index() == 2)
-                {
-                    return static_cast<int>(TilesetBoundingVolumeType::OrientedBoundingBox);
-                }
-
-                if (source->index() == 3)
-                {
-                    return static_cast<int>(TilesetBoundingVolumeType::BoundingRegion);
-                }
-
-                return static_cast<int>(TilesetBoundingVolumeType::None);
-            };
-
-            auto getBoundingSphere = [](TilesetBoundingVolume* source) -> BoundingSphere*
-            {
-                if (source->index() == 1)
-                {
-                    return AZStd::get_if<BoundingSphere>(source);
-                }
-
-                return nullptr;
-            };
-
-            auto getOBB = [](TilesetBoundingVolume* source) -> OrientedBoundingBox*
-            {
-                if (source->index() == 2)
-                {
-                    return AZStd::get_if<OrientedBoundingBox>(source);
-                }
-
-                return nullptr;
-            };
-
-            auto getBoundingRegion = [](TilesetBoundingVolume* source) -> BoundingRegion*
-            {
-                if (source->index() == 3)
-                {
-                    return AZStd::get_if<BoundingRegion>(source);
-                }
-
-                return nullptr;
-            };
-
-            behaviorContext->Enum<static_cast<int>(TilesetBoundingVolumeType::None)>("TilesetBoundingVolumeType_None")
-                ->Enum<static_cast<int>(TilesetBoundingVolumeType::BoundingSphere)>("TilesetBoundingVolumeType_BoundingSphere")
-                ->Enum<static_cast<int>(TilesetBoundingVolumeType::OrientedBoundingBox)>("TilesetBoundingVolumeType_OrientedBoundingBox")
-                ->Enum<static_cast<int>(TilesetBoundingVolumeType::BoundingRegion)>("TilesetBoundingVolumeType_BoundingRegion");
-
-            behaviorContext->Class<TilesetBoundingVolume>("TilesetBoundingVolume")
-                ->Attribute(AZ::Script::Attributes::Category, "Cesium/3DTiles")
-                ->Property("type", getType, nullptr)
-                ->Property("boundingSphere", getBoundingSphere, nullptr)
-                ->Property("orientedBoundingBox", getOBB, nullptr)
-                ->Property("boundingRegion", getBoundingRegion, nullptr);
+                return &root->getTransform();
+            }
         }
+
+        return nullptr;
     }
+
+    const glm::dmat4 & TilesetComponent::GetTransform() const
+	{
+        return m_transform;
+	}
+
+    void TilesetComponent::BindTilesetLoadedHandler(TilesetLoadedEvent::Handler & handler)
+	{
+        handler.Connect(m_impl->m_tilesetLoadedEvent);
+	}
+
+    void TilesetComponent::ApplyTransformToRoot(const glm::dmat4 & transform)
+	{
+        m_transform = transform;
+        m_impl->m_configFlags |= Impl::ConfigurationDirtyFlags::TransformChange;
+		m_impl->FlushTransformChange(m_transform);
+	}
 
     void TilesetComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
     {
         m_impl->FlushTilesetSourceChange(m_tilesetSource);
         m_impl->FlushTilesetConfigurationChange(m_tilesetConfiguration);
-        m_impl->FlushTransformChange();
+        m_impl->FlushTransformChange(m_transform);
+        m_impl->NotifyTilesetLoaded();
 
         if (m_impl->m_tileset)
         {
@@ -849,5 +506,12 @@ namespace Cesium
                 }
             }
         }
+    }
+
+	void TilesetComponent::OnOriginShifting(const glm::dmat4& absToRelWorld) 
+    {
+		m_impl->m_absToRelWorld = absToRelWorld;
+        m_impl->m_configFlags |= Impl::ConfigurationDirtyFlags::TransformChange;
+		m_impl->FlushTransformChange(m_transform);
     }
 } // namespace Cesium

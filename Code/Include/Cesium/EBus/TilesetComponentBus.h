@@ -1,21 +1,16 @@
 #pragma once
 
-#include <Cesium/Math/BoundingSphere.h>
-#include <Cesium/Math/OrientedBoundingBox.h>
-#include <Cesium/Math/BoundingRegion.h>
+#include <Cesium/Math/TilesetBoundingVolume.h>
 #include <AzCore/RTTI/ReflectContext.h>
 #include <AzCore/Component/ComponentBus.h>
 #include <AzCore/EBus/Event.h>
 #include <AzCore/std/string/string.h>
-#include <AzCore/std/containers/variant.h>
 #include <AzCore/std/utils.h>
 #include <AzCore/Memory/SystemAllocator.h>
 #include <cstdint>
 
 namespace Cesium
 {
-    using TilesetBoundingVolume = AZStd::variant<AZStd::monostate, BoundingSphere, OrientedBoundingBox, BoundingRegion>;
-
     struct TilesetConfiguration final
     {
         AZ_RTTI(TilesetConfiguration, "{13578DDF-7A60-4851-821C-A5238F222611}");
@@ -126,9 +121,8 @@ namespace Cesium
         TilesetUrlSource m_url;
         TilesetCesiumIonSource m_cesiumIon;
     };
-
+    
     using TilesetLoadedEvent = AZ::Event<>;
-    using TilesetUnloadedEvent = AZ::Event<>;
 
     class TilesetRequest : public AZ::ComponentBus
     {
@@ -139,15 +133,20 @@ namespace Cesium
 
         virtual const TilesetConfiguration& GetConfiguration() const = 0;
 
+        virtual TilesetBoundingVolume GetRootBoundingVolumeInECEF() const = 0;
+
         virtual TilesetBoundingVolume GetBoundingVolumeInECEF() const = 0;
 
         virtual void LoadTileset(const TilesetSource& source) = 0;
+
+        virtual const glm::dmat4* GetRootTransform() const = 0;
+
+        virtual const glm::dmat4& GetTransform() const = 0;
+
+        virtual void ApplyTransformToRoot(const glm::dmat4& transform) = 0;
+
+        virtual void BindTilesetLoadedHandler(TilesetLoadedEvent::Handler& handler) = 0;
     };
 
     using TilesetRequestBus = AZ::EBus<TilesetRequest>;
 } // namespace Cesium
-
-namespace AZ
-{
-    AZ_TYPE_INFO_SPECIALIZE(Cesium::TilesetBoundingVolume, "{60EBF72E-ACE1-4BB1-B754-5FA565991C39}");
-}

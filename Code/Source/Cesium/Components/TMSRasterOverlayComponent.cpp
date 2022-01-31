@@ -11,22 +11,22 @@ namespace Cesium
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
             serializeContext->Class<TMSRasterOverlaySource>()->Version(0)
-                ->Field("url", &TMSRasterOverlaySource::m_url)
-                ->Field("headers", &TMSRasterOverlaySource::m_headers)
-                ->Field("fileExtension", &TMSRasterOverlaySource::m_fileExtension)
-                ->Field("minimumLevel", &TMSRasterOverlaySource::m_minimumLevel)
-                ->Field("maximumLevel", &TMSRasterOverlaySource::m_maximumLevel)
+                ->Field("Url", &TMSRasterOverlaySource::m_url)
+                ->Field("Headers", &TMSRasterOverlaySource::m_headers)
+                ->Field("FileExtension", &TMSRasterOverlaySource::m_fileExtension)
+                ->Field("MinimumLevel", &TMSRasterOverlaySource::m_minimumLevel)
+                ->Field("MaximumLevel", &TMSRasterOverlaySource::m_maximumLevel)
                 ;
         }
 
         if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
         {
             behaviorContext->Class<TMSRasterOverlaySource>("TMSRasterOverlaySource")
-                ->Property("url", BehaviorValueProperty(&TMSRasterOverlaySource::m_url))
-                ->Property("headers", BehaviorValueProperty(&TMSRasterOverlaySource::m_headers))
-                ->Property("fileExtension", BehaviorValueProperty(&TMSRasterOverlaySource::m_fileExtension))
-                ->Property("minimumLevel", BehaviorValueProperty(&TMSRasterOverlaySource::m_minimumLevel))
-                ->Property("maximumLevel", BehaviorValueProperty(&TMSRasterOverlaySource::m_maximumLevel))
+                ->Property("Url", BehaviorValueProperty(&TMSRasterOverlaySource::m_url))
+                ->Property("Headers", BehaviorValueProperty(&TMSRasterOverlaySource::m_headers))
+                ->Property("FileExtension", BehaviorValueProperty(&TMSRasterOverlaySource::m_fileExtension))
+                ->Property("MinimumLevel", BehaviorValueProperty(&TMSRasterOverlaySource::m_minimumLevel))
+                ->Property("MaximumLevel", BehaviorValueProperty(&TMSRasterOverlaySource::m_maximumLevel))
                 ;
         }
     }

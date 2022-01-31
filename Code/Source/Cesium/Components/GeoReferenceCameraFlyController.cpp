@@ -1,4 +1,5 @@
 #include <Cesium/Components/GeoReferenceCameraFlyController.h>
+#include <Cesium/EBus/OriginShiftComponentBus.h>
 #include "Cesium/Math/MathHelper.h"
 #include "Cesium/Math/GeoReferenceInterpolator.h"
 #include "Cesium/Math/LinearInterpolator.h"
@@ -9,6 +10,8 @@
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Component/TransformBus.h>
 #include <AzCore/RTTI/BehaviorContext.h>
+#include <CesiumGeospatial/Transforms.h>
+#include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtc/quaternion.hpp>
 
 namespace Cesium
@@ -17,12 +20,11 @@ namespace Cesium
     {
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<GeoReferenceCameraFlyController, AZ::Component>()->Version(0)->
-                Field("mouseSensitivity", &GeoReferenceCameraFlyController::m_mouseSensitivity)->
-                Field("movementSpeed", &GeoReferenceCameraFlyController::m_movementSpeed)->
-                Field("panningSpeed", &GeoReferenceCameraFlyController::m_panningSpeed)->
-                Field("coordinateTransformEntityId", &GeoReferenceCameraFlyController::m_coordinateTransformEntityId)
-                ;
+            serializeContext->Class<GeoReferenceCameraFlyController, AZ::Component>()
+                ->Version(0)
+                ->Field("MouseSensitivity", &GeoReferenceCameraFlyController::m_mouseSensitivity)
+                ->Field("MovementSpeed", &GeoReferenceCameraFlyController::m_movementSpeed)
+                ->Field("PanningSpeed", &GeoReferenceCameraFlyController::m_panningSpeed);
         }
     }
 
@@ -47,7 +49,7 @@ namespace Cesium
     }
 
     GeoReferenceCameraFlyController::GeoReferenceCameraFlyController()
-        : m_cameraFlyState{CameraFlyState::NoFly}
+        : m_cameraFlyState{ CameraFlyState::NoFly }
         , m_mouseSensitivity{ 1.0 }
         , m_movementSpeed{ 1.0 }
         , m_panningSpeed{ 1.0 }
@@ -57,12 +59,6 @@ namespace Cesium
         , m_cameraRotateUpdate{ false }
         , m_cameraMoveUpdate{ false }
     {
-        m_cesiumTransformChangeHandler = TransformChangeEvent::Handler(
-            [this]([[maybe_unused]] const CoordinateTransformConfiguration& configuration) mutable
-            {
-                ResetCameraMovement();
-                AZ::TransformBus::Event(GetEntityId(), &AZ::TransformBus::Events::SetWorldTranslation, AZ::Vector3::CreateZero());
-            });
     }
 
     void GeoReferenceCameraFlyController::Init()
@@ -71,19 +67,21 @@ namespace Cesium
 
     void GeoReferenceCameraFlyController::Activate()
     {
+        AZ::Transform relativeCameraTransform = AZ::Transform::CreateIdentity();
+        AZ::TransformBus::EventResult(relativeCameraTransform, GetEntityId(), &AZ::TransformBus::Events::GetWorldTM);
+        AZ::Vector3 eulerAngles = relativeCameraTransform.GetEulerRadians();
+        m_cameraPitch = eulerAngles.GetX();
+        m_cameraHead = eulerAngles.GetZ();
+
         GeoReferenceCameraFlyControllerRequestBus::Handler::BusConnect(GetEntityId());
-        LevelCoordinateTransformNotificationBus::Handler::BusConnect();
         AZ::TickBus::Handler::BusConnect();
-        AZ::EntityBus::Handler::BusConnect(m_coordinateTransformEntityId);
         AzFramework::InputChannelEventListener::Connect();
     }
 
     void GeoReferenceCameraFlyController::Deactivate()
     {
         GeoReferenceCameraFlyControllerRequestBus::Handler::BusDisconnect();
-        LevelCoordinateTransformNotificationBus::Handler::BusDisconnect();
         AZ::TickBus::Handler::BusDisconnect();
-        AZ::EntityBus::Handler::BusDisconnect();
         AzFramework::InputChannelEventListener::Disconnect();
 
         StopFly();
@@ -120,87 +118,23 @@ namespace Cesium
         return m_movementSpeed;
     }
 
-    void GeoReferenceCameraFlyController::OnCoordinateTransformChange(const AZ::EntityId& coordinateTransformEntityId)
-    {
-        // stop any fly and camera movement first
-        StopFly();
-        ResetCameraMovement();
-
-        // disconnect any events from the current coordinate transform entity
-        m_cesiumTransformChangeHandler.Disconnect();
-        AZ::EntityBus::Handler::BusDisconnect();
-
-        m_coordinateTransformEntityId = coordinateTransformEntityId;
-        AZ::EntityBus::Handler::BusConnect(m_coordinateTransformEntityId);
-    }
-
-    void GeoReferenceCameraFlyController::OnEntityActivated([[maybe_unused]] const AZ::EntityId& coordinateTransformEntityId)
-    {
-        // place the camera at the origin
-        AZ::TransformBus::Event(GetEntityId(), &AZ::TransformBus::Events::SetWorldTranslation, AZ::Vector3::CreateZero());
-
-        CoordinateTransformRequestBus::Event(
-            m_coordinateTransformEntityId, &CoordinateTransformRequestBus::Events::BindTransformChangeEventHandler,
-            m_cesiumTransformChangeHandler);
-    }
-
-    void GeoReferenceCameraFlyController::OnEntityDeactivated([[maybe_unused]] const AZ::EntityId& coordinateTransformEntityId)
-    {
-        // stop any fly first
-        StopFly();
-        ResetCameraMovement();
-
-        // disconnect any events from the current coordinate transform entity
-        m_cesiumTransformChangeHandler.Disconnect();
-    }
-
-    void GeoReferenceCameraFlyController::FlyToECEFLocation(const glm::dvec3& location, const glm::dvec3& direction)
+    void GeoReferenceCameraFlyController::FlyToECEFLocation(
+        [[maybe_unused]] const glm::dvec3& location, [[maybe_unused]] const glm::dvec3& direction)
     {
         // Get camera current O3DE world transform to calculate its ECEF position and orientation
-        AZ::Transform O3DECameraTransform = AZ::Transform::CreateIdentity();
-        AZ::TransformBus::EventResult(O3DECameraTransform, GetEntityId(), &AZ::TransformBus::Events::GetWorldTM);
+        AZ::Transform relCameraTransform = AZ::Transform::CreateIdentity();
+        AZ::TransformBus::EventResult(relCameraTransform, GetEntityId(), &AZ::TransformBus::Events::GetWorldTM);
 
-        // Get camera configuration for the interpolator
-        Camera::Configuration cameraConfiguration;
-        Camera::CameraRequestBus::EventResult(
-            cameraConfiguration, GetEntityId(), &Camera::CameraRequestBus::Events::GetCameraConfiguration);
+        // Get current origin
+        glm::dmat4 relToAbsWorld{ 1.0 };
+        OriginShiftRequestBus::BroadcastResult(relToAbsWorld, &OriginShiftRequestBus::Events::GetRelToAbsWorld);
 
         // Get the current ecef position and orientation of the camera
-        glm::dvec3 ecefCurrentPosition{};
-        glm::dmat4 ecefCameraTransform{};
-        if (m_ecefPositionInterpolator)
-        {
-            ecefCurrentPosition = m_ecefPositionInterpolator->GetCurrentPosition();
-            if (m_coordinateTransformEntityId.IsValid())
-            {
-                glm::dmat4 O3DEToECEF{ 1.0 };
-                CoordinateTransformRequestBus::EventResult(
-                    O3DEToECEF, m_coordinateTransformEntityId, &CoordinateTransformRequestBus::Events::O3DEToECEF);
-                ecefCameraTransform =
-                    O3DEToECEF * MathHelper::ConvertTransformAndScaleToDMat4(O3DECameraTransform, AZ::Vector3::CreateOne());
-            }
-
-            m_ecefPositionInterpolator = AZStd::make_unique<GeoReferenceInterpolator>(
-                ecefCurrentPosition, ecefCameraTransform[1], location, direction, ecefCameraTransform, cameraConfiguration);
-        }
-        else if (m_coordinateTransformEntityId.IsValid())
-        {
-            glm::dmat4 O3DEToECEF{ 1.0 };
-            CoordinateTransformRequestBus::EventResult(
-                O3DEToECEF, m_coordinateTransformEntityId, &CoordinateTransformRequestBus::Events::O3DEToECEF);
-            ecefCurrentPosition = O3DEToECEF * MathHelper::ToDVec4(O3DECameraTransform.GetTranslation(), 1.0);
-            ecefCameraTransform = O3DEToECEF * MathHelper::ConvertTransformAndScaleToDMat4(O3DECameraTransform, AZ::Vector3::CreateOne());
-
-            m_ecefPositionInterpolator = AZStd::make_unique<GeoReferenceInterpolator>(
-                ecefCurrentPosition, ecefCameraTransform[1], location, direction, ecefCameraTransform, cameraConfiguration);
-        }
-        else
-        {
-            ecefCurrentPosition = MathHelper::ToDVec3(O3DECameraTransform.GetTranslation());
-            ecefCameraTransform = MathHelper::ConvertTransformAndScaleToDMat4(O3DECameraTransform, AZ::Vector3::CreateOne());
-            m_ecefPositionInterpolator =
-                AZStd::make_unique<LinearInterpolator>(ecefCurrentPosition, ecefCameraTransform[1], location, direction);
-        }
+        glm::dmat4 absCameraTransform =
+            relToAbsWorld * MathHelper::ConvertTransformAndScaleToDMat4(relCameraTransform, AZ::Vector3::CreateOne());
+        glm::dvec3 absCameraPosition = absCameraTransform[3];
+        m_ecefPositionInterpolator =
+            AZStd::make_unique<GeoReferenceInterpolator>(absCameraPosition, absCameraTransform[1], location, direction);
 
         // transition to the new state
         m_cameraFlyState = CameraFlyState::MidFly;
@@ -226,42 +160,37 @@ namespace Cesium
         }
     }
 
-    void GeoReferenceCameraFlyController::ProcessMidFlyState(float deltaTime)
+    void GeoReferenceCameraFlyController::ProcessMidFlyState([[maybe_unused]] float deltaTime)
     {
         assert(m_ecefPositionInterpolator != nullptr);
         m_ecefPositionInterpolator->Update(deltaTime);
-        glm::dvec3 ecefCurrentPosition = m_ecefPositionInterpolator->GetCurrentPosition();
-        glm::dquat ecefOrientation = m_ecefPositionInterpolator->GetCurrentOrientation();
+        glm::dvec3 cameraPosition = m_ecefPositionInterpolator->GetCurrentPosition();
+        glm::dquat cameraOrientation = m_ecefPositionInterpolator->GetCurrentOrientation();
 
-        if (m_coordinateTransformEntityId.IsValid())
+        // find camera relative position. Move origin if its relative position is over 10000.0
+        glm::dmat4 absToRelWorld{ 1.0 };
+        OriginShiftRequestBus::BroadcastResult(absToRelWorld, &OriginShiftRequestBus::Events::GetAbsToRelWorld);
+        glm::dvec3 relativeCameraPosition = absToRelWorld * glm::dvec4(cameraPosition, 1.0);
+        glm::dquat relativeCameraOrientation = glm::dquat(absToRelWorld) * cameraOrientation;
+
+        AZ::Transform cameraTransform = AZ::Transform::CreateIdentity();
+        cameraTransform.SetRotation(AZ::Quaternion(
+            static_cast<float>(relativeCameraOrientation.x), static_cast<float>(relativeCameraOrientation.y),
+            static_cast<float>(relativeCameraOrientation.z), static_cast<float>(relativeCameraOrientation.w)));
+        if (glm::abs(relativeCameraPosition.x) < ORIGIN_SHIFT_DISTANCE && glm::abs(relativeCameraPosition.y) < ORIGIN_SHIFT_DISTANCE &&
+            glm::abs(relativeCameraPosition.z) < ORIGIN_SHIFT_DISTANCE)
         {
-            glm::dmat4 ECEFToO3DE{ 1.0 };
-            CoordinateTransformRequestBus::EventResult(
-                ECEFToO3DE, m_coordinateTransformEntityId, &CoordinateTransformRequestBus::Events::ECEFToO3DE);
-
-            glm::dvec3 o3deCameraPosition = ECEFToO3DE * glm::dvec4(ecefCurrentPosition, 1.0);
-            glm::dquat o3deCameraOrientation = glm::dquat(ECEFToO3DE) * ecefOrientation;
-
-            AZ::Quaternion azO3DEQuat = AZ::Quaternion(
-                static_cast<float>(o3deCameraOrientation.x), static_cast<float>(o3deCameraOrientation.y),
-                static_cast<float>(o3deCameraOrientation.z), static_cast<float>(o3deCameraOrientation.w));
-            AZ::Vector3 azO3DETranslation = AZ::Vector3(
-                static_cast<float>(o3deCameraPosition.x), static_cast<float>(o3deCameraPosition.y),
-                static_cast<float>(o3deCameraPosition.z));
-            AZ::Transform o3deCameraTransform = AZ::Transform::CreateFromQuaternionAndTranslation(azO3DEQuat, azO3DETranslation);
-            AZ::TransformBus::Event(GetEntityId(), &AZ::TransformBus::Events::SetWorldTM, o3deCameraTransform);
+            cameraTransform.SetTranslation(AZ::Vector3(
+                static_cast<float>(relativeCameraPosition.x), static_cast<float>(relativeCameraPosition.y),
+                static_cast<float>(relativeCameraPosition.z)));
         }
         else
         {
-            AZ::Quaternion azO3DEQuat = AZ::Quaternion(
-                static_cast<float>(ecefOrientation.x), static_cast<float>(ecefOrientation.y), static_cast<float>(ecefOrientation.z),
-                static_cast<float>(ecefOrientation.w));
-            AZ::Vector3 azO3DETranslation = AZ::Vector3(
-                static_cast<float>(ecefCurrentPosition.x), static_cast<float>(ecefCurrentPosition.y),
-                static_cast<float>(ecefCurrentPosition.z));
-            AZ::Transform o3deCameraTransform = AZ::Transform::CreateFromQuaternionAndTranslation(azO3DEQuat, azO3DETranslation);
-            AZ::TransformBus::Event(GetEntityId(), &AZ::TransformBus::Events::SetWorldTM, o3deCameraTransform);
+            cameraTransform.SetTranslation(AZ::Vector3{ 0.0f });
+            OriginShiftRequestBus::Broadcast(&OriginShiftRequestBus::Events::SetOrigin, cameraPosition);
         }
+
+        AZ::TransformBus::Event(GetEntityId(), &AZ::TransformBus::Events::SetWorldTM, cameraTransform);
 
         // if the interpolator stops updating, then we transition to the end state
         if (m_ecefPositionInterpolator->IsStop())
@@ -274,38 +203,53 @@ namespace Cesium
     {
         if (m_cameraRotateUpdate || m_cameraMoveUpdate)
         {
-            // when camera is not flying, listen for input event handler
-            CoordinateTransformConfiguration transformConfig{};
-            CoordinateTransformRequestBus::EventResult(
-                transformConfig, m_coordinateTransformEntityId, &CoordinateTransformRequestBus::Events::GetConfiguration);
-
             // Get camera current world transform
-            AZ::Transform O3DECameraTransform = AZ::Transform::CreateIdentity();
-            AZ::TransformBus::EventResult(O3DECameraTransform, GetEntityId(), &AZ::TransformBus::Events::GetWorldTM);
+            AZ::Transform relativeCameraTransform = AZ::Transform::CreateIdentity();
+            AZ::TransformBus::EventResult(relativeCameraTransform, GetEntityId(), &AZ::TransformBus::Events::GetWorldTM);
 
             // calculate ENU
-            glm::dvec3 ecefCurrentPosition = transformConfig.m_O3DEToECEF * MathHelper::ToDVec4(O3DECameraTransform.GetTranslation(), 1.0);
-            glm::dmat4 enuToEcef{1.0};
-            CoordinateTransformRequestBus::EventResult(
-                enuToEcef, m_coordinateTransformEntityId, &CoordinateTransformRequestBus::Events::CalculateO3DEToECEFAtOrigin,
-                ecefCurrentPosition);
-            glm::dmat4 enuToO3DE = transformConfig.m_ECEFToO3DE * enuToEcef;
-
-            // calculate new camera orientation, adjust for ENU coordinate
-            glm::dquat totalRotationQuat = glm::dquat(enuToO3DE) * glm::dquat(glm::dvec3(m_cameraPitch, 0.0, m_cameraHead));
-            O3DECameraTransform.SetRotation(AZ::Quaternion(
+            glm::dmat4 absToRelWorld{ 1.0 };
+            glm::dmat4 relToAbsWorld{ 1.0 };
+            OriginShiftRequestBus::BroadcastResult(absToRelWorld, &OriginShiftRequestBus::Events::GetAbsToRelWorld);
+            OriginShiftRequestBus::BroadcastResult(relToAbsWorld, &OriginShiftRequestBus::Events::GetRelToAbsWorld);
+            glm::dvec4 currentPosition = relToAbsWorld * MathHelper::ToDVec4(relativeCameraTransform.GetTranslation(), 1.0);
+            glm::dmat4 enu = CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(currentPosition) *
+                glm::dmat4(glm::dquat(glm::dvec3(m_cameraPitch, 0.0, m_cameraHead)));
+            glm::dmat4 totalRotation = absToRelWorld * enu;
+            glm::dquat totalRotationQuat{ totalRotation };
+            relativeCameraTransform.SetRotation(AZ::Quaternion(
                 static_cast<float>(totalRotationQuat.x), static_cast<float>(totalRotationQuat.y), static_cast<float>(totalRotationQuat.z),
                 static_cast<float>(totalRotationQuat.w)));
 
             // calculate camera position
-            glm::dvec3 moveX = m_cameraMovement.x * MathHelper::ToDVec3(O3DECameraTransform.GetBasisX());
-            glm::dvec3 moveY = m_cameraMovement.y * MathHelper::ToDVec3(O3DECameraTransform.GetBasisY());
-            glm::dvec3 moveZ = m_cameraMovement.z * MathHelper::ToDVec3(O3DECameraTransform.GetBasisZ());
-            glm::dvec3 newPosition = MathHelper::ToDVec3(O3DECameraTransform.GetTranslation()) + moveX + moveY + moveZ;
-            O3DECameraTransform.SetTranslation(
-                AZ::Vector3{ static_cast<float>(newPosition.x), static_cast<float>(newPosition.y), static_cast<float>(newPosition.z) });
+            glm::dvec3 move = totalRotation * glm::dvec4(m_cameraMovement, 0.0);
+            glm::dvec3 newPosition = MathHelper::ToDVec3(relativeCameraTransform.GetTranslation()) + move;
 
-            AZ::TransformBus::Event(GetEntityId(), &AZ::TransformBus::Events::SetWorldTM, O3DECameraTransform);
+            // reset camera pitch and head
+            if (m_cameraPitch > -CesiumUtility::Math::PI_OVER_TWO && m_cameraPitch < CesiumUtility::Math::PI_OVER_TWO)
+            {
+                glm::dvec3 absNewPosition = relToAbsWorld * glm::dvec4(newPosition, 1.0);
+                glm::dmat4 newEnu = CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(absNewPosition);
+                auto cameraDir = glm::inverse(newEnu) * relToAbsWorld * totalRotation[1];
+                glm::dvec3 pitchHeadRoll = MathHelper::CalculatePitchRollHead(cameraDir);
+                m_cameraPitch = pitchHeadRoll.x;
+                m_cameraHead = pitchHeadRoll.z;
+            }
+
+            if (glm::abs(newPosition.x) < ORIGIN_SHIFT_DISTANCE && glm::abs(newPosition.y) < ORIGIN_SHIFT_DISTANCE &&
+                glm::abs(newPosition.z) < ORIGIN_SHIFT_DISTANCE)
+            {
+                relativeCameraTransform.SetTranslation(
+                    AZ::Vector3{ static_cast<float>(newPosition.x), static_cast<float>(newPosition.y), static_cast<float>(newPosition.z) });
+                AZ::TransformBus::Event(GetEntityId(), &AZ::TransformBus::Events::SetWorldTM, relativeCameraTransform);
+            }
+            else
+            {
+                glm::dvec3 shiftOrigin = relToAbsWorld * glm::dvec4(newPosition, 0.0);
+                relativeCameraTransform.SetTranslation(AZ::Vector3{ 0.0f });
+                AZ::TransformBus::Event(GetEntityId(), &AZ::TransformBus::Events::SetWorldTM, relativeCameraTransform);
+                OriginShiftRequestBus::Broadcast(&OriginShiftRequestBus::Events::ShiftOrigin, shiftOrigin);
+            }
         }
     }
 
@@ -341,6 +285,7 @@ namespace Cesium
             else if (m_cameraRotateUpdate && inputChannelId == AzFramework::InputDeviceMouse::Movement::Y)
             {
                 m_cameraPitch += glm::radians(-inputValue / 360.0 * m_mouseSensitivity);
+                m_cameraPitch = glm::clamp(m_cameraPitch, -CesiumUtility::Math::PI_OVER_TWO, CesiumUtility::Math::PI_OVER_TWO);
             }
             else if (inputChannelId == AzFramework::InputDeviceMouse::Button::Right)
             {
@@ -413,9 +358,15 @@ namespace Cesium
             glm::dvec3 ecefCurrentPosition = m_ecefPositionInterpolator->GetCurrentPosition();
             AZ::Transform worldTM{};
             AZ::TransformBus::EventResult(worldTM, GetEntityId(), &AZ::TransformBus::Events::GetWorldTM);
-            AZ::Vector3 worldOrientation = worldTM.GetRotation().GetEulerRadians();
-            m_cameraPitch = worldOrientation.GetX();
-            m_cameraHead = worldOrientation.GetZ();
+
+            glm::dmat4 relToAbsWorld{ 1.0 };
+            OriginShiftRequestBus::BroadcastResult(relToAbsWorld, &OriginShiftRequestBus::Events::GetRelToAbsWorld);
+            auto cameraDir = glm::inverse(CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(ecefCurrentPosition)) * relToAbsWorld *
+                MathHelper::ToDVec4(worldTM.GetBasisY(), 0.0);
+            glm::dvec3 pitchHeadRoll = MathHelper::CalculatePitchRollHead(cameraDir);
+            m_cameraPitch = pitchHeadRoll.x;
+            m_cameraHead = pitchHeadRoll.z;
+
             m_ecefPositionInterpolator = nullptr;
             m_stopFlyEvent.Signal(ecefCurrentPosition);
 

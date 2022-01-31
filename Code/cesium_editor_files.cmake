@@ -16,8 +16,12 @@ set(FILES
     Source/Editor/Widgets/CesiumIonPanelWidget.cpp
     Source/Editor/Widgets/CesiumResources.qrc
 
-    Source/Editor/Components/LevelCoordinateTransformEditorComponent.h
-    Source/Editor/Components/LevelCoordinateTransformEditorComponent.cpp
+    Source/Editor/Components/ECEFPickerComponentHelper.h
+    Source/Editor/Components/ECEFPickerComponentHelper.cpp
+    Source/Editor/Components/OriginShiftEditorComponent.h
+    Source/Editor/Components/OriginShiftEditorComponent.cpp
+    Source/Editor/Components/GeoreferenceAnchorEditorComponent.h
+    Source/Editor/Components/GeoreferenceAnchorEditorComponent.cpp
     Source/Editor/Components/CesiumIonRasterOverlayEditorComponent.h
     Source/Editor/Components/CesiumIonRasterOverlayEditorComponent.cpp
     Source/Editor/Components/BingRasterOverlayEditorComponent.h
@@ -26,8 +30,6 @@ set(FILES
     Source/Editor/Components/TMSRasterOverlayEditorComponent.cpp
     Source/Editor/Components/GeoReferenceCameraFlyControllerEditor.h
     Source/Editor/Components/GeoReferenceCameraFlyControllerEditor.cpp
-    Source/Editor/Components/GeoReferenceTransformEditorComponent.h
-    Source/Editor/Components/GeoReferenceTransformEditorComponent.cpp
     Source/Editor/Components/TilesetCreditEditorComponent.h
     Source/Editor/Components/TilesetCreditEditorComponent.cpp
     Source/Editor/Components/TilesetEditorComponent.h

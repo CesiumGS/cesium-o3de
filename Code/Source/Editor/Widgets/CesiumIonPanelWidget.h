@@ -80,8 +80,6 @@ namespace Cesium
     private slots:
         void AddBlankTileset();
 
-        void AddGeoreference();
-
         void AddGeoreferenceCamera();
     };
 }

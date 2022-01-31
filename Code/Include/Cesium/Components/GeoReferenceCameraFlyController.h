@@ -1,8 +1,6 @@
 #pragma once
 
 #include <Cesium/EBus/GeoReferenceCameraFlyControllerBus.h>
-#include <Cesium/EBUs/LevelCoordinateTransformComponentBus.h>
-#include <Cesium/EBus/CoordinateTransformComponentBus.h>
 #include <AzFramework/Input/Events/InputChannelEventListener.h>
 #include <AzCore/Component/Component.h>
 #include <AzCore/Component/EntityId.h>
@@ -18,10 +16,8 @@ namespace Cesium
     class GeoReferenceCameraFlyController
         : public AZ::Component
         , public AZ::TickBus::Handler
-        , public AZ::EntityBus::Handler
         , public AzFramework::InputChannelEventListener
         , public GeoReferenceCameraFlyControllerRequestBus::Handler
-        , public LevelCoordinateTransformNotificationBus::Handler
     {
         enum class CameraFlyState
         {
@@ -56,8 +52,6 @@ namespace Cesium
 
         double GetMovementSpeed() const override;
 
-        void OnCoordinateTransformChange(const AZ::EntityId& coordinateTransformEntityId) override;
-
         void FlyToECEFLocation(const glm::dvec3& location, const glm::dvec3& direction) override;
 
         void BindCameraStopFlyEventHandler(CameraStopFlyEvent::Handler& handler) override;
@@ -72,10 +66,6 @@ namespace Cesium
 
     private:
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
-
-        void OnEntityActivated(const AZ::EntityId& coordinateTransformEntityId) override;
-
-        void OnEntityDeactivated(const AZ::EntityId& coordinateTransformEntityId) override; 
 
         void ProcessMidFlyState(float deltaTime);
 
@@ -95,9 +85,7 @@ namespace Cesium
         double m_mouseSensitivity;
         double m_movementSpeed;
         double m_panningSpeed;
-        AZ::EntityId m_coordinateTransformEntityId;
 
-        TransformChangeEvent::Handler m_cesiumTransformChangeHandler;
         AZStd::unique_ptr<Interpolator> m_ecefPositionInterpolator;
         CameraStopFlyEvent m_stopFlyEvent;
         CameraFlyState m_cameraFlyState;
@@ -106,5 +94,7 @@ namespace Cesium
         glm::dvec3 m_cameraMovement;
         bool m_cameraRotateUpdate;
         bool m_cameraMoveUpdate;
+
+        static constexpr double ORIGIN_SHIFT_DISTANCE = 10000.0;
     };
 } // namespace Cesium

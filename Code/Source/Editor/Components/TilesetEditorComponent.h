@@ -1,7 +1,9 @@
 #pragma once
 
+#include <Cesium/EBus/OriginShiftComponentBus.h>
 #include <Cesium/EBus/TilesetComponentBus.h>
 #include <AzCore/Component/EntityId.h>
+#include <AzCore/Component/TransformBus.h>
 #include <AzCore/std/string/string.h>
 #include <AzCore/std/smart_ptr/unique_ptr.h>
 #include <AzToolsFramework/ToolsComponents/EditorComponentBase.h>
@@ -12,6 +14,8 @@ namespace Cesium
 
     class TilesetEditorComponent
         : public AzToolsFramework::Components::EditorComponentBase
+        , public AZ::TransformNotificationBus::Handler
+        , public OriginShiftNotificationBus::Handler
     {
     public:
         AZ_EDITOR_COMPONENT(TilesetEditorComponent, "{25978273-7635-415C-ABFE-8364A65B68FC}");
@@ -41,8 +45,21 @@ namespace Cesium
 
         AZ::u32 OnTilesetConfigurationChanged();
 
+        void PlaceWorldOriginHere();
+
+        void OnTransformChanged(const AZ::Transform& local, const AZ::Transform& world) override;
+
+        void OnOriginShifting(const glm::dmat4& absToRelWorld) override;
+
+        void ApplyRelativeTransform(const glm::dmat4& transform);
+
         AZStd::unique_ptr<TilesetComponent> m_tilesetComponent;
         TilesetConfiguration m_tilesetConfiguration;
         TilesetSource m_tilesetSource;
+        glm::dmat4 m_transform{1.0};
+        bool m_overrideDefaultTransform{ false };
+
+        bool m_selfTransform{ true };
+        TilesetLoadedEvent::Handler m_tilesetLoadedHandler;
     };
 } // namespace Cesium

@@ -1,4 +1,5 @@
 #include <Cesium/EBus/TilesetComponentBus.h>
+#include <Cesium/Math/MathReflect.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/RTTI/BehaviorContext.h>
 
@@ -10,13 +11,13 @@ namespace Cesium
         {
             serializeContext->Class<TilesetConfiguration>()
                 ->Version(0)
-                ->Field("maximumScreenSpaceError", &TilesetConfiguration::m_maximumScreenSpaceError)
-                ->Field("maximumCacheBytes", &TilesetConfiguration::m_maximumCacheBytes)
-                ->Field("maximumSimultaneousTileLoads", &TilesetConfiguration::m_maximumSimultaneousTileLoads)
-                ->Field("loadingDescendantLimit", &TilesetConfiguration::m_loadingDescendantLimit)
-                ->Field("preloadAncestors", &TilesetConfiguration::m_preloadAncestors)
-                ->Field("preloadSiblings", &TilesetConfiguration::m_preloadSiblings)
-                ->Field("forbidHole", &TilesetConfiguration::m_forbidHole)
+                ->Field("MaximumScreenSpaceError", &TilesetConfiguration::m_maximumScreenSpaceError)
+                ->Field("MaximumCacheBytes", &TilesetConfiguration::m_maximumCacheBytes)
+                ->Field("MaximumSimultaneousTileLoads", &TilesetConfiguration::m_maximumSimultaneousTileLoads)
+                ->Field("LoadingDescendantLimit", &TilesetConfiguration::m_loadingDescendantLimit)
+                ->Field("PreloadAncestors", &TilesetConfiguration::m_preloadAncestors)
+                ->Field("PreloadSiblings", &TilesetConfiguration::m_preloadSiblings)
+                ->Field("ForbidHole", &TilesetConfiguration::m_forbidHole)
                 ;
         }
 
@@ -24,13 +25,13 @@ namespace Cesium
         {
             behaviorContext->Class<TilesetConfiguration>("TilesetConfiguration")
                 ->Attribute(AZ::Script::Attributes::Category, "Cesium/3DTiles")
-                ->Property("maximumScreenSpaceError", BehaviorValueProperty(&TilesetConfiguration::m_maximumScreenSpaceError))
-                ->Property("maximumCacheBytes", BehaviorValueProperty(&TilesetConfiguration::m_maximumCacheBytes))
-                ->Property("maximumSimultaneousTileLoads", BehaviorValueProperty(&TilesetConfiguration::m_maximumSimultaneousTileLoads))
-                ->Property("loadingDescendantLimit", BehaviorValueProperty(&TilesetConfiguration::m_loadingDescendantLimit))
-                ->Property("preloadAncestors", BehaviorValueProperty(&TilesetConfiguration::m_preloadAncestors))
-                ->Property("preloadSiblings", BehaviorValueProperty(&TilesetConfiguration::m_preloadSiblings))
-                ->Property("forbidHole", BehaviorValueProperty(&TilesetConfiguration::m_forbidHole));
+                ->Property("MaximumScreenSpaceError", BehaviorValueProperty(&TilesetConfiguration::m_maximumScreenSpaceError))
+                ->Property("MaximumCacheBytes", BehaviorValueProperty(&TilesetConfiguration::m_maximumCacheBytes))
+                ->Property("MaximumSimultaneousTileLoads", BehaviorValueProperty(&TilesetConfiguration::m_maximumSimultaneousTileLoads))
+                ->Property("LoadingDescendantLimit", BehaviorValueProperty(&TilesetConfiguration::m_loadingDescendantLimit))
+                ->Property("PreloadAncestors", BehaviorValueProperty(&TilesetConfiguration::m_preloadAncestors))
+                ->Property("PreloadSiblings", BehaviorValueProperty(&TilesetConfiguration::m_preloadSiblings))
+                ->Property("ForbidHole", BehaviorValueProperty(&TilesetConfiguration::m_forbidHole));
         }
     }
 
@@ -45,7 +46,7 @@ namespace Cesium
         {
             behaviorContext->Class<TilesetLocalFileSource>("TilesetLocalFileSource")
                 ->Attribute(AZ::Script::Attributes::Category, "Cesium/3DTiles")
-                ->Property("filePath", BehaviorValueProperty(&TilesetLocalFileSource::m_filePath))
+                ->Property("FilePath", BehaviorValueProperty(&TilesetLocalFileSource::m_filePath))
             ;
         }
     }
@@ -61,7 +62,7 @@ namespace Cesium
         {
             behaviorContext->Class<TilesetUrlSource>("TilesetUrlSource")
                 ->Attribute(AZ::Script::Attributes::Category, "Cesium/3DTiles")
-                ->Property("url", BehaviorValueProperty(&TilesetUrlSource::m_url))
+                ->Property("Url", BehaviorValueProperty(&TilesetUrlSource::m_url))
             ;
         }
     }
@@ -72,16 +73,16 @@ namespace Cesium
         {
             serializeContext->Class<TilesetCesiumIonSource>()
                 ->Version(0)
-                ->Field("cesiumIonAssetId", &TilesetCesiumIonSource::m_cesiumIonAssetId)
-                ->Field("cesiumIonAssetToken", &TilesetCesiumIonSource::m_cesiumIonAssetToken);
+                ->Field("CesiumIonAssetId", &TilesetCesiumIonSource::m_cesiumIonAssetId)
+                ->Field("CesiumIonAssetToken", &TilesetCesiumIonSource::m_cesiumIonAssetToken);
         }
 
         if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
         {
             behaviorContext->Class<TilesetCesiumIonSource>("TilesetCesiumIonSource")
                 ->Attribute(AZ::Script::Attributes::Category, "Cesium/3DTiles")
-                ->Property("assetId", BehaviorValueProperty(&TilesetCesiumIonSource::m_cesiumIonAssetId))
-                ->Property("assetToken", BehaviorValueProperty(&TilesetCesiumIonSource::m_cesiumIonAssetToken))
+                ->Property("AssetId", BehaviorValueProperty(&TilesetCesiumIonSource::m_cesiumIonAssetId))
+                ->Property("AssetToken", BehaviorValueProperty(&TilesetCesiumIonSource::m_cesiumIonAssetToken))
             ;
         }
     }
@@ -96,10 +97,10 @@ namespace Cesium
         {
             serializeContext->Class<TilesetSource>()
                 ->Version(0)
-                ->Field("type", &TilesetSource::m_type)
-                ->Field("localFile", &TilesetSource::m_localFile)
-                ->Field("url", &TilesetSource::m_url)
-                ->Field("cesiumIon", &TilesetSource::m_cesiumIon);
+                ->Field("Type", &TilesetSource::m_type)
+                ->Field("LocalFile", &TilesetSource::m_localFile)
+                ->Field("Url", &TilesetSource::m_url)
+                ->Field("CesiumIon", &TilesetSource::m_cesiumIon);
         }
 
         if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
@@ -204,8 +205,12 @@ namespace Cesium
                 ->Attribute(AZ::Script::Attributes::Category, "Cesium/3DTiles")
                 ->Event("SetConfiguration", &TilesetRequestBus::Events::SetConfiguration)
                 ->Event("GetConfiguration", &TilesetRequestBus::Events::GetConfiguration)
+                ->Event("GetRootBoundingVolumeInECEF", &TilesetRequestBus::Events::GetRootBoundingVolumeInECEF)
                 ->Event("GetBoundingVolumeInECEF", &TilesetRequestBus::Events::GetBoundingVolumeInECEF)
                 ->Event("LoadTileset", &TilesetRequestBus::Events::LoadTileset)
+                ->Event("GetRootTransform", &TilesetRequestBus::Events::GetRootTransform)
+                ->Event("GetTransform", &TilesetRequestBus::Events::GetTransform)
+                ->Event("ApplyTransformToRoot", &TilesetRequestBus::Events::ApplyTransformToRoot)
                 ;
         }
     }
