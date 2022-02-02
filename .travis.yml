@@ -10,7 +10,7 @@ jobs:
     - md5sum o3de_installer_2111_2.exe
     - ./o3de_installer_2111_2.exe -quiet -layout || echo "Fallback Pass"
     - msiexec -a o3de_21.11.2.msi -quiet -L*V "c:\o3de_installer.log" || echo "Fallback Pass"
-    - tail -n100 "c:\o3de_installer.log"
+    - tail -n200 "c:\o3de_installer.log"
     install:
     - choco install 7zip.portable
     - choco install python --version 3.9.2
@@ -29,7 +29,8 @@ jobs:
     - cd ..
     - export CLONEDIR=$PWD
     - export LY_PACKAGE_SERVER_URL="file:///$CLONEDIR/External/Packages/Install"
-    - cd /c/O3DE/21.11/scripts
+    - ls /c/O3DE
+    - cd /c/O3DE/21.11.2/scripts
     - ./o3de.bat create-project -pp /c/temp/o3de-project
     - ./o3de.bat enable-gem -gp $CLONEDIR -pp /c/temp/o3de-project
     - cd /c/temp/o3de-project
