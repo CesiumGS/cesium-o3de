@@ -1,15 +1,17 @@
 {
+    "version": "1.0.0",
     "gem_name": "Cesium",
     "display_name": "Cesium",
-    "license": "What license Cesium uses goes here: i.e. https://opensource.org/licenses/MIT",
-    "origin": "The primary repo for Cesium goes here: i.e. http://www.mydomain.com",
+    "license": "Apache License 2.0",
+    "license_url": "https://github.com/CesiumGS/cesium-o3de/blob/main/LICENSE",
+    "origin": "https://github.com/CesiumGS/cesium-o3de",
     "type": "Code",
-    "summary": "A short description of Cesium.",
+    "summary": "Unlock the 3D geospatial ecosystem in O3DE with real-world 3D content and a high accuracy full-scale WGS84 globe.",
     "canonical_tags": [
         "Gem"
     ],
     "user_tags": [
-        "Cesium"
+        "Cesium", "Geospatial"
     ],
     "icon_path": "preview.png",
     "requirements": ""
