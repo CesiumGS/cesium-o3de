@@ -7,7 +7,8 @@ jobs:
     before_install:
     - curl "http://o3debinaries.org/main/Latest/Windows/o3de_installer_2111_2.exe" --output o3de_installer_2111_2.exe
     - md5sum o3de_installer_2111_2.exe
-    - ./o3de_installer_2111_2.exe -quiet
+    - ./o3de_installer_2111_2.exe -quiet -log log.txt || echo "Fallback Pass"
+    - cat log.txt
     install:
     - choco install 7zip.portable
     - choco install python --version 3.9.2
