@@ -5,6 +5,7 @@ jobs:
     name: Windows
     os: windows
     before_install:
+    - if [[ $(sfc 2>&1 | tr -d '\0') =~ SCANNOW ]]; then echo Administrator; else echo $USERNAME; fi
     - curl "http://o3debinaries.org/main/Latest/Windows/o3de_installer_2111_2.exe" --output o3de_installer_2111_2.exe
     - md5sum o3de_installer_2111_2.exe
     - ./o3de_installer_2111_2.exe -quiet -log log.txt || echo "Fallback Pass"
