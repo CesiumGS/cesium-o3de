@@ -1,7 +1,4 @@
 language: cpp
-cache:
-  directories:
-  - $HOME/.o3de
 jobs:
   include:
   - stage: Build OS Packages
