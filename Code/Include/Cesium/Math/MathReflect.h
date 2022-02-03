@@ -45,6 +45,12 @@ namespace Cesium
         static void ReflectGlmVector(AZ::BehaviorContext::ClassBuilder<glm::dvec3> &builder);
         
         static void ReflectGlmVector(AZ::BehaviorContext::ClassBuilder<glm::dvec4> &builder);
+
+        static void ReflectGlmMatrix(AZ::BehaviorContext::ClassBuilder<glm::dmat2> &builder);
+
+        static void ReflectGlmMatrix(AZ::BehaviorContext::ClassBuilder<glm::dmat3> &builder);
+
+        static void ReflectGlmMatrix(AZ::BehaviorContext::ClassBuilder<glm::dmat4> &builder);
     };
 
     template<typename VecType>
