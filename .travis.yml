@@ -36,6 +36,6 @@ jobs:
     - ./o3de.bat create-project -pp /c/temp/o3de-project
     - ./o3de.bat enable-gem -gp $CLONEDIR -pp /c/temp/o3de-project
     - cd /c/temp/o3de-project
-    - cmake -B build -S .
+    - cmake -B build -S . -A x64
     - cmake --build build --config Release --target INSTALL
     env: PATH=/c/Python39:/c/Python39/Scripts:$PATH
