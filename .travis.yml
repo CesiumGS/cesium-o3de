@@ -12,30 +12,28 @@ jobs:
     - msiexec -a o3de_21.11.2.msi -quiet -L*V "c:\o3de_installer.log" || echo "Fallback Pass"
     - tail -n200 "c:\o3de_installer.log"
     install:
-    # - choco install 7zip.portable
-    # - choco install python --version 3.9.2
+    - choco install 7zip.portable
+    - choco install python --version 3.9.2
     - choco install cmake
-    # - python -m pip install --upgrade pip
-    # - pip3 install --upgrade pip
-    # - pip3 install awscli
-    # - pip3 install httpie
+    - python -m pip install --upgrade pip
+    - pip3 install --upgrade pip
+    - pip3 install awscli
+    - pip3 install httpie
     before_script:
     - export CESIUM_O3DE_VERSION=$(git describe)
     - export BUILD_CESIUM_O3DE_PACKAGE_NAME=CesiumForO3DE-${TRAVIS_OS_NAME}-${CESIUM_O3DE_VERSION}
     - cd External
     - cmake -B Build -S . -A x64
     script:
-    # - cmake --build Build --config Release --target install -- /maxcpucount:4
-    # - cd ..
-    # - export CLONEDIR=$PWD
-    # - export LY_PACKAGE_SERVER_URL="file:///$CLONEDIR/External/Packages/Install"
-    - ls /c/O3DE/21.11.2
-    - ls /c/O3DE/21.11.2/python
+    - cmake --build Build --config Release --target install -- /maxcpucount:4
+    - cd ..
+    - export CLONEDIR=$PWD
+    - export LY_PACKAGE_SERVER_URL="file:///$CLONEDIR/External/Packages/Install"
     - /c/O3DE/21.11.2/python/get_python.bat
-    # - cd /c/O3DE/21.11.2/scripts
-    # - ./o3de.bat create-project -pp /c/temp/o3de-project
-    # - ./o3de.bat enable-gem -gp $CLONEDIR -pp /c/temp/o3de-project
-    # - cd /c/temp/o3de-project
-    # - cmake --build build -S .
-    # - cmake --build build --config Release --target INSTALL
+    - cd /c/O3DE/21.11.2/scripts
+    - ./o3de.bat create-project -pp /c/temp/o3de-project
+    - ./o3de.bat enable-gem -gp $CLONEDIR -pp /c/temp/o3de-project
+    - cd /c/temp/o3de-project
+    - cmake --build build -S .
+    - cmake --build build --config Release --target INSTALL
     env: PATH=/c/Python39:/c/Python39/Scripts:$PATH
