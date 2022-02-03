@@ -31,6 +31,7 @@ jobs:
     - export LY_PACKAGE_SERVER_URL="file:///$CLONEDIR/External/Packages/Install"
     - /c/O3DE/21.11.2/python/get_python.bat
     - cd /c/O3DE/21.11.2/scripts
+    - ./o3de.bat register --this-engine
     - ./o3de.bat create-project -pp /c/temp/o3de-project
     - ./o3de.bat enable-gem -gp $CLONEDIR -pp /c/temp/o3de-project
     - cd /c/temp/o3de-project
