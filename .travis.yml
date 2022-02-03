@@ -1,4 +1,8 @@
 language: cpp
+cache:
+  directories:
+  - $HOME/.o3de
+  - /c/O3DE
 jobs:
   include:
   - stage: Build OS Packages
@@ -37,5 +41,5 @@ jobs:
     - ./o3de.bat enable-gem -gp $CLONEDIR -pp /c/temp/o3de-project
     - cd /c/temp/o3de-project
     - cmake -B build -S . -A x64
-    - cmake --build build --config Release --target INSTALL
+    - cmake --build build --config release --target install
     env: PATH=/c/Python39:/c/Python39/Scripts:$PATH
