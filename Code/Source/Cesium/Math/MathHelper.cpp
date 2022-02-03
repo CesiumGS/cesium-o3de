@@ -24,6 +24,11 @@ namespace Cesium
         return newTransform;
     }
 
+    glm::dquat MathHelper::ToDQuaternion(const AZ::Quaternion& quat)
+    {
+        return glm::dquat(quat.GetW(), quat.GetX(), quat.GetY(), quat.GetZ());
+    }
+
     glm::dvec3 MathHelper::ToDVec3(const AZ::Vector3& vec)
     {
         return glm::dvec3{ vec.GetX(), vec.GetY(), vec.GetZ() };

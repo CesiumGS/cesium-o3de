@@ -3,6 +3,7 @@
 #include <AzCore/Math/Transform.h>
 #include <AzCore/Math/Vector3.h>
 #include <AzCore/Math/Vector4.h>
+#include <AzCore/Math/Quaternion.h>
 #include <glm/glm.hpp>
 
 namespace Cesium
@@ -10,6 +11,8 @@ namespace Cesium
     struct MathHelper
     {
         static glm::dmat4 ConvertTransformAndScaleToDMat4(const AZ::Transform& transform, const AZ::Vector3& nonUniformScale);
+
+        static glm::dquat ToDQuaternion(const AZ::Quaternion& quat);
 
         static glm::dvec3 ToDVec3(const AZ::Vector3& vec);
 
