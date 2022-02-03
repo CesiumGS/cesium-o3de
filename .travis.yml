@@ -25,16 +25,16 @@ jobs:
     - cd External
     - cmake -B Build -S . -A x64
     script:
-    - cmake --build Build --config Release --target install -- /maxcpucount:4
-    - cd ..
-    - export CLONEDIR=$PWD
-    - export LY_PACKAGE_SERVER_URL="file:///$CLONEDIR/External/Packages/Install"
-    - ls /c/O3DE
+    # - cmake --build Build --config Release --target install -- /maxcpucount:4
+    # - cd ..
+    # - export CLONEDIR=$PWD
+    # - export LY_PACKAGE_SERVER_URL="file:///$CLONEDIR/External/Packages/Install"
+    - ls /c/O3DE/21.11.2
     - ./21.11.2/python/get_python.bat
-    - cd /c/O3DE/21.11.2/scripts
-    - ./o3de.bat create-project -pp /c/temp/o3de-project
-    - ./o3de.bat enable-gem -gp $CLONEDIR -pp /c/temp/o3de-project
-    - cd /c/temp/o3de-project
-    - cmake --build build -S .
-    - cmake --build build --config Release --target INSTALL
+    # - cd /c/O3DE/21.11.2/scripts
+    # - ./o3de.bat create-project -pp /c/temp/o3de-project
+    # - ./o3de.bat enable-gem -gp $CLONEDIR -pp /c/temp/o3de-project
+    # - cd /c/temp/o3de-project
+    # - cmake --build build -S .
+    # - cmake --build build --config Release --target INSTALL
     env: PATH=/c/Python39:/c/Python39/Scripts:$PATH
