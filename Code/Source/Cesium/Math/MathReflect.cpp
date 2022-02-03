@@ -351,6 +351,13 @@ namespace Cesium
                     return glm::mat3_cast(quat);
                 })
             ->Method(
+                "ToO3DEQuaternion",
+                [](const glm::dquat& quat)
+                {
+                    return AZ::Quaternion(
+                        static_cast<float>(quat.x), static_cast<float>(quat.y), static_cast<float>(quat.z), static_cast<float>(quat.w));
+                })
+            ->Method(
                 "Normalized",
                 [](const glm::dquat& quat)
                 {
@@ -471,7 +478,14 @@ namespace Cesium
                 [](const AZ::Vector4& v)
                 {
                     return glm::dvec2(v.GetX(), v.GetY());
-                });
+                })
+            ->Method(
+                "ToO3DEVector2",
+                [](const glm::dvec2& v)
+                {
+                    return AZ::Vector2(static_cast<float>(v.x), static_cast<float>(v.y));
+                })
+            ;
     }
 
     void MathSerialization::ReflectGlmVector(AZ::BehaviorContext::ClassBuilder<glm::dvec3>& builder)
@@ -515,6 +529,12 @@ namespace Cesium
                 [](const AZ::Vector4& v)
                 {
                     return glm::dvec3(v.GetX(), v.GetY(), v.GetZ());
+                })
+            ->Method(
+                "ToO3DEVector3",
+                [](const glm::dvec3& v)
+                {
+                    return AZ::Vector3(static_cast<float>(v.x), static_cast<float>(v.y), static_cast<float>(v.z));
                 });
     }
 
@@ -547,7 +567,14 @@ namespace Cesium
                 [](const AZ::Vector4& v)
                 {
                     return glm::dvec4(v.GetX(), v.GetY(), v.GetZ(), v.GetW());
+                })
+            ->Method(
+                "ToO3DEVector4",
+                [](const glm::dvec4& v)
+                {
+                    return AZ::Vector4(static_cast<float>(v.x), static_cast<float>(v.y), static_cast<float>(v.z), static_cast<float>(v.w));
                 });
+        ;
     }
 
     template<typename MatType>
