@@ -1,5 +1,4 @@
 #include <Cesium/EBus/OriginShiftComponentBus.h>
-#include <AzCore/RTTI/BehaviorContext.h>
 
 namespace Cesium
 {
@@ -18,14 +17,20 @@ namespace Cesium
         }
     }
 
-    void OriginShiftNotification::Reflect(AZ::ReflectContext* context)
+    void OriginShiftNotificationEBusHandler::Reflect(AZ::ReflectContext* context)
     {
         if (AZ::BehaviorContext* behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
         {
             behaviorContext->EBus<OriginShiftNotificationBus>("OriginShiftNotificationBus")
                 ->Attribute(AZ::Script::Attributes::Category, "Cesium/OriginShift")
+                ->Handler<OriginShiftNotificationEBusHandler>()
                 ->Event("OnOriginShifting", &OriginShiftNotificationBus::Events::OnOriginShifting)
                 ;
         }
+    }
+
+    void OriginShiftNotificationEBusHandler::OnOriginShifting(const glm::dmat4& absToRelWorld)
+    {
+        Call(FN_OnOriginShifting, absToRelWorld);
     }
 } // namespace Cesium

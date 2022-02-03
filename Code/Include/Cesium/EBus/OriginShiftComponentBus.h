@@ -1,7 +1,10 @@
 #pragma once
 
+#include <Cesium/Math/MathReflect.h>
 #include <AzCore/RTTI/ReflectContext.h>
+#include <AzCore/RTTI/BehaviorContext.h>
 #include <AzCore/Component/ComponentBus.h>
+#include <AzCore/Memory/SystemAllocator.h>
 #include <glm/glm.hpp>
 #include <cstdint>
 
@@ -35,8 +38,6 @@ namespace Cesium
     class OriginShiftNotification : public AZ::ComponentBus
     {
     public:
-        static void Reflect(AZ::ReflectContext* reflectContext);
-
         virtual void OnOriginShifting(const glm::dmat4& absToRelWorld) = 0;
     };
 
@@ -71,4 +72,15 @@ namespace Cesium
     };
 
     using OriginShiftNotificationBus = AZ::EBus<OriginShiftNotification, OriginShiftNotificationEBusTraits>;
+
+    class OriginShiftNotificationEBusHandler : public OriginShiftNotificationBus::Handler, public AZ::BehaviorEBusHandler
+    {
+    public:
+        static void Reflect(AZ::ReflectContext* reflectContext);
+
+        AZ_EBUS_BEHAVIOR_BINDER(
+            OriginShiftNotificationEBusHandler, "{08520FE3-D352-47D7-AD49-A176A53700A8}", AZ::SystemAllocator, OnOriginShifting);
+
+        void OnOriginShifting(const glm::dmat4& absToRelWorld) override;
+    };
 } // namespace Cesium
