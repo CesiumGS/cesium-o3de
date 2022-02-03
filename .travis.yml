@@ -41,5 +41,5 @@ jobs:
     - ./o3de.bat enable-gem -gp $CLONEDIR -pp /c/temp/o3de-project
     - cd /c/temp/o3de-project
     - cmake -B build/windows_vs2019 -S . -A x64
-    - cmake --build build/windows_vs2019 --config Cesium Cesium.Tests Cesium.Editor.Tests  --target install
+    - cmake --build build/windows_vs2019 --target Cesium Cesium.Tests Cesium.Editor.Tests --config profile -- -m
     env: PATH=/c/Python39:/c/Python39/Scripts:$PATH
