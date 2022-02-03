@@ -39,7 +39,7 @@ namespace Cesium
                     ->Attribute(AZ::Edit::Attributes::AutoExpand, true)
                     ->UIElement(AZ::Edit::UIHandlers::Button, "Place World Origin Here", "")
                     ->Attribute(AZ::Edit::Attributes::NameLabelOverride, "")
-                    ->Attribute(AZ::Edit::Attributes::ButtonText, "Place World Origin Here")
+                    ->Attribute(AZ::Edit::Attributes::ButtonText, "Place World Origin At the Root")
                     ->Attribute(AZ::Edit::Attributes::ChangeNotify, &TilesetEditorComponent::PlaceWorldOriginHere)
                     ->DataElement(AZ::Edit::UIHandlers::Default, &TilesetEditorComponent::m_tilesetSource, "Source", "")
                     ->Attribute(AZ::Edit::Attributes::Visibility, AZ::Edit::PropertyVisibility::ShowChildrenOnly)
@@ -224,7 +224,7 @@ namespace Cesium
             return;
         }
 
-        glm::dvec3 origin = TilesetBoundingVolumeUtil::GetCenter(m_tilesetComponent->GetBoundingVolumeInECEF());
+        glm::dvec3 origin = TilesetBoundingVolumeUtil::GetCenter(m_tilesetComponent->GetRootBoundingVolumeInECEF());
         CesiumEditorSystemRequestBus::Broadcast(&CesiumEditorSystemRequestBus::Events::PlaceOriginAtPosition, origin);
     }
 

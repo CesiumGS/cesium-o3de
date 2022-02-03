@@ -153,7 +153,7 @@ namespace Cesium
     AZ::u32 ECEFPickerComponentHelper::SamplePositionOfEntity()
     {
         TilesetBoundingVolume boundingVolume = std::monostate{};
-        TilesetRequestBus::EventResult(boundingVolume, m_sampledEntityId, &TilesetRequestBus::Handler::GetBoundingVolumeInECEF);
+        TilesetRequestBus::EventResult(boundingVolume, m_sampledEntityId, &TilesetRequestBus::Handler::GetRootBoundingVolumeInECEF);
         m_position = TilesetBoundingVolumeUtil::GetCenter(boundingVolume);
 		OnPositionAsCartesianChanged();
 

@@ -36,7 +36,7 @@ namespace Cesium
         GeoReferenceCameraFlyControllerRequest::Reflect(context);
 
         OriginShiftRequest::Reflect(context);
-        OriginShiftNotification::Reflect(context);
+        OriginShiftNotificationEBusHandler::Reflect(context);
 
         OriginShiftAnchorRequest::Reflect(context);
 
