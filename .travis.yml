@@ -12,7 +12,6 @@ jobs:
     - ./o3de_installer_2111_2.exe -quiet -layout || echo "Fallback Pass";
     - msiexec -a o3de_21.11.2.msi -quiet -L*V "c:\o3de_installer.log" || echo "Fallback Pass";
     install:
-    - choco install 7zip.portable
     - choco install python --version 3.9.2
     - choco install cmake
     - choco install visualstudio2019buildtools --package-parameters "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
@@ -20,6 +19,7 @@ jobs:
     - pip3 install --upgrade pip
     - pip3 install awscli
     - pip3 install httpie
+    - pip3 install zip
     before_script:
     - export CESIUM_O3DE_VERSION=$(git describe)
     - export BUILD_CESIUM_O3DE_PACKAGE_NAME=CesiumForO3DE-${TRAVIS_OS_NAME}-${CESIUM_O3DE_VERSION}
