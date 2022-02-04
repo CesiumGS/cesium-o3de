@@ -62,7 +62,7 @@ jobs:
     deploy:
     - provider: releases
       api_key: $GITHUB_TOKEN
-      file: cesium-o3de.zip
+      file: ${BUILD_CESIUM_O3DE_PACKAGE_NAME}.zip
       skip_cleanup: true
       draft: true
       on:
