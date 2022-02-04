@@ -57,6 +57,7 @@ jobs:
 
     # package the Gem
     - cd ..
+    - ls .
     - 7z a ${BUILD_CESIUM_O3DE_PACKAGE_NAME}.zip $CLONEDIR
 
     deploy:
