@@ -50,8 +50,14 @@ jobs:
     - ./AzTestRunner.exe /c/temp/o3de-project/build/windows_vs2019/bin/profile/Cesium.Editor.Tests.dll AzRunUnitTests
 
     before_deploy:
+    # clean up intermediate directories like build dir, etc
+    - cd $CLONEDIR
+    - rm -rf External/build
+    - rm -rf External/Packages/CesiumNative
+
     # package the Gem
-    - 7z a cesium-o3de.zip $CLONEDIR
+    - cd ..
+    - 7z a ${BUILD_CESIUM_O3DE_PACKAGE_NAME}.zip $CLONEDIR
 
     deploy:
     - provider: releases
