@@ -39,6 +39,18 @@ namespace Cesium
         static void ReflectGlmDMatBehavior(AZ::BehaviorContext* context, const AZStd::string& name);
 
         static void ReflectGlmQuatBehavior(AZ::BehaviorContext* context);
+
+        static void ReflectGlmVector(AZ::BehaviorContext::ClassBuilder<glm::dvec2> &builder);
+
+        static void ReflectGlmVector(AZ::BehaviorContext::ClassBuilder<glm::dvec3> &builder);
+        
+        static void ReflectGlmVector(AZ::BehaviorContext::ClassBuilder<glm::dvec4> &builder);
+
+        static void ReflectGlmMatrix(AZ::BehaviorContext::ClassBuilder<glm::dmat2> &builder);
+
+        static void ReflectGlmMatrix(AZ::BehaviorContext::ClassBuilder<glm::dmat3> &builder);
+
+        static void ReflectGlmMatrix(AZ::BehaviorContext::ClassBuilder<glm::dmat4> &builder);
     };
 
     template<typename VecType>

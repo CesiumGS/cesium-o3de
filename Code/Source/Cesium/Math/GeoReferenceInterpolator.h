@@ -14,9 +14,7 @@ namespace Cesium
             const glm::dvec3& begin,
             const glm::dvec3& beginDirection,
             const glm::dvec3& destination,
-            const glm::dvec3& destinationDirection,
-            const glm::dmat4& cameraTransform,
-            const Camera::Configuration& cameraConfiguration);
+            const glm::dvec3& destinationDirection);
 
         const glm::dvec3& GetCurrentPosition() const override;
 
@@ -27,12 +25,6 @@ namespace Cesium
         void Update(float deltaTime) override;
 
     private:
-        double EstimateFlyHeight(
-            const glm::dvec3& begin,
-            const glm::dvec3& destination,
-            const glm::dmat4& cameraTransform,
-            const Camera::Configuration& cameraConfiguration);
-
         glm::dvec3 CalculatePitchRollHead(const glm::dvec3& position, const glm::dvec3& direction);
 
         glm::dvec3 m_begin;

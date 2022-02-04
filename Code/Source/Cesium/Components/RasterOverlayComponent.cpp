@@ -12,15 +12,15 @@ namespace Cesium
         {
             serializeContext->Class<RasterOverlayConfiguration>()
                 ->Version(0)
-                ->Field("maximumCacheBytes", &RasterOverlayConfiguration::m_maximumCacheBytes)
-                ->Field("maximumSimultaneousTileLoads", &RasterOverlayConfiguration::m_maximumSimultaneousTileLoads);
+                ->Field("MaximumCacheBytes", &RasterOverlayConfiguration::m_maximumCacheBytes)
+                ->Field("MaximumSimultaneousTileLoads", &RasterOverlayConfiguration::m_maximumSimultaneousTileLoads);
         }
 
         if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
         {
             behaviorContext->Class<RasterOverlayConfiguration>("RasterOverlayConfiguration")
-                ->Property("maximumCacheBytes", BehaviorValueProperty(&RasterOverlayConfiguration::m_maximumCacheBytes))
-                ->Property("maximumSimultaneousTileLoads", BehaviorValueProperty(&RasterOverlayConfiguration::m_maximumSimultaneousTileLoads));
+                ->Property("MaximumCacheBytes", BehaviorValueProperty(&RasterOverlayConfiguration::m_maximumCacheBytes))
+                ->Property("MaximumSimultaneousTileLoads", BehaviorValueProperty(&RasterOverlayConfiguration::m_maximumSimultaneousTileLoads));
         }
     }
 

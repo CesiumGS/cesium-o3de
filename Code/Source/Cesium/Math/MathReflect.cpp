@@ -1,4 +1,8 @@
 #include <Cesium/Math/MathReflect.h>
+#include <Cesium/Math/MathHelper.h>
+#include <AzCore/Math/Vector2.h>
+#include <AzCore/Math/Vector3.h>
+#include <AzCore/Math/Vector4.h>
 #include <AzCore/Serialization/Json/RegistrationContext.h>
 
 namespace Cesium
@@ -219,6 +223,8 @@ namespace Cesium
                 {
                     return VecType{ c };
                 });
+
+        ReflectGlmVector(*classBuilder);
     }
 
     void MathSerialization::ReflectGlmQuatBehavior(AZ::BehaviorContext* behaviorContext)
@@ -265,6 +271,30 @@ namespace Cesium
                 [](glm::dquat* quat, double w)
                 {
                     (*quat)[3] = w;
+                })
+            ->Method(
+                "CreateFromDMat3",
+                [](const glm::dmat3& rotation)
+                {
+                    return glm::dquat(rotation);
+                })
+            ->Method(
+                "CreateFromDMat4",
+                [](const glm::dmat4& rotation)
+                {
+                    return glm::dquat(rotation);
+                })
+            ->Method(
+                "Create",
+                [](double x, double y, double z, double w)
+                {
+                    return glm::dquat(w, x, y, z);
+                })
+            ->Method(
+                "CreateFromO3DEQuaternion",
+                [](const AZ::Quaternion& quaternion)
+                {
+                    return MathHelper::ToDQuaternion(quaternion);
                 })
             ->Method(
                 "Add",
@@ -319,6 +349,13 @@ namespace Cesium
                 [](const glm::dquat& quat)
                 {
                     return glm::mat3_cast(quat);
+                })
+            ->Method(
+                "ToO3DEQuaternion",
+                [](const glm::dquat& quat)
+                {
+                    return AZ::Quaternion(
+                        static_cast<float>(quat.x), static_cast<float>(quat.y), static_cast<float>(quat.z), static_cast<float>(quat.w));
                 })
             ->Method(
                 "Normalized",
@@ -400,6 +437,144 @@ namespace Cesium
                 {
                     return lhs == rhs;
                 });
+    }
+
+    void MathSerialization::ReflectGlmVector(AZ::BehaviorContext::ClassBuilder<glm::dvec2>& builder)
+    {
+        builder
+            .Method(
+                "Create",
+                [](double x, double y)
+                {
+                    return glm::dvec2(x, y);
+                },
+                { AZ::BehaviorParameterOverrides("X"), AZ::BehaviorParameterOverrides("Y") })
+            ->Method(
+                "CreateFromDVector3",
+                [](const glm::dvec3& v)
+                {
+                    return glm::dvec2(v);
+                })
+            ->Method(
+                "CreateFromDVector4",
+                [](const glm::dvec4& v)
+                {
+                    return glm::dvec2(v);
+                })
+            ->Method(
+                "CreateFromO3DEVector2",
+                [](const AZ::Vector2& v)
+                {
+                    return glm::dvec2(v.GetX(), v.GetY());
+                })
+            ->Method(
+                "CreateFromO3DEVector3",
+                [](const AZ::Vector3& v)
+                {
+                    return glm::dvec2(v.GetX(), v.GetY());
+                })
+            ->Method(
+                "CreateFromO3DEVector4",
+                [](const AZ::Vector4& v)
+                {
+                    return glm::dvec2(v.GetX(), v.GetY());
+                })
+            ->Method(
+                "ToO3DEVector2",
+                [](const glm::dvec2& v)
+                {
+                    return AZ::Vector2(static_cast<float>(v.x), static_cast<float>(v.y));
+                })
+            ;
+    }
+
+    void MathSerialization::ReflectGlmVector(AZ::BehaviorContext::ClassBuilder<glm::dvec3>& builder)
+    {
+        builder
+            .Method(
+                "Create",
+                [](double x, double y, double z)
+                {
+                    return glm::dvec3(x, y, z);
+                },
+                { AZ::BehaviorParameterOverrides("X"), AZ::BehaviorParameterOverrides("Y"), AZ::BehaviorParameterOverrides("Z") })
+            ->Method(
+                "CreateFromDVector2",
+                [](const glm::dvec2& v, double z)
+                {
+                    return glm::dvec3(v, z);
+                },
+                { AZ::BehaviorParameterOverrides("DVector2"), AZ::BehaviorParameterOverrides("Z") })
+            ->Method(
+                "CreateFromDVector4",
+                [](const glm::dvec4& v)
+                {
+                    return glm::dvec3(v);
+                })
+            ->Method(
+                "CreateFromO3DEVector2",
+                [](const AZ::Vector2& v, double z)
+                {
+                    return glm::dvec3(v.GetX(), v.GetY(), z);
+                },
+                { AZ::BehaviorParameterOverrides("Vector2"), AZ::BehaviorParameterOverrides("Z") })
+            ->Method(
+                "CreateFromO3DEVector3",
+                [](const AZ::Vector3& v)
+                {
+                    return glm::dvec3(v.GetX(), v.GetY(), v.GetZ());
+                })
+            ->Method(
+                "CreateFromO3DEVector4",
+                [](const AZ::Vector4& v)
+                {
+                    return glm::dvec3(v.GetX(), v.GetY(), v.GetZ());
+                })
+            ->Method(
+                "ToO3DEVector3",
+                [](const glm::dvec3& v)
+                {
+                    return AZ::Vector3(static_cast<float>(v.x), static_cast<float>(v.y), static_cast<float>(v.z));
+                });
+    }
+
+    void MathSerialization::ReflectGlmVector(AZ::BehaviorContext::ClassBuilder<glm::dvec4>& builder)
+    {
+        builder
+            .Method(
+                "Create",
+                [](double x, double y, double z, double w)
+                {
+                    return glm::dvec4(x, y, z, w);
+                },
+                { AZ::BehaviorParameterOverrides("X"), AZ::BehaviorParameterOverrides("Y"), AZ::BehaviorParameterOverrides("Z"),
+                  AZ::BehaviorParameterOverrides("W") })
+            ->Method(
+                "CreateFromDVector3",
+                [](const glm::dvec3& v, double w)
+                {
+                    return glm::dvec4(v, w);
+                },
+                { AZ::BehaviorParameterOverrides("DVector3"), AZ::BehaviorParameterOverrides("W") })
+            ->Method(
+                "CreateFromO3DEVector3",
+                [](const AZ::Vector3& v, double w)
+                {
+                    return glm::dvec4(v.GetX(), v.GetY(), v.GetZ(), w);
+                })
+            ->Method(
+                "CreateFromO3DEVector4",
+                [](const AZ::Vector4& v)
+                {
+                    return glm::dvec4(v.GetX(), v.GetY(), v.GetZ(), v.GetW());
+                })
+            ->Method(
+                "ToO3DEVector4",
+                [](const glm::dvec4& v)
+                {
+                    return AZ::Vector4(static_cast<float>(v.x), static_cast<float>(v.y), static_cast<float>(v.z), static_cast<float>(v.w));
+                });
+        ;
     }
 
     template<typename MatType>
@@ -518,31 +693,49 @@ namespace Cesium
                                         return lhs == rhs;
                                     });
 
-        if constexpr (std::is_same_v<MatType, glm::dmat4>)
-        {
-            classBuilder
-                ->Method(
-                    "Translate",
-                    [](const glm::dmat4& mat, const glm::dvec3& translate)
-                    {
-                        return glm::translate(mat, translate);
-                    },
-                    { AZ::BehaviorParameterOverrides("Matrix"), AZ::BehaviorParameterOverrides("Translate") })
-                ->Method(
-                    "Rotate",
-                    [](const glm::dmat4& mat, double angle, const glm::dvec3& axis)
-                    {
-                        return glm::rotate(mat, angle, axis);
-                    },
-                    { AZ::BehaviorParameterOverrides("Matrix"), AZ::BehaviorParameterOverrides("Angle"),
-                      AZ::BehaviorParameterOverrides("Axis") })
-                ->Method(
-                    "Scale",
-                    [](const glm::dmat4& mat, const glm::dvec3& scale)
-                    {
-                        return glm::scale(mat, scale);
-                    },
-                    { AZ::BehaviorParameterOverrides("Matrix"), AZ::BehaviorParameterOverrides("Scale") });
-        }
+        ReflectGlmMatrix(*classBuilder);
+    }
+
+    void MathSerialization::ReflectGlmMatrix([[maybe_unused]] AZ::BehaviorContext::ClassBuilder<glm::dmat2>& builder)
+    {
+    }
+
+    void MathSerialization::ReflectGlmMatrix([[maybe_unused]] AZ::BehaviorContext::ClassBuilder<glm::dmat3>& builder)
+    {
+    }
+
+    void MathSerialization::ReflectGlmMatrix(AZ::BehaviorContext::ClassBuilder<glm::dmat4>& builder)
+    {
+        builder
+            .Method(
+                "Translate",
+                [](const glm::dmat4& mat, const glm::dvec3& translate)
+                {
+                    return glm::translate(mat, translate);
+                },
+                { AZ::BehaviorParameterOverrides("Matrix"), AZ::BehaviorParameterOverrides("Translate") })
+            ->Method(
+                "Rotate",
+                [](const glm::dmat4& mat, double angle, const glm::dvec3& axis)
+                {
+                    return glm::rotate(mat, angle, axis);
+                },
+                { AZ::BehaviorParameterOverrides("Matrix"), AZ::BehaviorParameterOverrides("Angle"),
+                  AZ::BehaviorParameterOverrides("Axis") })
+            ->Method(
+                "Scale",
+                [](const glm::dmat4& mat, const glm::dvec3& scale)
+                {
+                    return glm::scale(mat, scale);
+                },
+                { AZ::BehaviorParameterOverrides("Matrix"), AZ::BehaviorParameterOverrides("Scale") })
+            ->Method(
+                "CreateFromO3DETransformAndNonUniformScale",
+                [](const AZ::Transform& transform, const AZ::Vector3& nonUniformScale)
+                {
+                    return MathHelper::ConvertTransformAndScaleToDMat4(transform, nonUniformScale);
+                },
+                { AZ::BehaviorParameterOverrides("Transform"),
+                  AZ::BehaviorParameterOverrides("NonUniformScale", "", new AZ::BehaviorDefaultValue(AZ::Vector3(1.0, 1.0, 1.0))) });
     }
 } // namespace Cesium

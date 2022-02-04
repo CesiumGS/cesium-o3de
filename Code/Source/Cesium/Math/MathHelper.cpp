@@ -24,6 +24,11 @@ namespace Cesium
         return newTransform;
     }
 
+    glm::dquat MathHelper::ToDQuaternion(const AZ::Quaternion& quat)
+    {
+        return glm::dquat(quat.GetW(), quat.GetX(), quat.GetY(), quat.GetZ());
+    }
+
     glm::dvec3 MathHelper::ToDVec3(const AZ::Vector3& vec)
     {
         return glm::dvec3{ vec.GetX(), vec.GetY(), vec.GetZ() };
@@ -71,6 +76,20 @@ namespace Cesium
         }
 
         return true;
+    }
+
+    glm::dvec3 MathHelper::CalculatePitchRollHead(const glm::dvec3& direction)
+    {
+        glm::dvec3 pitchRollHead{};
+
+        glm::dvec3 normalizeDirection = glm::normalize(direction);
+		pitchRollHead.x = CesiumUtility::Math::PI_OVER_TWO - glm::acos(normalizeDirection.z);
+        if (!CesiumUtility::Math::equalsEpsilon(normalizeDirection.z, 1.0, CesiumUtility::Math::EPSILON14))
+        {
+            pitchRollHead.z = glm::atan(normalizeDirection.y, normalizeDirection.x) - CesiumUtility::Math::PI_OVER_TWO;
+        }
+
+        return pitchRollHead;
     }
 
     std::size_t MathHelper::Align(std::size_t location, std::size_t align)

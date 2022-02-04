@@ -13,8 +13,8 @@ namespace Cesium
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
             serializeContext->Class<BingRasterOverlayEditorComponent, AZ::Component>()->Version(0)
-                ->Field("configuration", &BingRasterOverlayEditorComponent::m_configuration)
-                ->Field("source", &BingRasterOverlayEditorComponent::m_source)
+                ->Field("Configuration", &BingRasterOverlayEditorComponent::m_configuration)
+                ->Field("Source", &BingRasterOverlayEditorComponent::m_source)
                 ;
 
             AZ::EditContext* editContext = serializeContext->GetEditContext();

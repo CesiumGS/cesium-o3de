@@ -3,12 +3,12 @@
 #include <Cesium/Components/TilesetCreditComponent.h>
 #include <Cesium/Components/GltfModelComponent.h>
 #include <Cesium/Components/GeoReferenceCameraFlyController.h>
-#include <Cesium/Components/GeoReferenceTransformComponent.h>
+#include <Cesium/Components/GeoreferenceAnchorComponent.h>
+#include <Cesium/Components/OriginShiftComponent.h>
 #include <Cesium/Components/RasterOverlayComponent.h>
 #include <Cesium/Components/CesiumIonRasterOverlayComponent.h>
 #include <Cesium/Components/BingRasterOverlayComponent.h>
 #include <Cesium/Components/TMSRasterOverlayComponent.h>
-#include <Cesium/Components/LevelCoordinateTransformComponent.h>
 #include "Cesium/Components/DynamicUiImageComponent.h"
 #include "Cesium/Components/CesiumSystemComponent.h"
 #include <AzCore/Memory/SystemAllocator.h>
@@ -30,12 +30,12 @@ namespace Cesium
             // EditContext. This happens through the [MyComponent]::Reflect() function.
             m_descriptors.insert(
                 m_descriptors.end(),
-                { CesiumSystemComponent::CreateDescriptor(), LevelCoordinateTransformComponent::CreateDescriptor(),
-                  DynamicUiImageComponent::CreateDescriptor(), TilesetCreditComponent::CreateDescriptor(),
-                  TilesetComponent::CreateDescriptor(), GltfModelComponent::CreateDescriptor(),
-                  GeoReferenceTransformComponent::CreateDescriptor(), GeoReferenceCameraFlyController::CreateDescriptor(),
-                  RasterOverlayComponent::CreateDescriptor(), BingRasterOverlayComponent::CreateDescriptor(),
-                  CesiumIonRasterOverlayComponent::CreateDescriptor(), TMSRasterOverlayComponent::CreateDescriptor() });
+                { CesiumSystemComponent::CreateDescriptor(), OriginShiftComponent::CreateDescriptor(),
+                  GeoreferenceAnchorComponent::CreateDescriptor(), DynamicUiImageComponent::CreateDescriptor(),
+                  TilesetCreditComponent::CreateDescriptor(), TilesetComponent::CreateDescriptor(), GltfModelComponent::CreateDescriptor(),
+                  GeoReferenceCameraFlyController::CreateDescriptor(), RasterOverlayComponent::CreateDescriptor(),
+                  BingRasterOverlayComponent::CreateDescriptor(), CesiumIonRasterOverlayComponent::CreateDescriptor(),
+                  TMSRasterOverlayComponent::CreateDescriptor() });
         }
 
         /**

@@ -13,8 +13,8 @@ namespace Cesium
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
             serializeContext->Class<CesiumIonRasterOverlayEditorComponent, AZ::Component>()->Version(0)
-                ->Field("configuration", &CesiumIonRasterOverlayEditorComponent::m_configuration)
-                ->Field("source", &CesiumIonRasterOverlayEditorComponent::m_source)
+                ->Field("Configuration", &CesiumIonRasterOverlayEditorComponent::m_configuration)
+                ->Field("Source", &CesiumIonRasterOverlayEditorComponent::m_source)
                 ;
 
             AZ::EditContext* editContext = serializeContext->GetEditContext();

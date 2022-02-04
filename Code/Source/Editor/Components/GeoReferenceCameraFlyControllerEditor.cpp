@@ -14,9 +14,9 @@ namespace Cesium
         {
             serializeContext->Class<GeoReferenceCameraControllerEditor, AZ::Component>()
                 ->Version(0)
-                ->Field("mouseSensitivity", &GeoReferenceCameraControllerEditor::m_mouseSensitivity)
-                ->Field("panningSpeed", &GeoReferenceCameraControllerEditor::m_panningSpeed)
-                ->Field("movementSpeed", &GeoReferenceCameraControllerEditor::m_movementSpeed);
+                ->Field("MouseSensitivity", &GeoReferenceCameraControllerEditor::m_mouseSensitivity)
+                ->Field("PanningSpeed", &GeoReferenceCameraControllerEditor::m_panningSpeed)
+                ->Field("MovementSpeed", &GeoReferenceCameraControllerEditor::m_movementSpeed);
 
             AZ::EditContext* editContext = serializeContext->GetEditContext();
             if (editContext)

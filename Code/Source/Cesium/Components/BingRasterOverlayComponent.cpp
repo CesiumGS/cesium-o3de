@@ -12,10 +12,10 @@ namespace Cesium
         {
             serializeContext->Class<BingRasterOverlaySource>()
                 ->Version(0)
-                ->Field("url", &BingRasterOverlaySource::m_url)
-                ->Field("key", &BingRasterOverlaySource::m_key)
-                ->Field("bingMapStyle", &BingRasterOverlaySource::m_bingMapStyle)
-                ->Field("culture", &BingRasterOverlaySource::m_culture)
+                ->Field("Url", &BingRasterOverlaySource::m_url)
+                ->Field("Key", &BingRasterOverlaySource::m_key)
+                ->Field("BingMapStyle", &BingRasterOverlaySource::m_bingMapStyle)
+                ->Field("Culture", &BingRasterOverlaySource::m_culture)
                 ;
         }
 
@@ -44,10 +44,10 @@ namespace Cesium
             };
 
             behaviorContext->Class<BingRasterOverlaySource>("BingRasterOverlaySource")
-                ->Property("url", BehaviorValueProperty(&BingRasterOverlaySource::m_url))
-                ->Property("key", BehaviorValueProperty(&BingRasterOverlaySource::m_key))
-                ->Property("bingMapStyle", getBingMapStyle, setBingMapStyle)
-                ->Property("culture", BehaviorValueProperty(&BingRasterOverlaySource::m_culture))
+                ->Property("Url", BehaviorValueProperty(&BingRasterOverlaySource::m_url))
+                ->Property("Key", BehaviorValueProperty(&BingRasterOverlaySource::m_key))
+                ->Property("BingMapStyle", getBingMapStyle, setBingMapStyle)
+                ->Property("Culture", BehaviorValueProperty(&BingRasterOverlaySource::m_culture))
                 ;
         }
     }

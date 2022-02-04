@@ -1,8 +1,9 @@
 #include "Cesium/Components/CesiumSystemComponent.h"
 #include <Cesium/EBus/TilesetComponentBus.h>
-#include <Cesium/EBus/LevelCoordinateTransformComponentBus.h>
-#include <Cesium/EBus/CoordinateTransformComponentBus.h>
 #include <Cesium/EBus/GeoReferenceCameraFlyControllerBus.h>
+#include <Cesium/EBus/OriginShiftComponentBus.h>
+#include <Cesium/EBus/OriginShiftAnchorComponentBus.h>
+#include <Cesium/Math/TilesetBoundingVolume.h>
 #include <Cesium/Math/BoundingRegion.h>
 #include <Cesium/Math/BoundingSphere.h>
 #include <Cesium/Math/OrientedBoundingBox.h>
@@ -24,6 +25,7 @@ namespace Cesium
         BoundingRegion::Reflect(context);
         BoundingSphere::Reflect(context);
         OrientedBoundingBox::Reflect(context);
+        TilesetBoundingVolumeUtil::Reflect(context);
         Cartographic::Reflect(context);
         GeospatialHelper::Reflect(context);
 
@@ -31,13 +33,12 @@ namespace Cesium
         TilesetSource::Reflect(context);
         TilesetRequest::Reflect(context);
 
-        LevelCoordinateTransformRequest::Reflect(context);
-        LevelCoordinateTransformNotification::Reflect(context);
-
-        CoordinateTransformConfiguration::Reflect(context);
-        CoordinateTransformRequest::Reflect(context);
-
         GeoReferenceCameraFlyControllerRequest::Reflect(context);
+
+        OriginShiftRequest::Reflect(context);
+        OriginShiftNotificationEBusHandler::Reflect(context);
+
+        OriginShiftAnchorRequest::Reflect(context);
 
         if (AZ::SerializeContext* serialize = azrtti_cast<AZ::SerializeContext*>(context))
         {

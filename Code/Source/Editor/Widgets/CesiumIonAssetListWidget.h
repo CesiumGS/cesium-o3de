@@ -11,6 +11,7 @@
 class QVariant;
 class QLabel;
 class QPushButton;
+class QHBoxLayout;
 class QVBoxLayout;
 class QSortFilterProxyModel;
 
@@ -70,17 +71,20 @@ namespace Cesium
 
         int GetCurrentAssetId() const;
 
-    private slots:
-        void AddTilesetToLevel();
-
-        void DrapeImageryOverTileset();
-
     private:
         void ResetAll();
 
         QLabel* CreateLabel();
 
-        QPushButton* CreateButton(QVBoxLayout* scrollLayout);
+        QWidget* CreateAddImageryWidget(QVBoxLayout* scrollLayout);
+
+        QWidget* CreateAddTileset(QVBoxLayout* scrollLayout);
+
+        QPushButton* CreateButton(QHBoxLayout* btnLayout);
+
+        void AddTilesetToLevel(bool addToExistingTileset);
+
+        void DrapeImageryOverTileset(bool addToExistingTileset);
 
         QLabel* m_assetName{ nullptr };
         QLabel* m_assetId{ nullptr };
@@ -88,8 +92,8 @@ namespace Cesium
         QLabel* m_assetDescription{ nullptr };
         QLabel* m_assetAttributionHeader{ nullptr };
         QLabel* m_assetAttribution{ nullptr };
-        QPushButton* m_addToLevelButton{ nullptr };
-        QPushButton* m_drapOnTilesetButton{ nullptr };
+        QWidget* m_addTileset{ nullptr };
+        QWidget* m_addImagery{ nullptr };
         int m_currentAssetId{ -1 };
         AZStd::string m_currentAssetName;
         AZStd::string m_currentAssetType;

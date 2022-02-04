@@ -11,9 +11,9 @@ namespace Cesium
         {
             serializeContext->Class<OrientedBoundingBox>()
                 ->Version(0)
-                ->Field("center", &OrientedBoundingBox::m_center)
-                ->Field("orientation", &OrientedBoundingBox::m_orientation)
-                ->Field("halfLength", &OrientedBoundingBox::m_halfLengths)
+                ->Field("Center", &OrientedBoundingBox::m_center)
+                ->Field("Orientation", &OrientedBoundingBox::m_orientation)
+                ->Field("HalfLength", &OrientedBoundingBox::m_halfLengths)
                 ;
         }
 
@@ -21,9 +21,9 @@ namespace Cesium
         {
             behaviorContext->Class<OrientedBoundingBox>("OrientedBoundingBox")
                 ->Attribute(AZ::Script::Attributes::Category, "Cesium/Math")
-                ->Property("center", BehaviorValueProperty(&OrientedBoundingBox::m_center))
-                ->Property("orientation", BehaviorValueProperty(&OrientedBoundingBox::m_orientation))
-                ->Property("halfLength", BehaviorValueProperty(&OrientedBoundingBox::m_halfLengths))
+                ->Property("Center", BehaviorValueProperty(&OrientedBoundingBox::m_center))
+                ->Property("Orientation", BehaviorValueProperty(&OrientedBoundingBox::m_orientation))
+                ->Property("HalfLength", BehaviorValueProperty(&OrientedBoundingBox::m_halfLengths))
             ;
         }
     }

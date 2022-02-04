@@ -167,9 +167,6 @@ namespace Cesium
             "An empty tileset that can be configured to show Cesium ion assets or tilesets from other sources.", row++);
         QObject::connect(addBlankTileset, &IconButton::pressed, this, &CesiumIonPanelWidget::AddBlankTileset);
 
-        IconButton* addGeoreference = CreateQuickAddMenuItem(itemLayout, "Georeference Component", "", row++);
-        QObject::connect(addGeoreference, &IconButton::pressed, this, &CesiumIonPanelWidget::AddGeoreference);
-
         IconButton* addGeoreferenceCamera = CreateQuickAddMenuItem(
             itemLayout, "Georeference Camera Controller Component", "A camera that can be used to intuitively navigate in a geospatial environment.",
             row++);
@@ -265,7 +262,7 @@ namespace Cesium
             [strTilesetName, tilesetIonAssetId, imageryIonAssetId]()
             {
                 CesiumEditorSystemRequestBus::Broadcast(
-                    &CesiumEditorSystemRequestBus::Events::AddTilesetToLevel, strTilesetName, tilesetIonAssetId, imageryIonAssetId);
+                    &CesiumEditorSystemRequestBus::Events::AddTilesetToLevel, strTilesetName, tilesetIonAssetId, imageryIonAssetId, false);
             });
     }
 
@@ -396,14 +393,10 @@ namespace Cesium
     }
 
 	void CesiumIonPanelWidget::AddBlankTileset() {
-        CesiumEditorSystemRequestBus::Broadcast(&CesiumEditorSystemRequestBus::Events::AddBlankTilesetToLevel);
-    }
-
-	void CesiumIonPanelWidget::AddGeoreference() {
-        CesiumEditorSystemRequestBus::Broadcast(&CesiumEditorSystemRequestBus::Events::AddGeoreferenceToLevel);
+        CesiumEditorSystemRequestBus::Broadcast(&CesiumEditorSystemRequestBus::Events::AddBlankTilesetToLevel, false);
     }
 
 	void CesiumIonPanelWidget::AddGeoreferenceCamera() {
-        CesiumEditorSystemRequestBus::Broadcast(&CesiumEditorSystemRequestBus::Events::AddGeoreferenceCameraToLevel);
+        CesiumEditorSystemRequestBus::Broadcast(&CesiumEditorSystemRequestBus::Events::AddGeoreferenceCameraToLevel, false);
     }
 } // namespace Cesium

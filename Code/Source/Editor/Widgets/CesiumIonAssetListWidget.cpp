@@ -31,14 +31,14 @@ namespace Cesium
             {
                 beginResetModel();
                 endResetModel();
-            }); 
+            });
 
         m_assetsUpdated = IonSessionUpdatedEvent::Handler(
             [this]()
             {
                 beginResetModel();
                 endResetModel();
-            }); 
+            });
 
         m_connectionUpdated.Connect(CesiumIonSessionInterface::Get()->ConnectionUpdated);
         m_tokenUpdated.Connect(CesiumIonSessionInterface::Get()->AssetAccessTokenUpdated);
@@ -104,17 +104,17 @@ namespace Cesium
             switch (index.column())
             {
             case Column::ColumnAssetName:
-            {
-                return asset.name.c_str();
-            }
+                {
+                    return asset.name.c_str();
+                }
             case Column::ColumnAssetType:
-            {
-                return asset.type.c_str();
-            }
+                {
+                    return asset.type.c_str();
+                }
             case Column::ColumnAssetDate:
-            {
+                {
                     return QDateTime::fromString(asset.dateAdded.c_str(), "yyyy-MM-ddThh:mm:ss.zzzZ").toString("yyyy-MM-dd");
-            }
+                }
             default:
                 break;
             }
@@ -176,14 +176,10 @@ namespace Cesium
         scrollLayout->addWidget(m_assetId, 1);
 
         // add imagery add button
-        m_drapOnTilesetButton = CreateButton(scrollLayout);
-        m_drapOnTilesetButton->setText("Drape over Tileset");
-        QObject::connect(m_drapOnTilesetButton, &QPushButton::clicked, this, &CesiumIonAssetDetailWidget::DrapeImageryOverTileset);
+        m_addImagery = CreateAddImageryWidget(scrollLayout);
 
         // add asset add button
-        m_addToLevelButton = CreateButton(scrollLayout);
-        m_addToLevelButton->setText("Add to Entity");
-        QObject::connect(m_addToLevelButton, &QPushButton::clicked, this, &CesiumIonAssetDetailWidget::AddTilesetToLevel);
+        m_addTileset = CreateAddTileset(scrollLayout);
 
         // description
         m_assetDescriptionHeader = CreateLabel();
@@ -237,11 +233,11 @@ namespace Cesium
         // display button to add asset to level
         if (asset->type == "3DTILES" || asset->type == "TERRAIN")
         {
-            m_addToLevelButton->setVisible(true);
+            m_addTileset->setVisible(true);
         }
         else if (asset->type == "IMAGERY")
         {
-            m_drapOnTilesetButton->setVisible(true);
+            m_addImagery->setVisible(true);
         }
 
         // set description
@@ -253,7 +249,7 @@ namespace Cesium
         }
         else
         {
-             assetDescription = asset->description.c_str();
+            assetDescription = asset->description.c_str();
         }
         m_assetDescription->setText(assetDescription);
         m_assetDescription->setVisible(true);
@@ -273,7 +269,12 @@ namespace Cesium
         m_assetAttribution->setVisible(true);
     }
 
-    void CesiumIonAssetDetailWidget::AddTilesetToLevel()
+    int CesiumIonAssetDetailWidget::GetCurrentAssetId() const
+    {
+        return m_currentAssetId;
+    }
+
+    void CesiumIonAssetDetailWidget::AddTilesetToLevel(bool addToExistingTileset)
     {
         if (m_currentAssetId == -1)
         {
@@ -285,15 +286,11 @@ namespace Cesium
             return;
         }
 
-        CesiumEditorSystemRequestBus::Broadcast(&CesiumEditorSystemRequestBus::Events::AddTilesetToLevel, m_currentAssetName, m_currentAssetId, -1);
+        CesiumEditorSystemRequestBus::Broadcast(
+            &CesiumEditorSystemRequestBus::Events::AddTilesetToLevel, m_currentAssetName, m_currentAssetId, -1, addToExistingTileset);
     }
 
-    int CesiumIonAssetDetailWidget::GetCurrentAssetId() const
-    {
-        return m_currentAssetId;
-    }
-
-    void CesiumIonAssetDetailWidget::DrapeImageryOverTileset()
+    void CesiumIonAssetDetailWidget::DrapeImageryOverTileset(bool addToExistingTileset)
     {
         if (m_currentAssetId == -1)
         {
@@ -305,7 +302,8 @@ namespace Cesium
             return;
         }
 
-        CesiumEditorSystemRequestBus::Broadcast(&CesiumEditorSystemRequestBus::Events::AddImageryToLevel, static_cast<std::uint32_t>(m_currentAssetId));
+        CesiumEditorSystemRequestBus::Broadcast(
+            &CesiumEditorSystemRequestBus::Events::AddImageryToLevel, static_cast<std::uint32_t>(m_currentAssetId), addToExistingTileset);
     }
 
     void CesiumIonAssetDetailWidget::ResetAll()
@@ -315,8 +313,8 @@ namespace Cesium
         m_currentAssetType = "";
         m_assetName->setVisible(false);
         m_assetId->setVisible(false);
-        m_addToLevelButton->setVisible(false);
-        m_drapOnTilesetButton->setVisible(false);
+        m_addTileset->setVisible(false);
+        m_addImagery->setVisible(false);
         m_assetDescriptionHeader->setVisible(false);
         m_assetDescription->setVisible(false);
         m_assetAttributionHeader->setVisible(false);
@@ -332,18 +330,75 @@ namespace Cesium
         return label;
     }
 
-    QPushButton* CesiumIonAssetDetailWidget::CreateButton(QVBoxLayout* scrollLayout)
+    QWidget* CesiumIonAssetDetailWidget::CreateAddImageryWidget(QVBoxLayout* scrollLayout)
     {
+        auto addImagery = new QWidget(this);
         QHBoxLayout* btnLayout = new QHBoxLayout(this);
         btnLayout->addStretch(1);
+
+        QPushButton* createNewEntity = CreateButton(btnLayout);
+        createNewEntity->setText("Create New Entity");
+        QObject::connect(
+            createNewEntity, &QPushButton::clicked, this,
+            [this]()
+            {
+                DrapeImageryOverTileset(false);
+            });
+
+        QPushButton* drapOnTilesetButton = CreateButton(btnLayout);
+        drapOnTilesetButton->setText("Drape over Tileset");
+        QObject::connect(
+            drapOnTilesetButton, &QPushButton::clicked, this,
+            [this]()
+            {
+                DrapeImageryOverTileset(true);
+            });
+
+        btnLayout->addStretch(1);
+        addImagery->setLayout(btnLayout);
+        scrollLayout->addWidget(addImagery);
+
+        return addImagery;
+    }
+
+	QWidget* CesiumIonAssetDetailWidget::CreateAddTileset(QVBoxLayout* scrollLayout)
+    {
+        auto addTileset = new QWidget(this);
+        QHBoxLayout* btnLayout = new QHBoxLayout(this);
+        btnLayout->addStretch(1);
+
+        QPushButton* createNewEntity = CreateButton(btnLayout);
+        createNewEntity->setText("Create New Entity");
+        QObject::connect(
+            createNewEntity, &QPushButton::clicked, this,
+            [this]()
+            {
+                AddTilesetToLevel(false);
+            });
+
+        QPushButton* addTilesetToEntityButton = CreateButton(btnLayout);
+        addTilesetToEntityButton->setText("Add to Entity");
+        QObject::connect(
+            addTilesetToEntityButton, &QPushButton::clicked, this,
+            [this]()
+            {
+                AddTilesetToLevel(true);
+            });
+
+        btnLayout->addStretch(1);
+        addTileset->setLayout(btnLayout);
+        scrollLayout->addWidget(addTileset);
+
+        return addTileset;
+    }
+
+    QPushButton* CesiumIonAssetDetailWidget::CreateButton(QHBoxLayout* btnLayout)
+    {
         auto btn = new QPushButton(this);
         btn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::MinimumExpanding);
         btn->setFixedWidth(200);
         btn->setMinimumHeight(30);
-        btn->setVisible(false);
-        btnLayout->addWidget(btn, 5);
-        btnLayout->addStretch(1);
-        scrollLayout->addLayout(btnLayout);
+        btnLayout->addWidget(btn, 4);
 
         return btn;
     }
@@ -388,7 +443,8 @@ namespace Cesium
         AzQtComponents::FilteredSearchWidget* filterWidget = new AzQtComponents::FilteredSearchWidget(this);
         filterWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
         filterWidget->setFixedWidth(250);
-        connect(filterWidget, &AzQtComponents::FilteredSearchWidget::TextFilterChanged, this, &CesiumIonAssetListWidget::OnSearchTextChanged);
+        connect(
+            filterWidget, &AzQtComponents::FilteredSearchWidget::TextFilterChanged, this, &CesiumIonAssetListWidget::OnSearchTextChanged);
         filterLayout->addWidget(filterWidget);
 
         tableLayout->addLayout(filterLayout);

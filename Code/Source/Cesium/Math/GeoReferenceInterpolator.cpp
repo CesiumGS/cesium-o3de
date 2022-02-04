@@ -1,4 +1,5 @@
 #include "Cesium/Math/GeoReferenceInterpolator.h"
+#include "Cesium/Math/MathHelper.h"
 #include <CesiumGeospatial/Transforms.h>
 #include <CesiumGeospatial/Ellipsoid.h>
 #include <CesiumUtility/Math.h>
@@ -10,9 +11,7 @@ namespace Cesium
         const glm::dvec3& begin,
         const glm::dvec3& beginDirection,
         const glm::dvec3& destination,
-        const glm::dvec3& destinationDirection,
-        const glm::dmat4& cameraTransform,
-        const Camera::Configuration& cameraConfiguration)
+        const glm::dvec3& destinationDirection)
         : m_begin{ begin }
         , m_beginPitchRollHead{}
         , m_destination{ destination }
@@ -37,7 +36,7 @@ namespace Cesium
     {
         // estimate duration
         m_totalDuration = glm::ceil(glm::distance(m_begin, m_destination) / 1000000.0) + 2.0;
-        m_totalDuration = glm::min(m_totalDuration, 5.0);
+        m_totalDuration = glm::min(m_totalDuration, 7.0);
 
         // initialize parameters to interpolate positions
         auto beginCartographic = CesiumGeospatial::Ellipsoid::WGS84.cartesianToCartographic(m_begin);
@@ -58,7 +57,7 @@ namespace Cesium
             m_destinationHeight = destinationCartographic->height;
             double maxHeight = glm::max(m_beginHeight, m_destinationHeight);
 
-            m_flyHeight = EstimateFlyHeight(begin, destination, cameraTransform, cameraConfiguration);
+            m_flyHeight = glm::distance(begin, destination) * 0.05;
             if (maxHeight < m_flyHeight)
             {
                 m_useHeightLerp = false;
@@ -125,24 +124,8 @@ namespace Cesium
 
         // interpolate current orientation
         glm::dmat4 enuToECEF = CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(m_current);
-        glm::dvec3 currentPitchRollHead = glm::lerp(m_beginPitchRollHead, m_destinationPitchRollHead, t);
-        m_currentOrientation = glm::dquat(enuToECEF) * glm::dquat(currentPitchRollHead);
-    }
-
-    double GeoReferenceInterpolator::EstimateFlyHeight(
-        const glm::dvec3& begin,
-        const glm::dvec3& destination,
-        const glm::dmat4& cameraTransform,
-        const Camera::Configuration& cameraConfiguration)
-    {
-        glm::dvec3 diff = destination - begin;
-        double dx = glm::abs(glm::dot(diff, glm::dvec3(cameraTransform[0])));
-        double dy = glm::abs(glm::dot(diff, glm::dvec3(cameraTransform[2])));
-        double tanTheta = glm::tan(0.5 * cameraConfiguration.m_fovRadians);
-        double camNear = cameraConfiguration.m_nearClipDistance;
-        double camTop = camNear * tanTheta;
-        double right = cameraConfiguration.m_frustumWidth / cameraConfiguration.m_frustumHeight * camTop;
-        return glm::min(glm::max(dx * camNear / right, dy * camNear / camTop) * 0.2, 1000000.0);
+		glm::dvec3 currentPitchRollHead = glm::lerp(m_beginPitchRollHead, m_destinationPitchRollHead, t);
+		m_currentOrientation = glm::dquat(enuToECEF) * glm::dquat(currentPitchRollHead);
     }
 
     glm::dvec3 GeoReferenceInterpolator::CalculatePitchRollHead(const glm::dvec3& position, const glm::dvec3& direction)
@@ -150,19 +133,6 @@ namespace Cesium
         glm::dmat4 enuToECEF = CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(position);
         glm::dmat4 ecefToEnu = glm::inverse(enuToECEF);
         glm::dvec3 enuDirection = ecefToEnu * glm::dvec4(direction, 0.0);
-
-        glm::dvec3 pitchRollHead{};
-
-        // calculate pitch
-        pitchRollHead.x = CesiumUtility::Math::PI_OVER_TWO - glm::acos(enuDirection.z);
-
-        // calculate head
-        if (!CesiumUtility::Math::equalsEpsilon(enuDirection.z, 1.0, CesiumUtility::Math::EPSILON14))
-        {
-            pitchRollHead.z = glm::atan(enuDirection.y, enuDirection.x) - CesiumUtility::Math::PI_OVER_TWO;
-        }
-
-        return pitchRollHead;
+        return MathHelper::CalculatePitchRollHead(enuDirection);
     }
-
 }
