@@ -1,27 +1,22 @@
 language: cpp
-cache:
-  timeout: 5000
-  directories:
-    - /c/O3DE
 jobs:
   include:
   - stage: Build OS Packages
     name: Windows
     os: windows
     before_install:
-    - if [[ -f "/c/O3DE" ]]; then
-        if [[ $(sfc 2>&1 | tr -d '\0') =~ SCANNOW ]]; then echo Administrator; else echo $USERNAME; fi;
-        curl "http://o3debinaries.org/main/Latest/Windows/o3de_installer_2111_2.exe" --output o3de_installer_2111_2.exe;
-        md5sum o3de_installer_2111_2.exe;
-        ./o3de_installer_2111_2.exe -quiet -layout || echo "Fallback Pass";
-        msiexec -a o3de_21.11.2.msi -quiet -L*V "c:\o3de_installer.log" || echo "Fallback Pass";
-      fi
-      
-    # - if [[ $(sfc 2>&1 | tr -d '\0') =~ SCANNOW ]]; then echo Administrator; else echo $USERNAME; fi
-    # - curl "http://o3debinaries.org/main/Latest/Windows/o3de_installer_2111_2.exe" --output o3de_installer_2111_2.exe
-    # - md5sum o3de_installer_2111_2.exe
-    # - ./o3de_installer_2111_2.exe -quiet -layout || echo "Fallback Pass"
-    # - msiexec -a o3de_21.11.2.msi -quiet -L*V "c:\o3de_installer.log" || echo "Fallback Pass"
+    # run installer
+    - if [[ $(sfc 2>&1 | tr -d '\0') =~ SCANNOW ]]; then echo Administrator; else echo $USERNAME; fi
+    - curl "http://o3debinaries.org/main/Latest/Windows/o3de_installer_2111_2.exe" --output o3de_installer_2111_2.exe;
+    - md5sum o3de_installer_2111_2.exe;
+    - ./o3de_installer_2111_2.exe -quiet -layout || echo "Fallback Pass";
+    - msiexec -a o3de_21.11.2.msi -quiet -L*V "c:\o3de_installer.log" || echo "Fallback Pass";
+
+    # install python
+    - /c/O3DE/21.11.2/python/get_python.bat;
+
+    # register the engine
+    - /c/O3DE/21.11.2/scripts/o3de.bat register --this-engine
     install:
     - choco install 7zip.portable
     - choco install python --version 3.9.2
@@ -40,15 +35,13 @@ jobs:
     - cmake -B Build -S . -A x64
     - cmake --build Build --config Release --target install -- /maxcpucount:4
 
-    # set up O3DE install
+    # set up Cesium Native as third party for O3DE
     - cd ..
     - export CLONEDIR=$PWD
     - export LY_PACKAGE_SERVER_URL="file:///$CLONEDIR/External/Packages/Install"
-    - /c/O3DE/21.11.2/python/get_python.bat
-    - cd /c/O3DE/21.11.2/scripts
-    - ./o3de.bat register --this-engine
 
     # create a test project
+    - cd /c/O3DE/21.11.2/scripts
     - ./o3de.bat create-project -pp /c/temp/o3de-project
     - ./o3de.bat enable-gem -gp $CLONEDIR -pp /c/temp/o3de-project
     - cd /c/temp/o3de-project
