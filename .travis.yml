@@ -11,12 +11,6 @@ jobs:
     - md5sum o3de_installer_2111_2.exe;
     - ./o3de_installer_2111_2.exe -quiet -layout || echo "Fallback Pass";
     - msiexec -a o3de_21.11.2.msi -quiet -L*V "c:\o3de_installer.log" || echo "Fallback Pass";
-
-    # install python
-    - /c/O3DE/21.11.2/python/get_python.bat;
-
-    # register the engine
-    - /c/O3DE/21.11.2/scripts/o3de.bat register --this-engine
     install:
     - choco install 7zip.portable
     - choco install python --version 3.9.2
@@ -35,10 +29,12 @@ jobs:
     - cmake -B Build -S . -A x64
     - cmake --build Build --config Release --target install -- /maxcpucount:4
 
-    # set up Cesium Native as third party for O3DE
+    # set up Cesium Native as third party for O3DE and O3DE installer
     - cd ..
     - export CLONEDIR=$PWD
     - export LY_PACKAGE_SERVER_URL="file:///$CLONEDIR/External/Packages/Install"
+    - /c/O3DE/21.11.2/python/get_python.bat;
+    - /c/O3DE/21.11.2/scripts/o3de.bat register --this-engine
 
     # create a test project
     - cd /c/O3DE/21.11.2/scripts
