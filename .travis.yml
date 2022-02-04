@@ -48,4 +48,16 @@ jobs:
     - cd /c/O3DE/21.11.2/bin/Windows/profile/Default
     - ./AzTestRunner.exe /c/temp/o3de-project/build/windows_vs2019/bin/profile/Cesium.Tests.dll AzRunUnitTests
     - ./AzTestRunner.exe /c/temp/o3de-project/build/windows_vs2019/bin/profile/Cesium.Editor.Tests.dll AzRunUnitTests
+
+    before_deploy:
+    # package the Gem
+    - zip -r cesium-o3de.zip cesium-o3de
+
+    deploy:
+    - provider: releases
+      api_key: "${GITHUB_TOKEN}"
+      file: cesium-o3de.zip
+      skip_cleanup: true
+      draft: true
+
     env: PATH=/c/Python39:/c/Python39/Scripts:$PATH
