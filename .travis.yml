@@ -1,5 +1,6 @@
 language: cpp
 cache:
+  timeout: 5000
   directories:
     - /c/O3DE
 jobs:
@@ -8,12 +9,19 @@ jobs:
     name: Windows
     os: windows
     before_install:
-    - if [[ $(sfc 2>&1 | tr -d '\0') =~ SCANNOW ]]; then echo Administrator; else echo $USERNAME; fi
-    - curl "http://o3debinaries.org/main/Latest/Windows/o3de_installer_2111_2.exe" --output o3de_installer_2111_2.exe
-    - md5sum o3de_installer_2111_2.exe
-    - ./o3de_installer_2111_2.exe -quiet -layout || echo "Fallback Pass"
-    - msiexec -a o3de_21.11.2.msi -quiet -L*V "c:\o3de_installer.log" || echo "Fallback Pass"
-    - tail -n200 "c:\o3de_installer.log"
+    - if [[ -f "/c/O3DE" ]]; then
+        if [[ $(sfc 2>&1 | tr -d '\0') =~ SCANNOW ]]; then echo Administrator; else echo $USERNAME; fi;
+        curl "http://o3debinaries.org/main/Latest/Windows/o3de_installer_2111_2.exe" --output o3de_installer_2111_2.exe;
+        md5sum o3de_installer_2111_2.exe;
+        ./o3de_installer_2111_2.exe -quiet -layout || echo "Fallback Pass";
+        msiexec -a o3de_21.11.2.msi -quiet -L*V "c:\o3de_installer.log" || echo "Fallback Pass";
+      fi
+      
+    # - if [[ $(sfc 2>&1 | tr -d '\0') =~ SCANNOW ]]; then echo Administrator; else echo $USERNAME; fi
+    # - curl "http://o3debinaries.org/main/Latest/Windows/o3de_installer_2111_2.exe" --output o3de_installer_2111_2.exe
+    # - md5sum o3de_installer_2111_2.exe
+    # - ./o3de_installer_2111_2.exe -quiet -layout || echo "Fallback Pass"
+    # - msiexec -a o3de_21.11.2.msi -quiet -L*V "c:\o3de_installer.log" || echo "Fallback Pass"
     install:
     - choco install 7zip.portable
     - choco install python --version 3.9.2
