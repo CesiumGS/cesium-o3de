@@ -19,7 +19,6 @@ jobs:
     - pip3 install --upgrade pip
     - pip3 install awscli
     - pip3 install httpie
-    - pip3 install zip
     before_script:
     - export CESIUM_O3DE_VERSION=$(git describe)
     - export BUILD_CESIUM_O3DE_PACKAGE_NAME=CesiumForO3DE-${TRAVIS_OS_NAME}-${CESIUM_O3DE_VERSION}
@@ -51,11 +50,11 @@ jobs:
 
     before_deploy:
     # package the Gem
-    - zip -r cesium-o3de.zip cesium-o3de
+    - zip -r cesium-o3de.zip $CLONEDIR
 
     deploy:
     - provider: releases
-      api_key: "${GITHUB_TOKEN}"
+      api_key: $GITHUB_TOKEN
       file: cesium-o3de.zip
       skip_cleanup: true
       draft: true
