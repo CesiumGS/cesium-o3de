@@ -59,5 +59,7 @@ jobs:
       file: cesium-o3de.zip
       skip_cleanup: true
       draft: true
+      on:
+        all_branches: true
 
     env: PATH=/c/Python39:/c/Python39/Scripts:$PATH
