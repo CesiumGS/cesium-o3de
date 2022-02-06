@@ -48,6 +48,7 @@ jobs:
     # - ./AzTestRunner.exe /c/temp/o3de-project/build/windows_vs2019/bin/profile/Cesium.Tests.dll AzRunUnitTests
     # - ./AzTestRunner.exe /c/temp/o3de-project/build/windows_vs2019/bin/profile/Cesium.Editor.Tests.dll AzRunUnitTests
 
+    before_deploy:
     # clean up intermediate directories like build dir, etc
     - cd $TRAVIS_BUILD_DIR
     - rm -rf .git
