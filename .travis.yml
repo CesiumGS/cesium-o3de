@@ -69,5 +69,6 @@ jobs:
       draft: true
       on:
         all_branches: true
+        repo: CesiumGS/cesium-o3de
 
     env: PATH=/c/Python39:/c/Python39/Scripts:$PATH
