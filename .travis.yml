@@ -60,12 +60,11 @@ jobs:
 
     # package the Gem
     - 7z a $TRAVIS_BUILD_DIR/../${BUILD_CESIUM_O3DE_PACKAGE_NAME}.zip $TRAVIS_BUILD_DIR 
-    - ls $TRAVIS_BUILD_DIR/..
 
     deploy:
       provider: releases
       api_key: $GITHUB_TOKEN
-      file: $TRAVIS_BUILD_DIR/../${BUILD_CESIUM_O3DE_PACKAGE_NAME}
+      file: ../*.zip
       skip_cleanup: true
       draft: true
       on:
