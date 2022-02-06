@@ -24,29 +24,29 @@ jobs:
     - export CESIUM_O3DE_VERSION=$(git describe --always)
     - export BUILD_CESIUM_O3DE_PACKAGE_NAME=CesiumForO3DE-${TRAVIS_OS_NAME}-${CESIUM_O3DE_VERSION}
     script:
-    # # build cesium native
-    # - cd External
-    # - cmake -B Build -S . -A x64
-    # - cmake --build Build --config Release --target install -- /maxcpucount:4
+    # build cesium native
+    - cd External
+    - cmake -B Build -S . -A x64
+    - cmake --build Build --config Release --target install -- /maxcpucount:4
 
-    # # set up Cesium Native as third party for O3DE and O3DE installer
-    # - cd $TRAVIS_BUILD_DIR
-    # - export LY_PACKAGE_SERVER_URL="file:///$TRAVIS_BUILD_DIR/External/Packages/Install"
-    # - /c/O3DE/21.11.2/python/get_python.bat;
-    # - /c/O3DE/21.11.2/scripts/o3de.bat register --this-engine
+    # set up Cesium Native as third party for O3DE and O3DE installer
+    - cd $TRAVIS_BUILD_DIR
+    - export LY_PACKAGE_SERVER_URL="file:///$TRAVIS_BUILD_DIR/External/Packages/Install"
+    - /c/O3DE/21.11.2/python/get_python.bat;
+    - /c/O3DE/21.11.2/scripts/o3de.bat register --this-engine
 
-    # # create a test project
-    # - cd /c/O3DE/21.11.2/scripts
-    # - ./o3de.bat create-project -pp /c/temp/o3de-project
-    # - ./o3de.bat enable-gem -gp $TRAVIS_BUILD_DIR -pp /c/temp/o3de-project
-    # - cd /c/temp/o3de-project
-    # - cmake -B build/windows_vs2019 -S . -A x64
-    # - cmake --build build/windows_vs2019 --target Cesium Cesium.Tests Cesium.Editor.Tests --config profile -- -m
+    # create a test project
+    - cd /c/O3DE/21.11.2/scripts
+    - ./o3de.bat create-project -pp /c/temp/o3de-project
+    - ./o3de.bat enable-gem -gp $TRAVIS_BUILD_DIR -pp /c/temp/o3de-project
+    - cd /c/temp/o3de-project
+    - cmake -B build/windows_vs2019 -S . -A x64
+    - cmake --build build/windows_vs2019 --target Cesium Cesium.Tests Cesium.Editor.Tests --config profile -- -m
 
-    # # run tests
-    # - cd /c/O3DE/21.11.2/bin/Windows/profile/Default
-    # - ./AzTestRunner.exe /c/temp/o3de-project/build/windows_vs2019/bin/profile/Cesium.Tests.dll AzRunUnitTests
-    # - ./AzTestRunner.exe /c/temp/o3de-project/build/windows_vs2019/bin/profile/Cesium.Editor.Tests.dll AzRunUnitTests
+    # run tests
+    - cd /c/O3DE/21.11.2/bin/Windows/profile/Default
+    - ./AzTestRunner.exe /c/temp/o3de-project/build/windows_vs2019/bin/profile/Cesium.Tests.dll AzRunUnitTests
+    - ./AzTestRunner.exe /c/temp/o3de-project/build/windows_vs2019/bin/profile/Cesium.Editor.Tests.dll AzRunUnitTests
 
     # clean up intermediate directories like build dir, etc
     - cd $TRAVIS_BUILD_DIR
