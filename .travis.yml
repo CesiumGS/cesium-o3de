@@ -21,7 +21,7 @@ jobs:
     - pip3 install awscli
     - pip3 install httpie
     before_script:
-    - export CESIUM_O3DE_VERSION=$(git describe)
+    - export CESIUM_O3DE_VERSION=$(git describe --always)
     - export BUILD_CESIUM_O3DE_PACKAGE_NAME=CesiumForO3DE-${TRAVIS_OS_NAME}-${CESIUM_O3DE_VERSION}
     script:
     # # build cesium native
@@ -63,7 +63,7 @@ jobs:
 
     # upload to aws
     - aws s3 cp $TRAVIS_BUILD_DIR/../${BUILD_CESIUM_O3DE_PACKAGE_NAME}.zip s3://builds-cesium-o3de/
-    - export PACKAGE_LINK=$(aws --region us-east-1 s3 presign s3://builds-cesium-o3de/${BUILD_CESIUM_O3DE_PACKAGE_NAME}.zip --expires-in 315360000)
+    - export PACKAGE_LINK=http://builds-cesium-o3de.s3-website-us-east-1.amazonaws.com/${BUILD_CESIUM_O3DE_PACKAGE_NAME}.zip
     - http POST "https://api.github.com/repos/${TRAVIS_REPO_SLUG}/statuses/${TRAVIS_COMMIT}" "Authorization:token ${GITHUB_TOKEN}" state=success context=CesiumForO3DE "target_url=${PACKAGE_LINK}" --ignore-stdin
 
     env: PATH=/c/Python39:/c/Python39/Scripts:$PATH
