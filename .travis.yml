@@ -62,6 +62,9 @@ jobs:
     # package the Gem
     - 7z a ${BUILD_CESIUM_O3DE_PACKAGE_NAME}.zip $CLONEDIR/cesium-o3de
 
+    # go to repo dir for deployment
+    - cd $CLONEDIR/cesium-o3de
+
     deploy:
     - provider: releases
       api_key: $GITHUB_TOKEN
