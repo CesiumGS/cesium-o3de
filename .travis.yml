@@ -63,12 +63,12 @@ jobs:
 
     deploy:
       provider: releases
-      api_key: "$GITHUB_TOKEN"
+      api_key: 
+        secure: "$GITHUB_TOKEN"
       file: CMakeLists.txt
       skip_cleanup: true
       draft: true
       on:
         all_branches: true
-        repo: CesiumGS/cesium-o3de
 
     env: PATH=/c/Python39:/c/Python39/Scripts:$PATH
