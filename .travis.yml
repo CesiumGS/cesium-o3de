@@ -30,16 +30,16 @@ jobs:
     # - cmake --build Build --config Release --target install -- /maxcpucount:4
 
     # set up Cesium Native as third party for O3DE and O3DE installer
-    - cd ..
-    - export CLONEDIR=$PWD
-    # - export LY_PACKAGE_SERVER_URL="file:///$CLONEDIR/cesium-o3de/External/Packages/Install"
+    - cd $TRAVIS_BUILD_DIR
+    - echo $TRAVIS_BUILD_DIR
+    # - export LY_PACKAGE_SERVER_URL="file:///$TRAVIS_BUILD_DIR/External/Packages/Install"
     # - /c/O3DE/21.11.2/python/get_python.bat;
     # - /c/O3DE/21.11.2/scripts/o3de.bat register --this-engine
 
     # # create a test project
     # - cd /c/O3DE/21.11.2/scripts
     # - ./o3de.bat create-project -pp /c/temp/o3de-project
-    # - ./o3de.bat enable-gem -gp $CLONEDIR/cesium-o3de -pp /c/temp/o3de-project
+    # - ./o3de.bat enable-gem -gp $TRAVIS_BUILD_DIR -pp /c/temp/o3de-project
     # - cd /c/temp/o3de-project
     # - cmake -B build/windows_vs2019 -S . -A x64
     # - cmake --build build/windows_vs2019 --target Cesium Cesium.Tests Cesium.Editor.Tests --config profile -- -m
@@ -51,24 +51,21 @@ jobs:
 
     before_deploy:
     # clean up intermediate directories like build dir, etc
-    - cd $CLONEDIR
-    - rm -rf cesium-o3de/External/CesiumNative
-    - rm -rf cesium-o3de/External/TidyHtml5
-    - rm -rf cesium-o3de/External/build
-    - rm -rf cesium-o3de/External/CMakeLists.txt
-    - rm -rf cesium-o3de/External/PostInstall.cmake
-    - rm -rf cesium-o3de/External/Packages/CesiumNative
+    - cd $TRAVIS_BUILD_DIR
+    - rm -rf External/CesiumNative
+    - rm -rf External/TidyHtml5
+    - rm -rf External/build
+    - rm -rf External/CMakeLists.txt
+    - rm -rf External/PostInstall.cmake
+    - rm -rf External/Packages/CesiumNative
 
     # package the Gem
-    - 7z a ${BUILD_CESIUM_O3DE_PACKAGE_NAME}.zip $CLONEDIR/cesium-o3de
-
-    # go to repo dir for deployment
-    - cd $CLONEDIR/cesium-o3de
+    - 7z a $TRAVIS_BUILD_DIR/../${BUILD_CESIUM_O3DE_PACKAGE_NAME}.zip $TRAVIS_BUILD_DIR 
 
     deploy:
     - provider: releases
       api_key: $GITHUB_TOKEN
-      file: ${BUILD_CESIUM_O3DE_PACKAGE_NAME}.zip
+      file: $TRAVIS_BUILD_DIR/../${BUILD_CESIUM_O3DE_PACKAGE_NAME}.zip
       skip_cleanup: true
       draft: true
       on:
