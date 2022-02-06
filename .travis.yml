@@ -31,7 +31,6 @@ jobs:
 
     # set up Cesium Native as third party for O3DE and O3DE installer
     - cd ..
-    - ls
     - export CLONEDIR=$PWD
     # - export LY_PACKAGE_SERVER_URL="file:///$CLONEDIR/External/Packages/Install"
     # - /c/O3DE/21.11.2/python/get_python.bat;
@@ -52,14 +51,12 @@ jobs:
 
     before_deploy:
     # clean up intermediate directories like build dir, etc
-    - cd $CLONEDIR/cesium-o3de
-    - rm -rf External/build
-    - rm -rf External/Packages/CesiumNative
+    - cd $CLONEDIR
+    - rm -rf cesium-o3de/External/build
+    - rm -rf cesium-o3de/External/Packages/CesiumNative
 
     # package the Gem
-    - cd ..
-    - ls .
-    - 7z a ${BUILD_CESIUM_O3DE_PACKAGE_NAME}.zip $CLONEDIR
+    - 7z a ${BUILD_CESIUM_O3DE_PACKAGE_NAME}.zip $CLONEDIR/cesium-o3de
 
     deploy:
     - provider: releases
