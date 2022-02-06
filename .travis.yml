@@ -13,13 +13,13 @@ jobs:
     # - msiexec -a o3de_21.11.2.msi -quiet -L*V "c:\o3de_installer.log" || echo "Fallback Pass";
     install:
     - choco install 7zip.portable
-    # - choco install python --version 3.9.2
-    # - choco install cmake
-    # - choco install visualstudio2019buildtools --package-parameters "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
-    # - python -m pip install --upgrade pip
-    # - pip3 install --upgrade pip
-    # - pip3 install awscli
-    # - pip3 install httpie
+    - choco install python --version 3.9.2
+    - choco install cmake
+    - choco install visualstudio2019buildtools --package-parameters "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
+    - python -m pip install --upgrade pip
+    - pip3 install --upgrade pip
+    - pip3 install awscli
+    - pip3 install httpie
     before_script:
     - export CESIUM_O3DE_VERSION=$(git describe --always)
     - export BUILD_CESIUM_O3DE_PACKAGE_NAME=CesiumForO3DE-${TRAVIS_OS_NAME}-${CESIUM_O3DE_VERSION}
@@ -48,7 +48,6 @@ jobs:
     # - ./AzTestRunner.exe /c/temp/o3de-project/build/windows_vs2019/bin/profile/Cesium.Tests.dll AzRunUnitTests
     # - ./AzTestRunner.exe /c/temp/o3de-project/build/windows_vs2019/bin/profile/Cesium.Editor.Tests.dll AzRunUnitTests
 
-    before_deploy:
     # clean up intermediate directories like build dir, etc
     - cd $TRAVIS_BUILD_DIR
     - rm -rf External/CesiumNative
@@ -61,14 +60,9 @@ jobs:
     # package the Gem
     - 7z a $TRAVIS_BUILD_DIR/../${BUILD_CESIUM_O3DE_PACKAGE_NAME}.zip $TRAVIS_BUILD_DIR 
 
-    deploy:
-      provider: releases
-      api_key: 
-        secure: "$GITHUB_TOKEN"
-      file: CMakeLists.txt
-      skip_cleanup: true
-      draft: true
-      on:
-        all_branches: true
+    # upload to aws
+    - aws s3 cp $TRAVIS_BUILD_DIR/../${BUILD_CESIUM_O3DE_PACKAGE_NAME}.zip s3://builds-cesium-o3de/
+    - export PACKAGE_LINK=$(aws --region us-east-1 s3 presign s3://builds-cesium-o3de/${BUILD_CESIUM_O3DE_PACKAGE_NAME}.zip --expires-in 315360000)
+    - http POST "https://api.github.com/repos/${TRAVIS_REPO_SLUG}/statuses/${TRAVIS_COMMIT}" "Authorization:token ${GITHUB_TOKEN}" state=success context=plugin-package-combined "target_url=${PACKAGE_LINK}" --ignore-stdin
 
     env: PATH=/c/Python39:/c/Python39/Scripts:$PATH
