@@ -30,7 +30,7 @@ jobs:
     # - cmake --build Build --config Release --target install -- /maxcpucount:4
 
     # # set up Cesium Native as third party for O3DE and O3DE installer
-    # - cd $TRAVIS_BUILD_DIR
+    - cd $TRAVIS_BUILD_DIR
     # - export LY_PACKAGE_SERVER_URL="file:///$TRAVIS_BUILD_DIR/External/Packages/Install"
     # - /c/O3DE/21.11.2/python/get_python.bat;
     # - /c/O3DE/21.11.2/scripts/o3de.bat register --this-engine
