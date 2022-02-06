@@ -52,7 +52,7 @@ jobs:
 
     before_deploy:
     # clean up intermediate directories like build dir, etc
-    - cd $CLONEDIR
+    - cd $CLONEDIR/cesium-o3de
     - rm -rf External/build
     - rm -rf External/Packages/CesiumNative
 
