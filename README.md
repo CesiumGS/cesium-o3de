@@ -9,7 +9,7 @@ Cesium for O3DE brings the 3D geospatial ecosystem to the Open 3D Engine. Combin
 
 Learn how to use Cesium for O3DE with the Quickstart tutorial. (Link coming soon!) 
 
-Want to contribute to Cesium for O3DE? See the [Developer Setup Guide](Documentation/developer-setup.md) to learn how to set up a development environment for Cesium for O3DE, allowing you to compile it, customize it, and contribute to its development.
+Instructions for downloading release builds of the gem coming soon.
 
 Have questions? Ask them on the [community forum](https://community.cesium.com).
 
@@ -20,11 +20,17 @@ Cesium for O3DE streams real-world 3D content such as high-resolution photogramm
 
 Cesium for O3DE supports cloud and private network content and services based on open standards and APIs. You are free to use any combination of supported content sources, standards, APIs with Cesium for O3DE.
 
+[Insert the ecosystem architecture image here!]
+
 Using Cesium ion helps support Cesium for O3DE development. :heart:
 
 ### :chains: O3DE Integration
 
-Cesium for O3DE is tightly integrated with the Open 3D Engine making it possible to visualize and interact with real-world content in editor and at runtime. 
+Cesium for O3DE is tightly integrated with the Open 3D Engine, making it possible to visualize and interact with real-world content in editor and at runtime. 
+
+### :computer: Developing with O3DE
+
+Want to contribute to Cesium for O3DE? See the [Developer Setup Guide](Documentation/developer-setup.md) to learn how to set up a development environment for Cesium for O3DE, allowing you to compile it, customize it, and contribute to its development.
 
 
 ### :green_book: License
