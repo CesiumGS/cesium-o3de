@@ -1,6 +1,16 @@
 language: cpp
 jobs:
   include:
+  - stage: Static Checks
+    name: Formatting
+    os: linux
+    dist: focal
+    git:
+      submodules: false
+    before_script:
+    script:
+    - npm install
+    - npm run format -- --dry-run -Werror
   - stage: Build OS Packages
     name: Windows
     os: windows

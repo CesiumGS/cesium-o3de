@@ -16,7 +16,7 @@ namespace Cesium
     public:
         MatrixInputWidget(QWidget* parent, std::size_t numOfCols, std::size_t numOfRows);
 
-        AZStd::vector<AzQtComponents::VectorInput*> &getColElements()
+        AZStd::vector<AzQtComponents::VectorInput*>& getColElements()
         {
             return m_colElements;
         }
@@ -42,4 +42,4 @@ namespace Cesium
         AZStd::vector<AzQtComponents::VectorInput*> m_colElements;
     };
 
-}
+} // namespace Cesium

@@ -23,8 +23,7 @@ namespace Cesium
                 ->Field("TilesetConfiguration", &TilesetEditorComponent::m_tilesetConfiguration)
                 ->Field("TilesetSource", &TilesetEditorComponent::m_tilesetSource)
                 ->Field("Transform", &TilesetEditorComponent::m_transform)
-                ->Field("OverrideDefaultTransform", &TilesetEditorComponent::m_overrideDefaultTransform)
-                ;
+                ->Field("OverrideDefaultTransform", &TilesetEditorComponent::m_overrideDefaultTransform);
 
             AZ::EditContext* editContext = serializeContext->GetEditContext();
             if (editContext)
@@ -137,8 +136,8 @@ namespace Cesium
         m_tilesetLoadedHandler = TilesetLoadedEvent::Handler(
             [this]()
             {
-				glm::dmat4 absToRelWorld{ 1.0 };
-				OriginShiftRequestBus::BroadcastResult(absToRelWorld, &OriginShiftRequestBus::Events::GetAbsToRelWorld);
+                glm::dmat4 absToRelWorld{ 1.0 };
+                OriginShiftRequestBus::BroadcastResult(absToRelWorld, &OriginShiftRequestBus::Events::GetAbsToRelWorld);
 
                 if (!m_overrideDefaultTransform)
                 {
@@ -236,7 +235,7 @@ namespace Cesium
             return;
         }
 
-		ApplyRelativeTransform(MathHelper::ConvertTransformAndScaleToDMat4(world, AZ::Vector3::CreateOne()));
+        ApplyRelativeTransform(MathHelper::ConvertTransformAndScaleToDMat4(world, AZ::Vector3::CreateOne()));
     }
 
     void TilesetEditorComponent::OnOriginShifting(const glm::dmat4& absToRelWorld)

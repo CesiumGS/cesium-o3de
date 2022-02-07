@@ -11,7 +11,7 @@ namespace CesiumGltf
     struct Model;
     struct Material;
     struct TextureInfo;
-}
+} // namespace CesiumGltf
 
 namespace AZ
 {
@@ -20,8 +20,8 @@ namespace AZ
         class MaterialAssetCreator;
         class MaterialTypeAsset;
         class StreamingImageAsset;
-    }
-}
+    } // namespace RPI
+} // namespace AZ
 
 namespace Cesium
 {

@@ -17,8 +17,7 @@ namespace Cesium
                 ->Field("LoadingDescendantLimit", &TilesetConfiguration::m_loadingDescendantLimit)
                 ->Field("PreloadAncestors", &TilesetConfiguration::m_preloadAncestors)
                 ->Field("PreloadSiblings", &TilesetConfiguration::m_preloadSiblings)
-                ->Field("ForbidHole", &TilesetConfiguration::m_forbidHole)
-                ;
+                ->Field("ForbidHole", &TilesetConfiguration::m_forbidHole);
         }
 
         if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
@@ -46,8 +45,7 @@ namespace Cesium
         {
             behaviorContext->Class<TilesetLocalFileSource>("TilesetLocalFileSource")
                 ->Attribute(AZ::Script::Attributes::Category, "Cesium/3DTiles")
-                ->Property("FilePath", BehaviorValueProperty(&TilesetLocalFileSource::m_filePath))
-            ;
+                ->Property("FilePath", BehaviorValueProperty(&TilesetLocalFileSource::m_filePath));
         }
     }
 
@@ -62,8 +60,7 @@ namespace Cesium
         {
             behaviorContext->Class<TilesetUrlSource>("TilesetUrlSource")
                 ->Attribute(AZ::Script::Attributes::Category, "Cesium/3DTiles")
-                ->Property("Url", BehaviorValueProperty(&TilesetUrlSource::m_url))
-            ;
+                ->Property("Url", BehaviorValueProperty(&TilesetUrlSource::m_url));
         }
     }
 
@@ -82,8 +79,7 @@ namespace Cesium
             behaviorContext->Class<TilesetCesiumIonSource>("TilesetCesiumIonSource")
                 ->Attribute(AZ::Script::Attributes::Category, "Cesium/3DTiles")
                 ->Property("AssetId", BehaviorValueProperty(&TilesetCesiumIonSource::m_cesiumIonAssetId))
-                ->Property("AssetToken", BehaviorValueProperty(&TilesetCesiumIonSource::m_cesiumIonAssetToken))
-            ;
+                ->Property("AssetToken", BehaviorValueProperty(&TilesetCesiumIonSource::m_cesiumIonAssetToken));
         }
     }
 
@@ -123,23 +119,22 @@ namespace Cesium
                 ->Method("SetCesiumIon", &TilesetSource::SetCesiumIon)
                 ->Method("GetLocalFile", &TilesetSource::GetLocalFile)
                 ->Method("GetUrl", &TilesetSource::GetUrl)
-                ->Method("GetCesiumIon", &TilesetSource::GetCesiumIon)
-                ;
+                ->Method("GetCesiumIon", &TilesetSource::GetCesiumIon);
             ;
         }
     }
 
-    bool Cesium::TilesetSource::IsLocalFile() 
+    bool Cesium::TilesetSource::IsLocalFile()
     {
         return m_type == TilesetSourceType::LocalFile;
     }
 
-    bool Cesium::TilesetSource::IsUrl() 
+    bool Cesium::TilesetSource::IsUrl()
     {
         return m_type == TilesetSourceType::Url;
     }
 
-    bool Cesium::TilesetSource::IsCesiumIon() 
+    bool Cesium::TilesetSource::IsCesiumIon()
     {
         return m_type == TilesetSourceType::CesiumIon;
     }
@@ -210,8 +205,7 @@ namespace Cesium
                 ->Event("LoadTileset", &TilesetRequestBus::Events::LoadTileset)
                 ->Event("GetRootTransform", &TilesetRequestBus::Events::GetRootTransform)
                 ->Event("GetTransform", &TilesetRequestBus::Events::GetTransform)
-                ->Event("ApplyTransformToRoot", &TilesetRequestBus::Events::ApplyTransformToRoot)
-                ;
+                ->Event("ApplyTransformToRoot", &TilesetRequestBus::Events::ApplyTransformToRoot);
         }
     }
 } // namespace Cesium

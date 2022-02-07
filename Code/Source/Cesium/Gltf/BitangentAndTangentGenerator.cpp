@@ -10,8 +10,8 @@ namespace Cesium
         AZStd::array_view<glm::vec2> uvs{};
         AZStd::array_view<glm::u8vec2> unorm_u8_uvs{};
         AZStd::array_view<glm::u16vec2> unorm_u16_uvs{};
-        AZStd::vector<glm::vec4>* tangents{nullptr};
-        AZStd::vector<glm::vec3>* bitangents{nullptr};
+        AZStd::vector<glm::vec4>* tangents{ nullptr };
+        AZStd::vector<glm::vec3>* bitangents{ nullptr };
     };
 
     struct BitangentAndTangentGenerator::MikktspaceMethods
@@ -103,7 +103,15 @@ namespace Cesium
             }
         }
 
-        static void SetTSpace(const SMikkTSpaceContext* context, const float tangent[], const float bitangent[], const float magS, const float magT, const tbool isOrientationPreserving, const int face, const int vert)
+        static void SetTSpace(
+            const SMikkTSpaceContext* context,
+            const float tangent[],
+            const float bitangent[],
+            const float magS,
+            const float magT,
+            const tbool isOrientationPreserving,
+            const int face,
+            const int vert)
         {
             MikktspaceCustomData* customData = static_cast<MikktspaceCustomData*>(context->m_pUserData);
             AZStd::vector<glm::vec4>& tangents = *customData->tangents;

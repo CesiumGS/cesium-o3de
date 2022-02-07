@@ -76,4 +76,3 @@ namespace Cesium
         return m_primitives.empty();
     }
 } // namespace Cesium
-

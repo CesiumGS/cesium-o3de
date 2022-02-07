@@ -41,4 +41,4 @@ namespace AZ
 {
     AZ_TYPE_INFO_SPECIALIZE(Cesium::TilesetBoundingVolume, "{F6CB8FFB-66AF-4971-9CAC-74597A81E2E2}");
     AZ_TYPE_INFO_SPECIALIZE(Cesium::TilesetBoundingVolumeUtil, "{E65E112C-ABC8-4C6C-B485-A8AE1B7CA186}");
-}
+} // namespace AZ

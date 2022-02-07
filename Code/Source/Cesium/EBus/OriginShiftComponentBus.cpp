@@ -12,8 +12,7 @@ namespace Cesium
                 ->Event("GetRelToAbsWorld", &OriginShiftRequestBus::Events::GetRelToAbsWorld)
                 ->Event("SetOrigin", &OriginShiftRequestBus::Events::SetOrigin)
                 ->Event("ShiftOrigin", &OriginShiftRequestBus::Events::ShiftOrigin)
-                ->Event("SetOriginAndRotation", &OriginShiftRequestBus::Events::SetOriginAndRotation)
-                ;
+                ->Event("SetOriginAndRotation", &OriginShiftRequestBus::Events::SetOriginAndRotation);
         }
     }
 
@@ -24,8 +23,7 @@ namespace Cesium
             behaviorContext->EBus<OriginShiftNotificationBus>("OriginShiftNotificationBus")
                 ->Attribute(AZ::Script::Attributes::Category, "Cesium/OriginShift")
                 ->Handler<OriginShiftNotificationEBusHandler>()
-                ->Event("OnOriginShifting", &OriginShiftNotificationBus::Events::OnOriginShifting)
-                ;
+                ->Event("OnOriginShifting", &OriginShiftNotificationBus::Events::OnOriginShifting);
         }
     }
 

@@ -14,7 +14,7 @@ namespace CesiumGltf
 
     template<typename AccessorType>
     class AccessorView;
-}
+} // namespace CesiumGltf
 
 namespace AZ
 {
@@ -24,14 +24,14 @@ namespace AZ
     {
         class ModelAsset;
         class BufferAsset;
-    }
+    } // namespace RPI
 
     namespace Data
     {
         template<typename T>
         class Asset;
     }
-}
+} // namespace AZ
 
 namespace Cesium
 {
@@ -82,7 +82,8 @@ namespace Cesium
         template<typename AccessorType>
         void CopyAccessorToBuffer(const CesiumGltf::AccessorView<AccessorType>& accessorView, AZStd::vector<std::byte>& buffer);
 
-        bool CreateIndices(const CommonAccessorViews& accessorViews, const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive);
+        bool CreateIndices(
+            const CommonAccessorViews& accessorViews, const CesiumGltf::Model& model, const CesiumGltf::MeshPrimitive& primitive);
 
         template<typename IndexType>
         bool CreateIndices(const CesiumGltf::MeshPrimitive& primitive, const CesiumGltf::AccessorView<IndexType>& indicesAccessorView);
@@ -125,4 +126,3 @@ namespace Cesium
         AZStd::vector<VertexCustomAttribute> m_customAttributes;
     };
 } // namespace Cesium
-

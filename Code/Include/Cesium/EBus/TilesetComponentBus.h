@@ -86,7 +86,7 @@ namespace Cesium
         static void Reflect(AZ::ReflectContext* context);
 
         TilesetSource()
-            : m_type{TilesetSourceType::None}
+            : m_type{ TilesetSourceType::None }
             , m_localFile{}
             , m_url{}
             , m_cesiumIon{}
@@ -121,7 +121,7 @@ namespace Cesium
         TilesetUrlSource m_url;
         TilesetCesiumIonSource m_cesiumIon;
     };
-    
+
     using TilesetLoadedEvent = AZ::Event<>;
 
     class TilesetRequest : public AZ::ComponentBus

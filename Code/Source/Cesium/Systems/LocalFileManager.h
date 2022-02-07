@@ -11,7 +11,7 @@ namespace AZ
     class JobManager;
     class JobContext;
     class Job;
-}
+} // namespace AZ
 
 namespace Cesium
 {

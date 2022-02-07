@@ -8,8 +8,7 @@
 
 namespace Cesium
 {
-    class TilesetCreditEditorComponent final
-        : public AzToolsFramework::Components::EditorComponentBase
+    class TilesetCreditEditorComponent final : public AzToolsFramework::Components::EditorComponentBase
     {
     public:
         AZ_EDITOR_COMPONENT(TilesetCreditEditorComponent, "{3C3A71AF-6B35-4FAE-AD1D-0D21ABF6B7A5}");
@@ -26,4 +25,4 @@ namespace Cesium
 
         void BuildGameEntity(AZ::Entity* gameEntity) override;
     };
-}
+} // namespace Cesium

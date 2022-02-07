@@ -20,8 +20,8 @@ namespace Cesium
     struct IonAssetItem
     {
         AZStd::string m_tilesetName{};
-        std::uint32_t m_tilesetIonAssetId{0};
-        int m_imageryIonAssetId{-1};
+        std::uint32_t m_tilesetIonAssetId{ 0 };
+        int m_imageryIonAssetId{ -1 };
     };
 
     class CesiumIonSession final
@@ -92,7 +92,6 @@ namespace Cesium
         IonSessionUpdatedEvent AssetAccessTokenUpdated;
 
     private:
-
         bool RefreshProfileIfNeeded();
 
         bool RefreshAssetsIfNeeded();
@@ -115,17 +114,17 @@ namespace Cesium
         std::optional<std::vector<CesiumIonClient::Token>> m_tokens;
         std::optional<CesiumIonClient::Token> m_assetAccessToken;
 
-        bool m_isConnecting{false};
-        bool m_isResuming{false};
-        bool m_isLoadingProfile{false};
-        bool m_isLoadingAssets{false};
-        bool m_isLoadingTokens{false};
-        bool m_isLoadingAssetAccessToken{false};
+        bool m_isConnecting{ false };
+        bool m_isResuming{ false };
+        bool m_isLoadingProfile{ false };
+        bool m_isLoadingAssets{ false };
+        bool m_isLoadingTokens{ false };
+        bool m_isLoadingAssetAccessToken{ false };
 
-        bool m_loadProfileQueued{false};
-        bool m_loadAssetsQueued{false};
-        bool m_loadTokensQueued{false};
-        bool m_loadAssetAccessTokenQueued{false};
+        bool m_loadProfileQueued{ false };
+        bool m_loadAssetsQueued{ false };
+        bool m_loadTokensQueued{ false };
+        bool m_loadAssetAccessTokenQueued{ false };
 
         std::string m_authorizeUrl;
 
@@ -135,10 +134,12 @@ namespace Cesium
 
 } // namespace Cesium
 
-namespace AZ {
+namespace AZ
+{
     AZ_TYPE_INFO_SPECIALIZE(Cesium::CesiumIonSession, "{499233C0-47FF-4D80-99E4-649A1C9E4BBE}");
 }
 
-namespace Cesium {
+namespace Cesium
+{
     using CesiumIonSessionInterface = AZ::Interface<CesiumIonSession>;
 }

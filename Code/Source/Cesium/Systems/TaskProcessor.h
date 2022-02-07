@@ -20,4 +20,4 @@ namespace Cesium
         AZStd::unique_ptr<AZ::JobManager> m_jobManager;
         AZStd::unique_ptr<AZ::JobContext> m_jobContext;
     };
-}
+} // namespace Cesium

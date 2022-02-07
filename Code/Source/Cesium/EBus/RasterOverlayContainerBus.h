@@ -23,4 +23,4 @@ namespace Cesium
     };
 
     using RasterOverlayContainerRequestBus = AZ::EBus<RasterOverlayContainerRequest>;
-}
+} // namespace Cesium

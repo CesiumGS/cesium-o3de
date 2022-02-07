@@ -21,10 +21,9 @@ namespace Cesium
 
         static glm::dmat4 EastNorthUpToECEF(const glm::dvec3& ecefPosition);
     };
-}
+} // namespace Cesium
 
 namespace AZ
 {
     AZ_TYPE_INFO_SPECIALIZE(Cesium::GeospatialHelper, "{C198D14D-CEF2-406A-B06B-878E8BF48B5A}");
 }
-

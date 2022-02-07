@@ -16,7 +16,7 @@ public:
 
         AZ::JobManagerDesc managerDesc;
         AZ::JobManagerThreadDesc threadDesc;
-        std::size_t hardwareConcurrency = AZStd::thread::hardware_concurrency(); 
+        std::size_t hardwareConcurrency = AZStd::thread::hardware_concurrency();
         for (std::size_t i = 0; i < hardwareConcurrency; ++i)
         {
             managerDesc.m_workerThreads.push_back(threadDesc);
@@ -67,4 +67,3 @@ TEST_F(TaskProcessorTest, StartJobInAnotherThread)
         ASSERT_NE(future.get(), AZStd::this_thread::get_id());
     }
 }
-

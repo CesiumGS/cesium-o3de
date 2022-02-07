@@ -21,23 +21,22 @@ namespace Cesium
                 ->Attribute(AZ::Script::Attributes::Category, "Cesium/Math")
                 ->Property("Longitude", BehaviorValueProperty(&Cartographic::m_longitude))
                 ->Property("Latitude", BehaviorValueProperty(&Cartographic::m_latitude))
-                ->Property("Height", BehaviorValueProperty(&Cartographic::m_height))
-            ;
+                ->Property("Height", BehaviorValueProperty(&Cartographic::m_height));
         }
     }
 
     Cartographic::Cartographic()
-        : m_longitude{0.0}
-        , m_latitude{0.0}
-        , m_height{0.0}
+        : m_longitude{ 0.0 }
+        , m_latitude{ 0.0 }
+        , m_height{ 0.0 }
     {
     }
 
     Cartographic::Cartographic(double longitude, double latitude, double height)
-        : m_longitude{longitude}
-        , m_latitude{latitude}
-        , m_height{height}
+        : m_longitude{ longitude }
+        , m_latitude{ latitude }
+        , m_height{ height }
     {
     }
 
-}
+} // namespace Cesium

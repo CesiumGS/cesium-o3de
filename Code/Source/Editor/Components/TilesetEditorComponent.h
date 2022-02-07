@@ -56,7 +56,7 @@ namespace Cesium
         AZStd::unique_ptr<TilesetComponent> m_tilesetComponent;
         TilesetConfiguration m_tilesetConfiguration;
         TilesetSource m_tilesetSource;
-        glm::dmat4 m_transform{1.0};
+        glm::dmat4 m_transform{ 1.0 };
         bool m_overrideDefaultTransform{ false };
 
         bool m_selfTransform{ true };

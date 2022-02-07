@@ -8,7 +8,7 @@
 
 namespace Cesium
 {
-    class GeoreferenceAnchorEditorComponent 
+    class GeoreferenceAnchorEditorComponent
         : public AzToolsFramework::Components::EditorComponentBase
         , public AZ::TransformNotificationBus::Handler
     {
@@ -29,7 +29,7 @@ namespace Cesium
 
         void BuildGameEntity(AZ::Entity* gameEntity) override;
 
-	private:
+    private:
         void Init() override;
 
         void Activate() override;
@@ -45,4 +45,4 @@ namespace Cesium
 
         ECEFPositionChangeEvent::Handler m_positionChangeHandler;
     };
-}
+} // namespace Cesium

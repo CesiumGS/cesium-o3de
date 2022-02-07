@@ -111,9 +111,9 @@ namespace Cesium
     {
         using namespace AzToolsFramework;
 
-		AZ::EntityId levelEntityId{};
-		AzToolsFramework::ToolsApplicationRequestBus::BroadcastResult(
-			levelEntityId, &AzToolsFramework::ToolsApplicationRequestBus::Events::GetCurrentLevelEntityId);
+        AZ::EntityId levelEntityId{};
+        AzToolsFramework::ToolsApplicationRequestBus::BroadcastResult(
+            levelEntityId, &AzToolsFramework::ToolsApplicationRequestBus::Events::GetCurrentLevelEntityId);
 
         EntityIdList selectedEntities;
         if (addToExistingEntity)

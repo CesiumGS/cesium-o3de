@@ -6,11 +6,11 @@ namespace Cesium
 {
     LinearInterpolator::LinearInterpolator(
         const glm::dvec3& begin, const glm::dvec3& beginDirection, const glm::dvec3& destination, const glm::dvec3& destinationDirection)
-        : m_begin{begin}
+        : m_begin{ begin }
         , m_beginPitchRollHead{}
-        , m_destination{destination}
+        , m_destination{ destination }
         , m_destinationPitchRollHead{}
-        , m_current{begin}
+        , m_current{ begin }
         , m_currentOrientation{}
         , m_totalTimePassed{ 0.0 }
         , m_totalDuration{}
@@ -75,5 +75,4 @@ namespace Cesium
 
         return pitchRollHead;
     }
-}
-
+} // namespace Cesium

@@ -43,8 +43,7 @@ namespace Cesium
                     CesiumIonSessionInterface::Get()->IsConnected() && CesiumIonSessionInterface::Get()->IsAssetAccessTokenLoaded();
                 m_quickAddIonAsset->setVisible(signedIn);
                 m_ionLogin->setVisible(!signedIn);
-                m_loadingLogin->setVisible(
-                    CesiumIonSessionInterface::Get()->IsConnecting());
+                m_loadingLogin->setVisible(CesiumIonSessionInterface::Get()->IsConnecting());
             });
 
         m_assetTokenUpdated = IonSessionUpdatedEvent::Handler(
@@ -168,8 +167,8 @@ namespace Cesium
         QObject::connect(addBlankTileset, &IconButton::pressed, this, &CesiumIonPanelWidget::AddBlankTileset);
 
         IconButton* addGeoreferenceCamera = CreateQuickAddMenuItem(
-            itemLayout, "Georeference Camera Controller Component", "A camera that can be used to intuitively navigate in a geospatial environment.",
-            row++);
+            itemLayout, "Georeference Camera Controller Component",
+            "A camera that can be used to intuitively navigate in a geospatial environment.", row++);
         QObject::connect(addGeoreferenceCamera, &IconButton::pressed, this, &CesiumIonPanelWidget::AddGeoreferenceCamera);
 
         return widget;
@@ -266,7 +265,7 @@ namespace Cesium
             });
     }
 
-    IconButton* CesiumIonPanelWidget::CreateQuickAddMenuItem( QGridLayout* layout, const char* name, const char* tooltip, int row)
+    IconButton* CesiumIonPanelWidget::CreateQuickAddMenuItem(QGridLayout* layout, const char* name, const char* tooltip, int row)
     {
         QLabel* label = new QLabel(name, this);
         label->setToolTip(tooltip);
@@ -347,7 +346,8 @@ namespace Cesium
 
         QPushButton* openWebBrowser = new QPushButton("Open web browser again", this);
         openWebBrowser->setFlat(true);
-        openWebBrowser->setStyleSheet("QPushButton { border: 0px; font-size: 13px; text-decoration: underline } QPushButton:hover { color: #409fed; }");
+        openWebBrowser->setStyleSheet(
+            "QPushButton { border: 0px; font-size: 13px; text-decoration: underline } QPushButton:hover { color: #409fed; }");
         QObject::connect(
             openWebBrowser, &QPushButton::pressed, this,
             []()
@@ -392,11 +392,13 @@ namespace Cesium
         return line;
     }
 
-	void CesiumIonPanelWidget::AddBlankTileset() {
+    void CesiumIonPanelWidget::AddBlankTileset()
+    {
         CesiumEditorSystemRequestBus::Broadcast(&CesiumEditorSystemRequestBus::Events::AddBlankTilesetToLevel, false);
     }
 
-	void CesiumIonPanelWidget::AddGeoreferenceCamera() {
+    void CesiumIonPanelWidget::AddGeoreferenceCamera()
+    {
         CesiumEditorSystemRequestBus::Broadcast(&CesiumEditorSystemRequestBus::Events::AddGeoreferenceCameraToLevel, false);
     }
 } // namespace Cesium

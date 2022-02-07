@@ -361,7 +361,7 @@ namespace Cesium
         return addImagery;
     }
 
-	QWidget* CesiumIonAssetDetailWidget::CreateAddTileset(QVBoxLayout* scrollLayout)
+    QWidget* CesiumIonAssetDetailWidget::CreateAddTileset(QVBoxLayout* scrollLayout)
     {
         auto addTileset = new QWidget(this);
         QHBoxLayout* btnLayout = new QHBoxLayout(this);

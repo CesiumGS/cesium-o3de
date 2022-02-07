@@ -8,10 +8,7 @@
 namespace Cesium
 {
     GeoReferenceInterpolator::GeoReferenceInterpolator(
-        const glm::dvec3& begin,
-        const glm::dvec3& beginDirection,
-        const glm::dvec3& destination,
-        const glm::dvec3& destinationDirection)
+        const glm::dvec3& begin, const glm::dvec3& beginDirection, const glm::dvec3& destination, const glm::dvec3& destinationDirection)
         : m_begin{ begin }
         , m_beginPitchRollHead{}
         , m_destination{ destination }
@@ -124,8 +121,8 @@ namespace Cesium
 
         // interpolate current orientation
         glm::dmat4 enuToECEF = CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(m_current);
-		glm::dvec3 currentPitchRollHead = glm::lerp(m_beginPitchRollHead, m_destinationPitchRollHead, t);
-		m_currentOrientation = glm::dquat(enuToECEF) * glm::dquat(currentPitchRollHead);
+        glm::dvec3 currentPitchRollHead = glm::lerp(m_beginPitchRollHead, m_destinationPitchRollHead, t);
+        m_currentOrientation = glm::dquat(enuToECEF) * glm::dquat(currentPitchRollHead);
     }
 
     glm::dvec3 GeoReferenceInterpolator::CalculatePitchRollHead(const glm::dvec3& position, const glm::dvec3& direction)
@@ -135,4 +132,4 @@ namespace Cesium
         glm::dvec3 enuDirection = ecefToEnu * glm::dvec4(direction, 0.0);
         return MathHelper::CalculatePitchRollHead(enuDirection);
     }
-}
+} // namespace Cesium

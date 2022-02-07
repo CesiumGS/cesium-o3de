@@ -19,10 +19,10 @@ namespace Cesium
     {
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<CesiumIonRasterOverlaySource>()->Version(0)
+            serializeContext->Class<CesiumIonRasterOverlaySource>()
+                ->Version(0)
                 ->Field("ionAssetId", &CesiumIonRasterOverlaySource::m_ionAssetId)
-                ->Field("ionToken", &CesiumIonRasterOverlaySource::m_ionToken)
-                ;
+                ->Field("ionToken", &CesiumIonRasterOverlaySource::m_ionToken);
         }
 
         if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
@@ -34,7 +34,7 @@ namespace Cesium
     }
 
     CesiumIonRasterOverlaySource::CesiumIonRasterOverlaySource()
-        : m_ionAssetId{0}
+        : m_ionAssetId{ 0 }
         , m_ionToken{}
     {
     }
@@ -45,9 +45,8 @@ namespace Cesium
 
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<CesiumIonRasterOverlayComponent, AZ::Component, RasterOverlayComponent>()->Version(0)
-                ->Field("source", &CesiumIonRasterOverlayComponent::m_source)
-                ;
+            serializeContext->Class<CesiumIonRasterOverlayComponent, AZ::Component, RasterOverlayComponent>()->Version(0)->Field(
+                "source", &CesiumIonRasterOverlayComponent::m_source);
         }
 
         if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
@@ -75,7 +74,8 @@ namespace Cesium
         provided.push_back(AZ_CRC_CE("CesiumIonRasterOverlayService"));
     }
 
-    void CesiumIonRasterOverlayComponent::GetIncompatibleServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& incompatible)
+    void CesiumIonRasterOverlayComponent::GetIncompatibleServices(
+        [[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& incompatible)
     {
     }
 
@@ -97,6 +97,7 @@ namespace Cesium
 
     std::unique_ptr<Cesium3DTilesSelection::RasterOverlay> CesiumIonRasterOverlayComponent::LoadRasterOverlayImpl()
     {
-        return std::make_unique<Cesium3DTilesSelection::IonRasterOverlay>("CesiumIonRasterOverlay", m_source.m_ionAssetId, m_source.m_ionToken.c_str());
+        return std::make_unique<Cesium3DTilesSelection::IonRasterOverlay>(
+            "CesiumIonRasterOverlay", m_source.m_ionAssetId, m_source.m_ionToken.c_str());
     }
 } // namespace Cesium

@@ -24,8 +24,7 @@ namespace Cesium
         }
 
         AZ::Entity* rootElementEntity = nullptr;
-        UiCanvasBus::EventResult(
-            rootElementEntity, canvasEntityId, &UiCanvasBus::Events::CreateChildElement, AZStd::string("CreditRoot"));
+        UiCanvasBus::EventResult(rootElementEntity, canvasEntityId, &UiCanvasBus::Events::CreateChildElement, AZStd::string("CreditRoot"));
         if (!rootElementEntity)
         {
             return AZ::EntityId{};
@@ -39,8 +38,8 @@ namespace Cesium
         UiTransformBus::Event(
             rootElementEntityId, &UiTransformBus::Events::SetScaleToDeviceMode, UiTransformBus::Events::ScaleToDeviceMode::NonUniformScale);
         UiTransform2dBus::Event(
-            rootElementEntityId, &UiTransform2dBus::Events::SetAnchors, UiTransform2dInterface::Anchors{ 0.0f, 0.0f, 1.0f, 1.0f },
-            false, false);
+            rootElementEntityId, &UiTransform2dBus::Events::SetAnchors, UiTransform2dInterface::Anchors{ 0.0f, 0.0f, 1.0f, 1.0f }, false,
+            false);
         UiTransform2dBus::Event(
             rootElementEntityId, &UiTransform2dBus::Events::SetOffsets, UiTransform2dInterface::Offsets{ 0.0f, 0.0f, 0.0f, 0.0f });
 
@@ -81,7 +80,8 @@ namespace Cesium
         return canvasEntityId;
     }
 
-    float HtmlUiComponentHelper::CreateHtmlNodeEntities(TidyDoc tdoc, TidyNode tnode, const AZ::EntityId& rootElementEntityId, float beginHeight)
+    float HtmlUiComponentHelper::CreateHtmlNodeEntities(
+        TidyDoc tdoc, TidyNode tnode, const AZ::EntityId& rootElementEntityId, float beginHeight)
     {
         float height = 0.0f;
         TidyNode child;
@@ -117,17 +117,18 @@ namespace Cesium
                 tidyBufFree(&buf);
             }
 
-            height += CreateHtmlNodeEntities(tdoc, child, rootElementEntityId, beginHeight + height); 
+            height += CreateHtmlNodeEntities(tdoc, child, rootElementEntityId, beginHeight + height);
         }
 
         return height;
     }
 
     void HtmlUiComponentHelper::CreateBackgroundEntity(const AZ::EntityId& rootElementEntityId)
-    {        
+    {
         // Create the text element
         AZ::Entity* backgroundEntity = nullptr;
-        UiElementBus::EventResult(backgroundEntity, rootElementEntityId, &UiElementBus::Events::CreateChildElement, AZStd::string("background"));
+        UiElementBus::EventResult(
+            backgroundEntity, rootElementEntityId, &UiElementBus::Events::CreateChildElement, AZStd::string("background"));
 
         // Set up the text element
         if (backgroundEntity)
@@ -138,8 +139,11 @@ namespace Cesium
             backgroundEntity->Activate();
 
             AZ::EntityId backgroundEntityId = backgroundEntity->GetId();
-            UiTransform2dBus::Event(backgroundEntityId, &UiTransform2dBus::Events::SetAnchors, UiTransform2dInterface::Anchors{}, false, false);
-            UiTransform2dBus::Event(backgroundEntityId, &UiTransform2dBus::Events::SetOffsets, UiTransform2dInterface::Offsets{-310.0f, -266.0f, 310.0f, 266.0f});
+            UiTransform2dBus::Event(
+                backgroundEntityId, &UiTransform2dBus::Events::SetAnchors, UiTransform2dInterface::Anchors{}, false, false);
+            UiTransform2dBus::Event(
+                backgroundEntityId, &UiTransform2dBus::Events::SetOffsets,
+                UiTransform2dInterface::Offsets{ -310.0f, -266.0f, 310.0f, 266.0f });
             UiTransform2dBus::Event(backgroundEntityId, &UiTransform2dBus::Events::SetPivotAndAdjustOffsets, AZ::Vector2(0.5f));
 
             UiImageBus::Event(backgroundEntityId, &UiImageBus::Events::SetColor, AZ::Colors::Black);
@@ -168,7 +172,9 @@ namespace Cesium
 
             AZ::EntityId imageEntityId = imageEntity->GetId();
             UiTransform2dBus::Event(imageEntityId, &UiTransform2dBus::Events::SetAnchors, UiTransform2dInterface::Anchors{}, false, false);
-            UiTransform2dBus::Event(imageEntityId, &UiTransform2dBus::Events::SetOffsets, UiTransform2dInterface::Offsets{-300.0f, -256.0f + beginHeight, 300.0f, 256.0f});
+            UiTransform2dBus::Event(
+                imageEntityId, &UiTransform2dBus::Events::SetOffsets,
+                UiTransform2dInterface::Offsets{ -300.0f, -256.0f + beginHeight, 300.0f, 256.0f });
             UiTransform2dBus::Event(imageEntityId, &UiTransform2dBus::Events::SetPivotAndAdjustOffsets, AZ::Vector2(0.5f));
 
             DynamicUiImageRequestBus::Event(imageEntity->GetId(), &DynamicUiImageRequestBus::Events::LoadImageUrl, url);
@@ -200,7 +206,9 @@ namespace Cesium
 
             AZ::EntityId textEntityId = textEntity->GetId();
             UiTransform2dBus::Event(textEntityId, &UiTransform2dBus::Events::SetAnchors, UiTransform2dInterface::Anchors{}, false, false);
-            UiTransform2dBus::Event(textEntityId, &UiTransform2dBus::Events::SetOffsets, UiTransform2dInterface::Offsets{-300.0f, -256.0f + beginHeight, 300.0f, 256.0f});
+            UiTransform2dBus::Event(
+                textEntityId, &UiTransform2dBus::Events::SetOffsets,
+                UiTransform2dInterface::Offsets{ -300.0f, -256.0f + beginHeight, 300.0f, 256.0f });
             UiTransform2dBus::Event(textEntityId, &UiTransform2dBus::Events::SetPivotAndAdjustOffsets, AZ::Vector2(0.5f));
 
             UiTextBus::Event(textEntityId, &UiTextBus::Events::SetText, text);
