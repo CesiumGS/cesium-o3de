@@ -1,0 +1,73 @@
+language: cpp
+jobs:
+  include:
+  - stage: Build OS Packages
+    name: Windows
+    os: windows
+    before_install:
+    # run installer outside of repo dir
+    - cd $TRAVIS_BUILD_DIR/..
+    - if [[ $(sfc 2>&1 | tr -d '\0') =~ SCANNOW ]]; then echo Administrator; else echo $USERNAME; fi
+    - curl "http://o3debinaries.org/main/Latest/Windows/o3de_installer_2111_2.exe" --output o3de_installer_2111_2.exe;
+    - md5sum o3de_installer_2111_2.exe;
+    - ./o3de_installer_2111_2.exe -quiet -layout || echo "Fallback Pass";
+    - msiexec -a o3de_21.11.2.msi -quiet -L*V "c:\o3de_installer.log" || echo "Fallback Pass";
+
+    # return back to repo for building
+    - cd $TRAVIS_BUILD_DIR
+    install:
+    - choco install 7zip.portable
+    - choco install python --version 3.9.2
+    - choco install cmake
+    - choco install visualstudio2019buildtools --package-parameters "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
+    - python -m pip install --upgrade pip
+    - pip3 install --upgrade pip
+    - pip3 install awscli
+    - pip3 install httpie
+    before_script:
+    - export CESIUM_O3DE_VERSION=$(git describe --always)
+    - export BUILD_CESIUM_O3DE_PACKAGE_NAME=CesiumForO3DE-${TRAVIS_OS_NAME}-${CESIUM_O3DE_VERSION}
+    script:
+    # build cesium native
+    - cd External
+    - cmake -B Build -S . -A x64
+    - cmake --build Build --config Release --target install -- /maxcpucount:4
+
+    # set up Cesium Native as third party for O3DE and O3DE installer
+    - cd $TRAVIS_BUILD_DIR
+    - export LY_PACKAGE_SERVER_URL="file:///$TRAVIS_BUILD_DIR/External/Packages/Install"
+    - /c/O3DE/21.11.2/python/get_python.bat;
+    - /c/O3DE/21.11.2/scripts/o3de.bat register --this-engine
+
+    # create a test project
+    - cd /c/O3DE/21.11.2/scripts
+    - ./o3de.bat create-project -pp /c/temp/o3de-project
+    - ./o3de.bat enable-gem -gp $TRAVIS_BUILD_DIR -pp /c/temp/o3de-project
+    - cd /c/temp/o3de-project
+    - cmake -B build/windows_vs2019 -S . -A x64
+    - cmake --build build/windows_vs2019 --target Cesium Cesium.Tests Cesium.Editor.Tests --config profile -- -m
+
+    # run tests
+    - cd /c/O3DE/21.11.2/bin/Windows/profile/Default
+    - ./AzTestRunner.exe /c/temp/o3de-project/build/windows_vs2019/bin/profile/Cesium.Tests.dll AzRunUnitTests
+    - ./AzTestRunner.exe /c/temp/o3de-project/build/windows_vs2019/bin/profile/Cesium.Editor.Tests.dll AzRunUnitTests
+
+    # clean up intermediate directories like build dir, etc
+    - cd $TRAVIS_BUILD_DIR
+    - rm -rf .git
+    - rm -rf External/CesiumNative
+    - rm -rf External/TidyHtml5
+    - rm -rf External/build
+    - rm -rf External/CMakeLists.txt
+    - rm -rf External/PostInstall.cmake
+    - rm -rf External/Packages/CesiumNative
+
+    # package the Gem
+    - 7z a $TRAVIS_BUILD_DIR/../${BUILD_CESIUM_O3DE_PACKAGE_NAME}.zip $TRAVIS_BUILD_DIR 
+
+    # upload to aws
+    - aws s3 cp $TRAVIS_BUILD_DIR/../${BUILD_CESIUM_O3DE_PACKAGE_NAME}.zip s3://builds-cesium-o3de/
+    - export PACKAGE_LINK=$(aws --region us-east-1 s3 presign s3://builds-cesium-o3de/${BUILD_CESIUM_O3DE_PACKAGE_NAME}.zip --expires-in 315360000)
+    - http POST "https://api.github.com/repos/${TRAVIS_REPO_SLUG}/statuses/${TRAVIS_COMMIT}" "Authorization:token ${GITHUB_TOKEN}" state=success context=CesiumForO3DE "target_url=${PACKAGE_LINK}" --ignore-stdin
+
+    env: PATH=/c/Python39:/c/Python39/Scripts:$PATH
