@@ -10,13 +10,13 @@ namespace Cesium
     {
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<TMSRasterOverlaySource>()->Version(0)
+            serializeContext->Class<TMSRasterOverlaySource>()
+                ->Version(0)
                 ->Field("Url", &TMSRasterOverlaySource::m_url)
                 ->Field("Headers", &TMSRasterOverlaySource::m_headers)
                 ->Field("FileExtension", &TMSRasterOverlaySource::m_fileExtension)
                 ->Field("MinimumLevel", &TMSRasterOverlaySource::m_minimumLevel)
-                ->Field("MaximumLevel", &TMSRasterOverlaySource::m_maximumLevel)
-                ;
+                ->Field("MaximumLevel", &TMSRasterOverlaySource::m_maximumLevel);
         }
 
         if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
@@ -26,15 +26,14 @@ namespace Cesium
                 ->Property("Headers", BehaviorValueProperty(&TMSRasterOverlaySource::m_headers))
                 ->Property("FileExtension", BehaviorValueProperty(&TMSRasterOverlaySource::m_fileExtension))
                 ->Property("MinimumLevel", BehaviorValueProperty(&TMSRasterOverlaySource::m_minimumLevel))
-                ->Property("MaximumLevel", BehaviorValueProperty(&TMSRasterOverlaySource::m_maximumLevel))
-                ;
+                ->Property("MaximumLevel", BehaviorValueProperty(&TMSRasterOverlaySource::m_maximumLevel));
         }
     }
 
     TMSRasterOverlaySource::TMSRasterOverlaySource()
         : m_fileExtension{ "png" }
-        , m_minimumLevel{0}
-        , m_maximumLevel{25}
+        , m_minimumLevel{ 0 }
+        , m_maximumLevel{ 25 }
     {
     }
 
@@ -44,8 +43,8 @@ namespace Cesium
 
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<TMSRasterOverlayComponent, AZ::Component, RasterOverlayComponent>()->Version(0)
-                ->Field("source", &TMSRasterOverlayComponent::m_source);
+            serializeContext->Class<TMSRasterOverlayComponent, AZ::Component, RasterOverlayComponent>()->Version(0)->Field(
+                "source", &TMSRasterOverlayComponent::m_source);
         }
 
         if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
@@ -64,8 +63,7 @@ namespace Cesium
                     {
                         return component.GetConfiguration();
                     })
-                ->Method("LoadRasterOverlay", &TMSRasterOverlayComponent::LoadRasterOverlay)
-                ;
+                ->Method("LoadRasterOverlay", &TMSRasterOverlayComponent::LoadRasterOverlay);
         }
     }
 

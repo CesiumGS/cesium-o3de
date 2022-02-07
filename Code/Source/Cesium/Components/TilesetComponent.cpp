@@ -1,11 +1,11 @@
 #include <Cesium/Components/TilesetComponent.h>
 #include "Cesium/EBus/RasterOverlayContainerBus.h"
 #include "Cesium/TilesetUtility/RenderResourcesPreparer.h"
-#include "Cesium/TilesetUtility/TilesetCameraConfigurations.h" 
+#include "Cesium/TilesetUtility/TilesetCameraConfigurations.h"
 #include "Cesium/Systems/CesiumSystem.h"
 #include "Cesium/Math/BoundingVolumeConverters.h"
 #include <Cesium/Math/MathHelper.h>
-#include <Cesium/Math/MathReflect.h> 
+#include <Cesium/Math/MathReflect.h>
 #include <Atom/RPI.Public/Scene.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/RTTI/BehaviorContext.h>
@@ -32,8 +32,7 @@
 
 namespace Cesium
 {
-    struct TilesetComponent::Impl
-        : public RasterOverlayContainerRequestBus::Handler
+    struct TilesetComponent::Impl : public RasterOverlayContainerRequestBus::Handler
     {
         enum ConfigurationDirtyFlags
         {
@@ -45,7 +44,7 @@ namespace Cesium
         };
 
         Impl(const AZ::EntityId& selfEntity, const TilesetSource& tilesetSource)
-            : m_selfEntity{selfEntity}
+            : m_selfEntity{ selfEntity }
             , m_absToRelWorld{ 1.0 }
             , m_configFlags{ ConfigurationDirtyFlags::None }
             , m_tilesetLoaded{ false }
@@ -116,7 +115,8 @@ namespace Cesium
 
         void LoadTilesetFromLocalFile(const TilesetLocalFileSource& source)
         {
-            if (source.m_filePath.empty()) {
+            if (source.m_filePath.empty())
+            {
                 return;
             }
 
@@ -126,7 +126,8 @@ namespace Cesium
 
         void LoadTilesetFromUrl(const TilesetUrlSource& source)
         {
-            if (source.m_url.empty()) {
+            if (source.m_url.empty())
+            {
                 return;
             }
 
@@ -136,7 +137,8 @@ namespace Cesium
 
         void LoadTilesetFromCesiumIon(const TilesetCesiumIonSource& source)
         {
-            if (source.m_cesiumIonAssetToken.empty()) {
+            if (source.m_cesiumIonAssetToken.empty())
+            {
                 return;
             }
 
@@ -178,7 +180,7 @@ namespace Cesium
             handler.Connect(m_rasterOverlayContainerUnloadedEvent);
         }
 
-        void FlushTilesetSourceChange(const TilesetSource &source)
+        void FlushTilesetSourceChange(const TilesetSource& source)
         {
             if ((m_configFlags & ConfigurationDirtyFlags::SourceChange) != ConfigurationDirtyFlags::SourceChange)
             {
@@ -213,7 +215,7 @@ namespace Cesium
             m_configFlags = m_configFlags & ~ConfigurationDirtyFlags::TransformChange;
         }
 
-        void FlushTilesetConfigurationChange(const TilesetConfiguration &tilesetConfiguration)
+        void FlushTilesetConfigurationChange(const TilesetConfiguration& tilesetConfiguration)
         {
             if ((m_configFlags & ConfigurationDirtyFlags::TilesetConfigChange) != ConfigurationDirtyFlags::TilesetConfigChange)
             {
@@ -274,8 +276,7 @@ namespace Cesium
                 ->Version(0)
                 ->Field("TilesetConfiguration", &TilesetComponent::m_tilesetConfiguration)
                 ->Field("TilesetSource", &TilesetComponent::m_tilesetSource)
-                ->Field("Transform", &TilesetComponent::m_transform)
-                ;
+                ->Field("Transform", &TilesetComponent::m_transform);
         }
     }
 
@@ -312,7 +313,7 @@ namespace Cesium
         m_impl = AZStd::make_unique<Impl>(GetEntityId(), m_tilesetSource);
         AZ::TickBus::Handler::BusConnect();
         AzFramework::BoundsRequestBus::Handler::BusConnect(GetEntityId());
-		OriginShiftNotificationBus::Handler::BusConnect();
+        OriginShiftNotificationBus::Handler::BusConnect();
         TilesetRequestBus::Handler::BusConnect(GetEntityId());
     }
 
@@ -321,7 +322,7 @@ namespace Cesium
         m_impl.reset();
         AZ::TickBus::Handler::BusDisconnect();
         AzFramework::BoundsRequestBus::Handler::BusDisconnect();
-		OriginShiftNotificationBus::Handler::BusDisconnect();
+        OriginShiftNotificationBus::Handler::BusDisconnect();
         TilesetRequestBus::Handler::BusDisconnect();
     }
 
@@ -349,9 +350,7 @@ namespace Cesium
             return AZ::Aabb{};
         }
 
-        return std::visit(
-            BoundingVolumeToAABB{ m_impl->m_absToRelWorld * m_transform },
-            rootTile->getBoundingVolume());
+        return std::visit(BoundingVolumeToAABB{ m_impl->m_absToRelWorld * m_transform }, rootTile->getBoundingVolume());
     }
 
     AZ::Aabb TilesetComponent::GetLocalBounds()
@@ -367,10 +366,10 @@ namespace Cesium
             return AZ::Aabb{};
         }
 
-        return std::visit(BoundingVolumeToAABB{ glm::dmat4{1.0} }, rootTile->getBoundingVolume());
+        return std::visit(BoundingVolumeToAABB{ glm::dmat4{ 1.0 } }, rootTile->getBoundingVolume());
     }
 
-	TilesetBoundingVolume TilesetComponent::GetRootBoundingVolumeInECEF() const
+    TilesetBoundingVolume TilesetComponent::GetRootBoundingVolumeInECEF() const
     {
         if (!m_impl->m_tileset)
         {
@@ -404,9 +403,7 @@ namespace Cesium
             return std::visit(BoundingVolumeConverter{}, rootTile->getBoundingVolume());
         }
 
-        return std::visit(
-            BoundingVolumeTransform{ m_transform },
-            rootTile->getBoundingVolume());
+        return std::visit(BoundingVolumeTransform{ m_transform }, rootTile->getBoundingVolume());
     }
 
     void TilesetComponent::LoadTileset(const TilesetSource& source)
@@ -415,7 +412,7 @@ namespace Cesium
         m_impl->m_configFlags = Impl::ConfigurationDirtyFlags::AllChange;
     }
 
-	const glm::dmat4* TilesetComponent::GetRootTransform() const
+    const glm::dmat4* TilesetComponent::GetRootTransform() const
     {
         if (m_impl->m_tileset)
         {
@@ -429,22 +426,22 @@ namespace Cesium
         return nullptr;
     }
 
-    const glm::dmat4 & TilesetComponent::GetTransform() const
-	{
+    const glm::dmat4& TilesetComponent::GetTransform() const
+    {
         return m_transform;
-	}
+    }
 
-    void TilesetComponent::BindTilesetLoadedHandler(TilesetLoadedEvent::Handler & handler)
-	{
+    void TilesetComponent::BindTilesetLoadedHandler(TilesetLoadedEvent::Handler& handler)
+    {
         handler.Connect(m_impl->m_tilesetLoadedEvent);
-	}
+    }
 
-    void TilesetComponent::ApplyTransformToRoot(const glm::dmat4 & transform)
-	{
+    void TilesetComponent::ApplyTransformToRoot(const glm::dmat4& transform)
+    {
         m_transform = transform;
         m_impl->m_configFlags |= Impl::ConfigurationDirtyFlags::TransformChange;
-		m_impl->FlushTransformChange(m_transform);
-	}
+        m_impl->FlushTransformChange(m_transform);
+    }
 
     void TilesetComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
     {
@@ -508,10 +505,10 @@ namespace Cesium
         }
     }
 
-	void TilesetComponent::OnOriginShifting(const glm::dmat4& absToRelWorld) 
+    void TilesetComponent::OnOriginShifting(const glm::dmat4& absToRelWorld)
     {
-		m_impl->m_absToRelWorld = absToRelWorld;
+        m_impl->m_absToRelWorld = absToRelWorld;
         m_impl->m_configFlags |= Impl::ConfigurationDirtyFlags::TransformChange;
-		m_impl->FlushTransformChange(m_transform);
+        m_impl->FlushTransformChange(m_transform);
     }
 } // namespace Cesium

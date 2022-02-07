@@ -10,8 +10,7 @@ namespace Cesium
             behaviorContext->EBus<OriginShiftAnchorRequestBus>("OriginShiftAnchorRequestBus")
                 ->Attribute(AZ::Script::Attributes::Category, "Cesium/OriginShift")
                 ->Event("GetPosition", &OriginShiftAnchorRequestBus::Events::GetPosition)
-                ->Event("SetPosition", &OriginShiftAnchorRequestBus::Events::SetPosition)
-                ;
+                ->Event("SetPosition", &OriginShiftAnchorRequestBus::Events::SetPosition);
         }
     }
 } // namespace Cesium

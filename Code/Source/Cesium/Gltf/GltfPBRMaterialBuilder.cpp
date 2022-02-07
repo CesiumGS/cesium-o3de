@@ -483,4 +483,3 @@ namespace Cesium
 #ifdef AZ_COMPILER_MSVC
 #pragma pop_macro("OPAQUE")
 #endif
-

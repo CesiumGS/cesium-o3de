@@ -132,8 +132,7 @@ namespace Cesium
             }
         }
 
-        return std::make_unique<HttpAssetResponse>(
-            statusCode, std::move(contentType), std::move(headers), std::move(responseContent));
+        return std::make_unique<HttpAssetResponse>(statusCode, std::move(contentType), std::move(headers), std::move(responseContent));
     }
 
     IOContent HttpAssetAccessor::DecodeGzip(IOContent& content)

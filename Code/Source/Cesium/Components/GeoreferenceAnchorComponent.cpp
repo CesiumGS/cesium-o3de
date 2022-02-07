@@ -13,10 +13,8 @@ namespace Cesium
     {
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<GeoreferenceAnchorComponent, AZ::Component>()
-                ->Version(0)
-                ->Field("Position", &GeoreferenceAnchorComponent::m_position)
-                ;
+            serializeContext->Class<GeoreferenceAnchorComponent, AZ::Component>()->Version(0)->Field(
+                "Position", &GeoreferenceAnchorComponent::m_position);
         }
     }
 
@@ -40,7 +38,7 @@ namespace Cesium
     {
     }
 
-	GeoreferenceAnchorComponent::GeoreferenceAnchorComponent()
+    GeoreferenceAnchorComponent::GeoreferenceAnchorComponent()
     {
     }
 
@@ -71,7 +69,7 @@ namespace Cesium
     {
         m_position = pos;
 
-        glm::dmat4 absToRelWorld{1.0};
+        glm::dmat4 absToRelWorld{ 1.0 };
         OriginShiftRequestBus::BroadcastResult(absToRelWorld, &OriginShiftRequestBus::Events::GetAbsToRelWorld);
         OnOriginShifting(absToRelWorld);
     }
@@ -102,4 +100,4 @@ namespace Cesium
         OriginShiftRequestBus::BroadcastResult(relToAbsWorld, &OriginShiftRequestBus::Events::GetRelToAbsWorld);
         SetPosition(relToAbsWorld * MathHelper::ToDVec4(world.GetTranslation(), 1.0));
     }
-}
+} // namespace Cesium

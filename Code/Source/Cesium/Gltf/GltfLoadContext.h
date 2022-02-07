@@ -81,4 +81,3 @@ namespace Cesium
         AZStd::vector<GltfLoadMesh> m_meshes;
     };
 } // namespace Cesium
-

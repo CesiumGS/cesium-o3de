@@ -26,7 +26,6 @@
 #pragma pop_macro("OPAQUE")
 #endif
 
-
 namespace Cesium
 {
     RenderResourcesPreparer::RenderResourcesPreparer(AZ::Render::MeshFeatureProcessorInterface* meshFeatureProcessor)
@@ -272,7 +271,8 @@ namespace Cesium
                 GltfModel& model = intrusiveGltfModel->m_model;
                 for (auto& material : model.GetMaterials())
                 {
-                    if (!material.m_material) {
+                    if (!material.m_material)
+                    {
                         continue;
                     }
 
@@ -283,7 +283,7 @@ namespace Cesium
                     // in the next frame. Otherwise, we create the new material with the attached raster, so that the primitive is
                     // updated with the new material in the next frame. If we only update the material and not create new material
                     // the terrain can be rendered with old material if that material is still compiling and flickering can happen
-                    bool canCompile = material.m_material->CanCompile(); 
+                    bool canCompile = material.m_material->CanCompile();
                     if (canCompile)
                     {
                         canCompile = materialBuilder.SetRasterForMaterial(
@@ -336,7 +336,8 @@ namespace Cesium
                 GltfModel& model = intrusiveGltfModel->m_model;
                 for (auto& material : model.GetMaterials())
                 {
-                    if (!material.m_material) {
+                    if (!material.m_material)
+                    {
                         continue;
                     }
 

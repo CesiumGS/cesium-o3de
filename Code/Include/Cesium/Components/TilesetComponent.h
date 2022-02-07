@@ -64,12 +64,12 @@ namespace Cesium
     private:
         void OnTick(float deltaTime, AZ::ScriptTimePoint time) override;
 
-		void OnOriginShifting(const glm::dmat4& absToRelWorld) override;
+        void OnOriginShifting(const glm::dmat4& absToRelWorld) override;
 
         struct Impl;
         AZStd::unique_ptr<Impl> m_impl;
         TilesetConfiguration m_tilesetConfiguration;
         TilesetSource m_tilesetSource;
-        glm::dmat4 m_transform{1.0};
+        glm::dmat4 m_transform{ 1.0 };
     };
 } // namespace Cesium

@@ -54,4 +54,4 @@ namespace Cesium
         glm::dmat4 m_transform;
     };
 
-}
+} // namespace Cesium

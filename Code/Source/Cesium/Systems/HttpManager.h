@@ -13,7 +13,7 @@ namespace AZ
     class JobManager;
     class JobContext;
     class Job;
-}
+} // namespace AZ
 
 namespace Aws
 {
@@ -21,7 +21,7 @@ namespace Aws
     {
         class HttpClient;
     }
-}
+} // namespace Aws
 
 namespace Cesium
 {
@@ -95,4 +95,4 @@ namespace Cesium
         AZStd::unique_ptr<AZ::JobContext> m_ioJobContext;
         std::shared_ptr<Aws::Http::HttpClient> m_awsHttpClient;
     };
-}
+} // namespace Cesium

@@ -22,7 +22,7 @@ namespace AZ
     AZ_TYPE_INFO_SPECIALIZE(glm::dmat2, "{76A74122-EDA2-403A-B9EE-F271C15F108D}");
     AZ_TYPE_INFO_SPECIALIZE(glm::dmat3, "{889D681F-010D-4B5C-B2CE-81097383B329}");
     AZ_TYPE_INFO_SPECIALIZE(glm::dmat4, "{8C9ECA4A-052D-47AC-A969-D5E5CF41D79A}");
-}
+} // namespace AZ
 
 namespace Cesium
 {
@@ -40,17 +40,17 @@ namespace Cesium
 
         static void ReflectGlmQuatBehavior(AZ::BehaviorContext* context);
 
-        static void ReflectGlmVector(AZ::BehaviorContext::ClassBuilder<glm::dvec2> &builder);
+        static void ReflectGlmVector(AZ::BehaviorContext::ClassBuilder<glm::dvec2>& builder);
 
-        static void ReflectGlmVector(AZ::BehaviorContext::ClassBuilder<glm::dvec3> &builder);
-        
-        static void ReflectGlmVector(AZ::BehaviorContext::ClassBuilder<glm::dvec4> &builder);
+        static void ReflectGlmVector(AZ::BehaviorContext::ClassBuilder<glm::dvec3>& builder);
 
-        static void ReflectGlmMatrix(AZ::BehaviorContext::ClassBuilder<glm::dmat2> &builder);
+        static void ReflectGlmVector(AZ::BehaviorContext::ClassBuilder<glm::dvec4>& builder);
 
-        static void ReflectGlmMatrix(AZ::BehaviorContext::ClassBuilder<glm::dmat3> &builder);
+        static void ReflectGlmMatrix(AZ::BehaviorContext::ClassBuilder<glm::dmat2>& builder);
 
-        static void ReflectGlmMatrix(AZ::BehaviorContext::ClassBuilder<glm::dmat4> &builder);
+        static void ReflectGlmMatrix(AZ::BehaviorContext::ClassBuilder<glm::dmat3>& builder);
+
+        static void ReflectGlmMatrix(AZ::BehaviorContext::ClassBuilder<glm::dmat4>& builder);
     };
 
     template<typename VecType>
@@ -373,7 +373,6 @@ namespace Cesium
             }
 
             return context.Report(JSR::Tasks::ReadField, JSR::Outcomes::Success, "Successfully deserialize glm::dmat");
-
         }
 
         AZ::JsonSerializationResult::Result Store(

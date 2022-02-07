@@ -38,4 +38,4 @@ namespace Cesium
         double m_panningSpeed{ 5.0 };
         double m_movementSpeed{ 5.0 };
     };
-}
+} // namespace Cesium

@@ -4,7 +4,7 @@
 #include "Cesium/Systems/GenericAssetAccessor.h"
 #include "Cesium/Systems/TaskProcessor.h"
 
-namespace Cesium 
+namespace Cesium
 {
     CesiumSystem::CesiumSystem()
     {
@@ -73,4 +73,4 @@ namespace Cesium
     {
         return m_criticalAssetManager;
     }
-}
+} // namespace Cesium

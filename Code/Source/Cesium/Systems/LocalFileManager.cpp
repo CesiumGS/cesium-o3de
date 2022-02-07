@@ -113,8 +113,7 @@ namespace Cesium
         const CesiumAsync::AsyncSystem& asyncSystem, const IORequestParameter& request)
     {
         auto promise = asyncSystem.createPromise<IOContent>();
-        AZ::Job* job =
-            aznew AZ::JobFunction<std::function<void()>>(RequestHandler{ request, promise }, true, m_ioJobContext.get());
+        AZ::Job* job = aznew AZ::JobFunction<std::function<void()>>(RequestHandler{ request, promise }, true, m_ioJobContext.get());
         job->Start();
         return promise.getFuture();
     }

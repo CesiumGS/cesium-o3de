@@ -9,7 +9,7 @@ namespace CesiumGltf
     struct Model;
     struct Material;
     struct TextureInfo;
-}
+} // namespace CesiumGltf
 
 namespace AZ
 {
@@ -17,7 +17,7 @@ namespace AZ
     {
         class MaterialTypeAsset;
     }
-}
+} // namespace AZ
 
 namespace Cesium
 {

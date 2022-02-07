@@ -15,8 +15,7 @@ namespace Cesium
                 ->Field("Url", &BingRasterOverlaySource::m_url)
                 ->Field("Key", &BingRasterOverlaySource::m_key)
                 ->Field("BingMapStyle", &BingRasterOverlaySource::m_bingMapStyle)
-                ->Field("Culture", &BingRasterOverlaySource::m_culture)
-                ;
+                ->Field("Culture", &BingRasterOverlaySource::m_culture);
         }
 
         if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
@@ -30,8 +29,7 @@ namespace Cesium
                 ->Enum<static_cast<int>(BingMapsStyle::CanvasLight)>("BingMapsStyle_CanvasLight")
                 ->Enum<static_cast<int>(BingMapsStyle::CanvasGray)>("BingMapsStyle_CanvasGray")
                 ->Enum<static_cast<int>(BingMapsStyle::OrdnanceSurvey)>("BingMapsStyle_OrdnanceSurvey")
-                ->Enum<static_cast<int>(BingMapsStyle::CollinsBart)>("BingMapsStyle_CollinsBart")
-                ;
+                ->Enum<static_cast<int>(BingMapsStyle::CollinsBart)>("BingMapsStyle_CollinsBart");
 
             auto getBingMapStyle = [](BingRasterOverlaySource* source)
             {
@@ -47,8 +45,7 @@ namespace Cesium
                 ->Property("Url", BehaviorValueProperty(&BingRasterOverlaySource::m_url))
                 ->Property("Key", BehaviorValueProperty(&BingRasterOverlaySource::m_key))
                 ->Property("BingMapStyle", getBingMapStyle, setBingMapStyle)
-                ->Property("Culture", BehaviorValueProperty(&BingRasterOverlaySource::m_culture))
-                ;
+                ->Property("Culture", BehaviorValueProperty(&BingRasterOverlaySource::m_culture));
         }
     }
 
@@ -77,9 +74,8 @@ namespace Cesium
 
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<BingRasterOverlayComponent, AZ::Component, RasterOverlayComponent>()->Version(0)
-                ->Field("source", &BingRasterOverlayComponent::m_source)
-                ;
+            serializeContext->Class<BingRasterOverlayComponent, AZ::Component, RasterOverlayComponent>()->Version(0)->Field(
+                "source", &BingRasterOverlayComponent::m_source);
         }
 
         if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))

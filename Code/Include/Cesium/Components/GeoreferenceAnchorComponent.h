@@ -50,4 +50,4 @@ namespace Cesium
 
         bool m_selfTransform{ true };
     };
-}
+} // namespace Cesium

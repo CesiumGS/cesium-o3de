@@ -8,7 +8,7 @@
 
 namespace Cesium
 {
-    class OriginShiftEditorComponent 
+    class OriginShiftEditorComponent
         : public AzToolsFramework::Components::EditorComponentBase
         , public OriginShiftRequestBus::Handler
     {
@@ -29,14 +29,14 @@ namespace Cesium
 
         void BuildGameEntity(AZ::Entity* gameEntity) override;
 
-	private:
+    private:
         void Init() override;
 
         void Activate() override;
 
         void Deactivate() override;
 
-		void SetOriginAndRotation(const glm::dvec3& origin, const glm::dmat3& rotation) override;
+        void SetOriginAndRotation(const glm::dvec3& origin, const glm::dmat3& rotation) override;
 
         const glm::dmat4& GetAbsToRelWorld() const override;
 
@@ -57,4 +57,4 @@ namespace Cesium
 
         ECEFPositionChangeEvent::Handler m_onOriginChangeHandler;
     };
-}
+} // namespace Cesium

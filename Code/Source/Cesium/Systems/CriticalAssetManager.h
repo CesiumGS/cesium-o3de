@@ -16,7 +16,7 @@ namespace Cesium
 
         void OnCatalogLoaded(const char* catalogFile) override;
 
-        AZ::Data::AssetId GenerateRandomAssetId() const; 
+        AZ::Data::AssetId GenerateRandomAssetId() const;
 
         AZ::Data::Asset<AZ::RPI::MaterialTypeAsset> m_standardPbrMaterialType;
         AZ::Data::Asset<AZ::RPI::MaterialTypeAsset> m_rasterMaterialType;

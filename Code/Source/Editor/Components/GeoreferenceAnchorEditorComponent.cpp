@@ -13,9 +13,8 @@ namespace Cesium
     {
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<GeoreferenceAnchorEditorComponent, AZ::Component>()->Version(0)
-                ->Field("ECEFPicker", &GeoreferenceAnchorEditorComponent::m_ecefPicker)
-                ;
+            serializeContext->Class<GeoreferenceAnchorEditorComponent, AZ::Component>()->Version(0)->Field(
+                "ECEFPicker", &GeoreferenceAnchorEditorComponent::m_ecefPicker);
 
             AZ::EditContext* editContext = serializeContext->GetEditContext();
             if (editContext)
@@ -24,17 +23,16 @@ namespace Cesium
                     ->Class<GeoreferenceAnchorEditorComponent>(
                         "Georeference Anchor", "The component is used to georeference and apply origin shifting to children entities")
                     ->ClassElement(AZ::Edit::ClassElements::EditorData, "")
-                        ->Attribute(AZ::Edit::Attributes::Category, "Cesium")
-                        ->Attribute(AZ::Edit::Attributes::Icon, "Editor/Icons/Components/Cesium_logo_only.svg")
-                        ->Attribute(AZ::Edit::Attributes::ViewportIcon, "Editor/Icons/Components/Cesium_logo_only.svg")
-                        ->Attribute(AZ::Edit::Attributes::AppearsInAddComponentMenu, AZ_CRC("Game", 0x232b318c))
-                        ->Attribute(AZ::Edit::Attributes::AutoExpand, true)
+                    ->Attribute(AZ::Edit::Attributes::Category, "Cesium")
+                    ->Attribute(AZ::Edit::Attributes::Icon, "Editor/Icons/Components/Cesium_logo_only.svg")
+                    ->Attribute(AZ::Edit::Attributes::ViewportIcon, "Editor/Icons/Components/Cesium_logo_only.svg")
+                    ->Attribute(AZ::Edit::Attributes::AppearsInAddComponentMenu, AZ_CRC("Game", 0x232b318c))
+                    ->Attribute(AZ::Edit::Attributes::AutoExpand, true)
                     ->UIElement(AZ::Edit::UIHandlers::Button, "Place World Origin Here", "")
-                        ->Attribute(AZ::Edit::Attributes::NameLabelOverride, "")
-                        ->Attribute(AZ::Edit::Attributes::ButtonText, "Place World Origin Here")
-                        ->Attribute(AZ::Edit::Attributes::ChangeNotify, &GeoreferenceAnchorEditorComponent::PlaceWorldOriginHere)
-                    ->DataElement(AZ::Edit::UIHandlers::Default, &GeoreferenceAnchorEditorComponent::m_ecefPicker, "Anchor", "")
-                    ;
+                    ->Attribute(AZ::Edit::Attributes::NameLabelOverride, "")
+                    ->Attribute(AZ::Edit::Attributes::ButtonText, "Place World Origin Here")
+                    ->Attribute(AZ::Edit::Attributes::ChangeNotify, &GeoreferenceAnchorEditorComponent::PlaceWorldOriginHere)
+                    ->DataElement(AZ::Edit::UIHandlers::Default, &GeoreferenceAnchorEditorComponent::m_ecefPicker, "Anchor", "");
             }
         }
     }
@@ -117,4 +115,4 @@ namespace Cesium
         m_ecefPicker.SetPosition(m_georeferenceAnchorComponent.GetPosition(), m_positionChangeHandler);
         undoBatch.MarkEntityDirty(GetEntityId());
     }
-}
+} // namespace Cesium
