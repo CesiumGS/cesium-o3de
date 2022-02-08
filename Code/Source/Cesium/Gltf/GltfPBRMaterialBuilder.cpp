@@ -360,12 +360,12 @@ namespace Cesium
                 pixels[i + 3] = static_cast<std::byte>(255);
             }
 
-            newImage = Create2DImage(pixels.data(), pixels.size(), width, height, AZ::RHI::Format::R8G8B8A8_UNORM);
+            newImage = Create2DImage(pixels.data(), pixels.size(), width, height, AZ::RHI::Format::R8G8B8A8_UNORM_SRGB);
         }
         else
         {
             newImage =
-                Create2DImage(imageData.pixelData.data(), imageData.pixelData.size(), width, height, AZ::RHI::Format::R8G8B8A8_UNORM);
+                Create2DImage(imageData.pixelData.data(), imageData.pixelData.size(), width, height, AZ::RHI::Format::R8G8B8A8_UNORM_SRGB);
         }
 
         auto cache = textureCache.insert({ imageSourceIdx, std::move(newImage) });
