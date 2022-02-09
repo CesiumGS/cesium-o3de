@@ -45,6 +45,8 @@ namespace Cesium
 
         AZ::u32 OnTilesetConfigurationChanged();
 
+        AZ::u32 OnRenderConfigurationChanged();
+
         void PlaceWorldOriginHere();
 
         void OnTransformChanged(const AZ::Transform& local, const AZ::Transform& world) override;
@@ -55,6 +57,7 @@ namespace Cesium
 
         AZStd::unique_ptr<TilesetComponent> m_tilesetComponent;
         TilesetConfiguration m_tilesetConfiguration;
+        TilesetRenderConfiguration m_renderConfiguration;
         TilesetSource m_tilesetSource;
         glm::dmat4 m_transform{ 1.0 };
         bool m_overrideDefaultTransform{ false };

@@ -21,6 +21,7 @@ namespace Cesium
             serializeContext->Class<TilesetEditorComponent, AZ::Component>()
                 ->Version(0)
                 ->Field("TilesetConfiguration", &TilesetEditorComponent::m_tilesetConfiguration)
+                ->Field("RenderConfiguration", &TilesetEditorComponent::m_renderConfiguration)
                 ->Field("TilesetSource", &TilesetEditorComponent::m_tilesetSource)
                 ->Field("Transform", &TilesetEditorComponent::m_transform)
                 ->Field("OverrideDefaultTransform", &TilesetEditorComponent::m_overrideDefaultTransform);
@@ -45,7 +46,10 @@ namespace Cesium
                     ->Attribute(AZ::Edit::Attributes::ChangeNotify, &TilesetEditorComponent::OnTilesetSourceChanged)
                     ->DataElement(AZ::Edit::UIHandlers::Default, &TilesetEditorComponent::m_tilesetConfiguration, "Configuration", "")
                     ->Attribute(AZ::Edit::Attributes::Visibility, AZ::Edit::PropertyVisibility::ShowChildrenOnly)
-                    ->Attribute(AZ::Edit::Attributes::ChangeNotify, &TilesetEditorComponent::OnTilesetConfigurationChanged);
+                    ->Attribute(AZ::Edit::Attributes::ChangeNotify, &TilesetEditorComponent::OnTilesetConfigurationChanged)
+                    ->DataElement(AZ::Edit::UIHandlers::Default, &TilesetEditorComponent::m_renderConfiguration, "Render", "")
+                    ->Attribute(AZ::Edit::Attributes::Visibility, AZ::Edit::PropertyVisibility::ShowChildrenOnly)
+                    ->Attribute(AZ::Edit::Attributes::ChangeNotify, &TilesetEditorComponent::OnRenderConfigurationChanged);
 
                 editContext->Class<TilesetSource>("TilesetSource", "")
                     ->ClassElement(AZ::Edit::ClassElements::EditorData, "")
@@ -95,6 +99,14 @@ namespace Cesium
                     ->DataElement(AZ::Edit::UIHandlers::CheckBox, &TilesetConfiguration::m_preloadAncestors, "Preload Ancestors", "")
                     ->DataElement(AZ::Edit::UIHandlers::CheckBox, &TilesetConfiguration::m_preloadSiblings, "Preload Siblings", "")
                     ->DataElement(AZ::Edit::UIHandlers::CheckBox, &TilesetConfiguration::m_forbidHole, "Forbid Hole", "");
+
+                editContext->Class<TilesetRenderConfiguration>("Render", "")
+                    ->ClassElement(AZ::Edit::ClassElements::EditorData, "")
+                    ->ClassElement(AZ::Edit::ClassElements::Group, "Render")
+                    ->Attribute(AZ::Edit::Attributes::AutoExpand, true)
+                    ->DataElement(
+                        AZ::Edit::UIHandlers::CheckBox, &TilesetRenderConfiguration::m_generateMissingNormalAsSmooth,
+                        "Generate Missing Normal As Smooth", "");
             }
         }
     }
@@ -126,6 +138,7 @@ namespace Cesium
         tilesetComponent->Init();
         tilesetComponent->Activate();
         tilesetComponent->SetConfiguration(m_tilesetConfiguration);
+        tilesetComponent->SetRenderConfiguration(m_renderConfiguration);
         tilesetComponent->LoadTileset(m_tilesetSource);
         tilesetComponent->ApplyTransformToRoot(m_transform);
         tilesetComponent->Deactivate();
@@ -213,6 +226,17 @@ namespace Cesium
         }
 
         m_tilesetComponent->SetConfiguration(m_tilesetConfiguration);
+        return AZ::Edit::PropertyRefreshLevels::None;
+    }
+
+    AZ::u32 TilesetEditorComponent::OnRenderConfigurationChanged()
+    {
+        if (!m_tilesetComponent)
+        {
+            return AZ::Edit::PropertyRefreshLevels::None;
+        }
+
+        m_tilesetComponent->SetRenderConfiguration(m_renderConfiguration);
         return AZ::Edit::PropertyRefreshLevels::None;
     }
 

@@ -30,6 +30,7 @@ namespace Cesium
         GeospatialHelper::Reflect(context);
 
         TilesetConfiguration::Reflect(context);
+        TilesetRenderConfiguration::Reflect(context);
         TilesetSource::Reflect(context);
         TilesetRequest::Reflect(context);
 

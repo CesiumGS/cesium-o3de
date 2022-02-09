@@ -79,6 +79,6 @@ namespace Cesium
 
         AZ::Data::Asset<AZ::RPI::MaterialTypeAsset> m_overrideMaterialTypeAsset;
 
-        static constexpr const char* const MATERIALS_UNLIT_EXTENSION = "KHR_materials_unlit"; 
+        static constexpr const char* const MATERIALS_UNLIT_EXTENSION = "KHR_materials_unlit";
     };
 } // namespace Cesium

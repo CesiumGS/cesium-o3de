@@ -34,6 +34,23 @@ namespace Cesium
         }
     }
 
+    void TilesetRenderConfiguration::Reflect(AZ::ReflectContext* context)
+    {
+        if (auto serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
+        {
+            serializeContext->Class<TilesetRenderConfiguration>()->Version(0)->Field(
+                "GenerateMissingNormalAsSmooth", &TilesetRenderConfiguration::m_generateMissingNormalAsSmooth);
+        }
+
+        if (auto behaviorContext = azrtti_cast<AZ::BehaviorContext*>(context))
+        {
+            behaviorContext->Class<TilesetRenderConfiguration>("TilesetRenderConfiguration")
+                ->Attribute(AZ::Script::Attributes::Category, "Cesium/3DTiles")
+                ->Property(
+                    "GenerateMissingNormalAsSmooth", BehaviorValueProperty(&TilesetRenderConfiguration::m_generateMissingNormalAsSmooth));
+        }
+    }
+
     void TilesetLocalFileSource::Reflect(AZ::ReflectContext* context)
     {
         if (auto serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
@@ -200,6 +217,8 @@ namespace Cesium
                 ->Attribute(AZ::Script::Attributes::Category, "Cesium/3DTiles")
                 ->Event("SetConfiguration", &TilesetRequestBus::Events::SetConfiguration)
                 ->Event("GetConfiguration", &TilesetRequestBus::Events::GetConfiguration)
+                ->Event("SetRenderConfiguration", &TilesetRequestBus::Events::SetRenderConfiguration)
+                ->Event("GetRenderConfiguration", &TilesetRequestBus::Events::GetRenderConfiguration)
                 ->Event("GetRootBoundingVolumeInECEF", &TilesetRequestBus::Events::GetRootBoundingVolumeInECEF)
                 ->Event("GetBoundingVolumeInECEF", &TilesetRequestBus::Events::GetBoundingVolumeInECEF)
                 ->Event("LoadTileset", &TilesetRequestBus::Events::LoadTileset)
