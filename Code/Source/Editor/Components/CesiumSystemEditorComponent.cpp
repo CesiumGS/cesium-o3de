@@ -6,6 +6,7 @@
 #include "Editor/Components/OriginShiftEditorComponent.h"
 #include "Editor/Widgets/CesiumIonPanelWidget.h"
 #include "Editor/Widgets/CesiumIonAssetListWidget.h"
+#include "Editor/Widgets/GeoreferenceCameraFlyConfigurationWidget.h"
 #include "Editor/Widgets/MathReflectPropertyWidget.h"
 #include <Cesium/Math/GeospatialHelper.h>
 #include <Editor/EditorSettingsAPIBus.h>
@@ -27,6 +28,7 @@ namespace Cesium
     void CesiumSystemEditorComponent::Reflect(AZ::ReflectContext* context)
     {
         MathReflectPropertyWidget::Reflect(context);
+        GeoreferenceCameraFlyConfigurationWidget::Reflect(context);
         ECEFPickerComponentHelper::Reflect(context);
         if (auto serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
