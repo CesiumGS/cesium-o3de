@@ -69,7 +69,8 @@ namespace Cesium
                     "FlyToECEFLocation", &GeoReferenceCameraFlyControllerRequestBus::Events::FlyToECEFLocation,
                     { AZ::BehaviorParameterOverrides("ECEFLocation"), AZ::BehaviorParameterOverrides("ECEFDirection") })
                 ->Event(
-                    "FlyToECEFLocationWithDuration", &GeoReferenceCameraFlyControllerRequestBus::Events::FlyToECEFLocationWithConfiguration,
+                    "FlyToECEFLocationWithConfiguration",
+                    &GeoReferenceCameraFlyControllerRequestBus::Events::FlyToECEFLocationWithConfiguration,
                     { AZ::BehaviorParameterOverrides("ECEFLocation"), AZ::BehaviorParameterOverrides("ECEFDirection"),
                       AZ::BehaviorParameterOverrides("FlyConfiguration") });
         }
