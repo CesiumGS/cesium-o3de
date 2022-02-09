@@ -22,7 +22,11 @@ namespace Cesium
                 ->Event("GetMovementSpeed", &GeoReferenceCameraFlyControllerRequestBus::Events::GetMovementSpeed)
                 ->Event(
                     "FlyToECEFLocation", &GeoReferenceCameraFlyControllerRequestBus::Events::FlyToECEFLocation,
-                    { AZ::BehaviorParameterOverrides("ECEFLocation"), AZ::BehaviorParameterOverrides("ECEFDirection") });
+                    { AZ::BehaviorParameterOverrides("ECEFLocation"), AZ::BehaviorParameterOverrides("ECEFDirection") })
+                ->Event(
+                    "FlyToECEFLocationWithDuration", &GeoReferenceCameraFlyControllerRequestBus::Events::FlyToECEFLocationWithDuration,
+                    { AZ::BehaviorParameterOverrides("ECEFLocation"), AZ::BehaviorParameterOverrides("ECEFDirection"),
+                      AZ::BehaviorParameterOverrides("Duration") });
         }
     }
 } // namespace Cesium

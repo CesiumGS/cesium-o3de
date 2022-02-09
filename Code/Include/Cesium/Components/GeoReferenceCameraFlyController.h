@@ -54,6 +54,8 @@ namespace Cesium
 
         void FlyToECEFLocation(const glm::dvec3& location, const glm::dvec3& direction) override;
 
+        void FlyToECEFLocationWithDuration(const glm::dvec3& location, const glm::dvec3& direction, float duration) override;
+
         void BindCameraStopFlyEventHandler(CameraStopFlyEvent::Handler& handler) override;
 
         void Init() override;
@@ -80,6 +82,8 @@ namespace Cesium
         void StopFly();
 
         void ResetCameraMovement();
+
+        void FlyToECEFLocationImpl(const glm::dvec3& location, const glm::dvec3& direction, const float* duration = nullptr);
 
         // configurations for controller
         double m_mouseSensitivity;
