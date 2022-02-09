@@ -8,7 +8,11 @@
 namespace Cesium
 {
     GeoReferenceInterpolator::GeoReferenceInterpolator(
-        const glm::dvec3& begin, const glm::dvec3& beginDirection, const glm::dvec3& destination, const glm::dvec3& destinationDirection)
+        const glm::dvec3& begin,
+        const glm::dvec3& beginDirection,
+        const glm::dvec3& destination,
+        const glm::dvec3& destinationDirection,
+        const float* duration)
         : m_begin{ begin }
         , m_beginPitchRollHead{}
         , m_destination{ destination }
@@ -32,8 +36,15 @@ namespace Cesium
         , m_useHeightLerp{ false }
     {
         // estimate duration
-        m_totalDuration = glm::ceil(glm::distance(m_begin, m_destination) / 1000000.0) + 2.0;
-        m_totalDuration = glm::min(m_totalDuration, 7.0);
+        if (duration)
+        {
+            m_totalDuration = *duration;
+        }
+        else
+        {
+            m_totalDuration = glm::ceil(glm::distance(m_begin, m_destination) / 1000000.0) + 2.0;
+            m_totalDuration = glm::min(m_totalDuration, 7.0);
+        }
 
         // initialize parameters to interpolate positions
         auto beginCartographic = CesiumGeospatial::Ellipsoid::WGS84.cartesianToCartographic(m_begin);

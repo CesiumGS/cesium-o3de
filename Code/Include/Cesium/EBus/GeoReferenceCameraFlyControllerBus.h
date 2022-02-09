@@ -28,6 +28,8 @@ namespace Cesium
 
         virtual void FlyToECEFLocation(const glm::dvec3& location, const glm::dvec3& direction) = 0;
 
+        virtual void FlyToECEFLocationWithDuration(const glm::dvec3& location, const glm::dvec3& direction, float duration) = 0;
+
         virtual void BindCameraStopFlyEventHandler(CameraStopFlyEvent::Handler& handler) = 0;
     };
 
