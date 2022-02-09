@@ -78,5 +78,7 @@ namespace Cesium
             const std::byte* pixelData, std::size_t bytesPerImage, std::uint32_t width, std::uint32_t height, AZ::RHI::Format format);
 
         AZ::Data::Asset<AZ::RPI::MaterialTypeAsset> m_overrideMaterialTypeAsset;
+
+        static constexpr const char* const MATERIALS_UNLIT_EXTENSION = "KHR_materials_unlit"; 
     };
 } // namespace Cesium

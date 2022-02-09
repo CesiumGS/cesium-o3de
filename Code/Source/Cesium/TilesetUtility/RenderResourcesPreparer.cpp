@@ -178,7 +178,7 @@ namespace Cesium
             imageDesc.m_bindFlags = AZ::RHI::ImageBindFlags::ShaderRead;
             imageDesc.m_dimension = AZ::RHI::ImageDimension::Image2D;
             imageDesc.m_size = AZ::RHI::Size(image.width, image.height, 1);
-            imageDesc.m_format = AZ::RHI::Format::R8G8B8A8_UNORM;
+            imageDesc.m_format = AZ::RHI::Format::R8G8B8A8_UNORM_SRGB;
 
             AZ::RHI::ImageSubresourceLayout imageSubresourceLayout =
                 AZ::RHI::GetImageSubresourceLayout(imageDesc, AZ::RHI::ImageSubresource{});
