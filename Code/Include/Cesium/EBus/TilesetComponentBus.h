@@ -38,6 +38,21 @@ namespace Cesium
         bool m_forbidHole;
     };
 
+    struct TilesetRenderConfiguration final
+    {
+        AZ_RTTI(TilesetRenderConfiguration, "{141F2DE1-CEEB-4ACD-BCCA-2F7F6CEF60B6}");
+        AZ_CLASS_ALLOCATOR(TilesetRenderConfiguration, AZ::SystemAllocator, 0);
+
+        static void Reflect(AZ::ReflectContext* context);
+
+        TilesetRenderConfiguration()
+            : m_generateMissingNormalAsSmooth{ true }
+        {
+        }
+
+        bool m_generateMissingNormalAsSmooth;
+    };
+
     struct TilesetLocalFileSource final
     {
         AZ_RTTI(TilesetLocalFileSource, "{80F811DB-AD4D-4BAD-AB08-F63765DC6D1E}");
@@ -132,6 +147,10 @@ namespace Cesium
         virtual void SetConfiguration(const TilesetConfiguration& configration) = 0;
 
         virtual const TilesetConfiguration& GetConfiguration() const = 0;
+
+        virtual void SetRenderConfiguration(const TilesetRenderConfiguration& configration) = 0;
+
+        virtual const TilesetRenderConfiguration& GetRenderConfiguration() const = 0;
 
         virtual TilesetBoundingVolume GetRootBoundingVolumeInECEF() const = 0;
 

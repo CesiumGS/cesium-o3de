@@ -35,6 +35,10 @@ namespace Cesium
 
         const TilesetConfiguration& GetConfiguration() const override;
 
+        void SetRenderConfiguration(const TilesetRenderConfiguration& configration) override;
+
+        const TilesetRenderConfiguration& GetRenderConfiguration() const override;
+
         AZ::Aabb GetWorldBounds() override;
 
         AZ::Aabb GetLocalBounds() override;
@@ -69,6 +73,7 @@ namespace Cesium
         struct Impl;
         AZStd::unique_ptr<Impl> m_impl;
         TilesetConfiguration m_tilesetConfiguration;
+        TilesetRenderConfiguration m_renderConfiguration;
         TilesetSource m_tilesetSource;
         glm::dmat4 m_transform{ 1.0 };
     };
