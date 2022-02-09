@@ -14,9 +14,13 @@ namespace Cesium
                 editContext->Class<GeoreferenceCameraFlyConfiguration>("GeoreferenceCameraFlyConfiguration", "")
                     ->ClassElement(AZ::Edit::ClassElements::EditorData, "")
                     ->Attribute(AZ::Edit::Attributes::AutoExpand, true)
-                    ->DataElement(AZ::Edit::UIHandlers::Default, &GeoreferenceCameraFlyConfiguration::m_overrideDefaultDuration, "OverrideDefaultDuration", "")
+                    ->DataElement(
+                        AZ::Edit::UIHandlers::Default, &GeoreferenceCameraFlyConfiguration::m_overrideDefaultDuration,
+                        "OverrideDefaultDuration", "")
                     ->DataElement(AZ::Edit::UIHandlers::Default, &GeoreferenceCameraFlyConfiguration::m_duration, "Duration", "")
-                    ->DataElement(AZ::Edit::UIHandlers::Default, &GeoreferenceCameraFlyConfiguration::m_overrideDefaultFlyHeight, "OverrideDefaultFlyHeight", "")
+                    ->DataElement(
+                        AZ::Edit::UIHandlers::Default, &GeoreferenceCameraFlyConfiguration::m_overrideDefaultFlyHeight,
+                        "OverrideDefaultFlyHeight", "")
                     ->DataElement(AZ::Edit::UIHandlers::Default, &GeoreferenceCameraFlyConfiguration::m_flyHeight, "FlyHeight", "")
                     ->Attribute(AZ::Edit::Attributes::Decimals, 15)
                     ->Attribute(AZ::Edit::Attributes::Suffix, "m");
