@@ -71,10 +71,17 @@ namespace Cesium
         TextureCache& textureCache,
         AZ::RPI::MaterialAssetCreator& materialCreator)
     {
-        const auto& pbrMetallicRoughness = material.pbrMetallicRoughness;
+        std::optional<CesiumGltf::MaterialPBRMetallicRoughness> pbrMetallicRoughness = material.pbrMetallicRoughness;
         if (!pbrMetallicRoughness)
         {
             return;
+        }
+
+        if (material.getGenericExtension(MATERIALS_UNLIT_EXTENSION))
+        {
+            pbrMetallicRoughness->roughnessFactor = 1.0;
+            pbrMetallicRoughness->metallicFactor = 0.0;
+            pbrMetallicRoughness->metallicRoughnessTexture = std::nullopt;
         }
 
         const std::vector<double>& baseColorFactor = pbrMetallicRoughness->baseColorFactor;
