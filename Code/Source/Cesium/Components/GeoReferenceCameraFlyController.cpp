@@ -120,13 +120,25 @@ namespace Cesium
 
     void GeoReferenceCameraFlyController::FlyToECEFLocation(const glm::dvec3& location, const glm::dvec3& direction)
     {
-        FlyToECEFLocationImpl(location, direction, nullptr);
+        FlyToECEFLocationImpl(location, direction, nullptr, nullptr);
     }
 
-    void GeoReferenceCameraFlyController::FlyToECEFLocationWithDuration(
-        const glm::dvec3& location, const glm::dvec3& direction, float duration)
+    void GeoReferenceCameraFlyController::FlyToECEFLocationWithConfiguration(
+        const glm::dvec3& location, const glm::dvec3& direction, const GeoreferenceCameraFlyConfiguration& config)
     {
-        FlyToECEFLocationImpl(location, direction, &duration);
+        const float* duration = nullptr;
+        if (config.m_overrideDefaultDuration)
+        {
+            duration = &config.m_duration;
+        }
+
+        const double* height = nullptr;
+        if (config.m_overrideDefaultFlyHeight)
+        {
+            height = &config.m_flyHeight;
+        }
+
+        FlyToECEFLocationImpl(location, direction, duration, height);
     }
 
     void GeoReferenceCameraFlyController::BindCameraStopFlyEventHandler(CameraStopFlyEvent::Handler& handler)
@@ -372,7 +384,7 @@ namespace Cesium
     }
 
     void GeoReferenceCameraFlyController::FlyToECEFLocationImpl(
-        const glm::dvec3& location, const glm::dvec3& direction, const float* duration)
+        const glm::dvec3& location, const glm::dvec3& direction, const float* duration, const double* flyHeight)
     {
         // Get camera current O3DE world transform to calculate its ECEF position and orientation
         AZ::Transform relCameraTransform = AZ::Transform::CreateIdentity();
@@ -386,8 +398,8 @@ namespace Cesium
         glm::dmat4 absCameraTransform =
             relToAbsWorld * MathHelper::ConvertTransformAndScaleToDMat4(relCameraTransform, AZ::Vector3::CreateOne());
         glm::dvec3 absCameraPosition = absCameraTransform[3];
-        m_ecefPositionInterpolator =
-            AZStd::make_unique<GeoReferenceInterpolator>(absCameraPosition, absCameraTransform[1], location, direction, duration);
+        m_ecefPositionInterpolator = AZStd::make_unique<GeoReferenceInterpolator>(
+            absCameraPosition, absCameraTransform[1], location, direction, duration, flyHeight);
 
         // transition to the new state
         m_cameraFlyState = CameraFlyState::MidFly;

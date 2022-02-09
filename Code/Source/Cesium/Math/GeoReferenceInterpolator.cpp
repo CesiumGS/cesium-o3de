@@ -12,7 +12,8 @@ namespace Cesium
         const glm::dvec3& beginDirection,
         const glm::dvec3& destination,
         const glm::dvec3& destinationDirection,
-        const float* duration)
+        const float* duration,
+        const double* flyHeight)
         : m_begin{ begin }
         , m_beginPitchRollHead{}
         , m_destination{ destination }
@@ -65,7 +66,15 @@ namespace Cesium
             m_destinationHeight = destinationCartographic->height;
             double maxHeight = glm::max(m_beginHeight, m_destinationHeight);
 
-            m_flyHeight = glm::distance(begin, destination) * 0.05;
+            if (flyHeight)
+            {
+                m_flyHeight = *flyHeight;
+            }
+            else
+            {
+                m_flyHeight = glm::distance(begin, destination) * 0.05;
+            }
+
             if (maxHeight < m_flyHeight)
             {
                 m_useHeightLerp = false;

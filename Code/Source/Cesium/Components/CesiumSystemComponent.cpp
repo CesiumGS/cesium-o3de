@@ -34,6 +34,7 @@ namespace Cesium
         TilesetSource::Reflect(context);
         TilesetRequest::Reflect(context);
 
+        GeoreferenceCameraFlyConfiguration::Reflect(context);
         GeoReferenceCameraFlyControllerRequest::Reflect(context);
 
         OriginShiftRequest::Reflect(context);
