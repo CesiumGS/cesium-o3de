@@ -47,16 +47,19 @@ namespace Cesium
                     m_materials[loadPrimitive.m_materialId].m_material = std::move(materialInstance);
                 }
 
-                auto meshHandle = m_meshFeatureProcessor->AcquireMesh(
-                    AZ::Render::MeshHandleDescriptor{ loadPrimitive.m_modelAsset, false, false, {} },
-                    m_materials[loadPrimitive.m_materialId].m_material);
-                m_meshFeatureProcessor->SetTransform(meshHandle, o3deTransform, o3deScale);
+                if (loadPrimitive.m_materialId >= 0 && loadPrimitive.m_materialId < m_materials.size())
+                {
+                    auto meshHandle = m_meshFeatureProcessor->AcquireMesh(
+                        AZ::Render::MeshHandleDescriptor{ loadPrimitive.m_modelAsset, false, false, {} },
+                        m_materials[loadPrimitive.m_materialId].m_material);
+                    m_meshFeatureProcessor->SetTransform(meshHandle, o3deTransform, o3deScale);
 
-                GltfPrimitive primitive;
-                primitive.m_meshHandle = std::move(meshHandle);
-                primitive.m_materialIndex = loadPrimitive.m_materialId;
+                    GltfPrimitive primitive;
+                    primitive.m_meshHandle = std::move(meshHandle);
+                    primitive.m_materialIndex = loadPrimitive.m_materialId;
 
-                gltfMesh.m_primitives.emplace_back(std::move(primitive));
+                    gltfMesh.m_primitives.emplace_back(std::move(primitive));
+                }
             }
         }
     }
