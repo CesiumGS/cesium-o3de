@@ -162,13 +162,13 @@ namespace Cesium
         vlayout->addLayout(itemLayout);
 
         IconButton* addBlankTileset = CreateQuickAddMenuItem(
-            itemLayout, "Blank 3D Tiles Component",
+            itemLayout, "Blank 3D Tiles",
             "An empty tileset that can be configured to show Cesium ion assets or tilesets from other sources.", row++);
         QObject::connect(addBlankTileset, &IconButton::pressed, this, &CesiumIonPanelWidget::AddBlankTileset);
 
         IconButton* addGeoreferenceCamera = CreateQuickAddMenuItem(
-            itemLayout, "Georeference Camera Controller Component",
-            "A camera that can be used to intuitively navigate in a geospatial environment.", row++);
+            itemLayout, "Cesium Camera Controller", "A camera that can be used to intuitively navigate in a geospatial environment.",
+            row++);
         QObject::connect(addGeoreferenceCamera, &IconButton::pressed, this, &CesiumIonPanelWidget::AddGeoreferenceCamera);
 
         return widget;
