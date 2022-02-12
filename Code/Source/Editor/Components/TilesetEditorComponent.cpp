@@ -41,7 +41,11 @@ namespace Cesium
                     ->Attribute(AZ::Edit::Attributes::NameLabelOverride, "")
                     ->Attribute(AZ::Edit::Attributes::ButtonText, "Place World Origin At the Root")
                     ->Attribute(AZ::Edit::Attributes::ChangeNotify, &TilesetEditorComponent::PlaceWorldOriginHere)
-                    ->DataElement(AZ::Edit::UIHandlers::Default, &TilesetEditorComponent::m_overrideDefaultTransform, "Apply Tileset Transform", "")
+                    ->DataElement(
+                        AZ::Edit::UIHandlers::Default, &TilesetEditorComponent::m_overrideDefaultTransform, "Apply Tileset Transform",
+                        "Apply the editor transform component to the root of the tileset. Note that the editor transform component is "
+                        "relative to the world origin. Because the transform uses 32-bit floating point number, you will need to place the "
+                        "origin near the tileset to preserve precision. This checkbox is turned off when the origin is shifted")
                     ->Attribute(AZ::Edit::Attributes::ChangeNotify, &TilesetEditorComponent::OverrideTilesetTransform)
                     ->DataElement(AZ::Edit::UIHandlers::Default, &TilesetEditorComponent::m_tilesetSource, "Source", "")
                     ->Attribute(AZ::Edit::Attributes::Visibility, AZ::Edit::PropertyVisibility::ShowChildrenOnly)
