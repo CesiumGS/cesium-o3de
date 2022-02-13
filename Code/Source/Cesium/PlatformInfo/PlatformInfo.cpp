@@ -3,7 +3,7 @@
 #include <AzCore/Settings/SettingsRegistryImpl.h>
 #include <AzCore/Settings/SettingsRegistryMergeUtils.h>
 #include <AzCore/Utils/Utils.h>
-#include <AzCore/IO/Path/Path.h>
+#include <AzCore/IO/FileIO.h>
 
 namespace Cesium
 {
@@ -42,5 +42,16 @@ namespace Cesium
         }
 
         return "Unknown";
+    }
+
+    AZ::IO::FixedMaxPath PlatformInfo::GetHttpCacheDirectory()
+    {
+        auto fileIO = AZ::IO::FileIOBase::GetInstance(); 
+        if (!fileIO->Exists("@user@/CesiumHttpCache"))
+        {
+            fileIO->CreatePath("@user@/CesiumHttpCache");
+        }
+
+        return AZ::IO::FixedMaxPath{ fileIO->GetAlias("@user@") } / "CesiumHttpCache" / "HttpCacheDatabase.sqlite";
     }
 } // namespace Cesium

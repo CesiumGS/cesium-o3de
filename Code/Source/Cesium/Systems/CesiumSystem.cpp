@@ -3,17 +3,27 @@
 #include "Cesium/Systems/HttpAssetAccessor.h"
 #include "Cesium/Systems/GenericAssetAccessor.h"
 #include "Cesium/Systems/TaskProcessor.h"
+#include "Cesium/PlatformInfo/PlatformInfo.h"
+#include <CesiumAsync/CachingAssetAccessor.h>
+#include <CesiumAsync/SqliteCache.h>
 
 namespace Cesium
 {
     CesiumSystem::CesiumSystem()
     {
+        // initialize logger
+        m_logger = spdlog::default_logger();
+        m_logger->sinks().clear();
+        m_logger->sinks().push_back(std::make_shared<LoggerSink>());
+
         // initialize IO managers
         m_httpManager = AZStd::make_unique<HttpManager>();
         m_localFileManager = AZStd::make_unique<LocalFileManager>();
 
         // initialize asset accessors
-        m_httpAssetAccessor = std::make_shared<HttpAssetAccessor>(m_httpManager.get());
+        m_httpAssetAccessor = std::make_shared<CesiumAsync::CachingAssetAccessor>(
+            m_logger, std::make_shared<HttpAssetAccessor>(m_httpManager.get()),
+            std::make_shared<CesiumAsync::SqliteCache>(m_logger, PlatformInfo::GetHttpCacheDirectory().c_str()));
         m_localFileAssetAccessor = std::make_shared<GenericAssetAccessor>(m_localFileManager.get(), "");
 
         // initialize task processor
@@ -21,11 +31,6 @@ namespace Cesium
 
         // initialize credit system
         m_creditSystem = std::make_shared<Cesium3DTilesSelection::CreditSystem>();
-
-        // initialize logger
-        m_logger = spdlog::default_logger();
-        m_logger->sinks().clear();
-        m_logger->sinks().push_back(std::make_shared<LoggerSink>());
     }
 
     GenericIOManager& CesiumSystem::GetIOManager(IOKind kind)
