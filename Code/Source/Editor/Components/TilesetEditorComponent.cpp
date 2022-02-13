@@ -23,8 +23,7 @@ namespace Cesium
                 ->Field("TilesetConfiguration", &TilesetEditorComponent::m_tilesetConfiguration)
                 ->Field("RenderConfiguration", &TilesetEditorComponent::m_renderConfiguration)
                 ->Field("TilesetSource", &TilesetEditorComponent::m_tilesetSource)
-                ->Field("Transform", &TilesetEditorComponent::m_transform)
-                ->Field("OverrideDefaultTransform", &TilesetEditorComponent::m_overrideDefaultTransform);
+                ->Field("Transform", &TilesetEditorComponent::m_transform);
 
             AZ::EditContext* editContext = serializeContext->GetEditContext();
             if (editContext)
@@ -41,12 +40,6 @@ namespace Cesium
                     ->Attribute(AZ::Edit::Attributes::NameLabelOverride, "")
                     ->Attribute(AZ::Edit::Attributes::ButtonText, "Place World Origin At the Root")
                     ->Attribute(AZ::Edit::Attributes::ChangeNotify, &TilesetEditorComponent::PlaceWorldOriginHere)
-                    ->DataElement(
-                        AZ::Edit::UIHandlers::Default, &TilesetEditorComponent::m_overrideDefaultTransform, "Apply Tileset Transform",
-                        "Apply the editor transform component to the root of the tileset. Note that the editor transform component is "
-                        "relative to the world origin. Because the transform uses 32-bit floating point number, you will need to place the "
-                        "origin near the tileset to preserve precision. This checkbox is turned off when the origin is shifted")
-                    ->Attribute(AZ::Edit::Attributes::ChangeNotify, &TilesetEditorComponent::OverrideTilesetTransform)
                     ->DataElement(AZ::Edit::UIHandlers::Default, &TilesetEditorComponent::m_tilesetSource, "Source", "")
                     ->Attribute(AZ::Edit::Attributes::Visibility, AZ::Edit::PropertyVisibility::ShowChildrenOnly)
                     ->Attribute(AZ::Edit::Attributes::ChangeNotify, &TilesetEditorComponent::OnTilesetSourceChanged)
@@ -225,18 +218,6 @@ namespace Cesium
         return AZ::Edit::PropertyRefreshLevels::None;
     }
 
-    AZ::u32 TilesetEditorComponent::OverrideTilesetTransform()
-    {
-        if (m_overrideDefaultTransform)
-        {
-            AZ::Transform worldTransform = AZ::Transform::CreateIdentity();
-            AZ::TransformBus::EventResult(worldTransform, GetEntityId(), &AZ::TransformBus::Events::GetWorldTM);
-            ApplyRelativeTransform(MathHelper::ConvertTransformAndScaleToDMat4(worldTransform, AZ::Vector3::CreateOne()));
-        }
-
-        return AZ::Edit::PropertyRefreshLevels::None;
-    }
-
     void TilesetEditorComponent::PlaceWorldOriginHere()
     {
         if (!m_tilesetComponent)
@@ -250,7 +231,8 @@ namespace Cesium
 
     void TilesetEditorComponent::OnTransformChanged(const AZ::Transform&, const AZ::Transform& world)
     {
-        if (!m_overrideDefaultTransform)
+        const AZ::Vector3& translation = world.GetTranslation().GetAbs();
+        if (translation.GetX() >= TRANSFORM_LIMIT || translation.GetY() >= TRANSFORM_LIMIT || translation.GetZ() >= TRANSFORM_LIMIT)
         {
             return;
         }
@@ -263,7 +245,7 @@ namespace Cesium
         using namespace AzToolsFramework;
         AzToolsFramework::ScopedUndoBatch undoBatch("Tileset Origin Shifting");
 
-        m_overrideDefaultTransform = false;
+        AZ::TransformNotificationBus::Handler::BusDisconnect();
 
         const auto& volume = m_tilesetComponent->GetRootBoundingVolumeInECEF();
         glm::dmat4 enu = CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(TilesetBoundingVolumeUtil::GetCenter(volume));
@@ -278,6 +260,8 @@ namespace Cesium
                     static_cast<float>(relativeQuat.w)),
                 AZ::Vector3(
                     static_cast<float>(relativeCenter.x), static_cast<float>(relativeCenter.y), static_cast<float>(relativeCenter.z))));
+
+        AZ::TransformNotificationBus::Handler::BusConnect(GetEntityId());
 
         PropertyEditorGUIMessages::Bus::Broadcast(
             &PropertyEditorGUIMessages::RequestRefresh, PropertyModificationRefreshLevel::Refresh_AttributesAndValues);
