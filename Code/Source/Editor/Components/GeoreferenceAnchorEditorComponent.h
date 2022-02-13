@@ -2,6 +2,7 @@
 
 #include "Editor/Components/ECEFPickerComponentHelper.h"
 #include <Cesium/Components/GeoreferenceAnchorComponent.h>
+#include <Cesium/EBus/OriginShiftComponentBus.h>
 #include <AzToolsFramework/ToolsComponents/EditorComponentBase.h>
 #include <AzCore/Component/TransformBus.h>
 #include <glm/glm.hpp>
@@ -39,6 +40,10 @@ namespace Cesium
         void PlaceWorldOriginHere();
 
         void OnTransformChanged(const AZ::Transform&, const AZ::Transform& world) override;
+
+        void ApplyRelativeTranslation(const AZ::Vector3& translation);
+
+        static constexpr float TRANSFORM_LIMIT = 10000.0f;
 
         GeoreferenceAnchorComponent m_georeferenceAnchorComponent;
         ECEFPickerComponentHelper m_ecefPicker;

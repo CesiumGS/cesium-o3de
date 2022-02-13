@@ -3,6 +3,7 @@
 #include <Cesium/Math/MathReflect.h>
 #include <Cesium/Math/MathHelper.h>
 #include <AzToolsFramework/API/ToolsApplicationAPI.h>
+#include <AzToolsFramework/UI/PropertyEditor/PropertyEditorAPI.h>
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/EditContext.h>
 #include <CesiumGeospatial/Transforms.h>
@@ -109,10 +110,29 @@ namespace Cesium
         CesiumEditorSystemRequestBus::Broadcast(&CesiumEditorSystemRequestBus::Events::PlaceOriginAtPosition, position);
     }
 
-    void GeoreferenceAnchorEditorComponent::OnTransformChanged(const AZ::Transform&, const AZ::Transform&)
+    void GeoreferenceAnchorEditorComponent::OnTransformChanged(const AZ::Transform&, const AZ::Transform& world)
+    {
+        const AZ::Vector3& translation = world.GetTranslation().GetAbs();
+        if (translation.GetX() >= TRANSFORM_LIMIT || translation.GetY() >= TRANSFORM_LIMIT || translation.GetZ() >= TRANSFORM_LIMIT)
+        {
+            return;
+        }
+
+        ApplyRelativeTranslation(world.GetTranslation());
+    }
+
+    void GeoreferenceAnchorEditorComponent::ApplyRelativeTranslation(const AZ::Vector3& translation)
     {
         AzToolsFramework::ScopedUndoBatch undoBatch("Change Anchor Position");
-        m_ecefPicker.SetPosition(m_georeferenceAnchorComponent.GetPosition(), m_positionChangeHandler);
+        AZ::TransformNotificationBus::Handler::BusDisconnect();
+
+        glm::dmat4 relToAbsWorld{ 1.0 };
+        OriginShiftRequestBus::BroadcastResult(relToAbsWorld, &OriginShiftRequestBus::Events::GetRelToAbsWorld);
+        glm::dvec3 position = relToAbsWorld * MathHelper::ToDVec4(translation, 1.0);
+        m_georeferenceAnchorComponent.SetPosition(position);
+        m_ecefPicker.SetPosition(position, m_positionChangeHandler);
+
+        AZ::TransformNotificationBus::Handler::BusConnect(GetEntityId());
         undoBatch.MarkEntityDirty(GetEntityId());
     }
 } // namespace Cesium

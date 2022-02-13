@@ -23,8 +23,7 @@ namespace Cesium
                 ->Field("TilesetConfiguration", &TilesetEditorComponent::m_tilesetConfiguration)
                 ->Field("RenderConfiguration", &TilesetEditorComponent::m_renderConfiguration)
                 ->Field("TilesetSource", &TilesetEditorComponent::m_tilesetSource)
-                ->Field("Transform", &TilesetEditorComponent::m_transform)
-                ->Field("OverrideDefaultTransform", &TilesetEditorComponent::m_overrideDefaultTransform);
+                ->Field("Transform", &TilesetEditorComponent::m_transform);
 
             AZ::EditContext* editContext = serializeContext->GetEditContext();
             if (editContext)
@@ -151,28 +150,7 @@ namespace Cesium
             {
                 glm::dmat4 absToRelWorld{ 1.0 };
                 OriginShiftRequestBus::BroadcastResult(absToRelWorld, &OriginShiftRequestBus::Events::GetAbsToRelWorld);
-
-                if (!m_overrideDefaultTransform)
-                {
-                    const auto& volume = m_tilesetComponent->GetRootBoundingVolumeInECEF();
-                    glm::dmat4 enu = CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(TilesetBoundingVolumeUtil::GetCenter(volume));
-                    glm::dmat4 relativeEnu = absToRelWorld * enu;
-                    glm::dvec3 relativeCenter = relativeEnu[3];
-                    glm::dquat relativeQuat = relativeEnu;
-                    AZ::TransformBus::Event(
-                        GetEntityId(), &AZ::TransformBus::Events::SetWorldTM,
-                        AZ::Transform::CreateFromQuaternionAndTranslation(
-                            AZ::Quaternion(
-                                static_cast<float>(relativeQuat.x), static_cast<float>(relativeQuat.y), static_cast<float>(relativeQuat.z),
-                                static_cast<float>(relativeQuat.w)),
-                            AZ::Vector3(
-                                static_cast<float>(relativeCenter.x), static_cast<float>(relativeCenter.y),
-                                static_cast<float>(relativeCenter.z))));
-                }
-                else
-                {
-                    OnOriginShifting(absToRelWorld);
-                }
+                OnOriginShifting(absToRelWorld);
             });
     }
 
@@ -253,9 +231,9 @@ namespace Cesium
 
     void TilesetEditorComponent::OnTransformChanged(const AZ::Transform&, const AZ::Transform& world)
     {
-        if (m_selfTransform)
+        const AZ::Vector3& translation = world.GetTranslation().GetAbs();
+        if (translation.GetX() >= TRANSFORM_LIMIT || translation.GetY() >= TRANSFORM_LIMIT || translation.GetZ() >= TRANSFORM_LIMIT)
         {
-            m_selfTransform = false;
             return;
         }
 
@@ -264,7 +242,11 @@ namespace Cesium
 
     void TilesetEditorComponent::OnOriginShifting(const glm::dmat4& absToRelWorld)
     {
-        m_selfTransform = true;
+        using namespace AzToolsFramework;
+        AzToolsFramework::ScopedUndoBatch undoBatch("Tileset Origin Shifting");
+
+        AZ::TransformNotificationBus::Handler::BusDisconnect();
+
         const auto& volume = m_tilesetComponent->GetRootBoundingVolumeInECEF();
         glm::dmat4 enu = CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(TilesetBoundingVolumeUtil::GetCenter(volume));
         glm::dmat4 relativeTransform = absToRelWorld * m_transform * enu;
@@ -278,6 +260,12 @@ namespace Cesium
                     static_cast<float>(relativeQuat.w)),
                 AZ::Vector3(
                     static_cast<float>(relativeCenter.x), static_cast<float>(relativeCenter.y), static_cast<float>(relativeCenter.z))));
+
+        AZ::TransformNotificationBus::Handler::BusConnect(GetEntityId());
+
+        PropertyEditorGUIMessages::Bus::Broadcast(
+            &PropertyEditorGUIMessages::RequestRefresh, PropertyModificationRefreshLevel::Refresh_AttributesAndValues);
+        undoBatch.MarkEntityDirty(GetEntityId());
     }
 
     void TilesetEditorComponent::ApplyRelativeTransform(const glm::dmat4& transform)
@@ -291,7 +279,6 @@ namespace Cesium
         glm::dmat4 inverseENU =
             glm::inverse(CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(TilesetBoundingVolumeUtil::GetCenter(volume)));
         m_transform = relToAbsWorld * transform * inverseENU;
-        m_overrideDefaultTransform = true;
         m_tilesetComponent->ApplyTransformToRoot(m_transform);
 
         undoBatch.MarkEntityDirty(GetEntityId());
