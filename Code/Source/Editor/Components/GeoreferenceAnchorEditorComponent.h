@@ -12,7 +12,6 @@ namespace Cesium
     class GeoreferenceAnchorEditorComponent
         : public AzToolsFramework::Components::EditorComponentBase
         , public AZ::TransformNotificationBus::Handler
-        , public OriginShiftNotificationBus::Handler
     {
     public:
         AZ_EDITOR_COMPONENT(GeoreferenceAnchorEditorComponent, "{7AB3E249-581D-49C5-B738-58DFE8155C9C}");
@@ -40,20 +39,15 @@ namespace Cesium
 
         void PlaceWorldOriginHere();
 
-        void OnOriginShifting(const glm::dmat4& absToRelWorld) override;
-
-        std::int32_t GetNotificationOrder() const override;
-
-        void OnApplyTransform();
-
         void OnTransformChanged(const AZ::Transform&, const AZ::Transform& world) override;
 
         void ApplyRelativeTranslation(const AZ::Vector3& translation);
+
+        static constexpr float TRANSFORM_LIMIT = 10000.0f;
 
         GeoreferenceAnchorComponent m_georeferenceAnchorComponent;
         ECEFPickerComponentHelper m_ecefPicker;
 
         ECEFPositionChangeEvent::Handler m_positionChangeHandler;
-        bool m_applyTransform{ false };
     };
 } // namespace Cesium

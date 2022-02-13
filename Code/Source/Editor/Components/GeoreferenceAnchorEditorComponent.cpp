@@ -14,10 +14,8 @@ namespace Cesium
     {
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<GeoreferenceAnchorEditorComponent, AZ::Component>()
-                ->Version(0)
-                ->Field("ECEFPicker", &GeoreferenceAnchorEditorComponent::m_ecefPicker)
-                ->Field("ApplyTransform", &GeoreferenceAnchorEditorComponent::m_applyTransform);
+            serializeContext->Class<GeoreferenceAnchorEditorComponent, AZ::Component>()->Version(0)->Field(
+                "ECEFPicker", &GeoreferenceAnchorEditorComponent::m_ecefPicker);
 
             AZ::EditContext* editContext = serializeContext->GetEditContext();
             if (editContext)
@@ -35,12 +33,6 @@ namespace Cesium
                     ->Attribute(AZ::Edit::Attributes::NameLabelOverride, "")
                     ->Attribute(AZ::Edit::Attributes::ButtonText, "Place World Origin Here")
                     ->Attribute(AZ::Edit::Attributes::ChangeNotify, &GeoreferenceAnchorEditorComponent::PlaceWorldOriginHere)
-                    ->DataElement(
-                        AZ::Edit::UIHandlers::Default, &GeoreferenceAnchorEditorComponent::m_applyTransform, "Apply Transform",
-                        "Apply the editor transform component to the anchor. Note that the editor transform component is "
-                        "relative to the world origin. Because the transform uses 32-bit floating point number, you will need to place the "
-                        "origin near the anchor to preserve precision. This checkbox is turned off when the origin is shifted")
-                    ->Attribute(AZ::Edit::Attributes::ChangeNotify, &GeoreferenceAnchorEditorComponent::OnApplyTransform)
                     ->DataElement(AZ::Edit::UIHandlers::Default, &GeoreferenceAnchorEditorComponent::m_ecefPicker, "Anchor", "");
             }
         }
@@ -100,7 +92,6 @@ namespace Cesium
 
         m_positionChangeHandler.Connect(m_ecefPicker.m_onPositionChangeEvent);
 
-        OriginShiftNotificationBus::Handler::BusConnect();
         AZ::TransformNotificationBus::Handler::BusConnect(GetEntityId());
     }
 
@@ -110,7 +101,6 @@ namespace Cesium
         m_georeferenceAnchorComponent.Deactivate();
         m_georeferenceAnchorComponent.SetEntity(nullptr);
 
-        OriginShiftNotificationBus::Handler::BusDisconnect();
         AZ::TransformNotificationBus::Handler::BusDisconnect();
     }
 
@@ -120,53 +110,29 @@ namespace Cesium
         CesiumEditorSystemRequestBus::Broadcast(&CesiumEditorSystemRequestBus::Events::PlaceOriginAtPosition, position);
     }
 
-    void GeoreferenceAnchorEditorComponent::OnOriginShifting([[maybe_unused]] const glm::dmat4& absToRelWorld)
-    {
-        using namespace AzToolsFramework;
-        AzToolsFramework::ScopedUndoBatch undoBatch("Anchor Origin Shifting");
-
-        m_applyTransform = false;
-
-        PropertyEditorGUIMessages::Bus::Broadcast(
-            &PropertyEditorGUIMessages::RequestRefresh, PropertyModificationRefreshLevel::Refresh_AttributesAndValues);
-        undoBatch.MarkEntityDirty(GetEntityId());
-    }
-
-    std::int32_t GeoreferenceAnchorEditorComponent::GetNotificationOrder() const
-    {
-        return m_georeferenceAnchorComponent.GetNotificationOrder() - 1;
-    }
-
-    void GeoreferenceAnchorEditorComponent::OnApplyTransform()
-    {
-        if (m_applyTransform)
-        {
-            AZ::Transform worldTransform = AZ::Transform::CreateIdentity();
-            AZ::TransformBus::EventResult(worldTransform, GetEntityId(), &AZ::TransformBus::Events::GetWorldTM);
-            ApplyRelativeTranslation(worldTransform.GetTranslation());
-        }
-    }
-
     void GeoreferenceAnchorEditorComponent::OnTransformChanged(const AZ::Transform&, const AZ::Transform& world)
     {
+        const AZ::Vector3& translation = world.GetTranslation().GetAbs();
+        if (translation.GetX() >= TRANSFORM_LIMIT || translation.GetY() >= TRANSFORM_LIMIT || translation.GetZ() >= TRANSFORM_LIMIT)
+        {
+            return;
+        }
+
         ApplyRelativeTranslation(world.GetTranslation());
     }
 
     void GeoreferenceAnchorEditorComponent::ApplyRelativeTranslation(const AZ::Vector3& translation)
     {
-        if (m_applyTransform)
-        {
-            AzToolsFramework::ScopedUndoBatch undoBatch("Change Anchor Position");
-            AZ::TransformNotificationBus::Handler::BusDisconnect();
+        AzToolsFramework::ScopedUndoBatch undoBatch("Change Anchor Position");
+        AZ::TransformNotificationBus::Handler::BusDisconnect();
 
-            glm::dmat4 relToAbsWorld{ 1.0 };
-            OriginShiftRequestBus::BroadcastResult(relToAbsWorld, &OriginShiftRequestBus::Events::GetRelToAbsWorld);
-            glm::dvec3 position = relToAbsWorld * MathHelper::ToDVec4(translation, 1.0);
-            m_georeferenceAnchorComponent.SetPosition(position);
-            m_ecefPicker.SetPosition(position, m_positionChangeHandler);
+        glm::dmat4 relToAbsWorld{ 1.0 };
+        OriginShiftRequestBus::BroadcastResult(relToAbsWorld, &OriginShiftRequestBus::Events::GetRelToAbsWorld);
+        glm::dvec3 position = relToAbsWorld * MathHelper::ToDVec4(translation, 1.0);
+        m_georeferenceAnchorComponent.SetPosition(position);
+        m_ecefPicker.SetPosition(position, m_positionChangeHandler);
 
-            AZ::TransformNotificationBus::Handler::BusConnect(GetEntityId());
-            undoBatch.MarkEntityDirty(GetEntityId());
-        }
+        AZ::TransformNotificationBus::Handler::BusConnect(GetEntityId());
+        undoBatch.MarkEntityDirty(GetEntityId());
     }
 } // namespace Cesium
