@@ -7,6 +7,7 @@
 #include <AzCore/Memory/SystemAllocator.h>
 #include <glm/glm.hpp>
 #include <cstdint>
+#include <limits>
 
 namespace Cesium
 {
@@ -37,7 +38,20 @@ namespace Cesium
     class OriginShiftNotification : public AZ::ComponentBus
     {
     public:
+        struct BusHandlerOrderCompare
+        {
+            AZ_FORCE_INLINE bool operator()(OriginShiftNotification* left, OriginShiftNotification* right) const
+            {
+                return left->GetNotificationOrder() < right->GetNotificationOrder();
+            }
+        };
+
         virtual void OnOriginShifting(const glm::dmat4& absToRelWorld) = 0;
+
+        virtual std::int32_t GetNotificationOrder() const
+        {
+            return std::numeric_limits<std::int32_t>::max();
+        }
     };
 
     class OriginShiftNotificationEBusTraits : public AZ::EBusTraits

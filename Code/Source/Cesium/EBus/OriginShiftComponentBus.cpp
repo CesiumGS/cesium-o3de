@@ -23,7 +23,8 @@ namespace Cesium
             behaviorContext->EBus<OriginShiftNotificationBus>("OriginShiftNotificationBus")
                 ->Attribute(AZ::Script::Attributes::Category, "Cesium/OriginShift")
                 ->Handler<OriginShiftNotificationEBusHandler>()
-                ->Event("OnOriginShifting", &OriginShiftNotificationBus::Events::OnOriginShifting);
+                ->Event("OnOriginShifting", &OriginShiftNotificationBus::Events::OnOriginShifting)
+                ->Event("GetNotificationOrder", &OriginShiftNotificationBus::Events::GetNotificationOrder);
         }
     }
 
