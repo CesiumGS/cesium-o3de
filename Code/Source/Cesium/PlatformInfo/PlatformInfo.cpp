@@ -46,7 +46,7 @@ namespace Cesium
 
     AZ::IO::FixedMaxPath PlatformInfo::GetHttpCacheDirectory()
     {
-        auto fileIO = AZ::IO::FileIOBase::GetInstance(); 
+        auto fileIO = AZ::IO::FileIOBase::GetInstance();
         if (!fileIO->Exists("@user@/CesiumHttpCache"))
         {
             fileIO->CreatePath("@user@/CesiumHttpCache");
