@@ -14,7 +14,7 @@
 git clone git@github.com:CesiumGS/cesium-o3de.git --recurse-submodules
 ```
 
-- If you forget the --recurse-submodules, nothing will work because the git submodules will be missing. You should be able to fix it with:
+- If you forget the `--recurse-submodules`, nothing will work because the git submodules will be missing. You can fix it with:
 
 ```
 git submodule update --init --recursive
@@ -33,6 +33,7 @@ cmake --build Build --config release --target install
 - Once the build finishes, all the library binaries and headers will be packaged in the `External/Packages/Install` directory. 
 
 ### **Add Cesium Gem to O3DE Engine**
+
 - Open the O3DE project manager, click on `Add Existing Gem` in the `Configure Gems` panel 
 - Select the cloned directory containing the Cesium Gem
 - In the `Configure Gems` panel, enable the `Cesium Gem`
