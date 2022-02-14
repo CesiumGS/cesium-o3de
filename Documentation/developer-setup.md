@@ -52,7 +52,7 @@ This is a summary of a setup and workflows for developers who want to work with 
     - Click on `Build Project`
     - Once the project is finished building, click on `Open Editor` button to begin using the Gem
 
-- If you want to use the [`cesium-o3de-samples`](https://github.com/CesiumGS/cesium-o3de-samples) for the Gem development, please follow its [Get Started](https://github.com/CesiumGS/cesium-o3de-samples#rocket-get-started) instructions.  
+- If you want to use the [`cesium-o3de-samples`](https://github.com/CesiumGS/cesium-o3de-samples) for the Gem development, please follow its [`Get Started`](https://github.com/CesiumGS/cesium-o3de-samples#rocket-get-started) instructions.  
 
 ### **Open the project Visual Studio Solution**
 
