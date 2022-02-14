@@ -10,25 +10,25 @@
 
 - Check out the Gem repo with:
 
-```
-git clone git@github.com:CesiumGS/cesium-o3de.git --recurse-submodules
-```
+    ```
+    git clone git@github.com:CesiumGS/cesium-o3de.git --recurse-submodules
+    ```
 
 - If you forget the `--recurse-submodules`, nothing will work because the git submodules will be missing. You can fix it with:
 
-```
-git submodule update --init --recursive
-```
+    ```
+    git submodule update --init --recursive
+    ```
 
 ### **Compile Cesium Native and third party libraries for the Gem**
 
 - Before using the Gem for your project, you will need to build and package Cesium Native and other third party libraries first. Below is the instructions to build and package the libraries assuming that the current working directory is the Cesium Gem repo directory `cesium-o3de`:
 
-```
-cd External
-cmake -B Build -S .
-cmake --build Build --config release --target install
-```
+    ```
+    cd External
+    cmake -B Build -S .
+    cmake --build Build --config release --target install
+    ```
 
 - Once the build finishes, all the library binaries and headers will be packaged in the `External/Packages/Install` directory. 
 
