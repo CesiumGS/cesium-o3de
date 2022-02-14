@@ -40,4 +40,4 @@ namespace Cesium
         RasterOverlayConfiguration m_configuration;
         CesiumIonRasterOverlaySource m_source;
     };
-}
+} // namespace Cesium

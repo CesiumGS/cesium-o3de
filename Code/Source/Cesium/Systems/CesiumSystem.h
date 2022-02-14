@@ -56,10 +56,12 @@ namespace Cesium
     };
 } // namespace Cesium
 
-namespace AZ {
+namespace AZ
+{
     AZ_TYPE_INFO_SPECIALIZE(Cesium::CesiumSystem, "{ad337a9b-fa16-4d1c-bdbd-ccb7200937f9}");
 }
 
-namespace Cesium {
+namespace Cesium
+{
     using CesiumInterface = AZ::Interface<CesiumSystem>;
 }

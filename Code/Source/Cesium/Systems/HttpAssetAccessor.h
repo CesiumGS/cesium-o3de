@@ -29,8 +29,7 @@ namespace Cesium
     class HttpAssetResponse final : public CesiumAsync::IAssetResponse
     {
     public:
-        HttpAssetResponse(
-            std::uint16_t statusCode, std::string&& contentType, CesiumAsync::HttpHeaders&& headers, IOContent&& responseData)
+        HttpAssetResponse(std::uint16_t statusCode, std::string&& contentType, CesiumAsync::HttpHeaders&& headers, IOContent&& responseData)
             : m_statusCode{ statusCode }
             , m_contentType{ std::move(contentType) }
             , m_headers{ std::move(headers) }

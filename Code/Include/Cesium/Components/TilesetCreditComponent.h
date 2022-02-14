@@ -44,4 +44,4 @@ namespace Cesium
         AZ::EntityId m_creditCanvasEntityId;
         bool m_displayCreditList{ false };
     };
-}
+} // namespace Cesium

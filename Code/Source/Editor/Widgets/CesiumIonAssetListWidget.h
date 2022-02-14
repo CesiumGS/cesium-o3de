@@ -19,8 +19,7 @@ class QSortFilterProxyModel;
 
 namespace Cesium
 {
-    class CesiumIonAssetListModel
-        : public QAbstractTableModel
+    class CesiumIonAssetListModel : public QAbstractTableModel
     {
         Q_OBJECT
 
@@ -109,7 +108,7 @@ namespace Cesium
         static constexpr const char* const WIDGET_NAME = "Cesium Ion Assets";
 
     private slots:
-        void AssetDoubleClicked(const QModelIndex &index);
+        void AssetDoubleClicked(const QModelIndex& index);
 
         void AssetUpdated();
 
@@ -117,7 +116,7 @@ namespace Cesium
 
     private:
         CesiumIonAssetDetailWidget* m_assetDetailWidget{ nullptr };
-        CesiumIonAssetListModel* m_assetListModel{nullptr};
+        CesiumIonAssetListModel* m_assetListModel{ nullptr };
         QSortFilterProxyModel* m_assetListFilterModel{ nullptr };
     };
 } // namespace Cesium

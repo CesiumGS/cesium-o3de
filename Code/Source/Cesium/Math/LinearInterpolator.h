@@ -36,4 +36,4 @@ namespace Cesium
         double m_totalDuration;
         bool m_isStop;
     };
-}
+} // namespace Cesium

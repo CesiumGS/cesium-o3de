@@ -21,10 +21,9 @@ namespace Cesium
             serializeContext->Class<TilesetEditorComponent, AZ::Component>()
                 ->Version(0)
                 ->Field("TilesetConfiguration", &TilesetEditorComponent::m_tilesetConfiguration)
+                ->Field("RenderConfiguration", &TilesetEditorComponent::m_renderConfiguration)
                 ->Field("TilesetSource", &TilesetEditorComponent::m_tilesetSource)
-                ->Field("Transform", &TilesetEditorComponent::m_transform)
-                ->Field("OverrideDefaultTransform", &TilesetEditorComponent::m_overrideDefaultTransform)
-                ;
+                ->Field("Transform", &TilesetEditorComponent::m_transform);
 
             AZ::EditContext* editContext = serializeContext->GetEditContext();
             if (editContext)
@@ -46,7 +45,10 @@ namespace Cesium
                     ->Attribute(AZ::Edit::Attributes::ChangeNotify, &TilesetEditorComponent::OnTilesetSourceChanged)
                     ->DataElement(AZ::Edit::UIHandlers::Default, &TilesetEditorComponent::m_tilesetConfiguration, "Configuration", "")
                     ->Attribute(AZ::Edit::Attributes::Visibility, AZ::Edit::PropertyVisibility::ShowChildrenOnly)
-                    ->Attribute(AZ::Edit::Attributes::ChangeNotify, &TilesetEditorComponent::OnTilesetConfigurationChanged);
+                    ->Attribute(AZ::Edit::Attributes::ChangeNotify, &TilesetEditorComponent::OnTilesetConfigurationChanged)
+                    ->DataElement(AZ::Edit::UIHandlers::Default, &TilesetEditorComponent::m_renderConfiguration, "Render", "")
+                    ->Attribute(AZ::Edit::Attributes::Visibility, AZ::Edit::PropertyVisibility::ShowChildrenOnly)
+                    ->Attribute(AZ::Edit::Attributes::ChangeNotify, &TilesetEditorComponent::OnRenderConfigurationChanged);
 
                 editContext->Class<TilesetSource>("TilesetSource", "")
                     ->ClassElement(AZ::Edit::ClassElements::EditorData, "")
@@ -96,6 +98,14 @@ namespace Cesium
                     ->DataElement(AZ::Edit::UIHandlers::CheckBox, &TilesetConfiguration::m_preloadAncestors, "Preload Ancestors", "")
                     ->DataElement(AZ::Edit::UIHandlers::CheckBox, &TilesetConfiguration::m_preloadSiblings, "Preload Siblings", "")
                     ->DataElement(AZ::Edit::UIHandlers::CheckBox, &TilesetConfiguration::m_forbidHole, "Forbid Hole", "");
+
+                editContext->Class<TilesetRenderConfiguration>("Render", "")
+                    ->ClassElement(AZ::Edit::ClassElements::EditorData, "")
+                    ->ClassElement(AZ::Edit::ClassElements::Group, "Render")
+                    ->Attribute(AZ::Edit::Attributes::AutoExpand, true)
+                    ->DataElement(
+                        AZ::Edit::UIHandlers::CheckBox, &TilesetRenderConfiguration::m_generateMissingNormalAsSmooth,
+                        "Generate Missing Normal As Smooth", "");
             }
         }
     }
@@ -127,6 +137,7 @@ namespace Cesium
         tilesetComponent->Init();
         tilesetComponent->Activate();
         tilesetComponent->SetConfiguration(m_tilesetConfiguration);
+        tilesetComponent->SetRenderConfiguration(m_renderConfiguration);
         tilesetComponent->LoadTileset(m_tilesetSource);
         tilesetComponent->ApplyTransformToRoot(m_transform);
         tilesetComponent->Deactivate();
@@ -137,30 +148,9 @@ namespace Cesium
         m_tilesetLoadedHandler = TilesetLoadedEvent::Handler(
             [this]()
             {
-				glm::dmat4 absToRelWorld{ 1.0 };
-				OriginShiftRequestBus::BroadcastResult(absToRelWorld, &OriginShiftRequestBus::Events::GetAbsToRelWorld);
-
-                if (!m_overrideDefaultTransform)
-                {
-                    const auto& volume = m_tilesetComponent->GetRootBoundingVolumeInECEF();
-                    glm::dmat4 enu = CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(TilesetBoundingVolumeUtil::GetCenter(volume));
-                    glm::dmat4 relativeEnu = absToRelWorld * enu;
-                    glm::dvec3 relativeCenter = relativeEnu[3];
-                    glm::dquat relativeQuat = relativeEnu;
-                    AZ::TransformBus::Event(
-                        GetEntityId(), &AZ::TransformBus::Events::SetWorldTM,
-                        AZ::Transform::CreateFromQuaternionAndTranslation(
-                            AZ::Quaternion(
-                                static_cast<float>(relativeQuat.x), static_cast<float>(relativeQuat.y), static_cast<float>(relativeQuat.z),
-                                static_cast<float>(relativeQuat.w)),
-                            AZ::Vector3(
-                                static_cast<float>(relativeCenter.x), static_cast<float>(relativeCenter.y),
-                                static_cast<float>(relativeCenter.z))));
-                }
-                else
-                {
-                    OnOriginShifting(absToRelWorld);
-                }
+                glm::dmat4 absToRelWorld{ 1.0 };
+                OriginShiftRequestBus::BroadcastResult(absToRelWorld, &OriginShiftRequestBus::Events::GetAbsToRelWorld);
+                OnOriginShifting(absToRelWorld);
             });
     }
 
@@ -217,6 +207,17 @@ namespace Cesium
         return AZ::Edit::PropertyRefreshLevels::None;
     }
 
+    AZ::u32 TilesetEditorComponent::OnRenderConfigurationChanged()
+    {
+        if (!m_tilesetComponent)
+        {
+            return AZ::Edit::PropertyRefreshLevels::None;
+        }
+
+        m_tilesetComponent->SetRenderConfiguration(m_renderConfiguration);
+        return AZ::Edit::PropertyRefreshLevels::None;
+    }
+
     void TilesetEditorComponent::PlaceWorldOriginHere()
     {
         if (!m_tilesetComponent)
@@ -230,18 +231,22 @@ namespace Cesium
 
     void TilesetEditorComponent::OnTransformChanged(const AZ::Transform&, const AZ::Transform& world)
     {
-        if (m_selfTransform)
+        const AZ::Vector3& translation = world.GetTranslation().GetAbs();
+        if (translation.GetX() >= TRANSFORM_LIMIT || translation.GetY() >= TRANSFORM_LIMIT || translation.GetZ() >= TRANSFORM_LIMIT)
         {
-            m_selfTransform = false;
             return;
         }
 
-		ApplyRelativeTransform(MathHelper::ConvertTransformAndScaleToDMat4(world, AZ::Vector3::CreateOne()));
+        ApplyRelativeTransform(MathHelper::ConvertTransformAndScaleToDMat4(world, AZ::Vector3::CreateOne()));
     }
 
     void TilesetEditorComponent::OnOriginShifting(const glm::dmat4& absToRelWorld)
     {
-        m_selfTransform = true;
+        using namespace AzToolsFramework;
+        AzToolsFramework::ScopedUndoBatch undoBatch("Tileset Origin Shifting");
+
+        AZ::TransformNotificationBus::Handler::BusDisconnect();
+
         const auto& volume = m_tilesetComponent->GetRootBoundingVolumeInECEF();
         glm::dmat4 enu = CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(TilesetBoundingVolumeUtil::GetCenter(volume));
         glm::dmat4 relativeTransform = absToRelWorld * m_transform * enu;
@@ -255,6 +260,12 @@ namespace Cesium
                     static_cast<float>(relativeQuat.w)),
                 AZ::Vector3(
                     static_cast<float>(relativeCenter.x), static_cast<float>(relativeCenter.y), static_cast<float>(relativeCenter.z))));
+
+        AZ::TransformNotificationBus::Handler::BusConnect(GetEntityId());
+
+        PropertyEditorGUIMessages::Bus::Broadcast(
+            &PropertyEditorGUIMessages::RequestRefresh, PropertyModificationRefreshLevel::Refresh_AttributesAndValues);
+        undoBatch.MarkEntityDirty(GetEntityId());
     }
 
     void TilesetEditorComponent::ApplyRelativeTransform(const glm::dmat4& transform)
@@ -268,7 +279,6 @@ namespace Cesium
         glm::dmat4 inverseENU =
             glm::inverse(CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(TilesetBoundingVolumeUtil::GetCenter(volume)));
         m_transform = relToAbsWorld * transform * inverseENU;
-        m_overrideDefaultTransform = true;
         m_tilesetComponent->ApplyTransformToRoot(m_transform);
 
         undoBatch.MarkEntityDirty(GetEntityId());

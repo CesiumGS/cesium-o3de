@@ -13,33 +13,33 @@ namespace Cesium
 
     class ECEFPickerComponentHelper final
     {
-		enum class PositionType
-		{
-			Cartesian,
-			Cartographic,
-		};
+        enum class PositionType
+        {
+            Cartesian,
+            Cartographic,
+        };
 
-		enum class SamplePositionMethod
-		{
-			EntityCoordinate,
-			CameraPosition
-		};
+        enum class SamplePositionMethod
+        {
+            EntityCoordinate,
+            CameraPosition
+        };
 
-		struct DegreeCartographic final
-		{
-			AZ_RTTI(DegreeCartographic, "{477784B5-7A3D-4721-88CD-99A147BABFB0}");
-			AZ_CLASS_ALLOCATOR(DegreeCartographic, AZ::SystemAllocator, 0);
+        struct DegreeCartographic final
+        {
+            AZ_RTTI(DegreeCartographic, "{477784B5-7A3D-4721-88CD-99A147BABFB0}");
+            AZ_CLASS_ALLOCATOR(DegreeCartographic, AZ::SystemAllocator, 0);
 
-			static void Reflect(AZ::ReflectContext* context);
+            static void Reflect(AZ::ReflectContext* context);
 
-			DegreeCartographic();
+            DegreeCartographic();
 
-			DegreeCartographic(double longitude, double latitude, double height);
+            DegreeCartographic(double longitude, double latitude, double height);
 
-			double m_longitude;
-			double m_latitude;
-			double m_height;
-		};
+            double m_longitude;
+            double m_latitude;
+            double m_height;
+        };
 
     public:
         AZ_RTTI(ECEFPickerComponentHelper, "{F8AAE323-83AC-4B8B-8BB8-D3CD27DD85E2}");
@@ -47,15 +47,15 @@ namespace Cesium
 
         static void Reflect(AZ::ReflectContext* context);
 
-		glm::dvec3 GetPosition() const;
+        glm::dvec3 GetPosition() const;
 
-		void SetPosition(const glm::dvec3& position);
+        void SetPosition(const glm::dvec3& position);
 
-		void SetPosition(const glm::dvec3& position, ECEFPositionChangeEvent::Handler& excludeHandler);
+        void SetPosition(const glm::dvec3& position, ECEFPositionChangeEvent::Handler& excludeHandler);
 
         ECEFPositionChangeEvent m_onPositionChangeEvent;
 
-	private:
+    private:
         AZ::u32 SamplePositionOfEntity();
 
         AZ::u32 SamplePositionOfCamera();

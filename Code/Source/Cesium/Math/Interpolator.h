@@ -18,4 +18,4 @@ namespace Cesium
 
         virtual void Update(float deltaTime) = 0;
     };
-}
+} // namespace Cesium

@@ -6,6 +6,7 @@
 #include "Editor/Components/OriginShiftEditorComponent.h"
 #include "Editor/Widgets/CesiumIonPanelWidget.h"
 #include "Editor/Widgets/CesiumIonAssetListWidget.h"
+#include "Editor/Widgets/GeoreferenceCameraFlyConfigurationWidget.h"
 #include "Editor/Widgets/MathReflectPropertyWidget.h"
 #include <Cesium/Math/GeospatialHelper.h>
 #include <Editor/EditorSettingsAPIBus.h>
@@ -27,6 +28,7 @@ namespace Cesium
     void CesiumSystemEditorComponent::Reflect(AZ::ReflectContext* context)
     {
         MathReflectPropertyWidget::Reflect(context);
+        GeoreferenceCameraFlyConfigurationWidget::Reflect(context);
         ECEFPickerComponentHelper::Reflect(context);
         if (auto serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
@@ -111,9 +113,9 @@ namespace Cesium
     {
         using namespace AzToolsFramework;
 
-		AZ::EntityId levelEntityId{};
-		AzToolsFramework::ToolsApplicationRequestBus::BroadcastResult(
-			levelEntityId, &AzToolsFramework::ToolsApplicationRequestBus::Events::GetCurrentLevelEntityId);
+        AZ::EntityId levelEntityId{};
+        AzToolsFramework::ToolsApplicationRequestBus::BroadcastResult(
+            levelEntityId, &AzToolsFramework::ToolsApplicationRequestBus::Events::GetCurrentLevelEntityId);
 
         EntityIdList selectedEntities;
         if (addToExistingEntity)
@@ -321,6 +323,10 @@ namespace Cesium
         auto selectedEntities = GetSelectedEntities(addToExistingEntity);
         for (const AZ::EntityId& entityId : selectedEntities)
         {
+            bool renameResult = false;
+            AZ::ComponentApplicationBus::BroadcastResult(
+                renameResult, &AZ::ComponentApplicationRequests::SetEntityName, entityId, AZStd::string_view("Tileset"));
+
             EditorComponentAPIRequests::AddComponentsOutcome outcomes;
             EditorComponentAPIBus::BroadcastResult(
                 outcomes, &EditorComponentAPIBus::Events::AddComponentOfType, entityId, azrtti_typeid<TilesetEditorComponent>());
@@ -334,6 +340,10 @@ namespace Cesium
         auto selectedEntities = GetSelectedEntities(addToExistingEntity);
         for (const AZ::EntityId& entityId : selectedEntities)
         {
+            bool renameResult = false;
+            AZ::ComponentApplicationBus::BroadcastResult(
+                renameResult, &AZ::ComponentApplicationRequests::SetEntityName, entityId, AZStd::string_view("Cesium Camera Controller"));
+
             AZStd::vector<AZ::Uuid> componentsToAdd{ azrtti_typeid<GeoReferenceCameraControllerEditor>(), EditorCameraComponentTypeId };
             EditorComponentAPIRequests::AddComponentsOutcome outcomes;
             EditorComponentAPIBus::BroadcastResult(

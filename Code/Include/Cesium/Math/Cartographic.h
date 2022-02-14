@@ -19,4 +19,4 @@ namespace Cesium
         double m_latitude;
         double m_height;
     };
-}
+} // namespace Cesium

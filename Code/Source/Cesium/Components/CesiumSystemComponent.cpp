@@ -30,9 +30,11 @@ namespace Cesium
         GeospatialHelper::Reflect(context);
 
         TilesetConfiguration::Reflect(context);
+        TilesetRenderConfiguration::Reflect(context);
         TilesetSource::Reflect(context);
         TilesetRequest::Reflect(context);
 
+        GeoreferenceCameraFlyConfiguration::Reflect(context);
         GeoReferenceCameraFlyControllerRequest::Reflect(context);
 
         OriginShiftRequest::Reflect(context);
@@ -42,17 +44,14 @@ namespace Cesium
 
         if (AZ::SerializeContext* serialize = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serialize->Class<CesiumSystemComponent, AZ::Component>()
-                ->Version(0)
-                ;
+            serialize->Class<CesiumSystemComponent, AZ::Component>()->Version(0);
 
             if (AZ::EditContext* ec = serialize->GetEditContext())
             {
                 ec->Class<CesiumSystemComponent>("Cesium", "[Description of functionality provided by this System Component]")
                     ->ClassElement(AZ::Edit::ClassElements::EditorData, "")
-                        ->Attribute(AZ::Edit::Attributes::AppearsInAddComponentMenu, AZ_CRC("System"))
-                        ->Attribute(AZ::Edit::Attributes::AutoExpand, true)
-                    ;
+                    ->Attribute(AZ::Edit::Attributes::AppearsInAddComponentMenu, AZ_CRC("System"))
+                    ->Attribute(AZ::Edit::Attributes::AutoExpand, true);
             }
         }
     }

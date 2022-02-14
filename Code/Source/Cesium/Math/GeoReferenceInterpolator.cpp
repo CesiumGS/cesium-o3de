@@ -11,7 +11,9 @@ namespace Cesium
         const glm::dvec3& begin,
         const glm::dvec3& beginDirection,
         const glm::dvec3& destination,
-        const glm::dvec3& destinationDirection)
+        const glm::dvec3& destinationDirection,
+        const float* duration,
+        const double* flyHeight)
         : m_begin{ begin }
         , m_beginPitchRollHead{}
         , m_destination{ destination }
@@ -35,8 +37,15 @@ namespace Cesium
         , m_useHeightLerp{ false }
     {
         // estimate duration
-        m_totalDuration = glm::ceil(glm::distance(m_begin, m_destination) / 1000000.0) + 2.0;
-        m_totalDuration = glm::min(m_totalDuration, 7.0);
+        if (duration)
+        {
+            m_totalDuration = *duration;
+        }
+        else
+        {
+            m_totalDuration = glm::ceil(glm::distance(m_begin, m_destination) / 1000000.0) + 2.0;
+            m_totalDuration = glm::min(m_totalDuration, 7.0);
+        }
 
         // initialize parameters to interpolate positions
         auto beginCartographic = CesiumGeospatial::Ellipsoid::WGS84.cartesianToCartographic(m_begin);
@@ -57,7 +66,15 @@ namespace Cesium
             m_destinationHeight = destinationCartographic->height;
             double maxHeight = glm::max(m_beginHeight, m_destinationHeight);
 
-            m_flyHeight = glm::distance(begin, destination) * 0.05;
+            if (flyHeight)
+            {
+                m_flyHeight = *flyHeight;
+            }
+            else
+            {
+                m_flyHeight = glm::distance(begin, destination) * 0.05;
+            }
+
             if (maxHeight < m_flyHeight)
             {
                 m_useHeightLerp = false;
@@ -124,8 +141,8 @@ namespace Cesium
 
         // interpolate current orientation
         glm::dmat4 enuToECEF = CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(m_current);
-		glm::dvec3 currentPitchRollHead = glm::lerp(m_beginPitchRollHead, m_destinationPitchRollHead, t);
-		m_currentOrientation = glm::dquat(enuToECEF) * glm::dquat(currentPitchRollHead);
+        glm::dvec3 currentPitchRollHead = glm::lerp(m_beginPitchRollHead, m_destinationPitchRollHead, t);
+        m_currentOrientation = glm::dquat(enuToECEF) * glm::dquat(currentPitchRollHead);
     }
 
     glm::dvec3 GeoReferenceInterpolator::CalculatePitchRollHead(const glm::dvec3& position, const glm::dvec3& direction)
@@ -135,4 +152,4 @@ namespace Cesium
         glm::dvec3 enuDirection = ecefToEnu * glm::dvec4(direction, 0.0);
         return MathHelper::CalculatePitchRollHead(enuDirection);
     }
-}
+} // namespace Cesium

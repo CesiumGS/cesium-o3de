@@ -68,4 +68,3 @@ TEST_F(HttpManagerTest, GetFileContentAsync)
 
     ASSERT_FALSE(content.empty());
 }
-

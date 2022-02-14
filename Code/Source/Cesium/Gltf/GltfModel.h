@@ -76,5 +76,4 @@ namespace Cesium
         AZStd::vector<GltfMesh> m_meshes;
         AZStd::vector<GltfMaterial> m_materials;
     };
-}
-
+} // namespace Cesium

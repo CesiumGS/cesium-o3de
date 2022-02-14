@@ -82,4 +82,4 @@ namespace Cesium
 
         void AddGeoreferenceCamera();
     };
-}
+} // namespace Cesium

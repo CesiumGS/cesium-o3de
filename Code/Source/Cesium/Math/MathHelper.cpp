@@ -36,7 +36,7 @@ namespace Cesium
 
     glm::dvec4 MathHelper::ToDVec4(const AZ::Vector3& vec, double w)
     {
-        return glm::dvec4{vec.GetX(), vec.GetY(), vec.GetZ(), w};
+        return glm::dvec4{ vec.GetX(), vec.GetY(), vec.GetZ(), w };
     }
 
     glm::dvec4 MathHelper::ToDVec4(const AZ::Vector4& vec)
@@ -83,7 +83,7 @@ namespace Cesium
         glm::dvec3 pitchRollHead{};
 
         glm::dvec3 normalizeDirection = glm::normalize(direction);
-		pitchRollHead.x = CesiumUtility::Math::PI_OVER_TWO - glm::acos(normalizeDirection.z);
+        pitchRollHead.x = CesiumUtility::Math::PI_OVER_TWO - glm::acos(normalizeDirection.z);
         if (!CesiumUtility::Math::equalsEpsilon(normalizeDirection.z, 1.0, CesiumUtility::Math::EPSILON14))
         {
             pitchRollHead.z = glm::atan(normalizeDirection.y, normalizeDirection.x) - CesiumUtility::Math::PI_OVER_TWO;

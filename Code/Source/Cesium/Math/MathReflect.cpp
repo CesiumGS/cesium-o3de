@@ -484,8 +484,7 @@ namespace Cesium
                 [](const glm::dvec2& v)
                 {
                     return AZ::Vector2(static_cast<float>(v.x), static_cast<float>(v.y));
-                })
-            ;
+                });
     }
 
     void MathSerialization::ReflectGlmVector(AZ::BehaviorContext::ClassBuilder<glm::dvec3>& builder)

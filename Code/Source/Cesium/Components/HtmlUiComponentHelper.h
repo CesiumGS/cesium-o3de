@@ -21,4 +21,4 @@ namespace Cesium
 
         static float CreateTextEntity(const AZStd::string& text, const AZ::EntityId& rootElementEntityId, float beginHeight);
     };
-}
+} // namespace Cesium

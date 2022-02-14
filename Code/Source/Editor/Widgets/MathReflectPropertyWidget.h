@@ -10,17 +10,16 @@ namespace Cesium
 {
     struct MathReflectPropertyWidget
     {
-        static void Reflect(AZ::ReflectContext *context);
+        static void Reflect(AZ::ReflectContext* context);
 
         static void RegisterHandlers();
 
     private:
-        static void RegisterHandler(AzToolsFramework::PropertyHandlerBase *handle);
+        static void RegisterHandler(AzToolsFramework::PropertyHandlerBase* handle);
     };
 
-    template <typename TypeBeingHandled>
-    class DoubleVectorPropertyHandlerBase
-        : public AzToolsFramework::PropertyHandler <TypeBeingHandled, AzQtComponents::VectorInput >
+    template<typename TypeBeingHandled>
+    class DoubleVectorPropertyHandlerBase : public AzToolsFramework::PropertyHandler<TypeBeingHandled, AzQtComponents::VectorInput>
     {
     protected:
         AzToolsFramework::VectorPropertyHandlerCommon m_common;
@@ -58,17 +57,22 @@ namespace Cesium
 
         QWidget* CreateGUI(QWidget* pParent) override
         {
-            AzQtComponents::VectorInput* GUI = m_common.ConstructGUI(pParent); 
+            AzQtComponents::VectorInput* GUI = m_common.ConstructGUI(pParent);
             GUI->setDecimals(15);
             return GUI;
         }
 
-        void ConsumeAttribute(AzQtComponents::VectorInput* GUI, AZ::u32 attrib, AzToolsFramework::PropertyAttributeReader* attrValue, const char* debugName) override
+        void ConsumeAttribute(
+            AzQtComponents::VectorInput* GUI,
+            AZ::u32 attrib,
+            AzToolsFramework::PropertyAttributeReader* attrValue,
+            const char* debugName) override
         {
             m_common.ConsumeAttributes(GUI, attrib, attrValue, debugName);
         }
 
-        void WriteGUIValuesIntoProperty(size_t, AzQtComponents::VectorInput* GUI, TypeBeingHandled& instance, AzToolsFramework::InstanceDataNode*) override
+        void WriteGUIValuesIntoProperty(
+            size_t, AzQtComponents::VectorInput* GUI, TypeBeingHandled& instance, AzToolsFramework::InstanceDataNode*) override
         {
             AzQtComponents::VectorElement** elements = GUI->getElements();
             TypeBeingHandled actualValue = instance;
@@ -82,7 +86,8 @@ namespace Cesium
             instance = actualValue;
         }
 
-        bool ReadValuesIntoGUI(size_t, AzQtComponents::VectorInput* GUI, const TypeBeingHandled& instance, AzToolsFramework::InstanceDataNode*) override
+        bool ReadValuesIntoGUI(
+            size_t, AzQtComponents::VectorInput* GUI, const TypeBeingHandled& instance, AzToolsFramework::InstanceDataNode*) override
         {
             GUI->blockSignals(true);
 
@@ -96,14 +101,13 @@ namespace Cesium
         }
     };
 
-    template <typename TypeBeingHandled>
-    class DoubleMatrixPropertyHandlerBase
-        : public AzToolsFramework::PropertyHandler<TypeBeingHandled, MatrixInputWidget>
+    template<typename TypeBeingHandled>
+    class DoubleMatrixPropertyHandlerBase : public AzToolsFramework::PropertyHandler<TypeBeingHandled, MatrixInputWidget>
     {
     public:
         DoubleMatrixPropertyHandlerBase(std::size_t numOfCols, std::size_t numOfRows)
-            : m_numOfCols{numOfCols}
-            , m_numOfRows{numOfRows}
+            : m_numOfCols{ numOfCols }
+            , m_numOfRows{ numOfRows }
         {
         }
 
@@ -159,7 +163,8 @@ namespace Cesium
         {
         }
 
-        void WriteGUIValuesIntoProperty(size_t, MatrixInputWidget* GUI, TypeBeingHandled& instance, AzToolsFramework::InstanceDataNode*) override
+        void WriteGUIValuesIntoProperty(
+            size_t, MatrixInputWidget* GUI, TypeBeingHandled& instance, AzToolsFramework::InstanceDataNode*) override
         {
             AZStd::vector<AzQtComponents::VectorInput*>& colElements = GUI->getColElements();
             TypeBeingHandled actualValue = instance;
@@ -178,7 +183,8 @@ namespace Cesium
             instance = actualValue;
         }
 
-        bool ReadValuesIntoGUI(size_t, MatrixInputWidget* GUI, const TypeBeingHandled& instance, AzToolsFramework::InstanceDataNode*) override
+        bool ReadValuesIntoGUI(
+            size_t, MatrixInputWidget* GUI, const TypeBeingHandled& instance, AzToolsFramework::InstanceDataNode*) override
         {
             GUI->blockSignals(true);
 
@@ -201,16 +207,13 @@ namespace Cesium
         std::size_t m_numOfRows;
     };
 
-    class DVector2PropertyHandler
-        : public DoubleVectorPropertyHandlerBase<glm::dvec2>
+    class DVector2PropertyHandler : public DoubleVectorPropertyHandlerBase<glm::dvec2>
     {
     public:
         AZ_CLASS_ALLOCATOR(DVector2PropertyHandler, AZ::SystemAllocator, 0);
 
         DVector2PropertyHandler()
-            : DoubleVectorPropertyHandlerBase(2)
-        {
-        };
+            : DoubleVectorPropertyHandlerBase(2){};
 
         AZ::u32 GetHandlerName(void) const override
         {
@@ -218,16 +221,13 @@ namespace Cesium
         }
     };
 
-    class DVector3PropertyHandler
-        : public DoubleVectorPropertyHandlerBase<glm::dvec3>
+    class DVector3PropertyHandler : public DoubleVectorPropertyHandlerBase<glm::dvec3>
     {
     public:
         AZ_CLASS_ALLOCATOR(DVector3PropertyHandler, AZ::SystemAllocator, 0);
 
         DVector3PropertyHandler()
-            : DoubleVectorPropertyHandlerBase(3)
-        {
-        };
+            : DoubleVectorPropertyHandlerBase(3){};
 
         AZ::u32 GetHandlerName(void) const override
         {
@@ -235,16 +235,13 @@ namespace Cesium
         }
     };
 
-    class DVector4PropertyHandler
-        : public DoubleVectorPropertyHandlerBase<glm::dvec4>
+    class DVector4PropertyHandler : public DoubleVectorPropertyHandlerBase<glm::dvec4>
     {
     public:
         AZ_CLASS_ALLOCATOR(DVector4PropertyHandler, AZ::SystemAllocator, 0);
 
         DVector4PropertyHandler()
-            : DoubleVectorPropertyHandlerBase(4)
-        {
-        };
+            : DoubleVectorPropertyHandlerBase(4){};
 
         AZ::u32 GetHandlerName(void) const override
         {
@@ -252,16 +249,13 @@ namespace Cesium
         }
     };
 
-    class DQuatPropertyHandler
-        : public DoubleVectorPropertyHandlerBase<glm::dquat>
+    class DQuatPropertyHandler : public DoubleVectorPropertyHandlerBase<glm::dquat>
     {
     public:
         AZ_CLASS_ALLOCATOR(DQuatPropertyHandler, AZ::SystemAllocator, 0);
 
         DQuatPropertyHandler()
-            : DoubleVectorPropertyHandlerBase(4)
-        {
-        };
+            : DoubleVectorPropertyHandlerBase(4){};
 
         AZ::u32 GetHandlerName(void) const override
         {
@@ -269,16 +263,13 @@ namespace Cesium
         }
     };
 
-    class DMatrix2PropertyHandler
-        : public DoubleMatrixPropertyHandlerBase<glm::dmat2>
+    class DMatrix2PropertyHandler : public DoubleMatrixPropertyHandlerBase<glm::dmat2>
     {
     public:
         AZ_CLASS_ALLOCATOR(DMatrix2PropertyHandler, AZ::SystemAllocator, 0);
 
         DMatrix2PropertyHandler()
-            : DoubleMatrixPropertyHandlerBase(2, 2)
-        {
-        };
+            : DoubleMatrixPropertyHandlerBase(2, 2){};
 
         AZ::u32 GetHandlerName(void) const override
         {
@@ -286,16 +277,13 @@ namespace Cesium
         }
     };
 
-    class DMatrix3PropertyHandler
-        : public DoubleMatrixPropertyHandlerBase<glm::dmat3>
+    class DMatrix3PropertyHandler : public DoubleMatrixPropertyHandlerBase<glm::dmat3>
     {
     public:
         AZ_CLASS_ALLOCATOR(DMatrix3PropertyHandler, AZ::SystemAllocator, 0);
 
         DMatrix3PropertyHandler()
-            : DoubleMatrixPropertyHandlerBase(3, 3)
-        {
-        };
+            : DoubleMatrixPropertyHandlerBase(3, 3){};
 
         AZ::u32 GetHandlerName(void) const override
         {
@@ -303,20 +291,17 @@ namespace Cesium
         }
     };
 
-    class DMatrix4PropertyHandler
-        : public DoubleMatrixPropertyHandlerBase<glm::dmat4>
+    class DMatrix4PropertyHandler : public DoubleMatrixPropertyHandlerBase<glm::dmat4>
     {
     public:
         AZ_CLASS_ALLOCATOR(DMatrix4PropertyHandler, AZ::SystemAllocator, 0);
 
         DMatrix4PropertyHandler()
-            : DoubleMatrixPropertyHandlerBase(4, 4)
-        {
-        };
+            : DoubleMatrixPropertyHandlerBase(4, 4){};
 
         AZ::u32 GetHandlerName(void) const override
         {
             return AZ_CRC("CesiumDoubleMatrix4");
         }
     };
-}
+} // namespace Cesium

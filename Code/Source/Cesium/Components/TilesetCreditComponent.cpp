@@ -77,11 +77,11 @@ namespace Cesium
         if (creditUpdated)
         {
             AZStd::string textCredit = "<!DOCTYPE html><html><body><ul>";
-            for (const auto &credit : creditToShow)
+            for (const auto& credit : creditToShow)
             {
-                textCredit += "<li>"; 
+                textCredit += "<li>";
                 textCredit += creditSystem->getHtml(credit).c_str();
-                textCredit += "</li>"; 
+                textCredit += "</li>";
             }
             textCredit += "</ul></body></html>";
 

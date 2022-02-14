@@ -27,8 +27,11 @@ namespace Cesium
 {
     struct HttpManager::RequestHandler
     {
-        RequestHandler(const std::shared_ptr<Aws::Http::HttpClient>& awsHttpClient, HttpRequestParameter&& httpRequestParameter, const CesiumAsync::Promise<HttpResult>& promise)
-            : m_awsHttpClient{awsHttpClient}
+        RequestHandler(
+            const std::shared_ptr<Aws::Http::HttpClient>& awsHttpClient,
+            HttpRequestParameter&& httpRequestParameter,
+            const CesiumAsync::Promise<HttpResult>& promise)
+            : m_awsHttpClient{ awsHttpClient }
             , m_httpRequestParameter{ std::move(httpRequestParameter) }
             , m_promise{ promise }
         {
@@ -64,15 +67,21 @@ namespace Cesium
 
     struct HttpManager::GenericIORequestHandler
     {
-        GenericIORequestHandler(const std::shared_ptr<Aws::Http::HttpClient>& awsHttpClient, const IORequestParameter& request, const CesiumAsync::Promise<IOContent>& promise)
-            : m_awsHttpClient{awsHttpClient}
+        GenericIORequestHandler(
+            const std::shared_ptr<Aws::Http::HttpClient>& awsHttpClient,
+            const IORequestParameter& request,
+            const CesiumAsync::Promise<IOContent>& promise)
+            : m_awsHttpClient{ awsHttpClient }
             , m_request{ request }
             , m_promise{ promise }
         {
         }
 
-        GenericIORequestHandler(const std::shared_ptr<Aws::Http::HttpClient>& awsHttpClient, IORequestParameter&& request, const CesiumAsync::Promise<IOContent>& promise)
-            : m_awsHttpClient{awsHttpClient}
+        GenericIORequestHandler(
+            const std::shared_ptr<Aws::Http::HttpClient>& awsHttpClient,
+            IORequestParameter&& request,
+            const CesiumAsync::Promise<IOContent>& promise)
+            : m_awsHttpClient{ awsHttpClient }
             , m_request{ std::move(request) }
             , m_promise{ promise }
         {
@@ -146,7 +155,7 @@ namespace Cesium
             return path;
         }
 
-        return path.substr(0, lastSlashPos+1);
+        return path.substr(0, lastSlashPos + 1);
     }
 
     IOContent HttpManager::GetFileContent(const IORequestParameter& request)

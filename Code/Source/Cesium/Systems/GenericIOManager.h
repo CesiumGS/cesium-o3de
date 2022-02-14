@@ -15,7 +15,7 @@ namespace Cesium
         AZStd::string m_path;
     };
 
-    using IOContent = std::vector<std::byte>; 
+    using IOContent = std::vector<std::byte>;
 
     class GenericIOManager
     {
@@ -34,4 +34,4 @@ namespace Cesium
         virtual CesiumAsync::Future<IOContent> GetFileContentAsync(
             const CesiumAsync::AsyncSystem& asyncSystem, IORequestParameter&& request) = 0;
     };
-}
+} // namespace Cesium

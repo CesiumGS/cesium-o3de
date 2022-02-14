@@ -49,8 +49,7 @@ namespace Cesium
     class GenericAssetRequest final : public CesiumAsync::IAssetRequest
     {
     public:
-        GenericAssetRequest(
-            std::string&& url, CesiumAsync::HttpHeaders&& headers, std::unique_ptr<GenericAssetResponse> response)
+        GenericAssetRequest(std::string&& url, CesiumAsync::HttpHeaders&& headers, std::unique_ptr<GenericAssetResponse> response)
             : m_url{ std::move(url) }
             , m_headers{ std::move(headers) }
             , m_response{ std::move(response) }
@@ -93,15 +92,13 @@ namespace Cesium
         GenericAssetAccessor(GenericIOManager* ioManager, const std::string& contentType);
 
         CesiumAsync::Future<std::shared_ptr<CesiumAsync::IAssetRequest>> requestAsset(
-              const CesiumAsync::AsyncSystem& asyncSystem,
-              const std::string& url,
-              const std::vector<THeader>& headers = {}) override;
+            const CesiumAsync::AsyncSystem& asyncSystem, const std::string& url, const std::vector<THeader>& headers = {}) override;
 
         CesiumAsync::Future<std::shared_ptr<CesiumAsync::IAssetRequest>> post(
-              const CesiumAsync::AsyncSystem& asyncSystem,
-              const std::string& url,
-              const std::vector<THeader>& headers = std::vector<THeader>(),
-              const gsl::span<const std::byte>& contentPayload = {}) override;
+            const CesiumAsync::AsyncSystem& asyncSystem,
+            const std::string& url,
+            const std::vector<THeader>& headers = std::vector<THeader>(),
+            const gsl::span<const std::byte>& contentPayload = {}) override;
 
         void tick() noexcept override;
 

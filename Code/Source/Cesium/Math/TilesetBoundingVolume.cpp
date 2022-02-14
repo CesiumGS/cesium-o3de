@@ -27,8 +27,7 @@ namespace Cesium
                 ->Method("GetBoundingSphere", &TilesetBoundingVolumeUtil::GetBoundingSphere)
                 ->Method("GetOrientedBoundingBox", &TilesetBoundingVolumeUtil::GetOrientedBoundingBox)
                 ->Method("GetBoundingRegion", &TilesetBoundingVolumeUtil::GetBoundingRegion)
-                ->Method("GetCenter", &TilesetBoundingVolumeUtil::GetCenter)
-                ;
+                ->Method("GetCenter", &TilesetBoundingVolumeUtil::GetCenter);
         }
     }
 
@@ -36,18 +35,18 @@ namespace Cesium
     {
         if (std::holds_alternative<BoundingSphere>(volume))
         {
-            return TilesetBoundingVolumeType::BoundingSphere; 
+            return TilesetBoundingVolumeType::BoundingSphere;
         }
         else if (std::holds_alternative<OrientedBoundingBox>(volume))
         {
-            return TilesetBoundingVolumeType::OrientedBoundingBox; 
+            return TilesetBoundingVolumeType::OrientedBoundingBox;
         }
         else if (std::holds_alternative<BoundingRegion>(volume))
         {
-            return TilesetBoundingVolumeType::BoundingRegion; 
+            return TilesetBoundingVolumeType::BoundingRegion;
         }
 
-		return TilesetBoundingVolumeType::None; 
+        return TilesetBoundingVolumeType::None;
     }
 
     const BoundingSphere* TilesetBoundingVolumeUtil::GetBoundingSphere(const TilesetBoundingVolume& volume)
