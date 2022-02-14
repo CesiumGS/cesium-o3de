@@ -1,6 +1,6 @@
 ![Cesium for O3DE Logo](Documentation/Images/Cesium_for_O3DE_dark_onWhite.jpg)
 
-Cesium for O3DE brings the 3D geospatial ecosystem to the Open 3D Engine. Combine a high-accuracy full-scale WGS84 globe, open APIs and open standards for spatial indexing such as 3D Tiles, and cloud-based real-world content from [Cesium ion](https://cesium.com/cesium-ion) with the Open 3D Engine.
+Cesium for O3DE brings the 3D geospatial ecosystem to Open 3D Engine. Combine a high-accuracy full-scale WGS84 globe, open APIs and open standards for spatial indexing such as 3D Tiles, and cloud-based real-world content from [Cesium ion](https://cesium.com/cesium-ion) with O3DE.
 
 ### :rocket: Get Started
 
@@ -8,16 +8,16 @@ Learn how to use Cesium for O3DE with the Quickstart tutorial. (Link coming soon
 
 Looking for a demo project to help get you started? [Check out the Cesium for O3DE Samples](https://github.com/CesiumGS/cesium-o3de-samples).
 
-Have questions? Ask them on the [community forum](https://community.cesium.com).
+Have questions? Ask them on the [community forum](https://community.cesium.com/c/cesium-for-o3de/11).
 
 <p align="middle">
-  <img src="Documentation\Images\O3DE_LA_1.png" width="48%" />
-  <img src="Documentation\Images\O3DE_LasVegas_Aerial1.png" width="48%" /> 
+  <a href="https://github.com/CesiumGS/cesium-o3de-samples"><img src="Documentation\Images\O3DE_LA_1.png" width="48%" /></a>&nbsp;
+  <a href="https://cesium.com/learn/o3de/"><img src="Documentation\Images\O3DE_LasVegas_Aerial1.png" width="48%" /></a>&nbsp;
 </p>
 
 ### :house_with_garden: Cesium for O3DE and the 3D Geospatial Ecosystem
 
-Cesium for O3DE streams real-world 3D content such as high-resolution photogrammetry, terrain, imagery, and 3D buildings from [Cesium ion](https://cesium.com/cesium-ion) and other sources, available as optional commercial subscriptions. The plugin includes Cesium ion integration for instant access to global high-resolution 3D content ready for runtime streaming. Cesium ion users can also leverage cloud-based 3D tiling pipelines to create end-to-end workflows to transform massive heterogenous content into semantically-rich 3D Tiles, ready for streaming to the Open 3D Engine.
+Cesium for O3DE streams real-world 3D content such as high-resolution photogrammetry, terrain, imagery, and 3D buildings from [Cesium ion](https://cesium.com/cesium-ion) and other sources, available as optional commercial subscriptions. The gem includes Cesium ion integration for instant access to global high-resolution 3D content ready for runtime streaming. Cesium ion users can also leverage cloud-based 3D tiling pipelines to create end-to-end workflows to transform massive heterogenous content into semantically-rich 3D Tiles, ready for streaming to the Open 3D Engine.
 
 Cesium for O3DE supports cloud and private network content and services based on open standards and APIs. You are free to use any combination of supported content sources, standards, APIs with Cesium for O3DE.
 
@@ -27,7 +27,7 @@ Using Cesium ion helps support Cesium for O3DE development. :heart:
 
 ### :chains: O3DE Integration
 
-Cesium for O3DE is tightly integrated with the Open 3D Engine, making it possible to visualize and interact with real-world content in editor and at runtime. 
+Cesium for O3DE is tightly integrated with O3DE, making it possible to visualize and interact with real-world content in editor and at runtime. The gem is integrated with O3DE Script Canvas to easily create flexible and dynamic experiences. 
 
 ### :computer: Developing with O3DE
 
