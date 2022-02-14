@@ -1,4 +1,4 @@
-[![Cesium for O3DE Logo](Documentation/Images/Cesium_for_O3DE_dark_onWhite.jpg)]
+![Cesium for O3DE Logo](Documentation/Images/Cesium_for_O3DE_dark_onWhite.jpg)
 
 Cesium for O3DE brings the 3D geospatial ecosystem to the Open 3D Engine. Combine a high-accuracy full-scale WGS84 globe, open APIs and open standards for spatial indexing such as 3D Tiles, and cloud-based real-world content from [Cesium ion](https://cesium.com/cesium-ion) with the Open 3D Engine.
 
@@ -21,7 +21,7 @@ Cesium for O3DE streams real-world 3D content such as high-resolution photogramm
 
 Cesium for O3DE supports cloud and private network content and services based on open standards and APIs. You are free to use any combination of supported content sources, standards, APIs with Cesium for O3DE.
 
-[![Cesium for O3DE Ecosystem Diagram](Documentation/Images/integration-workflow_O3DE.png)]
+![Cesium for O3DE Ecosystem Diagram](Documentation/Images/integration-workflow_O3DE.png)
 
 Using Cesium ion helps support Cesium for O3DE development. :heart:
 
