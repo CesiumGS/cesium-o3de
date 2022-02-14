@@ -8,7 +8,7 @@
 namespace Cesium
 {
     GltfPrimitive::GltfPrimitive()
-        : m_materialIndex{-1}
+        : m_materialIndex{ -1 }
     {
     }
 
@@ -18,8 +18,8 @@ namespace Cesium
     }
 
     GltfModel::GltfModel(AZ::Render::MeshFeatureProcessorInterface* meshFeatureProcessor, const GltfLoadModel& loadModel)
-        : m_visible{true}
-        , m_transform{glm::dmat4(1.0)}
+        : m_visible{ true }
+        , m_transform{ glm::dmat4(1.0) }
         , m_meshFeatureProcessor{ meshFeatureProcessor }
         , m_meshes{}
     {
@@ -47,16 +47,19 @@ namespace Cesium
                     m_materials[loadPrimitive.m_materialId].m_material = std::move(materialInstance);
                 }
 
-                auto meshHandle = m_meshFeatureProcessor->AcquireMesh(
-                    AZ::Render::MeshHandleDescriptor{ loadPrimitive.m_modelAsset, false, false, {} },
-                    m_materials[loadPrimitive.m_materialId].m_material);
-                m_meshFeatureProcessor->SetTransform(meshHandle, o3deTransform, o3deScale);
+                if (loadPrimitive.m_materialId >= 0 && loadPrimitive.m_materialId < m_materials.size())
+                {
+                    auto meshHandle = m_meshFeatureProcessor->AcquireMesh(
+                        AZ::Render::MeshHandleDescriptor{ loadPrimitive.m_modelAsset, false, false, {} },
+                        m_materials[loadPrimitive.m_materialId].m_material);
+                    m_meshFeatureProcessor->SetTransform(meshHandle, o3deTransform, o3deScale);
 
-                GltfPrimitive primitive;
-                primitive.m_meshHandle = std::move(meshHandle);
-                primitive.m_materialIndex = loadPrimitive.m_materialId;
+                    GltfPrimitive primitive;
+                    primitive.m_meshHandle = std::move(meshHandle);
+                    primitive.m_materialIndex = loadPrimitive.m_materialId;
 
-                gltfMesh.m_primitives.emplace_back(std::move(primitive));
+                    gltfMesh.m_primitives.emplace_back(std::move(primitive));
+                }
             }
         }
     }
@@ -125,7 +128,7 @@ namespace Cesium
 
     void GltfModel::SetVisible(bool visible)
     {
-       m_visible = visible;
+        m_visible = visible;
         for (auto& mesh : m_meshes)
         {
             for (auto& primitive : mesh.m_primitives)
@@ -186,8 +189,7 @@ namespace Cesium
         {
             scale[i] = glm::length(mat4[i]);
         }
-        const glm::dmat3 rotMtx(
-            glm::dvec3(mat4[0]) / scale[0], glm::dvec3(mat4[1]) / scale[1], glm::dvec3(mat4[2]) / scale[2]);
+        const glm::dmat3 rotMtx(glm::dvec3(mat4[0]) / scale[0], glm::dvec3(mat4[1]) / scale[1], glm::dvec3(mat4[2]) / scale[2]);
         glm::dquat quarternion = glm::quat_cast(rotMtx);
         AZ::Quaternion o3deQuarternion{ static_cast<float>(quarternion.x), static_cast<float>(quarternion.y),
                                         static_cast<float>(quarternion.z), static_cast<float>(quarternion.w) };
@@ -197,4 +199,3 @@ namespace Cesium
         o3deTransform = AZ::Transform::CreateFromQuaternionAndTranslation(o3deQuarternion, o3deTranslation);
     }
 } // namespace Cesium
-

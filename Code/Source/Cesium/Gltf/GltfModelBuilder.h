@@ -12,7 +12,7 @@ namespace CesiumGltf
     struct Model;
     struct Scene;
     struct Node;
-}
+} // namespace CesiumGltf
 
 namespace CesiumGltfReader
 {
@@ -50,7 +50,10 @@ namespace Cesium
         void LoadMesh(const CesiumGltf::Model& model, std::size_t meshIndex, const glm::dmat4& transform, GltfLoadModel& loadModel);
 
         void ResolveExternalImages(
-            const AZStd::string& parentPath, const CesiumGltfReader::GltfReader& gltfReader, CesiumGltf::Model& model, GenericIOManager& io);
+            const AZStd::string& parentPath,
+            const CesiumGltfReader::GltfReader& gltfReader,
+            CesiumGltf::Model& model,
+            GenericIOManager& io);
 
         void ResolveExternalBuffers(const AZStd::string& parentPath, CesiumGltf::Model& model, GenericIOManager& io);
 
@@ -62,4 +65,3 @@ namespace Cesium
         AZStd::unique_ptr<GltfMaterialBuilder> m_materialBuilder;
     };
 } // namespace Cesium
-

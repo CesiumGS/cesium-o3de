@@ -19,7 +19,7 @@ namespace AZ
     {
         class MeshFeatureProcessorInterface;
     }
-}
+} // namespace AZ
 
 namespace CesiumGltf
 {
@@ -50,7 +50,9 @@ namespace Cesium
         AZ::StableDynamicArrayHandle<IntrusiveGltfModel> m_self;
     };
 
-    class RenderResourcesPreparer : public Cesium3DTilesSelection::IPrepareRendererResources, public AZ::TickBus::Handler
+    class RenderResourcesPreparer
+        : public Cesium3DTilesSelection::IPrepareRendererResources
+        , public AZ::TickBus::Handler
     {
     public:
         RenderResourcesPreparer(AZ::Render::MeshFeatureProcessorInterface* meshFeatureProcessor);
@@ -80,7 +82,9 @@ namespace Cesium
         void* prepareRasterInMainThread(const Cesium3DTilesSelection::RasterOverlayTile& rasterTile, void* pLoadThreadResult) override;
 
         void freeRaster(
-            const Cesium3DTilesSelection::RasterOverlayTile& rasterTile, void* pLoadThreadResult, void* pMainThreadResult) noexcept override;
+            const Cesium3DTilesSelection::RasterOverlayTile& rasterTile,
+            void* pLoadThreadResult,
+            void* pMainThreadResult) noexcept override;
 
         void attachRasterInMainThread(
             const Cesium3DTilesSelection::Tile& tile,

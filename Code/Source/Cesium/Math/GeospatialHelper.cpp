@@ -20,11 +20,13 @@ namespace Cesium
 
             behaviorContext->Class<GeospatialHelper>("GeospatialHelper")
                 ->Attribute(AZ::Script::Attributes::Category, "Cesium/Math")
-                ->Method("CartographicToECEFCartesian", &GeospatialHelper::CartographicToECEFCartesian, { AZ::BehaviorParameterOverrides("Cartographic") })
+                ->Method(
+                    "CartographicToECEFCartesian", &GeospatialHelper::CartographicToECEFCartesian,
+                    { AZ::BehaviorParameterOverrides("Cartographic") })
                 ->Method("ECEFCartesianToCartographic", ECEFCartesianToCartographic, { AZ::BehaviorParameterOverrides("ECEFPosition") })
-                ->Method("GeodeticSurfaceNormal", &GeospatialHelper::GeodeticSurfaceNormal, { AZ::BehaviorParameterOverrides("ECEFPosition") })
-                ->Method("EastNorthUpToECEF", &GeospatialHelper::EastNorthUpToECEF, { AZ::BehaviorParameterOverrides("ECEFPosition") })
-                ;
+                ->Method(
+                    "GeodeticSurfaceNormal", &GeospatialHelper::GeodeticSurfaceNormal, { AZ::BehaviorParameterOverrides("ECEFPosition") })
+                ->Method("EastNorthUpToECEF", &GeospatialHelper::EastNorthUpToECEF, { AZ::BehaviorParameterOverrides("ECEFPosition") });
         }
     }
 
@@ -39,7 +41,7 @@ namespace Cesium
         auto cartographic = CesiumGeospatial::Ellipsoid::WGS84.cartesianToCartographic(ecefPosition);
         if (cartographic)
         {
-            return Cartographic{cartographic->longitude, cartographic->latitude, cartographic->height};
+            return Cartographic{ cartographic->longitude, cartographic->latitude, cartographic->height };
         }
 
         return AZStd::nullopt;

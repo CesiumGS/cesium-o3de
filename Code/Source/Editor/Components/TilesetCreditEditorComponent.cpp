@@ -3,15 +3,14 @@
 #include <AzCore/Serialization/SerializeContext.h>
 #include <AzCore/Serialization/EditContext.h>
 
-namespace Cesium {
+namespace Cesium
+{
 
     void TilesetCreditEditorComponent::Reflect(AZ::ReflectContext* context)
     {
         if (auto serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<TilesetCreditEditorComponent, AZ::Component>()
-                ->Version(0)
-                ;
+            serializeContext->Class<TilesetCreditEditorComponent, AZ::Component>()->Version(0);
 
             auto editContext = serializeContext->GetEditContext();
             if (editContext)
@@ -22,8 +21,7 @@ namespace Cesium {
                     ->Attribute(AZ::Edit::Attributes::Icon, "Editor/Icons/Components/Cesium_logo_only.svg")
                     ->Attribute(AZ::Edit::Attributes::ViewportIcon, "Editor/Icons/Components/Cesium_logo_only.svg")
                     ->Attribute(AZ::Edit::Attributes::AppearsInAddComponentMenu, AZ_CRC("Level", 0x9aeacc13))
-                    ->Attribute(AZ::Edit::Attributes::AutoExpand, true)
-                    ;
+                    ->Attribute(AZ::Edit::Attributes::AutoExpand, true);
             }
         }
     }
@@ -52,4 +50,4 @@ namespace Cesium {
         creditComponent->SetEntity(gameEntity);
         creditComponent->Init();
     }
-}
+} // namespace Cesium

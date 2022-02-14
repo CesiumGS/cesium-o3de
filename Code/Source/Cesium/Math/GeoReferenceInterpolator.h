@@ -14,7 +14,9 @@ namespace Cesium
             const glm::dvec3& begin,
             const glm::dvec3& beginDirection,
             const glm::dvec3& destination,
-            const glm::dvec3& destinationDirection);
+            const glm::dvec3& destinationDirection,
+            const float* duration = nullptr,
+            const double* flyHeight = nullptr);
 
         const glm::dvec3& GetCurrentPosition() const override;
 

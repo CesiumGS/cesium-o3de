@@ -10,6 +10,8 @@ set(FILES
     Source/Editor/Widgets/MatrixInputWidget.cpp
     Source/Editor/Widgets/MathReflectPropertyWidget.h
     Source/Editor/Widgets/MathReflectPropertyWidget.cpp
+    Source/Editor/Widgets/GeoreferenceCameraFlyConfigurationWidget.h
+    Source/Editor/Widgets/GeoreferenceCameraFlyConfigurationWidget.cpp
     Source/Editor/Widgets/CesiumIonAssetListWidget.h
     Source/Editor/Widgets/CesiumIonAssetListWidget.cpp
     Source/Editor/Widgets/CesiumIonPanelWidget.h

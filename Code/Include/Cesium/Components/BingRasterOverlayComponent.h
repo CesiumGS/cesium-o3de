@@ -43,8 +43,7 @@ namespace Cesium
         AZStd::string m_culture;
     };
 
-    class BingRasterOverlayComponent final
-        : public RasterOverlayComponent
+    class BingRasterOverlayComponent final : public RasterOverlayComponent
     {
     public:
         AZ_COMPONENT(BingRasterOverlayComponent, "{EFF4DE55-D240-4824-8E9A-4255C4713984}", RasterOverlayComponent)

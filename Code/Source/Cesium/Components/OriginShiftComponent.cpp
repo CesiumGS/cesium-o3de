@@ -13,8 +13,7 @@ namespace Cesium
                 ->Field("Origin", &OriginShiftComponent::m_origin)
                 ->Field("Rotation", &OriginShiftComponent::m_rotation)
                 ->Field("AbsToRelWorld", &OriginShiftComponent::m_absToRelWorld)
-                ->Field("RelToAbsWorld", &OriginShiftComponent::m_relToAbsWorld)
-                ;
+                ->Field("RelToAbsWorld", &OriginShiftComponent::m_relToAbsWorld);
         }
     }
 
@@ -73,14 +72,14 @@ namespace Cesium
         UpdateTransform();
     }
 
-	void OriginShiftComponent::SetOriginAndRotation(const glm::dvec3& origin, const glm::dmat3& rotation)
+    void OriginShiftComponent::SetOriginAndRotation(const glm::dvec3& origin, const glm::dmat3& rotation)
     {
-		m_origin = origin;
+        m_origin = origin;
         m_rotation = rotation;
-		UpdateTransform();
+        UpdateTransform();
     }
 
-	void OriginShiftComponent::UpdateTransform()
+    void OriginShiftComponent::UpdateTransform()
     {
         m_absToRelWorld = glm::translate(glm::dmat4(m_rotation), -m_origin);
         m_relToAbsWorld = glm::inverse(m_absToRelWorld);

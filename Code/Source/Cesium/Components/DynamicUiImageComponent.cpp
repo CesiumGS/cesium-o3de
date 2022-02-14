@@ -22,16 +22,13 @@
 #pragma pop_macro("OPAQUE")
 #endif
 
-
 namespace Cesium
 {
     void DynamicUiImageComponent::Reflect(AZ::ReflectContext* context)
     {
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<DynamicUiImageComponent, AZ::Component>()
-                ->Version(0)
-                ;
+            serializeContext->Class<DynamicUiImageComponent, AZ::Component>()->Version(0);
         }
     }
 
@@ -89,28 +86,28 @@ namespace Cesium
         AZ::EntityId selfEntityId = GetEntityId();
         auto& httpManager = CesiumInterface::Get()->GetIOManager(Cesium::IOKind::Http);
         Cesium::IORequestParameter requestParameter{ url, "" };
-        auto future = httpManager.GetFileContentAsync(m_asyncSystem, requestParameter)
-                          .thenInMainThread(
-                              [selfEntityId](IOContent&& content)
-                              {
-                                  if (content.empty())
-                                  {
-                                      return;
-                                  }
+        auto future =
+            httpManager.GetFileContentAsync(m_asyncSystem, requestParameter)
+                .thenInMainThread(
+                    [selfEntityId](IOContent&& content)
+                    {
+                        if (content.empty())
+                        {
+                            return;
+                        }
 
-                                  CesiumGltfReader::GltfReader gltfReader;
-                                  auto imageResult = gltfReader.readImage(content);
-                                  if (imageResult.image)
-                                  {
-                                      auto pool = AZ::RPI::ImageSystemInterface::Get()->GetStreamingPool();
-                                      auto size = AZ::RHI::Size(imageResult.image->width, imageResult.image->height, 1); 
-                                      auto image = AZ::RPI::StreamingImage::CreateFromCpuData(
-                                          *pool, AZ::RHI::ImageDimension::Image2D, size, AZ::RHI::Format::R8G8B8A8_UNORM,
-                                          imageResult.image->pixelData.data(), imageResult.image->pixelData.size());
-                                      DynamicUiImageRequestBus::Event(
-                                          selfEntityId, &DynamicUiImageRequestBus::Events::SetImage, image, size);
-                                  }
-                              });
+                        CesiumGltfReader::GltfReader gltfReader;
+                        auto imageResult = gltfReader.readImage(content);
+                        if (imageResult.image)
+                        {
+                            auto pool = AZ::RPI::ImageSystemInterface::Get()->GetStreamingPool();
+                            auto size = AZ::RHI::Size(imageResult.image->width, imageResult.image->height, 1);
+                            auto image = AZ::RPI::StreamingImage::CreateFromCpuData(
+                                *pool, AZ::RHI::ImageDimension::Image2D, size, AZ::RHI::Format::R8G8B8A8_UNORM,
+                                imageResult.image->pixelData.data(), imageResult.image->pixelData.size());
+                            DynamicUiImageRequestBus::Event(selfEntityId, &DynamicUiImageRequestBus::Events::SetImage, image, size);
+                        }
+                    });
     }
 
     void DynamicUiImageComponent::SetImage(AZ::Data::Instance<AZ::RPI::StreamingImage> image, AZ::RHI::Size size)
@@ -132,7 +129,7 @@ namespace Cesium
         height = m_maxSize.m_height;
     }
 
-    void DynamicUiImageComponent::GetResizedImageSize(std::uint32_t &width, std::uint32_t &height) const
+    void DynamicUiImageComponent::GetResizedImageSize(std::uint32_t& width, std::uint32_t& height) const
     {
         width = m_scaledImageSize.m_width;
         height = m_scaledImageSize.m_height;

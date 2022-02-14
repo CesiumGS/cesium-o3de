@@ -20,7 +20,8 @@ namespace Cesium
         {
             behaviorContext->Class<RasterOverlayConfiguration>("RasterOverlayConfiguration")
                 ->Property("MaximumCacheBytes", BehaviorValueProperty(&RasterOverlayConfiguration::m_maximumCacheBytes))
-                ->Property("MaximumSimultaneousTileLoads", BehaviorValueProperty(&RasterOverlayConfiguration::m_maximumSimultaneousTileLoads));
+                ->Property(
+                    "MaximumSimultaneousTileLoads", BehaviorValueProperty(&RasterOverlayConfiguration::m_maximumSimultaneousTileLoads));
         }
     }
 
@@ -58,9 +59,8 @@ namespace Cesium
 
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<RasterOverlayComponent, AZ::Component>()->Version(0)
-                ->Field("configuration", &RasterOverlayComponent::m_configuration)
-                ;
+            serializeContext->Class<RasterOverlayComponent, AZ::Component>()->Version(0)->Field(
+                "configuration", &RasterOverlayComponent::m_configuration);
         }
     }
 
@@ -92,9 +92,11 @@ namespace Cesium
             });
 
         RasterOverlayContainerRequestBus::Event(
-            GetEntityId(), &RasterOverlayContainerRequestBus::Events::BindContainerLoadedEvent, m_impl->m_rasterOverlayContainerLoadedHandler);
+            GetEntityId(), &RasterOverlayContainerRequestBus::Events::BindContainerLoadedEvent,
+            m_impl->m_rasterOverlayContainerLoadedHandler);
         RasterOverlayContainerRequestBus::Event(
-            GetEntityId(), &RasterOverlayContainerRequestBus::Events::BindContainerUnloadedEvent, m_impl->m_rasterOverlayContainerUnloadedHandler);
+            GetEntityId(), &RasterOverlayContainerRequestBus::Events::BindContainerUnloadedEvent,
+            m_impl->m_rasterOverlayContainerUnloadedHandler);
 
         LoadRasterOverlay();
     }

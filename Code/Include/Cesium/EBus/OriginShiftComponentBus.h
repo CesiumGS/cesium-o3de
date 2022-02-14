@@ -7,6 +7,7 @@
 #include <AzCore/Memory/SystemAllocator.h>
 #include <glm/glm.hpp>
 #include <cstdint>
+#include <limits>
 
 namespace Cesium
 {
@@ -26,8 +27,7 @@ namespace Cesium
         virtual void SetOriginAndRotation(const glm::dvec3& origin, const glm::dmat3& rotation) = 0;
     };
 
-    class OriginShiftRequestEBusTraits
-        : public AZ::EBusTraits
+    class OriginShiftRequestEBusTraits : public AZ::EBusTraits
     {
     public:
         static const AZ::EBusHandlerPolicy HandlerPolicy = AZ::EBusHandlerPolicy::Single;
@@ -38,16 +38,27 @@ namespace Cesium
     class OriginShiftNotification : public AZ::ComponentBus
     {
     public:
+        struct BusHandlerOrderCompare
+        {
+            AZ_FORCE_INLINE bool operator()(OriginShiftNotification* left, OriginShiftNotification* right) const
+            {
+                return left->GetNotificationOrder() < right->GetNotificationOrder();
+            }
+        };
+
         virtual void OnOriginShifting(const glm::dmat4& absToRelWorld) = 0;
+
+        virtual std::int32_t GetNotificationOrder() const
+        {
+            return std::numeric_limits<std::int32_t>::max();
+        }
     };
 
-    class OriginShiftNotificationEBusTraits
-        : public AZ::EBusTraits
+    class OriginShiftNotificationEBusTraits : public AZ::EBusTraits
     {
     public:
         template<class Bus>
-        struct OriginShiftNotificationConnectionPolicy
-            : public AZ::EBusConnectionPolicy<Bus>
+        struct OriginShiftNotificationConnectionPolicy : public AZ::EBusConnectionPolicy<Bus>
         {
             static void Connect(
                 typename Bus::BusPtr& busPtr,
@@ -58,7 +69,7 @@ namespace Cesium
             {
                 AZ::EBusConnectionPolicy<Bus>::Connect(busPtr, context, handler, connectLock, id);
 
-                glm::dmat4 absToRelWorld{1.0};
+                glm::dmat4 absToRelWorld{ 1.0 };
                 OriginShiftRequestBus::BroadcastResult(absToRelWorld, &OriginShiftRequestBus::Events::GetAbsToRelWorld);
                 handler->OnOriginShifting(absToRelWorld);
             }
@@ -73,7 +84,9 @@ namespace Cesium
 
     using OriginShiftNotificationBus = AZ::EBus<OriginShiftNotification, OriginShiftNotificationEBusTraits>;
 
-    class OriginShiftNotificationEBusHandler : public OriginShiftNotificationBus::Handler, public AZ::BehaviorEBusHandler
+    class OriginShiftNotificationEBusHandler
+        : public OriginShiftNotificationBus::Handler
+        , public AZ::BehaviorEBusHandler
     {
     public:
         static void Reflect(AZ::ReflectContext* reflectContext);

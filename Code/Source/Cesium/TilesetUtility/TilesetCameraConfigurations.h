@@ -26,4 +26,4 @@ namespace Cesium
         std::vector<Cesium3DTilesSelection::ViewState> m_viewStates;
     };
 
-}
+} // namespace Cesium

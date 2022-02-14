@@ -118,26 +118,27 @@ namespace Cesium
         return m_movementSpeed;
     }
 
-    void GeoReferenceCameraFlyController::FlyToECEFLocation(
-        [[maybe_unused]] const glm::dvec3& location, [[maybe_unused]] const glm::dvec3& direction)
+    void GeoReferenceCameraFlyController::FlyToECEFLocation(const glm::dvec3& location, const glm::dvec3& direction)
     {
-        // Get camera current O3DE world transform to calculate its ECEF position and orientation
-        AZ::Transform relCameraTransform = AZ::Transform::CreateIdentity();
-        AZ::TransformBus::EventResult(relCameraTransform, GetEntityId(), &AZ::TransformBus::Events::GetWorldTM);
+        FlyToECEFLocationImpl(location, direction, nullptr, nullptr);
+    }
 
-        // Get current origin
-        glm::dmat4 relToAbsWorld{ 1.0 };
-        OriginShiftRequestBus::BroadcastResult(relToAbsWorld, &OriginShiftRequestBus::Events::GetRelToAbsWorld);
+    void GeoReferenceCameraFlyController::FlyToECEFLocationWithConfiguration(
+        const glm::dvec3& location, const glm::dvec3& direction, const GeoreferenceCameraFlyConfiguration& config)
+    {
+        const float* duration = nullptr;
+        if (config.m_overrideDefaultDuration)
+        {
+            duration = &config.m_duration;
+        }
 
-        // Get the current ecef position and orientation of the camera
-        glm::dmat4 absCameraTransform =
-            relToAbsWorld * MathHelper::ConvertTransformAndScaleToDMat4(relCameraTransform, AZ::Vector3::CreateOne());
-        glm::dvec3 absCameraPosition = absCameraTransform[3];
-        m_ecefPositionInterpolator =
-            AZStd::make_unique<GeoReferenceInterpolator>(absCameraPosition, absCameraTransform[1], location, direction);
+        const double* height = nullptr;
+        if (config.m_overrideDefaultFlyHeight)
+        {
+            height = &config.m_flyHeight;
+        }
 
-        // transition to the new state
-        m_cameraFlyState = CameraFlyState::MidFly;
+        FlyToECEFLocationImpl(location, direction, duration, height);
     }
 
     void GeoReferenceCameraFlyController::BindCameraStopFlyEventHandler(CameraStopFlyEvent::Handler& handler)
@@ -380,5 +381,27 @@ namespace Cesium
         m_cameraMovement = glm::dvec3{ 0.0 };
         m_cameraRotateUpdate = false;
         m_cameraMoveUpdate = false;
+    }
+
+    void GeoReferenceCameraFlyController::FlyToECEFLocationImpl(
+        const glm::dvec3& location, const glm::dvec3& direction, const float* duration, const double* flyHeight)
+    {
+        // Get camera current O3DE world transform to calculate its ECEF position and orientation
+        AZ::Transform relCameraTransform = AZ::Transform::CreateIdentity();
+        AZ::TransformBus::EventResult(relCameraTransform, GetEntityId(), &AZ::TransformBus::Events::GetWorldTM);
+
+        // Get current origin
+        glm::dmat4 relToAbsWorld{ 1.0 };
+        OriginShiftRequestBus::BroadcastResult(relToAbsWorld, &OriginShiftRequestBus::Events::GetRelToAbsWorld);
+
+        // Get the current ecef position and orientation of the camera
+        glm::dmat4 absCameraTransform =
+            relToAbsWorld * MathHelper::ConvertTransformAndScaleToDMat4(relCameraTransform, AZ::Vector3::CreateOne());
+        glm::dvec3 absCameraPosition = absCameraTransform[3];
+        m_ecefPositionInterpolator = AZStd::make_unique<GeoReferenceInterpolator>(
+            absCameraPosition, absCameraTransform[1], location, direction, duration, flyHeight);
+
+        // transition to the new state
+        m_cameraFlyState = CameraFlyState::MidFly;
     }
 } // namespace Cesium

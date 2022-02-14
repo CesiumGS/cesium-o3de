@@ -54,7 +54,7 @@ namespace Cesium
 
         void OnUiElementEnabledChanged(bool isEnabled) override;
 
-        void OnUiElementAndAncestorsEnabledChanged(bool areElementAndAncestorsEnabled) override; 
+        void OnUiElementAndAncestorsEnabledChanged(bool areElementAndAncestorsEnabled) override;
 
         void OnCanvasEnabledStateChanged(AZ::EntityId canvasEntityId, bool enabled) override;
 
@@ -69,4 +69,4 @@ namespace Cesium
         AZStd::unique_ptr<CDraw2d> m_draw2d;
         AZStd::unique_ptr<Draw2dHelper> m_draw2dHelper;
     };
-}
+} // namespace Cesium

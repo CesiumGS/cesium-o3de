@@ -33,8 +33,8 @@ namespace Cesium
                     ->DataElement(
                         AZ::Edit::UIHandlers::Default, &GeoReferenceCameraControllerEditor::m_mouseSensitivity, "Mouse Sensitivity", "")
                     ->DataElement(AZ::Edit::UIHandlers::Default, &GeoReferenceCameraControllerEditor::m_panningSpeed, "Panning Speed", "")
-                    ->DataElement(AZ::Edit::UIHandlers::Default, &GeoReferenceCameraControllerEditor::m_movementSpeed, "Movement Speed", "")
-                    ;
+                    ->DataElement(
+                        AZ::Edit::UIHandlers::Default, &GeoReferenceCameraControllerEditor::m_movementSpeed, "Movement Speed", "");
             }
         }
     }

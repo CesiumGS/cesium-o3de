@@ -20,20 +20,19 @@ namespace Cesium
             behaviorContext->Class<BoundingSphere>("BoundingSphere")
                 ->Attribute(AZ::Script::Attributes::Category, "Cesium/Math")
                 ->Property("Center", BehaviorValueProperty(&BoundingSphere::m_center))
-                ->Property("Radius", BehaviorValueProperty(&BoundingSphere::m_radius))
-            ;
+                ->Property("Radius", BehaviorValueProperty(&BoundingSphere::m_radius));
         }
     }
 
     BoundingSphere::BoundingSphere()
         : m_center{}
-        , m_radius{0.0}
+        , m_radius{ 0.0 }
     {
     }
 
     BoundingSphere::BoundingSphere(const glm::dvec3& center, double radius)
-        : m_center{center}
-        , m_radius{radius}
+        : m_center{ center }
+        , m_radius{ radius }
     {
     }
 } // namespace Cesium

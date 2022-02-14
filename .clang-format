@@ -43,7 +43,7 @@ MaxEmptyLinesToKeep: 1
 NamespaceIndentation: All
 PenaltyReturnTypeOnItsOwnLine: 1000
 PointerAlignment: Left
-SortIncludes: true
+SortIncludes: false
 SpaceAfterLogicalNot: false
 SpaceAfterTemplateKeyword: false
 SpaceBeforeAssignmentOperators: true

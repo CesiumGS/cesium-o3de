@@ -12,10 +12,10 @@ namespace Cesium
     {
         if (AZ::SerializeContext* serializeContext = azrtti_cast<AZ::SerializeContext*>(context))
         {
-            serializeContext->Class<CesiumIonRasterOverlayEditorComponent, AZ::Component>()->Version(0)
+            serializeContext->Class<CesiumIonRasterOverlayEditorComponent, AZ::Component>()
+                ->Version(0)
                 ->Field("Configuration", &CesiumIonRasterOverlayEditorComponent::m_configuration)
-                ->Field("Source", &CesiumIonRasterOverlayEditorComponent::m_source)
-                ;
+                ->Field("Source", &CesiumIonRasterOverlayEditorComponent::m_source);
 
             AZ::EditContext* editContext = serializeContext->GetEditContext();
             if (editContext)
@@ -24,32 +24,32 @@ namespace Cesium
                     ->Class<CesiumIonRasterOverlayEditorComponent>(
                         "Cesium Ion Raster Overlay", "The raster component is used to drap imagery on 3D Tiles")
                     ->ClassElement(AZ::Edit::ClassElements::EditorData, "")
-                        ->Attribute(AZ::Edit::Attributes::Category, "Cesium")
-                        ->Attribute(AZ::Edit::Attributes::Icon, "Editor/Icons/Components/Cesium_logo_only.svg")
-                        ->Attribute(AZ::Edit::Attributes::ViewportIcon, "Editor/Icons/Components/Cesium_logo_only.svg")
-                        ->Attribute(AZ::Edit::Attributes::AppearsInAddComponentMenu, AZ_CRC("Game", 0x232b318c))
-                        ->Attribute(AZ::Edit::Attributes::AutoExpand, true)
-                    ->DataElement(AZ::Edit::UIHandlers::Default, &CesiumIonRasterOverlayEditorComponent::m_configuration, "Configuration", "")
-                        ->Attribute(AZ::Edit::Attributes::Visibility, AZ::Edit::PropertyVisibility::ShowChildrenOnly)
-                        ->Attribute(AZ::Edit::Attributes::ChangeNotify, &CesiumIonRasterOverlayEditorComponent::OnConfigurationChanged)
+                    ->Attribute(AZ::Edit::Attributes::Category, "Cesium")
+                    ->Attribute(AZ::Edit::Attributes::Icon, "Editor/Icons/Components/Cesium_logo_only.svg")
+                    ->Attribute(AZ::Edit::Attributes::ViewportIcon, "Editor/Icons/Components/Cesium_logo_only.svg")
+                    ->Attribute(AZ::Edit::Attributes::AppearsInAddComponentMenu, AZ_CRC("Game", 0x232b318c))
+                    ->Attribute(AZ::Edit::Attributes::AutoExpand, true)
+                    ->DataElement(
+                        AZ::Edit::UIHandlers::Default, &CesiumIonRasterOverlayEditorComponent::m_configuration, "Configuration", "")
+                    ->Attribute(AZ::Edit::Attributes::Visibility, AZ::Edit::PropertyVisibility::ShowChildrenOnly)
+                    ->Attribute(AZ::Edit::Attributes::ChangeNotify, &CesiumIonRasterOverlayEditorComponent::OnConfigurationChanged)
                     ->DataElement(AZ::Edit::UIHandlers::Default, &CesiumIonRasterOverlayEditorComponent::m_source, "Source", "")
-                        ->Attribute(AZ::Edit::Attributes::Visibility, AZ::Edit::PropertyVisibility::ShowChildrenOnly)
-                        ->Attribute(AZ::Edit::Attributes::ChangeNotify, &CesiumIonRasterOverlayEditorComponent::OnSourceChanged)
-                    ;
+                    ->Attribute(AZ::Edit::Attributes::Visibility, AZ::Edit::PropertyVisibility::ShowChildrenOnly)
+                    ->Attribute(AZ::Edit::Attributes::ChangeNotify, &CesiumIonRasterOverlayEditorComponent::OnSourceChanged);
 
                 editContext->Class<RasterOverlayConfiguration>("Configuration", "")
                     ->ClassElement(AZ::Edit::ClassElements::EditorData, "")
                     ->ClassElement(AZ::Edit::ClassElements::Group, "Configuration")
-                        ->DataElement(AZ::Edit::UIHandlers::Default, &RasterOverlayConfiguration::m_maximumCacheBytes, "Maximum Cache Size", "")
-                        ->DataElement(AZ::Edit::UIHandlers::Default, &RasterOverlayConfiguration::m_maximumSimultaneousTileLoads, "Maximum Simultaneous TileLoads", "")
-                    ;
+                    ->DataElement(AZ::Edit::UIHandlers::Default, &RasterOverlayConfiguration::m_maximumCacheBytes, "Maximum Cache Size", "")
+                    ->DataElement(
+                        AZ::Edit::UIHandlers::Default, &RasterOverlayConfiguration::m_maximumSimultaneousTileLoads,
+                        "Maximum Simultaneous TileLoads", "");
 
                 editContext->Class<CesiumIonRasterOverlaySource>("Source", "")
                     ->ClassElement(AZ::Edit::ClassElements::EditorData, "")
                     ->ClassElement(AZ::Edit::ClassElements::Group, "Source")
-                        ->DataElement(AZ::Edit::UIHandlers::Default, &CesiumIonRasterOverlaySource::m_ionAssetId, "Ion Asset Id", "")
-                        ->DataElement(AZ::Edit::UIHandlers::Default, &CesiumIonRasterOverlaySource::m_ionToken, "Ion Asset Token", "")
-                    ;
+                    ->DataElement(AZ::Edit::UIHandlers::Default, &CesiumIonRasterOverlaySource::m_ionAssetId, "Ion Asset Id", "")
+                    ->DataElement(AZ::Edit::UIHandlers::Default, &CesiumIonRasterOverlaySource::m_ionToken, "Ion Asset Token", "");
             }
         }
     }
@@ -59,7 +59,8 @@ namespace Cesium
         provided.push_back(AZ_CRC_CE("CesiumIonRasterOverlayEditorSerivce"));
     }
 
-    void CesiumIonRasterOverlayEditorComponent::GetIncompatibleServices([[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& incompatible)
+    void CesiumIonRasterOverlayEditorComponent::GetIncompatibleServices(
+        [[maybe_unused]] AZ::ComponentDescriptor::DependencyArrayType& incompatible)
     {
     }
 
@@ -129,4 +130,4 @@ namespace Cesium
         m_rasterOverlayComponent->SetConfiguration(m_configuration);
         return AZ::Edit::PropertyRefreshLevels::None;
     }
-}
+} // namespace Cesium

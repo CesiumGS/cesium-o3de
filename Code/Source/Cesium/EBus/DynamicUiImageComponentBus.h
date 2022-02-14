@@ -22,4 +22,4 @@ namespace Cesium
     };
 
     using DynamicUiImageRequestBus = AZ::EBus<DynamicUiImageRequest>;
-}
+} // namespace Cesium
