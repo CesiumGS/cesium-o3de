@@ -62,6 +62,8 @@ namespace Cesium
 
         virtual void FlyToECEFLocation(const glm::dvec3& location, const glm::dvec3& direction) = 0;
 
+        virtual void FlyToECEFLocationWithEulerAngle(const glm::dvec3& location, float pitchInRadians, float yawInRadians) = 0;
+
         virtual void FlyToECEFLocationWithConfiguration(
             const glm::dvec3& location, const glm::dvec3& direction, const GeoreferenceCameraFlyConfiguration& config) = 0;
 
