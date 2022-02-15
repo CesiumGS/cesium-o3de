@@ -1,6 +1,6 @@
 # Change Log
 
-### vX.X.X - YYYY-MM-DD - Initial Release
+### v1.0.0 - 2022-02-15 - Initial Release
 
 ##### Features :tada:
 
