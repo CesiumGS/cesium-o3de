@@ -123,6 +123,15 @@ namespace Cesium
         FlyToECEFLocationImpl(location, direction, nullptr, nullptr);
     }
 
+    void GeoReferenceCameraFlyController::FlyToECEFLocationWithEulerAngle(
+        const glm::dvec3& location, float pitchInRadians, float yawInRadians)
+    {
+        glm::dvec3 direction = CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(location) *
+            (glm::dquat(glm::dvec3(pitchInRadians, 0.0, yawInRadians)) * glm::dvec4(0.0, 1.0, 0.0, 0.0));
+        direction = glm::normalize(direction);
+        FlyToECEFLocationImpl(location, direction, nullptr, nullptr);
+    }
+
     void GeoReferenceCameraFlyController::FlyToECEFLocationWithConfiguration(
         const glm::dvec3& location, const glm::dvec3& direction, const GeoreferenceCameraFlyConfiguration& config)
     {
