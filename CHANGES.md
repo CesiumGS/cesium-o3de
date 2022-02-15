@@ -11,6 +11,7 @@
   - Caching
   - Multithreaded loading
   - Batched 3D Model (B3DM) content, including the B3DM content inside Composite (CMPT) tiles
+  - glTF content
   - `quantized-mesh` terrain loading and rendering
   - Bing Maps and Tile Map Service (TMS) raster overlays draped on terrain
 - Integrated with Cesium ion for instant access to cloud based global 3D content.
