@@ -4,7 +4,7 @@ Cesium for O3DE brings the 3D geospatial ecosystem to Open 3D Engine. Combine a 
 
 ### :rocket: Get Started
 
-Learn how to use Cesium for O3DE with the Quickstart tutorial. (Link coming soon!) 
+Learn how to use Cesium for O3DE with the [Quickstart tutorial](https://cesium.com/learn/o3de/o3de-quickstart/).
 
 Looking for a demo project to help get you started? [Check out the Cesium for O3DE Samples](https://github.com/CesiumGS/cesium-o3de-samples).
 
