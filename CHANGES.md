@@ -1,5 +1,11 @@
 # Change Log
 
+### ? - ?
+
+##### Fixes :wrench:
+
+- Change texture's addressU and addressV from wrap to clamp to fix the white seam when rendering imagery.
+
 ### v1.0.0 - 2022-02-15 - Initial Release
 
 ##### Features :tada:

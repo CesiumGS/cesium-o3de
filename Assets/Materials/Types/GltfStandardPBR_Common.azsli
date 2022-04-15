@@ -57,8 +57,8 @@ ShaderResourceGroup MaterialSrg : SRG_PerMaterial
 
     Sampler m_sampler
     {
-        AddressU = Wrap;
-        AddressV = Wrap;
+        AddressU = Clamp;
+        AddressV = Clamp;
         MinFilter = Linear;
         MagFilter = Linear;
         MipFilter = Linear;
