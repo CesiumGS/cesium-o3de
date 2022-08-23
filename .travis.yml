@@ -52,6 +52,7 @@ jobs:
     # create a test project
     - cd /c/O3DE/22.05.0/scripts
     - ./o3de.bat create-project -pp /c/temp/o3de-project
+    - ./o3de.bat register -gp $TRAVIS_BUILD_DIR -espp /c/temp/o3de-project
     - ./o3de.bat enable-gem -gp $TRAVIS_BUILD_DIR -pp /c/temp/o3de-project
     - cd /c/temp/o3de-project
     - cmake -B build/windows_vs2019 -S . -A x64
