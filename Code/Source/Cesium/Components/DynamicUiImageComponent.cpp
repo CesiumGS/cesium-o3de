@@ -157,7 +157,7 @@ namespace Cesium
 
     void DynamicUiImageComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
     {
-        ILyShine *lyShine = AZ::Interface<ILyShine>::Get();
+        ILyShine* lyShine = AZ::Interface<ILyShine>::Get();
         if (m_isEnable && lyShine)
         {
             IDraw2d* draw2d = lyShine->GetDraw2d();
