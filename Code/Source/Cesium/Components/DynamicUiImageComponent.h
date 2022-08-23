@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Cesium/EBus/DynamicUiImageComponentBus.h"
-#include <LyShine/Draw2d.h>
+#include <LyShine/IDraw2d.h>
 #include <LyShine/Bus/UiElementBus.h>
 #include <LyShine/Bus/UiCanvasBus.h>
 #include <AzCore/Component/TickBus.h>
@@ -66,7 +66,5 @@ namespace Cesium
         AZ::RHI::Size m_maxSize{ 256, 30, 0 };
         CesiumAsync::AsyncSystem m_asyncSystem;
         AZ::Data::Instance<AZ::RPI::StreamingImage> m_image;
-        AZStd::unique_ptr<CDraw2d> m_draw2d;
-        AZStd::unique_ptr<Draw2dHelper> m_draw2dHelper;
     };
 } // namespace Cesium

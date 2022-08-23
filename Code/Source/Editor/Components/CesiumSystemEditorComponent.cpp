@@ -391,7 +391,7 @@ namespace Cesium
             auto defaultViewContext = viewportContextManager->GetDefaultViewportContext();
             AZ::Matrix4x4 clipMatrix;
             AZ::MakePerspectiveFovMatrixRH(
-                clipMatrix, cameraState.m_fovOrZoom, cameraState.m_viewportSize.GetX() / cameraState.m_viewportSize.GetY(),
+                clipMatrix, cameraState.m_fovOrZoom, float(cameraState.m_viewportSize.m_width) / float(cameraState.m_viewportSize.m_height),
                 cameraState.m_nearClip, 10000000.0f, true);
             defaultViewContext->SetCameraProjectionMatrix(clipMatrix);
         }

@@ -19,7 +19,7 @@ namespace Cesium
         TMSRasterOverlaySource();
 
         AZStd::string m_url;
-        AZStd::map<AZStd::string, AZStd::string> m_headers;
+        AZStd::unordered_map<AZStd::string, AZStd::string> m_headers;
         AZStd::string m_fileExtension;
         uint32_t m_minimumLevel;
         uint32_t m_maximumLevel;

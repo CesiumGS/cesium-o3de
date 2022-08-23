@@ -5,11 +5,11 @@ namespace Cesium
 {
     struct BitangentAndTangentGenerator::MikktspaceCustomData
     {
-        AZStd::array_view<glm::vec3> positions{};
-        AZStd::array_view<glm::vec3> normals{};
-        AZStd::array_view<glm::vec2> uvs{};
-        AZStd::array_view<glm::u8vec2> unorm_u8_uvs{};
-        AZStd::array_view<glm::u16vec2> unorm_u16_uvs{};
+        AZStd::span<glm::vec3> positions{};
+        AZStd::span<glm::vec3> normals{};
+        AZStd::span<glm::vec2> uvs{};
+        AZStd::span<glm::u8vec2> unorm_u8_uvs{};
+        AZStd::span<glm::u16vec2> unorm_u16_uvs{};
         AZStd::vector<glm::vec4>* tangents{ nullptr };
         AZStd::vector<glm::vec3>* bitangents{ nullptr };
     };
@@ -30,7 +30,7 @@ namespace Cesium
         static void GetPosition(const SMikkTSpaceContext* context, float posOut[], const int face, const int vert)
         {
             MikktspaceCustomData* customData = static_cast<MikktspaceCustomData*>(context->m_pUserData);
-            const AZStd::array_view<glm::vec3>& positions = customData->positions;
+            const AZStd::span<glm::vec3>& positions = customData->positions;
             std::size_t vertexIndex = static_cast<std::size_t>(face * 3 + vert);
             const glm::vec3& position = positions[vertexIndex];
             posOut[0] = position.x;
@@ -41,7 +41,7 @@ namespace Cesium
         static void GetNormal(const SMikkTSpaceContext* context, float normOut[], const int face, const int vert)
         {
             MikktspaceCustomData* customData = static_cast<MikktspaceCustomData*>(context->m_pUserData);
-            const AZStd::array_view<glm::vec3>& normals = customData->normals;
+            const AZStd::span<glm::vec3>& normals = customData->normals;
             std::size_t vertexIndex = static_cast<std::size_t>(face * 3 + vert);
             const glm::vec3& normal = normals[vertexIndex];
             normOut[0] = normal.x;
@@ -52,7 +52,7 @@ namespace Cesium
         static void GetTexCoord(const SMikkTSpaceContext* context, float texOut[], const int face, const int vert)
         {
             MikktspaceCustomData* customData = static_cast<MikktspaceCustomData*>(context->m_pUserData);
-            const AZStd::array_view<glm::vec2>& uvs = customData->uvs;
+            const AZStd::span<glm::vec2>& uvs = customData->uvs;
             if (uvs.empty())
             {
                 texOut[0] = 0.0f;
@@ -70,7 +70,7 @@ namespace Cesium
         static void GetTexCoord_UNORM_U8(const SMikkTSpaceContext* context, float texOut[], const int face, const int vert)
         {
             MikktspaceCustomData* customData = static_cast<MikktspaceCustomData*>(context->m_pUserData);
-            const AZStd::array_view<glm::u8vec2>& uvs = customData->unorm_u8_uvs;
+            const AZStd::span<glm::u8vec2>& uvs = customData->unorm_u8_uvs;
             if (uvs.empty())
             {
                 texOut[0] = 0.0f;
@@ -88,7 +88,7 @@ namespace Cesium
         static void GetTexCoord_UNORM_U16(const SMikkTSpaceContext* context, float texOut[], const int face, const int vert)
         {
             MikktspaceCustomData* customData = static_cast<MikktspaceCustomData*>(context->m_pUserData);
-            const AZStd::array_view<glm::u16vec2>& uvs = customData->unorm_u16_uvs;
+            const AZStd::span<glm::u16vec2>& uvs = customData->unorm_u16_uvs;
             if (uvs.empty())
             {
                 texOut[0] = 0.0f;
@@ -124,9 +124,9 @@ namespace Cesium
     };
 
     bool BitangentAndTangentGenerator::Generate(
-        const AZStd::array_view<glm::vec3>& positions,
-        const AZStd::array_view<glm::vec3>& normals,
-        const AZStd::array_view<glm::vec2>& uvs,
+        const AZStd::span<glm::vec3>& positions,
+        const AZStd::span<glm::vec3>& normals,
+        const AZStd::span<glm::vec2>& uvs,
         AZStd::vector<glm::vec4>& tangents,
         AZStd::vector<glm::vec3>& bitangents)
     {
@@ -158,9 +158,9 @@ namespace Cesium
     }
 
     bool BitangentAndTangentGenerator::Generate(
-        const AZStd::array_view<glm::vec3>& positions,
-        const AZStd::array_view<glm::vec3>& normals,
-        const AZStd::array_view<glm::u8vec2>& uvs,
+        const AZStd::span<glm::vec3>& positions,
+        const AZStd::span<glm::vec3>& normals,
+        const AZStd::span<glm::u8vec2>& uvs,
         AZStd::vector<glm::vec4>& tangents,
         AZStd::vector<glm::vec3>& bitangents)
     {
@@ -192,9 +192,9 @@ namespace Cesium
     }
 
     bool BitangentAndTangentGenerator::Generate(
-        const AZStd::array_view<glm::vec3>& positions,
-        const AZStd::array_view<glm::vec3>& normals,
-        const AZStd::array_view<glm::u16vec2>& uvs,
+        const AZStd::span<glm::vec3>& positions,
+        const AZStd::span<glm::vec3>& normals,
+        const AZStd::span<glm::u16vec2>& uvs,
         AZStd::vector<glm::vec4>& tangents,
         AZStd::vector<glm::vec3>& bitangents)
     {

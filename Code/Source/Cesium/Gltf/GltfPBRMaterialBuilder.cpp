@@ -50,7 +50,7 @@ namespace Cesium
 
         AZ::Data::AssetId materialAssetId = CesiumInterface::Get()->GetCriticalAssetManager().GenerateRandomAssetId();
         AZ::RPI::MaterialAssetCreator materialCreator;
-        materialCreator.Begin(materialAssetId, *materialTypeAsset);
+        materialCreator.Begin(materialAssetId, materialTypeAsset, true);
 
         ConfigurePbrMetallicRoughness(model, material, textureCache, materialCreator);
         ConfigureOcclusion(model, material, textureCache, materialCreator);

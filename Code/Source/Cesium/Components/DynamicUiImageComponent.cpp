@@ -1,5 +1,7 @@
 #include "Cesium/Components/DynamicUiImageComponent.h"
 #include "Cesium/Systems/CesiumSystem.h"
+#include <LyShine/ILyShine.h>
+#include <LyShine/IDraw2d.h>
 #include <LyShine/Bus/UiTransformBus.h>
 #include <Atom/RPI.Public/ViewportContext.h>
 #include <Atom/RPI.Public/ViewportContextBus.h>
@@ -145,13 +147,6 @@ namespace Cesium
         UiCanvasEnabledStateNotificationBus::Handler::BusConnect();
         DynamicUiImageRequestBus::Handler::BusConnect(GetEntityId());
         AZ::TickBus::Handler::BusConnect();
-
-        auto viewportManager = AZ::Interface<AZ::RPI::ViewportContextRequestsInterface>::Get();
-        if (viewportManager)
-        {
-            m_draw2d = AZStd::make_unique<CDraw2d>(viewportManager->GetDefaultViewportContext());
-            m_draw2dHelper = AZStd::make_unique<Draw2dHelper>(m_draw2d.get());
-        }
     }
 
     void DynamicUiImageComponent::Deactivate()
@@ -162,8 +157,10 @@ namespace Cesium
 
     void DynamicUiImageComponent::OnTick([[maybe_unused]] float deltaTime, [[maybe_unused]] AZ::ScriptTimePoint time)
     {
-        if (m_isEnable && m_draw2dHelper)
+        ILyShine *lyShine = AZ::Interface<ILyShine>::Get();
+        if (m_isEnable && lyShine)
         {
+            IDraw2d* draw2d = lyShine->GetDraw2d();
             m_asyncSystem.dispatchMainThreadTasks();
 
             if (m_image)
@@ -176,8 +173,8 @@ namespace Cesium
                 AZ::Vector3 scale = transform.ExtractScale();
 
                 static const int64_t topLayerKey = 0x1000000;
-                m_draw2d->SetSortKey(topLayerKey);
-                m_draw2dHelper->DrawImage(
+                draw2d->SetSortKey(topLayerKey);
+                draw2d->DrawImage(
                     m_image, rectPoints.TopLeft(),
                     AZ::Vector2(
                         scale.GetX() * static_cast<float>(m_scaledImageSize.m_width),
