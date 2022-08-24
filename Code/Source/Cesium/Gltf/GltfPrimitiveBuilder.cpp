@@ -635,20 +635,17 @@ namespace Cesium
                 {
                     if (m_uvs[i].m_format == AZ::RHI::Format::R32G32_FLOAT)
                     {
-                        AZStd::array_view<glm::vec2> uvs(
-                            reinterpret_cast<const glm::vec2*>(m_uvs[i].m_buffer.data()), m_uvs[i].m_elementCount);
+                        AZStd::span<glm::vec2> uvs(reinterpret_cast<glm::vec2*>(m_uvs[i].m_buffer.data()), m_uvs[i].m_elementCount);
                         success = BitangentAndTangentGenerator::Generate(m_positions, m_normals, uvs, m_tangents, m_bitangents);
                     }
                     else if (m_uvs[i].m_format == AZ::RHI::Format::R8G8_UNORM)
                     {
-                        AZStd::array_view<glm::u8vec2> uvs(
-                            reinterpret_cast<const glm::u8vec2*>(m_uvs[i].m_buffer.data()), m_uvs[i].m_elementCount);
+                        AZStd::span<glm::u8vec2> uvs(reinterpret_cast<glm::u8vec2*>(m_uvs[i].m_buffer.data()), m_uvs[i].m_elementCount);
                         success = BitangentAndTangentGenerator::Generate(m_positions, m_normals, uvs, m_tangents, m_bitangents);
                     }
                     else if (m_uvs[i].m_format == AZ::RHI::Format::R16G16_UNORM)
                     {
-                        AZStd::array_view<glm::u16vec2> uvs(
-                            reinterpret_cast<const glm::u16vec2*>(m_uvs[i].m_buffer.data()), m_uvs[i].m_elementCount);
+                        AZStd::span<glm::u16vec2> uvs(reinterpret_cast<glm::u16vec2*>(m_uvs[i].m_buffer.data()), m_uvs[i].m_elementCount);
                         success = BitangentAndTangentGenerator::Generate(m_positions, m_normals, uvs, m_tangents, m_bitangents);
                     }
                     else

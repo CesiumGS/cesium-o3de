@@ -18,10 +18,10 @@ jobs:
     # run installer outside of repo dir
     - cd $TRAVIS_BUILD_DIR/..
     - if [[ $(sfc 2>&1 | tr -d '\0') =~ SCANNOW ]]; then echo Administrator; else echo $USERNAME; fi
-    - curl "http://o3debinaries.org/main/Latest/Windows/o3de_installer_2111_2.exe" --output o3de_installer_2111_2.exe;
-    - md5sum o3de_installer_2111_2.exe;
-    - ./o3de_installer_2111_2.exe -quiet -layout || echo "Fallback Pass";
-    - msiexec -a o3de_21.11.2.msi -quiet -L*V "c:\o3de_installer.log" || echo "Fallback Pass";
+    - curl "http://o3debinaries.org/main/Latest/Windows/o3de_installer_2205_0.exe" --output o3de_installer_2205_0.exe;
+    - md5sum o3de_installer_2205_0.exe;
+    - ./o3de_installer_2205_0.exe -quiet -layout || echo "Fallback Pass";
+    - msiexec -a o3de_22.05.0.msi -quiet -L*V "c:\o3de_installer.log" || echo "Fallback Pass";
 
     # return back to repo for building
     - cd $TRAVIS_BUILD_DIR
@@ -46,19 +46,20 @@ jobs:
     # set up Cesium Native as third party for O3DE and O3DE installer
     - cd $TRAVIS_BUILD_DIR
     - export LY_PACKAGE_SERVER_URL="file:///$TRAVIS_BUILD_DIR/External/Packages/Install"
-    - /c/O3DE/21.11.2/python/get_python.bat;
-    - /c/O3DE/21.11.2/scripts/o3de.bat register --this-engine
+    - /c/O3DE/22.05.0/python/get_python.bat;
+    - /c/O3DE/22.05.0/scripts/o3de.bat register --this-engine
 
     # create a test project
-    - cd /c/O3DE/21.11.2/scripts
+    - cd /c/O3DE/22.05.0/scripts
     - ./o3de.bat create-project -pp /c/temp/o3de-project
+    - ./o3de.bat register -gp $TRAVIS_BUILD_DIR -espp /c/temp/o3de-project
     - ./o3de.bat enable-gem -gp $TRAVIS_BUILD_DIR -pp /c/temp/o3de-project
     - cd /c/temp/o3de-project
     - cmake -B build/windows_vs2019 -S . -A x64
     - cmake --build build/windows_vs2019 --target Cesium Cesium.Tests Cesium.Editor.Tests --config profile -- -m
 
     # run tests
-    - cd /c/O3DE/21.11.2/bin/Windows/profile/Default
+    - cd /c/O3DE/22.05.0/bin/Windows/profile/Default
     - ./AzTestRunner.exe /c/temp/o3de-project/build/windows_vs2019/bin/profile/Cesium.Tests.dll AzRunUnitTests
     - ./AzTestRunner.exe /c/temp/o3de-project/build/windows_vs2019/bin/profile/Cesium.Editor.Tests.dll AzRunUnitTests
 

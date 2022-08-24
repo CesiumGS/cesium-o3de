@@ -50,7 +50,7 @@ namespace Cesium
         AZStd::string prefix = AZStd::string::format("raster%d", rasterLayer);
 
         AZ::RPI::MaterialAssetCreator materialCreator;
-        materialCreator.Begin(AZ::Uuid::CreateRandom(), *parent);
+        materialCreator.Begin(AZ::Uuid::CreateRandom(), parent->GetMaterialTypeAsset(), true);
         materialCreator.SetPropertyValue(AZ::Name(prefix + ".textureMap"), raster);
         materialCreator.SetPropertyValue(AZ::Name(prefix + ".useTexture"), true);
         materialCreator.SetPropertyValue(AZ::Name(prefix + ".textureMapUv"), textureUv);

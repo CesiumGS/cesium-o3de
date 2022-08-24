@@ -274,15 +274,15 @@ namespace Cesium
                 })
             ->Method(
                 "CreateFromDMat3",
-                [](const glm::dmat3& rotation)
+                [](const glm::dmat3* rotation)
                 {
-                    return glm::dquat(rotation);
+                    return glm::dquat(*rotation);
                 })
             ->Method(
                 "CreateFromDMat4",
-                [](const glm::dmat4& rotation)
+                [](const glm::dmat4* rotation)
                 {
-                    return glm::dquat(rotation);
+                    return glm::dquat(*rotation);
                 })
             ->Method(
                 "Create",
