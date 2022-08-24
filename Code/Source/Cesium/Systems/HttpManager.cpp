@@ -2,6 +2,7 @@
 #include <AzFramework/AzFramework_Traits_Platform.h>
 #include <AWSNativeSDKInit/AWSNativeSDKInit.h>
 #include <AzCore/PlatformDef.h>
+#include <AzCore/Utils/Utils.h>
 #include <AzCore/Jobs/JobManager.h>
 #include <AzCore/Jobs/JobContext.h>
 #include <AzCore/Jobs/JobFunction.h>
@@ -121,6 +122,7 @@ namespace Cesium
         m_ioJobManager = AZStd::make_unique<AZ::JobManager>(jobDesc);
         m_ioJobContext = AZStd::make_unique<AZ::JobContext>(*m_ioJobManager);
 
+        AZ::Utils::SetEnv("AWS_EC2_METADATA_DISABLED", "False", true);
         AWSNativeSDKInit::InitializationManager::InitAwsApi();
 
         Aws::Client::ClientConfiguration config;
