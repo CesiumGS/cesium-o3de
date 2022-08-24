@@ -122,7 +122,7 @@ namespace Cesium
         m_ioJobManager = AZStd::make_unique<AZ::JobManager>(jobDesc);
         m_ioJobContext = AZStd::make_unique<AZ::JobContext>(*m_ioJobManager);
 
-        AZ::Utils::SetEnv("AWS_EC2_METADATA_DISABLED", "False", true);
+        AZ::Utils::SetEnv("AWS_EC2_METADATA_DISABLED", "True", true);
         AWSNativeSDKInit::InitializationManager::InitAwsApi();
 
         Aws::Client::ClientConfiguration config;
