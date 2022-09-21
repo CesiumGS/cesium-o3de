@@ -23,6 +23,12 @@
 #include <CesiumGeospatial/Transforms.h>
 #include <glm/glm.hpp>
 
+// Work around QT macro namespace limitations. 
+// Cf. https://stackoverflow.com/a/1392945
+inline void initQTresources(){
+    Q_INIT_RESOURCE(CesiumResources);
+}
+
 namespace Cesium
 {
     void CesiumSystemEditorComponent::Reflect(AZ::ReflectContext* context)
@@ -70,7 +76,7 @@ namespace Cesium
 
     void CesiumSystemEditorComponent::Activate()
     {
-        Q_INIT_RESOURCE(CesiumResources);
+        initQTresources();
         MathReflectPropertyWidget::RegisterHandlers();
         CesiumEditorSystemRequestBus::Handler::BusConnect();
         AzToolsFramework::EditorEvents::Bus::Handler::BusConnect();
