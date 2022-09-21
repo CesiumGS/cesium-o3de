@@ -386,9 +386,6 @@ namespace Cesium
         AZ::Data::Asset<AZ::RPI::StreamingImageAsset>& roughness,
         TextureCache& textureCache)
     {
-        static const std::int32_t roughnessTextureSubIdx = 0;
-        static const std::int32_t metallicTextureSubIdx = 1;
-
         const CesiumGltf::Texture* texture = model.getSafe<CesiumGltf::Texture>(&model.textures, textureInfo.index);
         if (!texture)
         {
