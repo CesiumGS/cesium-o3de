@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Cesium/EBus/OriginShiftComponentBus.h>
 #include <AzCore/Component/ComponentBus.h>
 #include <AzCore/RTTI/ReflectContext.h>
 #include <glm/glm.hpp>
