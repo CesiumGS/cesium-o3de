@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Cesium/EBus/GeoReferenceCameraFlyControllerBus.h>
+#include "Cesium/Math/Interpolator.h"
 #include <AzFramework/Input/Events/InputChannelEventListener.h>
 #include <AzCore/Component/Component.h>
 #include <AzCore/Component/EntityId.h>
@@ -11,8 +12,6 @@
 
 namespace Cesium
 {
-    class Interpolator;
-
     class GeoReferenceCameraFlyController
         : public AZ::Component
         , public AZ::TickBus::Handler
