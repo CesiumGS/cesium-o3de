@@ -311,6 +311,8 @@ namespace Cesium
     {
     }
 
+    TilesetComponent::~TilesetComponent() = default;
+
     void TilesetComponent::Init()
     {
     }
