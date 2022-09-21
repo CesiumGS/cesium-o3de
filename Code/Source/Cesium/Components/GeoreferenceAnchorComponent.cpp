@@ -76,7 +76,7 @@ namespace Cesium
     {
         glm::dmat4 enu = absToRelWorld * CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(m_position);
         glm::dquat enuRotation = glm::dquat(enu);
-        glm::dvec3 shift = enu[3];
+        glm::dvec3 shift = glm::dvec3(enu[3]);
         AZ::Vector3 azTranslation = AZ::Vector3(static_cast<float>(shift.x), static_cast<float>(shift.y), static_cast<float>(shift.z));
         AZ::Quaternion azRotation = AZ::Quaternion(
             static_cast<float>(enuRotation.x), static_cast<float>(enuRotation.y), static_cast<float>(enuRotation.z),

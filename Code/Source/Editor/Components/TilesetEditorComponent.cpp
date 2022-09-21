@@ -250,8 +250,8 @@ namespace Cesium
         const auto& volume = m_tilesetComponent->GetRootBoundingVolumeInECEF();
         glm::dmat4 enu = CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(TilesetBoundingVolumeUtil::GetCenter(volume));
         glm::dmat4 relativeTransform = absToRelWorld * m_transform * enu;
-        glm::dvec3 relativeCenter = relativeTransform[3];
-        glm::dquat relativeQuat = relativeTransform;
+        glm::dvec3 relativeCenter = glm::dvec3(relativeTransform[3]);
+        glm::dquat relativeQuat = glm::dquat(relativeTransform);
         AZ::TransformBus::Event(
             GetEntityId(), &AZ::TransformBus::Events::SetWorldTM,
             AZ::Transform::CreateFromQuaternionAndTranslation(

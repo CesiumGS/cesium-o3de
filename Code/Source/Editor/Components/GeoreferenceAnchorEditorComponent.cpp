@@ -128,7 +128,7 @@ namespace Cesium
 
         glm::dmat4 relToAbsWorld{ 1.0 };
         OriginShiftRequestBus::BroadcastResult(relToAbsWorld, &OriginShiftRequestBus::Events::GetRelToAbsWorld);
-        glm::dvec3 position = relToAbsWorld * MathHelper::ToDVec4(translation, 1.0);
+        glm::dvec3 position = glm::dvec3(relToAbsWorld * MathHelper::ToDVec4(translation, 1.0));
         m_georeferenceAnchorComponent.SetPosition(position);
         m_ecefPicker.SetPosition(position, m_positionChangeHandler);
 

@@ -41,7 +41,7 @@ namespace Cesium
 
     AZ::Aabb BoundingVolumeToAABB::operator()(const CesiumGeometry::BoundingSphere& sphere)
     {
-        glm::dvec3 center = m_transform * glm::dvec4(sphere.getCenter(), 1.0);
+        glm::dvec3 center = glm::dvec3(m_transform * glm::dvec4(sphere.getCenter(), 1.0));
         double uniformScale = glm::max(
             glm::max(glm::length(glm::dvec3(m_transform[0])), glm::length(glm::dvec3(m_transform[1]))),
             glm::length(glm::dvec3(m_transform[2])));
@@ -56,7 +56,7 @@ namespace Cesium
 
     AZ::Aabb BoundingVolumeToAABB::operator()(const CesiumGeometry::OrientedBoundingBox& box)
     {
-        glm::dvec3 center = m_transform * glm::dvec4(box.getCenter(), 1.0);
+        glm::dvec3 center = glm::dvec3(m_transform * glm::dvec4(box.getCenter(), 1.0));
         glm::dmat3 halfLengthsAndOrientation = glm::dmat3(m_transform) * box.getHalfAxes();
 
         glm::dvec3 minAabb{ std::numeric_limits<double>::infinity() };
@@ -98,7 +98,7 @@ namespace Cesium
 
     TilesetBoundingVolume BoundingVolumeTransform::operator()(const CesiumGeometry::BoundingSphere& sphere)
     {
-        glm::dvec3 center = m_transform * glm::dvec4(sphere.getCenter(), 1.0);
+        glm::dvec3 center = glm::dvec3(m_transform * glm::dvec4(sphere.getCenter(), 1.0));
         double uniformScale = glm::max(
             glm::max(glm::length(glm::dvec3(m_transform[0])), glm::length(glm::dvec3(m_transform[1]))),
             glm::length(glm::dvec3(m_transform[2])));
@@ -108,7 +108,7 @@ namespace Cesium
 
     TilesetBoundingVolume BoundingVolumeTransform::operator()(const CesiumGeometry::OrientedBoundingBox& box)
     {
-        glm::dvec3 center = m_transform * glm::dvec4(box.getCenter(), 1.0);
+        glm::dvec3 center = glm::dvec3(m_transform * glm::dvec4(box.getCenter(), 1.0));
         glm::dmat3 halfLengthsAndOrientation = glm::dmat3(m_transform) * box.getHalfAxes();
         glm::dvec3 halfLength{ glm::length(halfLengthsAndOrientation[0]), glm::length(halfLengthsAndOrientation[1]),
                                glm::length(halfLengthsAndOrientation[2]) };

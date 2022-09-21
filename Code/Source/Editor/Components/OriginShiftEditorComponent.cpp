@@ -59,7 +59,7 @@ namespace Cesium
         m_onOriginChangeHandler = ECEFPositionChangeEvent::Handler(
             [this](glm::dvec3 position)
             {
-                SetOriginAndRotation(position, glm::inverse(CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(position)));
+                SetOriginAndRotation(position, glm::dmat3(glm::inverse(CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(position))));
             });
     }
 

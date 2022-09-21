@@ -167,7 +167,7 @@ namespace Cesium
             OriginShiftRequestBus::BroadcastResult(relToAbsWorld, &OriginShiftRequestBus::Events::GetRelToAbsWorld);
             AZ::Transform cameraTransform = defaultViewportContext->GetCameraTransform();
             AZ::Vector3 cameraPosition = cameraTransform.GetTranslation();
-            m_position = relToAbsWorld * glm::dvec4(cameraPosition.GetX(), cameraPosition.GetY(), cameraPosition.GetZ(), 1.0);
+            m_position = glm::dvec3(relToAbsWorld * glm::dvec4(cameraPosition.GetX(), cameraPosition.GetY(), cameraPosition.GetZ(), 1.0));
             OnPositionAsCartesianChanged();
         }
 

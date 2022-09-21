@@ -149,7 +149,7 @@ namespace Cesium
     {
         glm::dmat4 enuToECEF = CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(position);
         glm::dmat4 ecefToEnu = glm::inverse(enuToECEF);
-        glm::dvec3 enuDirection = ecefToEnu * glm::dvec4(direction, 0.0);
+        glm::dvec3 enuDirection = glm::dvec3(ecefToEnu * glm::dvec4(direction, 0.0));
         return MathHelper::CalculatePitchRollHead(enuDirection);
     }
 } // namespace Cesium
