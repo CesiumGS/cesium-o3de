@@ -175,8 +175,8 @@ namespace Cesium
                 {
                     if (elements[row]->wasValueEditedByUser())
                     {
-                        actualValue[static_cast<typename TypeBeingHandled::length_type>(col)][static_cast<typename TypeBeingHandled::length_type>(row)] =
-                            elements[row]->getValue();
+                        actualValue[static_cast<typename TypeBeingHandled::length_type>(col)]
+                                   [static_cast<typename TypeBeingHandled::length_type>(row)] = elements[row]->getValue();
                     }
                 }
             }
@@ -194,7 +194,8 @@ namespace Cesium
                 {
                     GUI->setValuebyIndex(
                         col, row,
-                        instance[static_cast<typename TypeBeingHandled::length_type>(col)][static_cast<typename TypeBeingHandled::length_type>(row)]);
+                        instance[static_cast<typename TypeBeingHandled::length_type>(col)]
+                                [static_cast<typename TypeBeingHandled::length_type>(row)]);
                 }
             }
 

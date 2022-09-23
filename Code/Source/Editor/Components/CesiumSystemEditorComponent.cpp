@@ -23,9 +23,10 @@
 #include <CesiumGeospatial/Transforms.h>
 #include <glm/glm.hpp>
 
-// Work around QT macro namespace limitations. 
+// Work around QT macro namespace limitations.
 // Cf. https://stackoverflow.com/a/1392945
-inline void initQTresources(){
+inline void initQTresources()
+{
     Q_INIT_RESOURCE(CesiumResources);
 }
 

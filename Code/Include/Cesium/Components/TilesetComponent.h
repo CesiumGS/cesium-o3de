@@ -30,7 +30,7 @@ namespace Cesium
         static void GetDependentServices(AZ::ComponentDescriptor::DependencyArrayType& dependent);
 
         TilesetComponent();
-        
+
         ~TilesetComponent();
 
         void SetConfiguration(const TilesetConfiguration& configration) override;

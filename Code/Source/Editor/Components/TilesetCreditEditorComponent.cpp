@@ -5,7 +5,6 @@
 
 namespace Cesium
 {
-
     void TilesetCreditEditorComponent::Reflect(AZ::ReflectContext* context)
     {
         if (auto serializeContext = azrtti_cast<AZ::SerializeContext*>(context))

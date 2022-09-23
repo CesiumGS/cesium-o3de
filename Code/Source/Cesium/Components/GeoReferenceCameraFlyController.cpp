@@ -126,7 +126,8 @@ namespace Cesium
     void GeoReferenceCameraFlyController::FlyToECEFLocationWithEulerAngle(
         const glm::dvec3& location, float pitchInRadians, float yawInRadians)
     {
-        glm::dvec3 direction = glm::dvec3(CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(location) *
+        glm::dvec3 direction = glm::dvec3(
+            CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(location) *
             (glm::dquat(glm::dvec3(pitchInRadians, 0.0, yawInRadians)) * glm::dvec4(0.0, 1.0, 0.0, 0.0)));
         direction = glm::normalize(direction);
         FlyToECEFLocationImpl(location, direction, nullptr, nullptr);
@@ -232,7 +233,7 @@ namespace Cesium
                 static_cast<float>(totalRotationQuat.w)));
 
             // calculate camera position
-            glm::dvec3 move = glm::dvec3(totalRotation * glm::dvec4(m_cameraMovement, 0.0)) ;
+            glm::dvec3 move = glm::dvec3(totalRotation * glm::dvec4(m_cameraMovement, 0.0));
             glm::dvec3 newPosition = MathHelper::ToDVec3(relativeCameraTransform.GetTranslation()) + move;
 
             // reset camera pitch and head
@@ -371,8 +372,9 @@ namespace Cesium
 
             glm::dmat4 relToAbsWorld{ 1.0 };
             OriginShiftRequestBus::BroadcastResult(relToAbsWorld, &OriginShiftRequestBus::Events::GetRelToAbsWorld);
-            const glm::dvec3 cameraDir = glm::dvec3(glm::inverse(CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(ecefCurrentPosition)) * 
-                relToAbsWorld * MathHelper::ToDVec4(worldTM.GetBasisY(), 0.0));
+            const glm::dvec3 cameraDir = glm::dvec3(
+                glm::inverse(CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(ecefCurrentPosition)) * relToAbsWorld *
+                MathHelper::ToDVec4(worldTM.GetBasisY(), 0.0));
             glm::dvec3 pitchHeadRoll = MathHelper::CalculatePitchRollHead(cameraDir);
             m_cameraPitch = pitchHeadRoll.x;
             m_cameraHead = pitchHeadRoll.z;
