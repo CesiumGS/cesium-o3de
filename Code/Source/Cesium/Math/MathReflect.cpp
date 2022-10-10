@@ -50,7 +50,124 @@ namespace Cesium
     {
         auto classBuilder = behaviorContext->Class<VecType>(name.c_str())
                                 ->Attribute(AZ::Script::Attributes::Category, "Cesium/Math")
-                                ->Attribute(AZ::Script::Attributes::Storage, AZ::Script::Attributes::StorageType::Value);
+                                ->Attribute(AZ::Script::Attributes::Storage, AZ::Script::Attributes::StorageType::Value)
+                                ->Method(
+                                    "Add",
+                                    [](const VecType& lhs, const VecType& rhs)
+                                    {
+                                        return lhs + rhs;
+                                    })
+                                ->Method(
+                                    "Subtract",
+                                    [](const VecType& lhs, const VecType& rhs)
+                                    {
+                                        return lhs - rhs;
+                                    })
+                                ->Method(
+                                    "Multiply",
+                                    [](const VecType& lhs, const VecType& rhs)
+                                    {
+                                        return lhs * rhs;
+                                    })
+                                ->Method(
+                                    "Divide",
+                                    [](const VecType& lhs, const VecType& rhs)
+                                    {
+                                        return lhs / rhs;
+                                    })
+                                ->Method(
+                                    "MultiplyByConstant",
+                                    [](const VecType& lhs, double rhs)
+                                    {
+                                        return lhs * rhs;
+                                    })
+                                ->Method(
+                                    "DivideByConstant",
+                                    [](const VecType& lhs, double rhs)
+                                    {
+                                        return lhs / rhs;
+                                    })
+                                ->Method(
+                                    "Normalized",
+                                    [](const VecType& vec)
+                                    {
+                                        return glm::normalize(vec);
+                                    })
+                                ->Method(
+                                    "Length",
+                                    [](const VecType& vec)
+                                    {
+                                        return glm::length(vec);
+                                    })
+                                ->Method(
+                                    "LengthSq",
+                                    [](const VecType& vec)
+                                    {
+                                        return glm::dot(vec, vec);
+                                    })
+                                ->Method(
+                                    "Distance",
+                                    [](const VecType& lhs, const VecType& rhs)
+                                    {
+                                        return glm::distance(lhs, rhs);
+                                    })
+                                ->Method(
+                                    "Dot",
+                                    [](const VecType& lhs, const VecType& rhs)
+                                    {
+                                        return glm::dot(lhs, rhs);
+                                    })
+                                ->Method(
+                                    "Abs",
+                                    [](const VecType& vec)
+                                    {
+                                        return glm::abs(vec);
+                                    })
+                                ->Method(
+                                    "Min",
+                                    [](const VecType& lhs, const VecType& rhs)
+                                    {
+                                        return glm::min(lhs, rhs);
+                                    })
+                                ->Method(
+                                    "Max",
+                                    [](const VecType& lhs, const VecType& rhs)
+                                    {
+                                        return glm::max(lhs, rhs);
+                                    })
+                                ->Method(
+                                    "Clamp",
+                                    [](const VecType& x, const VecType& min, const VecType& max)
+                                    {
+                                        return glm::clamp(x, min, max);
+                                    },
+                                    { AZ::BehaviorParameterOverrides("Value"), AZ::BehaviorParameterOverrides("Min"),
+                                      AZ::BehaviorParameterOverrides("Max") })
+                                ->Method(
+                                    "Equal",
+                                    [](const VecType& lhs, const VecType& rhs)
+                                    {
+                                        return lhs == rhs;
+                                    })
+                                ->Method(
+                                    "CreateIdentity",
+                                    []()
+                                    {
+                                        return VecType{ 1.0 };
+                                    })
+                                ->Method(
+                                    "CreateZero",
+                                    []()
+                                    {
+                                        return VecType{ 0.0 };
+                                    })
+                                ->Method(
+                                    "CreateFromConstant",
+                                    [](double c)
+                                    {
+                                        return VecType{ c };
+                                    });
+
         for (std::size_t i = 0; i < VecType::length(); ++i)
         {
             if (i == 0)
@@ -106,123 +223,6 @@ namespace Cesium
                     });
             }
         }
-
-        classBuilder
-            ->Method(
-                "Add",
-                [](const VecType& lhs, const VecType& rhs)
-                {
-                    return lhs + rhs;
-                })
-            ->Method(
-                "Subtract",
-                [](const VecType& lhs, const VecType& rhs)
-                {
-                    return lhs - rhs;
-                })
-            ->Method(
-                "Multiply",
-                [](const VecType& lhs, const VecType& rhs)
-                {
-                    return lhs * rhs;
-                })
-            ->Method(
-                "Divide",
-                [](const VecType& lhs, const VecType& rhs)
-                {
-                    return lhs / rhs;
-                })
-            ->Method(
-                "MultiplyByConstant",
-                [](const VecType& lhs, double rhs)
-                {
-                    return lhs * rhs;
-                })
-            ->Method(
-                "DivideByConstant",
-                [](const VecType& lhs, double rhs)
-                {
-                    return lhs / rhs;
-                })
-            ->Method(
-                "Normalized",
-                [](const VecType& vec)
-                {
-                    return glm::normalize(vec);
-                })
-            ->Method(
-                "Length",
-                [](const VecType& vec)
-                {
-                    return glm::length(vec);
-                })
-            ->Method(
-                "LengthSq",
-                [](const VecType& vec)
-                {
-                    return glm::dot(vec, vec);
-                })
-            ->Method(
-                "Distance",
-                [](const VecType& lhs, const VecType& rhs)
-                {
-                    return glm::distance(lhs, rhs);
-                })
-            ->Method(
-                "Dot",
-                [](const VecType& lhs, const VecType& rhs)
-                {
-                    return glm::dot(lhs, rhs);
-                })
-            ->Method(
-                "Abs",
-                [](const VecType& vec)
-                {
-                    return glm::abs(vec);
-                })
-            ->Method(
-                "Min",
-                [](const VecType& lhs, const VecType& rhs)
-                {
-                    return glm::min(lhs, rhs);
-                })
-            ->Method(
-                "Max",
-                [](const VecType& lhs, const VecType& rhs)
-                {
-                    return glm::max(lhs, rhs);
-                })
-            ->Method(
-                "Clamp",
-                [](const VecType& x, const VecType& min, const VecType& max)
-                {
-                    return glm::clamp(x, min, max);
-                },
-                { AZ::BehaviorParameterOverrides("Value"), AZ::BehaviorParameterOverrides("Min"), AZ::BehaviorParameterOverrides("Max") })
-            ->Method(
-                "Equal",
-                [](const VecType& lhs, const VecType& rhs)
-                {
-                    return lhs == rhs;
-                })
-            ->Method(
-                "CreateIdentity",
-                []()
-                {
-                    return VecType{ 1.0 };
-                })
-            ->Method(
-                "CreateZero",
-                []()
-                {
-                    return VecType{ 0.0 };
-                })
-            ->Method(
-                "CreateFromConstant",
-                [](double c)
-                {
-                    return VecType{ c };
-                });
 
         ReflectGlmVector(*classBuilder);
     }
