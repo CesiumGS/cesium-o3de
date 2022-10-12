@@ -12,10 +12,10 @@
 
 // SRGs
 #include <Atom/Features/PBR/DefaultObjectSrg.azsli>
-#include <Atom/Features/PBR/ForwardPassSrg.azsli>
+#include <Atom/Features/Pipeline/Forward/ForwardPassSrg.azsli>
 
 // Pass Output
-#include <Atom/Features/PBR/ForwardPassOutput.azsli>
+#include <Atom/Features/Pipeline/Forward/ForwardSubsurfacePassOutput.azsli>
 
 // Utility
 #include <Atom/Features/ColorManagement/TransformColor.azsli>
@@ -80,8 +80,6 @@ struct VSOutput
     float2 m_rasterUv[RasterUvSetCount] : UV7;
 };
 
-#include <Atom/Features/Vertex/VertexHelper.azsli>
-
 VSOutput StandardPbr_ForwardPassVS(VSInput IN)
 {
     VSOutput OUT;
@@ -105,7 +103,13 @@ VSOutput StandardPbr_ForwardPassVS(VSInput IN)
     // Shadow coords will be calculated in the pixel shader in this case
     bool skipShadowCoords = ShouldHandleParallax() && o_parallax_enablePixelDepthOffset;
 
-    VertexHelper(IN, OUT, worldPosition, skipShadowCoords);
+    OUT.m_worldPosition = worldPosition;
+    OUT.m_position = mul(ViewSrg::m_viewProjectionMatrix, float4(OUT.m_worldPosition, 1.0));
+
+    float4x4 objectToWorld = ObjectSrg::GetWorldMatrix();
+    float3x3 objectToWorldIT = ObjectSrg::GetWorldMatrixInverseTranspose();
+
+    ConstructTBN(IN.m_normal, IN.m_tangent, objectToWorld, objectToWorldIT, OUT.m_normal, OUT.m_tangent, OUT.m_bitangent);
 
     return OUT;
 }
@@ -157,14 +161,14 @@ PbrLightingOutput ForwardPassPS_Common(VSOutput IN, bool isFrontFace, out float 
                          IN.m_uv[MaterialSrg::m_parallaxUvIndex], IN.m_worldPosition, depthNDC, IN.m_position.w, displacementIsClipped);
 
         // Adjust directional light shadow coordinates for parallax correction
-        if(o_parallax_enablePixelDepthOffset)
-        {
-            const uint shadowIndex = ViewSrg::m_shadowIndexDirectionalLight;
-            if (o_enableShadows && shadowIndex < SceneSrg::m_directionalLightCount)
-            {
-                DirectionalLightShadow::GetShadowCoords(shadowIndex, IN.m_worldPosition, vertexNormal, IN.m_shadowCoords);
-            }
-        }
+        //if(o_parallax_enablePixelDepthOffset)
+        //{
+        //    const uint shadowIndex = ViewSrg::m_shadowIndexDirectionalLight;
+        //    if (o_enableShadows && shadowIndex < SceneSrg::m_directionalLightCount)
+        //    {
+        //        DirectionalLightShadow::GetShadowCoords(shadowIndex, IN.m_worldPosition, vertexNormal, IN.m_shadowCoords);
+        //    }
+        //}
     }
 
     Surface surface;
@@ -225,7 +229,7 @@ PbrLightingOutput ForwardPassPS_Common(VSOutput IN, bool isFrontFace, out float 
     lightingData.Init(surface.position, surface.normal, surface.roughnessLinear);
     
     // Directional light shadow coordinates
-    lightingData.shadowCoords = IN.m_shadowCoords;
+    //lightingData.shadowCoords = IN.m_shadowCoords;
 
     // ------- Emissive -------
 
@@ -281,7 +285,7 @@ PbrLightingOutput ForwardPassPS_Common(VSOutput IN, bool isFrontFace, out float 
     ApplyDecals(lightingData.tileIterator, surface);
 
     // Apply Direct Lighting
-    ApplyDirectLighting(surface, lightingData);
+    ApplyDirectLighting(surface, lightingData, IN.m_position);
 
     // Apply Image Based Lighting (IBL)
     ApplyIBL(surface, lightingData);
@@ -361,8 +365,10 @@ ForwardPassOutputWithDepth StandardPbr_ForwardPassPS(VSOutput IN, bool isFrontFa
     PbrLightingOutput lightingOutput = ForwardPassPS_Common(IN, isFrontFace, depth);
 
 #ifdef UNIFIED_FORWARD_OUTPUT
-    OUT.m_color.rgb = lightingOutput.m_diffuseColor.rgb + lightingOutput.m_specularColor.rgb;
-    OUT.m_color.a = lightingOutput.m_diffuseColor.a;
+    //OUT.m_color.rgb = lightingOutput.m_diffuseColor.rgb + lightingOutput.m_specularColor.rgb;
+    //OUT.m_color.a = lightingOutput.m_diffuseColor.a;
+    OUT.m_diffuseColor = lightingOutput.m_diffuseColor;
+    OUT.m_specularColor = lightingOutput.m_specularColor;
     OUT.m_depth = depth;
 #else
     OUT.m_diffuseColor = lightingOutput.m_diffuseColor;
@@ -384,8 +390,10 @@ ForwardPassOutput StandardPbr_ForwardPassPS_EDS(VSOutput IN, bool isFrontFace : 
     PbrLightingOutput lightingOutput = ForwardPassPS_Common(IN, isFrontFace, depth);
 
 #ifdef UNIFIED_FORWARD_OUTPUT
-    OUT.m_color.rgb = lightingOutput.m_diffuseColor.rgb + lightingOutput.m_specularColor.rgb;
-    OUT.m_color.a = lightingOutput.m_diffuseColor.a;
+    //OUT.m_color.rgb = lightingOutput.m_diffuseColor.rgb + lightingOutput.m_specularColor.rgb;
+    //OUT.m_color.a = lightingOutput.m_diffuseColor.a;
+    OUT.m_diffuseColor = lightingOutput.m_diffuseColor;
+    OUT.m_specularColor = lightingOutput.m_specularColor;
 #else
     OUT.m_diffuseColor = lightingOutput.m_diffuseColor;
     OUT.m_specularColor = lightingOutput.m_specularColor;
