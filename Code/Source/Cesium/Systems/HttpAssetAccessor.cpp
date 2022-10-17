@@ -108,7 +108,8 @@ namespace Cesium
         }
         else
         {
-            assetResponse = std::make_unique<HttpAssetResponse>(404, "", CesiumAsync::HttpHeaders{}, IOContent{});
+            assetResponse =
+                std::make_unique<HttpAssetResponse>(static_cast<std::uint16_t>(404), "", CesiumAsync::HttpHeaders{}, IOContent{});
         }
 
         return std::make_shared<HttpAssetRequest>(std::move(method), std::move(url), std::move(headers), std::move(assetResponse));
