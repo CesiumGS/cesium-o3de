@@ -1,9 +1,10 @@
 # Change Log
 
-### ? - ?
+### v1.1.0 - 2022-10-17
 
 ##### Fixes :wrench:
 
+- Fixes support for O3DE v22.10.0.
 - Change texture's addressU and addressV from wrap to clamp to fix the white seam when rendering imagery.
 
 ### v1.0.0 - 2022-02-15 - Initial Release
