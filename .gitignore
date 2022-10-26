@@ -1,5 +1,6 @@
-External/build
-External/Packages/Install
-External/Packages/CesiumNative/CesiumNative
-External/Packages/CesiumNative/SHA256SUMS
+[Ee]xternal/[Bb]uild
+[Ee]xternal/Packages/Install
+[Ee]xternal/Packages/CesiumNative/CesiumNative
+[Ee]xternal/Packages/CesiumNative/SHA256SUMS
 node_modules
+[Bb]uild

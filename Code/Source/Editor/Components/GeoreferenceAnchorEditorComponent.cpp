@@ -1,3 +1,12 @@
+/*
+ * Copyright (c) Contributors to the Cesium for O3DE Project.
+ * For complete copyright and license terms please see the LICENSE at the root of this distribution.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * 2022-09 - Modifications for Linux Platform support - Huawei Technologies Co., Ltd <foss@huawei.com>
+ */
+
 #include "Editor/Components/GeoreferenceAnchorEditorComponent.h"
 #include "Editor/EBus/CesiumEditorSystemComponentBus.h"
 #include <Cesium/Math/MathReflect.h>
@@ -128,7 +137,7 @@ namespace Cesium
 
         glm::dmat4 relToAbsWorld{ 1.0 };
         OriginShiftRequestBus::BroadcastResult(relToAbsWorld, &OriginShiftRequestBus::Events::GetRelToAbsWorld);
-        glm::dvec3 position = relToAbsWorld * MathHelper::ToDVec4(translation, 1.0);
+        glm::dvec3 position = glm::dvec3(relToAbsWorld * MathHelper::ToDVec4(translation, 1.0));
         m_georeferenceAnchorComponent.SetPosition(position);
         m_ecefPicker.SetPosition(position, m_positionChangeHandler);
 

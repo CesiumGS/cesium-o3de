@@ -1,6 +1,16 @@
+/*
+ * Copyright (c) Contributors to the Cesium for O3DE Project.
+ * For complete copyright and license terms please see the LICENSE at the root of this distribution.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * 2022-09 - Modifications for Linux Platform support - Huawei Technologies Co., Ltd <foss@huawei.com>
+ */
+
 #pragma once
 
 #include <Cesium/EBus/GeoReferenceCameraFlyControllerBus.h>
+#include "Cesium/Math/Interpolator.h"
 #include <AzFramework/Input/Events/InputChannelEventListener.h>
 #include <AzCore/Component/Component.h>
 #include <AzCore/Component/EntityId.h>
@@ -11,8 +21,6 @@
 
 namespace Cesium
 {
-    class Interpolator;
-
     class GeoReferenceCameraFlyController
         : public AZ::Component
         , public AZ::TickBus::Handler
