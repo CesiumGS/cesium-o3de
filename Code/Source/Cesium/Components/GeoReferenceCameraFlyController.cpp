@@ -1,3 +1,12 @@
+/*
+ * Copyright (c) Contributors to the Cesium for O3DE Project.
+ * For complete copyright and license terms please see the LICENSE at the root of this distribution.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * 2022-09 - Modifications for Linux Platform support - Huawei Technologies Co., Ltd <foss@huawei.com>
+ */
+
 #include <Cesium/Components/GeoReferenceCameraFlyController.h>
 #include <Cesium/EBus/OriginShiftComponentBus.h>
 #include "Cesium/Math/MathHelper.h"
