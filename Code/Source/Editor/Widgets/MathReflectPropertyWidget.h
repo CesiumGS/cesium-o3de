@@ -1,3 +1,12 @@
+/*
+ * Copyright (c) Contributors to the Cesium for O3DE Project.
+ * For complete copyright and license terms please see the LICENSE at the root of this distribution.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * 2022-09 - Modifications for Linux Platform support - Huawei Technologies Co., Ltd <foss@huawei.com>
+ */
+
 #pragma once
 
 #include "Editor/Widgets/MatrixInputWidget.h"
@@ -175,8 +184,8 @@ namespace Cesium
                 {
                     if (elements[row]->wasValueEditedByUser())
                     {
-                        actualValue[static_cast<TypeBeingHandled::length_type>(col)][static_cast<TypeBeingHandled::length_type>(row)] =
-                            elements[row]->getValue();
+                        actualValue[static_cast<typename TypeBeingHandled::length_type>(col)]
+                                   [static_cast<typename TypeBeingHandled::length_type>(row)] = elements[row]->getValue();
                     }
                 }
             }
@@ -194,7 +203,8 @@ namespace Cesium
                 {
                     GUI->setValuebyIndex(
                         col, row,
-                        instance[static_cast<TypeBeingHandled::length_type>(col)][static_cast<TypeBeingHandled::length_type>(row)]);
+                        instance[static_cast<typename TypeBeingHandled::length_type>(col)]
+                                [static_cast<typename TypeBeingHandled::length_type>(row)]);
                 }
             }
 

@@ -3,6 +3,7 @@
 #include <Atom/Feature/Mesh/MeshFeatureProcessorInterface.h>
 #include <Atom/RPI.Public/Material/Material.h>
 #include <AzCore/std/containers/vector.h>
+#include <AzFramework/Physics/Common/PhysicsTypes.h>
 #include <glm/glm.hpp>
 
 namespace Cesium
@@ -21,6 +22,7 @@ namespace Cesium
         GltfPrimitive();
 
         AZ::Render::MeshFeatureProcessorInterface::MeshHandle m_meshHandle;
+        AZStd::vector<AzPhysics::SimulatedBodyHandle> m_colliderHandles;
         std::int32_t m_materialIndex;
     };
 
@@ -68,8 +70,7 @@ namespace Cesium
         void Destroy() noexcept;
 
     private:
-        void ConvertMat4ToTransformAndScale(const glm::dmat4& mat4, AZ::Transform& o3deTransform, AZ::Vector3& o3deScale);
-
+        const AZ::Name m_position = AZ::Name("POSITION");
         bool m_visible;
         glm::dmat4 m_transform;
         AZ::Render::MeshFeatureProcessorInterface* m_meshFeatureProcessor;

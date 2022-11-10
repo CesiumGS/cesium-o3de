@@ -1,3 +1,12 @@
+/*
+ * Copyright (c) Contributors to the Cesium for O3DE Project.
+ * For complete copyright and license terms please see the LICENSE at the root of this distribution.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * 2022-09 - Modifications for Linux Platform support - Huawei Technologies Co., Ltd <foss@huawei.com>
+ */
+
 #include "Cesium/Gltf/GltfPBRMaterialBuilder.h"
 #include "Cesium/Systems/CesiumSystem.h"
 #include "Cesium/Systems/CriticalAssetManager.h"
@@ -386,9 +395,6 @@ namespace Cesium
         AZ::Data::Asset<AZ::RPI::StreamingImageAsset>& roughness,
         TextureCache& textureCache)
     {
-        static const std::int32_t roughnessTextureSubIdx = 0;
-        static const std::int32_t metallicTextureSubIdx = 1;
-
         const CesiumGltf::Texture* texture = model.getSafe<CesiumGltf::Texture>(&model.textures, textureInfo.index);
         if (!texture)
         {

@@ -1,3 +1,12 @@
+/*
+ * Copyright (c) Contributors to the Cesium for O3DE Project.
+ * For complete copyright and license terms please see the LICENSE at the root of this distribution.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * 2022-09 - Modifications for Linux Platform support - Huawei Technologies Co., Ltd <foss@huawei.com>
+ */
+
 #include "Editor/Components/ECEFPickerComponentHelper.h"
 #include <Cesium/EBus/TilesetComponentBus.h>
 #include <Cesium/EBus/OriginShiftComponentBus.h>
@@ -167,7 +176,7 @@ namespace Cesium
             OriginShiftRequestBus::BroadcastResult(relToAbsWorld, &OriginShiftRequestBus::Events::GetRelToAbsWorld);
             AZ::Transform cameraTransform = defaultViewportContext->GetCameraTransform();
             AZ::Vector3 cameraPosition = cameraTransform.GetTranslation();
-            m_position = relToAbsWorld * glm::dvec4(cameraPosition.GetX(), cameraPosition.GetY(), cameraPosition.GetZ(), 1.0);
+            m_position = glm::dvec3(relToAbsWorld * glm::dvec4(cameraPosition.GetX(), cameraPosition.GetY(), cameraPosition.GetZ(), 1.0));
             OnPositionAsCartesianChanged();
         }
 
