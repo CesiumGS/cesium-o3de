@@ -22,7 +22,7 @@ namespace Cesium
         GltfPrimitive();
 
         AZ::Render::MeshFeatureProcessorInterface::MeshHandle m_meshHandle;
-        AZStd::vector<AzPhysics::SimulatedBodyHandle> m_colliderHandles; // TODO: Needs to be destroyed at end of lifetime
+        AZStd::vector<AzPhysics::SimulatedBodyHandle> m_colliderHandles;
         std::int32_t m_materialIndex;
     };
 
@@ -70,30 +70,11 @@ namespace Cesium
         void Destroy() noexcept;
 
     private:
-        void SetUpPhysicsCollidersForPrimitive(AZ::Data::Instance<AZ::RPI::Model> visualModel, GltfPrimitive& primitive);
-
-        AZ::Render::MeshFeatureProcessorInterface::ModelChangedEvent::Handler makeModelChangeEventHandlerForPrimitive(GltfPrimitive& primitive)
-        {
-            return AZ::Render::MeshFeatureProcessorInterface::ModelChangedEvent::Handler
-            {
-                [&](AZ::Data::Instance<AZ::RPI::Model> model) { 
-                    SetUpPhysicsCollidersForPrimitive(model, primitive); 
-                }
-            };
-        };
-
-        // TODO: Set up handler for non-uniform scaling. Cf. MeshComponentController.cpp
-        // AZ::NonUniformScaleChangedEvent::Handler m_nonUniformScaleChangedHandler
-        // {
-        //     [&](const AZ::Vector3& nonUniformScale) { HandleNonUniformScaleChange(nonUniformScale); }
-        // };
-
         const AZ::Name m_position = AZ::Name("POSITION");
         bool m_visible;
         glm::dmat4 m_transform;
         AZ::Render::MeshFeatureProcessorInterface* m_meshFeatureProcessor;
         AZStd::vector<GltfMesh> m_meshes;
         AZStd::vector<GltfMaterial> m_materials;
-        // AzPhysics::SceneHandle m_sceneHandle;
     };
 } // namespace Cesium

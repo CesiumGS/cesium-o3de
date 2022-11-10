@@ -66,108 +66,10 @@ namespace Cesium
                     GltfPrimitive primitive;
                     primitive.m_meshHandle = std::move(meshHandle);
                     primitive.m_materialIndex = loadPrimitive.m_materialId;
-
-                    // set up callback to add physics collider upon successful model loading
-                    auto changeEventHandler = makeModelChangeEventHandlerForPrimitive(primitive);
-                    m_meshFeatureProcessor->ConnectModelChangeEventHandler(meshHandle, changeEventHandler);
-                    // also call handler directly in case processing is already complete and no callback will be issued
-                    // TODO: Make sure the colliders are not created twice
-                    SetUpPhysicsCollidersForPrimitive(m_meshFeatureProcessor->GetModel(meshHandle), primitive);
                     
                     gltfMesh.m_primitives.emplace_back(std::move(primitive));
                 }
             }
-        }
-    }
-
-    void GltfModel::SetUpPhysicsCollidersForPrimitive(AZ::Data::Instance<AZ::RPI::Model> visualModel, GltfPrimitive& primitive)
-    {
-        if (visualModel)
-        {
-            AZ_Warning("GltfModel::SetUpPhysicsCollidersForPrimitive", false, "%s", "Adding collider"); 
-            const AZ::Data::Asset<AZ::RPI::ModelAsset>& asset = visualModel->GetModelAsset();
-            AZ_Assert(asset, "Failed to get asset from model");
-            AZ_Assert(asset->IsReady(), "Trying to create collider for asset that has not finished loading")
-
-            auto* sceneInterface = AZ::Interface<AzPhysics::SceneInterface>::Get();
-            AZ_Assert(sceneInterface, "Failed to get scene interface.");
-
-            AzPhysics::SceneHandle sceneHandle = sceneInterface->GetSceneHandle(AzPhysics::DefaultPhysicsSceneName);
-            if (sceneHandle == AzPhysics::InvalidSceneHandle) {
-                sceneHandle = sceneInterface->GetSceneHandle(AzPhysics::EditorPhysicsSceneName);
-            }
-            AZ_Assert(sceneHandle != AzPhysics::InvalidSceneHandle, "Invalid physics scene handle for entity");
-
-            AZ::Transform o3deTransform;
-            AZ::Vector3 o3deScale;
-            MathHelper::ConvertMat4ToTransformAndScale(m_transform, o3deTransform, o3deScale);
-            // AZ_Warning("GltfModel::SetUpPhysicsCollidersForPrimitive", false, "Transform: (%s, %s, %s)", 
-            //     o3deTransform.GetTranslation().GetX(), o3deTransform.GetTranslation().GetY(), o3deTransform.GetTranslation().GetZ()); 
-
-            // prepare collider configuration
-            AZStd::shared_ptr<Physics::ColliderConfiguration> colliderConfig = AZStd::make_shared<Physics::ColliderConfiguration>();
-            colliderConfig->m_position = o3deTransform.GetTranslation();
-
-            if (asset->GetLodAssets().empty() == false)
-            {
-                if (const AZ::Data::Asset<AZ::RPI::ModelLodAsset>& lodAsset = asset->GetLodAssets()[0]) // first mesh is full resolution
-                // for (const AZ::Data::Asset<AZ::RPI::ModelLodAsset>& lodAsset : asset->GetLodAssets())
-                {
-                    primitive.m_colliderHandles.reserve(lodAsset->GetMeshes().size());
-                    for (const AZ::RPI::ModelLodAsset::Mesh& mesh : lodAsset->GetMeshes())
-                    {
-                        // TODO: AZ::Name("POSITION") should not be called in loops but initialized outside
-                        const AZStd::span<const AZ::PackedVector3f> packedVertices = mesh.GetSemanticBufferTyped<AZ::PackedVector3f>(AZ::Name("POSITION"));
-                        AZStd::vector<AZ::Vector3> vertices;
-                        AZStd::transform(packedVertices.begin(), packedVertices.end(), AZStd::back_inserter(vertices),
-                            [&](AZ::PackedVector3f packed) {
-                                return AZ::Vector3(packed.GetX(), packed.GetY(), packed.GetZ());
-                            });
-                        // vertices.reserve(packedVertices.size());
-                        AZ_Assert (vertices.size() == mesh.GetVertexCount(), "Wrong length of vertex array. Underlying buffer not of type AZ::Vector3");
-                        const AZStd::span<const AZ::u32> indices = mesh.GetIndexBufferTyped<AZ::u32>();
-                        AZ_Assert (indices.size() == mesh.GetIndexCount(), "Wrong length of indices array. Underlying buffer not of type AZ::u32");
-                        
-                        AZStd::vector<AZ::u8> cookedData;
-                        bool cookingResult = false;
-                        Physics::SystemRequestBus::BroadcastResult(
-                            cookingResult,
-                            &Physics::SystemRequests::CookTriangleMeshToMemory,
-                            vertices.data(),
-                            static_cast<AZ::u32>(vertices.size()),
-                            indices.data(),
-                            static_cast<AZ::u32>(indices.size()),
-                            cookedData);
-                        AZ_Assert(cookingResult, "Failed to cook the triangle mesh.");
-
-                        // Setup shape & collider configurations
-                        auto shapeConfig = AZStd::make_shared<Physics::CookedMeshShapeConfiguration>();
-                        shapeConfig->SetCookedMeshData(
-                            cookedData.data(), cookedData.size(), Physics::CookedMeshShapeConfiguration::MeshType::TriangleMesh);
-                        shapeConfig->m_scale = o3deScale;
-
-                        // TODO: Can this be reused?
-                        AzPhysics::StaticRigidBodyConfiguration staticRigidBodyConfiguration; // Terrain should be static in the scene
-                        staticRigidBodyConfiguration.m_colliderAndShapeData =
-                            AzPhysics::ShapeColliderPair(colliderConfig, shapeConfig);
-
-                        // Add the mesh to the physics scene
-                        AzPhysics::SimulatedBodyHandle hdl = sceneInterface->AddSimulatedBody(sceneHandle, &staticRigidBodyConfiguration);
-
-                        primitive.m_colliderHandles.emplace_back(std::move(hdl));
-                        
-                        // // Apply transformations to the physics mesh
-                        AZ_Assert(hdl != AzPhysics::InvalidSimulatedBodyHandle, "Adding SimulatedBody failed");
-                        if (AzPhysics::SimulatedBody* body = sceneInterface->GetSimulatedBodyFromHandle(sceneHandle, hdl))
-                        {
-                            body->SetTransform(o3deTransform);
-                            // TODO: apply nonuniform scaling based on `o3deScale`
-                        }
-                    }
-                }
-            }
-        } else {
-            AZ_Warning("GltfModel::SetUpPhysicsCollidersForPrimitive", false, "No visual mesh");
         }
     }
 
@@ -237,24 +139,110 @@ namespace Cesium
     {
         m_visible = visible;
         auto* sceneInterface = AZ::Interface<AzPhysics::SceneInterface>::Get();
+        AZ_Assert(sceneInterface, "Failed to get scene interface.");
+        
         AzPhysics::SceneHandle sceneHandle = sceneInterface->GetSceneHandle(AzPhysics::DefaultPhysicsSceneName);
         if (sceneHandle == AzPhysics::InvalidSceneHandle) {
             sceneHandle = sceneInterface->GetSceneHandle(AzPhysics::EditorPhysicsSceneName);
         }
         AZ_Assert(sceneHandle != AzPhysics::InvalidSceneHandle, "Invalid physics scene handle for entity");
 
+        const AZ::Name position = AZ::Name("POSITION");
+
         for (auto& mesh : m_meshes)
         {
+            glm::dmat4 newTransform = m_transform * mesh.m_transform;
+            AZ::Transform o3deTransform;
+            AZ::Vector3 o3deScale;
+            MathHelper::ConvertMat4ToTransformAndScale(newTransform, o3deTransform, o3deScale);
             for (auto& primitive : mesh.m_primitives)
             {
                 m_meshFeatureProcessor->SetVisible(primitive.m_meshHandle, m_visible);
-                if (sceneInterface)
-                {
+                
+                // deal with physics colliders
+                if (sceneInterface) {
                     if (visible) {
-                        SetUpPhysicsCollidersForPrimitive(m_meshFeatureProcessor->GetModel(primitive.m_meshHandle), primitive);
+                        if (const AZ::Data::Instance<AZ::RPI::Model> visualModel = m_meshFeatureProcessor->GetModel(primitive.m_meshHandle))
+                            {
+                                // AZ_Warning("GltfModel::SetUpPhysicsCollidersForPrimitive", false, "%s", "Adding collider"); 
+                                const AZ::Data::Asset<AZ::RPI::ModelAsset>& asset = visualModel->GetModelAsset();
+                                AZ_Assert(asset, "Failed to get asset from model");
+                                AZ_Assert(asset->IsReady(), "Trying to create collider for asset that has not finished loading")
+
+                                // prepare collider configuration
+                                AZStd::shared_ptr<Physics::ColliderConfiguration> colliderConfig = AZStd::make_shared<Physics::ColliderConfiguration>();
+
+                                if (asset->GetLodAssets().empty() == false)
+                                {
+                                    if (const AZ::Data::Asset<AZ::RPI::ModelLodAsset>& lodAsset = asset->GetLodAssets()[0]) // first mesh is full resolution
+                                    // for (const AZ::Data::Asset<AZ::RPI::ModelLodAsset>& lodAsset : asset->GetLodAssets())
+                                    {
+                                        primitive.m_colliderHandles.reserve(lodAsset->GetMeshes().size());
+                                        for (const AZ::RPI::ModelLodAsset::Mesh& mesh : lodAsset->GetMeshes())
+                                        {
+                                            const AZStd::span<const AZ::PackedVector3f> packedVertices = mesh.GetSemanticBufferTyped<AZ::PackedVector3f>(position);
+                                            AZStd::vector<AZ::Vector3> vertices;
+                                            AZStd::transform(packedVertices.begin(), packedVertices.end(), AZStd::back_inserter(vertices),
+                                                [&](AZ::PackedVector3f packed) {
+                                                    return AZ::Vector3(packed.GetX(), packed.GetY(), packed.GetZ());
+                                                });
+                                            AZ_Assert (vertices.size() == mesh.GetVertexCount(), "Wrong length of vertex array. Underlying buffer not of type AZ::Vector3");
+                                            
+                                            const AZStd::span<const AZ::u32> indices = mesh.GetIndexBufferTyped<AZ::u32>();
+                                            AZ_Assert (indices.size() == mesh.GetIndexCount(), "Wrong length of indices array. Underlying buffer not of type AZ::u32");
+                                            
+                                            AZStd::vector<AZ::u8> cookedData;
+                                            bool cookingResult = false;
+                                            Physics::SystemRequestBus::BroadcastResult(
+                                                cookingResult,
+                                                &Physics::SystemRequests::CookTriangleMeshToMemory,
+                                                vertices.data(),
+                                                static_cast<AZ::u32>(vertices.size()),
+                                                indices.data(),
+                                                static_cast<AZ::u32>(indices.size()),
+                                                cookedData);
+                                            AZ_Assert(cookingResult, "Failed to cook the triangle mesh.");
+
+                                            // Setup shape & collider configurations
+                                            auto shapeConfig = AZStd::make_shared<Physics::CookedMeshShapeConfiguration>();
+                                            shapeConfig->SetCookedMeshData(
+                                                cookedData.data(), cookedData.size(), Physics::CookedMeshShapeConfiguration::MeshType::TriangleMesh);
+                                            shapeConfig->m_scale = o3deScale;
+
+                                            // TODO: Can this be reused? It is possible to have multiple shapes in a single physics body.
+                                            AzPhysics::StaticRigidBodyConfiguration staticRigidBodyConfiguration; // Terrain should be static in the scene
+                                            staticRigidBodyConfiguration.m_colliderAndShapeData =
+                                                AzPhysics::ShapeColliderPair(colliderConfig, shapeConfig);
+
+                                            // Add the mesh to the physics scene
+                                            AzPhysics::SimulatedBodyHandle hdl = sceneInterface->AddSimulatedBody(sceneHandle, &staticRigidBodyConfiguration);
+                                            AZ_Assert(hdl != AzPhysics::InvalidSimulatedBodyHandle, "Adding SimulatedBody failed");
+
+                                            primitive.m_colliderHandles.emplace_back(std::move(hdl));
+                                            
+                                            // Apply transformations to the physics mesh
+                                            AzPhysics::SimulatedBody* body = sceneInterface->GetSimulatedBodyFromHandle(sceneHandle, hdl);
+                                            AZ_Assert(body != nullptr, "Unable to get SimulatedBody");
+                                            body->SetTransform(o3deTransform);
+                                        }
+                                    }
+                                }
+                            }
+
+                            // TODO: Investigate alternative usage of enabling/disabling sim bodies. Will be hard to track with dynamically loaded tiles.
+                            // for (auto handle : primitive.m_colliderHandles)
+                            // {
+                            //     sceneInterface->EnableSimulationOfBody(sceneHandle, handle);
+                            // }
                     } else {
                         sceneInterface->RemoveSimulatedBodies(sceneHandle, primitive.m_colliderHandles);
                         primitive.m_colliderHandles.clear();
+
+                        // TODO: Investigate alternative usage of enabling/disabling sim bodies. Will be hard to track with dynamically loaded tiles.
+                        // for (auto handle : primitive.m_colliderHandles)
+                        // {
+                        //     sceneInterface->DisableSimulationOfBody(sceneHandle, handle);
+                        // }
                     }
                 }
             }
@@ -288,7 +276,6 @@ namespace Cesium
                     if (AzPhysics::SimulatedBody* body = sceneInterface->GetSimulatedBodyFromHandle(sceneHandle, hdl))
                     {
                         body->SetTransform(o3deTransform);
-                        // TODO: apply nonuniform scaling based on `o3deScale`
                     }
                 }
             }
