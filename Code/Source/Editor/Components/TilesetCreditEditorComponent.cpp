@@ -1,3 +1,12 @@
+/*
+ * Copyright (c) Contributors to the Cesium for O3DE Project.
+ * For complete copyright and license terms please see the LICENSE at the root of this distribution.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * 2022-09 - Modifications for Linux Platform support - Huawei Technologies Co., Ltd <foss@huawei.com>
+ */
+
 #include "Editor/Components/TilesetCreditEditorComponent.h"
 #include <Cesium/Components/TilesetCreditComponent.h>
 #include <AzCore/Serialization/SerializeContext.h>
@@ -5,7 +14,6 @@
 
 namespace Cesium
 {
-
     void TilesetCreditEditorComponent::Reflect(AZ::ReflectContext* context)
     {
         if (auto serializeContext = azrtti_cast<AZ::SerializeContext*>(context))

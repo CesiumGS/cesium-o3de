@@ -1,3 +1,12 @@
+/*
+ * Copyright (c) Contributors to the Cesium for O3DE Project.
+ * For complete copyright and license terms please see the LICENSE at the root of this distribution.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * 2022-09 - Modifications for Linux Platform support - Huawei Technologies Co., Ltd <foss@huawei.com>
+ */
+
 #include "Cesium/Gltf/BitangentAndTangentGenerator.h"
 #include <mikkelsen/mikktspace.h>
 
@@ -79,7 +88,7 @@ namespace Cesium
             else
             {
                 std::size_t vertexIndex = static_cast<std::size_t>(face * 3 + vert);
-                const glm::vec2& uv = uvs[vertexIndex];
+                const glm::vec2& uv = glm::vec2(uvs[vertexIndex]);
                 texOut[0] = static_cast<float>(uv.x) / 256.0f;
                 texOut[1] = static_cast<float>(uv.y) / 256.0f;
             }
@@ -97,7 +106,7 @@ namespace Cesium
             else
             {
                 std::size_t vertexIndex = static_cast<std::size_t>(face * 3 + vert);
-                const glm::vec2& uv = uvs[vertexIndex];
+                const glm::vec2& uv = glm::vec2(uvs[vertexIndex]);
                 texOut[0] = static_cast<float>(uv.x) / 65536.0f;
                 texOut[1] = static_cast<float>(uv.y) / 65536.0f;
             }

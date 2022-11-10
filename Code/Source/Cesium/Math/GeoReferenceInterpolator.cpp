@@ -1,3 +1,12 @@
+/*
+ * Copyright (c) Contributors to the Cesium for O3DE Project.
+ * For complete copyright and license terms please see the LICENSE at the root of this distribution.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * 2022-09 - Modifications for Linux Platform support - Huawei Technologies Co., Ltd <foss@huawei.com>
+ */
+
 #include "Cesium/Math/GeoReferenceInterpolator.h"
 #include "Cesium/Math/MathHelper.h"
 #include <CesiumGeospatial/Transforms.h>
@@ -149,7 +158,7 @@ namespace Cesium
     {
         glm::dmat4 enuToECEF = CesiumGeospatial::Transforms::eastNorthUpToFixedFrame(position);
         glm::dmat4 ecefToEnu = glm::inverse(enuToECEF);
-        glm::dvec3 enuDirection = ecefToEnu * glm::dvec4(direction, 0.0);
+        glm::dvec3 enuDirection = glm::dvec3(ecefToEnu * glm::dvec4(direction, 0.0));
         return MathHelper::CalculatePitchRollHead(enuDirection);
     }
 } // namespace Cesium

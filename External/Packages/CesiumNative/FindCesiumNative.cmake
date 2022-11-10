@@ -1,4 +1,13 @@
+#
+# Copyright (c) Contributors to the Cesium for O3DE Project.
+# For complete copyright and license terms please see the LICENSE at the root of this distribution.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# 2022-09 - Modifications for Linux Platform support - Huawei Technologies Co., Ltd <foss@huawei.com>
+
 set(LIB_NAME "CesiumNative")
+
 set(TARGET_WITH_NAMESPACE "3rdParty::${LIB_NAME}")
 if (TARGET ${TARGET_WITH_NAMESPACE})
     return()
@@ -7,9 +16,7 @@ endif()
 set(${LIB_NAME}_INCLUDE_DIR ${CMAKE_CURRENT_LIST_DIR}/${LIB_NAME}/include)
 set(${LIB_NAME}_LIBS_DIR ${CMAKE_CURRENT_LIST_DIR}/${LIB_NAME}/lib/${CMAKE_SYSTEM_NAME})
 
-if (${PAL_PLATFORM_NAME} STREQUAL "Windows")
-    file(GLOB ${LIB_NAME}_LIBRARY ${${LIB_NAME}_LIBS_DIR}/*.lib)
-endif()
+file(GLOB ${LIB_NAME}_LIBRARY ${${LIB_NAME}_LIBS_DIR}/*${CMAKE_STATIC_LIBRARY_SUFFIX})
 
 add_library(${TARGET_WITH_NAMESPACE} INTERFACE IMPORTED GLOBAL)
 

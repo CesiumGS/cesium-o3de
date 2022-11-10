@@ -1,3 +1,12 @@
+/*
+ * Copyright (c) Contributors to the Cesium for O3DE Project.
+ * For complete copyright and license terms please see the LICENSE at the root of this distribution.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ *
+ * 2022-09 - Modifications for Linux Platform support - Huawei Technologies Co., Ltd <foss@huawei.com>
+ */
+
 #include "Editor/Components/CesiumSystemEditorComponent.h"
 #include "Editor/Components/TilesetEditorComponent.h"
 #include "Editor/Components/CesiumIonRasterOverlayEditorComponent.h"
@@ -22,6 +31,13 @@
 #include <AzCore/Math/MatrixUtils.h>
 #include <CesiumGeospatial/Transforms.h>
 #include <glm/glm.hpp>
+
+// Work around QT macro namespace limitations.
+// Cf. https://stackoverflow.com/a/1392945
+inline void initQTresources()
+{
+    Q_INIT_RESOURCE(CesiumResources);
+}
 
 namespace Cesium
 {
@@ -70,7 +86,7 @@ namespace Cesium
 
     void CesiumSystemEditorComponent::Activate()
     {
-        Q_INIT_RESOURCE(CesiumResources);
+        initQTresources();
         MathReflectPropertyWidget::RegisterHandlers();
         CesiumEditorSystemRequestBus::Handler::BusConnect();
         AzToolsFramework::EditorEvents::Bus::Handler::BusConnect();
