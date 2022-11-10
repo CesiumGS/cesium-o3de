@@ -24,6 +24,27 @@ namespace Cesium
         return newTransform;
     }
 
+    void MathHelper::ConvertMat4ToTransformAndScale(const glm::dmat4& mat4, AZ::Transform& o3deTransform, AZ::Vector3& o3deScale)
+    {
+        // set transformation. Since AZ::Transform doesn' accept non-uniform scale, we
+        // decompose matrix to translation and rotation and set them for AZ::Transform.
+        // For non-uniform scale, we set it separately
+        const glm::dvec4& translation = mat4[3];
+        glm::dvec3 scale;
+        for (std::uint32_t i = 0; i < 3; ++i)
+        {
+            scale[i] = glm::length(mat4[i]);
+        }
+        const glm::dmat3 rotMtx(glm::dvec3(mat4[0]) / scale[0], glm::dvec3(mat4[1]) / scale[1], glm::dvec3(mat4[2]) / scale[2]);
+        glm::dquat quarternion = glm::quat_cast(rotMtx);
+        AZ::Quaternion o3deQuarternion{ static_cast<float>(quarternion.x), static_cast<float>(quarternion.y),
+                                        static_cast<float>(quarternion.z), static_cast<float>(quarternion.w) };
+        AZ::Vector3 o3deTranslation{ static_cast<float>(translation.x), static_cast<float>(translation.y),
+                                     static_cast<float>(translation.z) };
+        o3deScale = AZ::Vector3{ static_cast<float>(scale.x), static_cast<float>(scale.y), static_cast<float>(scale.z) };
+        o3deTransform = AZ::Transform::CreateFromQuaternionAndTranslation(o3deQuarternion, o3deTranslation);
+    }
+
     glm::dquat MathHelper::ToDQuaternion(const AZ::Quaternion& quat)
     {
         return glm::dquat(quat.GetW(), quat.GetX(), quat.GetY(), quat.GetZ());
