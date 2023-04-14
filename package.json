@@ -1,8 +1,8 @@
 {
   "name": "cesium-o3de",
+  "main": "index.js",
   "version": "1.0.0",
   "description": "Cesium for O3DE",
-  "main": "index.js",
   "directories": {
     "doc": "Documentation"
   },
